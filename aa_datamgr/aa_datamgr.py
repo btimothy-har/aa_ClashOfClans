@@ -403,18 +403,18 @@ class AriXClashDataMgr(commands.Cog):
 
             if p.player.tag in currentMembers:
                 try:
-                    existing_user = ctx.bot.get_user(int(allianceJson['members'][p.player.tag]['discord_user']))
+                    existing_user = ctx.bot.get_user(int(p.discordUser))
                     existing_user = existing_user.mention
                 except:
-                    existing_user = "[Invalid User]"
+                    existing_user = "Invalid User"
 
-                if allianceJson['members'][p.player.tag]['is_member'] == False:
+                if p.isMember == False:
                     mStatus = "Non-Member"
                 else:
-                    mStatus = f"{allianceJson['members'][p.player.tag]['status']} of {allianceJson['clans'][allianceJson['members'][p.player.tag]['home_clan']]['name']}"
+                    mStatus = f"{p.memberStatus} of {allianceJson['clans'][p.homeClan]['name']}"
                 
                 #Discord User on file does not match new user: request confirmation.
-                if allianceJson['members'][p.player.tag]['discord_user'] != userID:
+                if p.discordUser != userID:
                     zEmbed = await clash_embed(ctx,
                         message=f"The account below is already linked to another user. Please confirm that you wish to continue.")
                     zEmbed.add_field(
@@ -432,7 +432,7 @@ class AriXClashDataMgr(commands.Cog):
                         continue
 
                 #Is a current active member, but in a different clan: request confirmation.
-                elif allianceJson['members'][p.player.tag]['is_member'] == True and homeClan.tag != allianceJson['members'][p.player.tag]['home_clan']:
+                elif p.isMember == True and homeClan.tag != p.homeClan:
                     zEmbed = await clash_embed(ctx,
                         message=f"The account below is already an active member in the alliance. Please confirm that you wish to continue.")
                     zEmbed.add_field(
@@ -444,16 +444,16 @@ class AriXClashDataMgr(commands.Cog):
                     if not await react_confirmation(self,ctx,zMsg):
                         errD = {
                             'tag':tag,
-                            'reason':f'Already an active member in {allianceJson['clans'][allianceJson['members'][p.player.tag]['home_clan']]['name']}.'
+                            'reason':f"Already an active member in {allianceJson['clans'][p.homeClan]['name']}."
                             }
                         failedAdd.append(errD)
                         continue
 
                 #Current active member, and in the same clan: do not process.
-                elif allianceJson['members'][p.player.tag]['is_member'] == True and homeClan.tag == allianceJson['members'][p.player.tag]['home_clan']:
+                elif p.isMember == True and homeClan.tag == p.homeClan:
                     errD = {
                         'tag':tag,
-                        'reason':f'Already an active member in {homeClan.name}.'
+                        'reason':f"Already an active member in {homeClan.name}."
                         }
                     failedAdd.append(errD)
                     continue
