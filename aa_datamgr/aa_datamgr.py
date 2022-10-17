@@ -9,7 +9,6 @@ import asyncio
 import random
 import time
 
-from os import path
 from dotenv import load_dotenv
 from redbot.core import Config, commands
 from discord.utils import get
@@ -67,13 +66,13 @@ class AriXClashDataMgr(commands.Cog):
         currSeason = await get_current_season()
         default_alliance, default_members, default_warlog, default_capitalraid = await datafile_defaults()
 
-        if not path.exists(self.cDirPath+'/alliance.json'):
+        if not os.path.exists(self.cDirPath+'/alliance.json'):
             await datafile_save(self,'alliance',default_alliance)
-        if not path.exists(self.cDirPath+'/members.json'):
+        if not os.path.exists(self.cDirPath+'/members.json'):
             await datafile_save(self,'members',default_members)
-        if not path.exists(self.cDirPath+'/warlog.json'):
+        if not os.path.exists(self.cDirPath+'/warlog.json'):
             await datafile_save(self,'warlog',default_warlog)
-        if not path.exists(self.cDirPath+'/capitalraid.json'):
+        if not os.path.exists(self.cDirPath+'/capitalraid.json'):
             await datafile_save(self,'capitalraid',default_capitalraid)
 
     @commands.group(name="datafiles",autohelp=False)
@@ -83,10 +82,10 @@ class AriXClashDataMgr(commands.Cog):
         if not ctx.invoked_subcommand:
             embed = await clash_embed(ctx=ctx,
                                         title="Data File Status",
-                                        message=f"**alliance.json**: {path.exists(self.cDirPath+'/alliance.json')}"
-                                                +f"\n**members.json**: {path.exists(self.cDirPath+'/members.json')}"
-                                                +f"\n**warlog.json**: {path.exists(self.cDirPath+'/warlog.json')}"
-                                                +f"\n**capitalraid.json**: {path.exists(self.cDirPath+'/capitalraid.json')}"
+                                        message=f"**alliance.json**: {os.path.exists(self.cDirPath+'/alliance.json')}"
+                                                +f"\n**members.json**: {os.path.exists(self.cDirPath+'/members.json')}"
+                                                +f"\n**warlog.json**: {os.path.exists(self.cDirPath+'/warlog.json')}"
+                                                +f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}"
                                                 +f"\n\nRun `[p]datafiles init` to create any missing files.")
             await ctx.send(embed=embed)
 
@@ -114,10 +113,10 @@ class AriXClashDataMgr(commands.Cog):
             
         embed = await clash_embed(ctx=ctx,
                     title="All Data Files Reset.",
-                    message=f"**alliance.json**: {path.exists(self.cDirPath+'/alliance.json')}"
-                            +f"\n**members.json**: {path.exists(self.cDirPath+'/members.json')}"
-                            +f"\n**warlog.json**: {path.exists(self.cDirPath+'/warlog.json')}"
-                            +f"\n**capitalraid.json**: {path.exists(self.cDirPath+'/capitalraid.json')}",
+                    message=f"**alliance.json**: {os.path.exists(self.cDirPath+'/alliance.json')}"
+                            +f"\n**members.json**: {os.path.exists(self.cDirPath+'/members.json')}"
+                            +f"\n**warlog.json**: {os.path.exists(self.cDirPath+'/warlog.json')}"
+                            +f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}",
                     color="success")
             
         await ctx.send(embed=embed)
@@ -153,7 +152,7 @@ class AriXClashDataMgr(commands.Cog):
                                     thumbnail=ctx.guild.icon_url)
                 return await ctx.send(embed=embed)
 
-    @serversettings.command(name="setlogs")
+    @serversettings.command(name="sendlogs")
     @commands.admin_or_permissions(administrator=True)
     async def setlogs(self, ctx, boolset:bool):
         """Configure whether to send data logs in the current server."""
@@ -181,7 +180,7 @@ class AriXClashDataMgr(commands.Cog):
             embed = await clash_embed(ctx=ctx,message=f"Error updating settings.",color="fail")
             return await ctx.send(embed=embed)
 
-    @serversettings.command(name="setchannel")
+    @serversettings.command(name="logchannel")
     @commands.admin_or_permissions(administrator=True)
     async def setchannel(self, ctx, channel:discord.TextChannel):
         """Configure channel to send log messages in."""
@@ -401,6 +400,64 @@ class AriXClashDataMgr(commands.Cog):
                 continue
             
             fTitle, fStr = await player_shortfield(self,ctx,p)
+
+            if p.player.tag in currentMembers:
+                try:
+                    existing_user = ctx.bot.get_user(int(allianceJson['members'][p.player.tag]['discord_user']))
+                    existing_user = existing_user.mention
+                except:
+                    existing_user = "[Invalid User]"
+
+                if allianceJson['members'][p.player.tag]['is_member'] == False:
+                    mStatus = "Non-Member"
+                else:
+                    mStatus = f"{allianceJson['members'][p.player.tag]['status']} of {allianceJson['clans'][allianceJson['members'][p.player.tag]['home_clan']]['name']}"
+                
+                #Discord User on file does not match new user: request confirmation.
+                if allianceJson['members'][p.player.tag]['discord_user'] != userID:
+                    zEmbed = await clash_embed(ctx,
+                        message=f"The account below is already linked to another user. Please confirm that you wish to continue.")
+                    zEmbed.add_field(
+                        name=f"**{fTitle}**",
+                        value=f"{fStr}\n{mStatus}\nLinked to: {existing_user}",
+                        inline=False)
+
+                    zMsg = await ctx.send(embed=zEmbed)
+                    if not await react_confirmation(self,ctx,zMsg):
+                        errD = {
+                            'tag':tag,
+                            'reason':'Already registered to another user.'
+                            }
+                        failedAdd.append(errD)
+                        continue
+
+                #Is a current active member, but in a different clan: request confirmation.
+                elif allianceJson['members'][p.player.tag]['is_member'] == True and homeClan.tag != allianceJson['members'][p.player.tag]['home_clan']:
+                    zEmbed = await clash_embed(ctx,
+                        message=f"The account below is already an active member in the alliance. Please confirm that you wish to continue.")
+                    zEmbed.add_field(
+                        name=f"**{fTitle}**",
+                        value=f"{fStr}\n{mStatus}\nLinked to: {existing_user}",
+                        inline=False)
+
+                    zMsg = await ctx.send(embed=zEmbed)
+                    if not await react_confirmation(self,ctx,zMsg):
+                        errD = {
+                            'tag':tag,
+                            'reason':f'Already an active member in {allianceJson['clans'][allianceJson['members'][p.player.tag]['home_clan']]['name']}.'
+                            }
+                        failedAdd.append(errD)
+                        continue
+
+                #Current active member, and in the same clan: do not process.
+                elif allianceJson['members'][p.player.tag]['is_member'] == True and homeClan.tag == allianceJson['members'][p.player.tag]['home_clan']:
+                    errD = {
+                        'tag':tag,
+                        'reason':f'Already an active member in {homeClan.name}.'
+                        }
+                    failedAdd.append(errD)
+                    continue
+
             cEmbed.add_field(
                 name=f"**{fTitle}**",
                 value=f"{fStr}",
@@ -729,14 +786,14 @@ class AriXClashDataMgr(commands.Cog):
             sEmbed.add_field(
                 name=f"**New Season Initialized: {nSeason}**",
                 value=f"__Files Saved__"
-                    + f"\n**{pSeason}/members.json**: {path.exists(self.cDirPath+'/'+pSeason+'/members.json')}"
-                    + f"\n**{pSeason}/warlog.json**: {path.exists(self.cDirPath+'/'+pSeason+'/warlog.json')}"
-                    + f"\n**{pSeason}/capitalraid.json**: {path.exists(self.cDirPath+'/'+pSeason+'/capitalraid.json')}"
+                    + f"\n**{pSeason}/members.json**: {os.path.exists(self.cDirPath+'/'+pSeason+'/members.json')}"
+                    + f"\n**{pSeason}/warlog.json**: {os.path.exists(self.cDirPath+'/'+pSeason+'/warlog.json')}"
+                    + f"\n**{pSeason}/capitalraid.json**: {os.path.exists(self.cDirPath+'/'+pSeason+'/capitalraid.json')}"
                     + f"\n\u200b\n"
                     + f"__Files Created__"
-                    + f"\n**members.json**: {path.exists(self.cDirPath+'/members.json')}"
-                    + f"\n**warlog.json**: {path.exists(self.cDirPath+'/warlog.json')}"
-                    + f"\n**capitalraid.json**: {path.exists(self.cDirPath+'/capitalraid.json')}",
+                    + f"\n**members.json**: {os.path.exists(self.cDirPath+'/members.json')}"
+                    + f"\n**warlog.json**: {os.path.exists(self.cDirPath+'/warlog.json')}"
+                    + f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}",
                 inline=False)
 
         for tag, member in allianceJson['members'].items():
@@ -788,15 +845,21 @@ class AriXClashDataMgr(commands.Cog):
 
     @commands.command(name="test")
     async def test(self, ctx):
-        testwar = await self.cClient.get_clan_war('28VUPJRPU')
+        #testwar = await self.cClient.get_clan_war('28VUPJRPU')
 
-        await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
+        #await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
 
-        tag = testwar.clan.tag
+        #tag = testwar.clan.tag
 
         #for member in testwar.members:
         #    if member.clan.tag == tag:
         #        await ctx.send(f"{member.map_position} {member.name}")
 
-        for attack in testwar.attacks:
-            await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
+        #for attack in testwar.attacks:
+        #    await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
+
+        uid = int(644530507505336330)
+
+        user = ctx.bot.get_user(uid)
+
+        await ctx.send(f"{user.name} {user.discriminator}")

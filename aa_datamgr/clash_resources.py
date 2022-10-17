@@ -7,7 +7,6 @@ import random
 import time
 import pytz
 
-from os import path
 from dotenv import load_dotenv
 from redbot.core import Config, commands
 from discord.utils import get
