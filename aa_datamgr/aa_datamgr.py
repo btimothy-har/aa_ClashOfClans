@@ -122,7 +122,7 @@ class AriXClashDataMgr(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.group(name="serverset",autohelp=False)
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     async def serversettings(self,ctx):
         """Configure settings for the current server."""
         if not ctx.invoked_subcommand:
@@ -153,7 +153,7 @@ class AriXClashDataMgr(commands.Cog):
                 return await ctx.send(embed=embed)
 
     @serversettings.command(name="sendlogs")
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     async def setlogs(self, ctx, boolset:bool):
         """Configure whether to send data logs in the current server."""
 
@@ -181,7 +181,7 @@ class AriXClashDataMgr(commands.Cog):
             return await ctx.send(embed=embed)
 
     @serversettings.command(name="logchannel")
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     async def setchannel(self, ctx, channel:discord.TextChannel):
         """Configure channel to send log messages in."""
 
@@ -207,7 +207,7 @@ class AriXClashDataMgr(commands.Cog):
             embed = await clash_embed(ctx=ctx,message=f"Error updating settings.",color="fail")
             return await ctx.send(embed=embed)
 
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     @commands.command(name="drefresh")
     async def data_update(self, ctx):
 
