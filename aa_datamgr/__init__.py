@@ -11,7 +11,7 @@ load_dotenv()
 sys.path.append(os.getenv("RESOURCEPATH"))
 
 from redbot.core.bot import Red
-from .coc_datamgr import AriXClashDataMgr
+from .aa_datamgr import AriXClashDataMgr
 
 async def setup(bot:Red):
     shutil.copy("clash_resources.py",os.getenv("RESOURCEPATH"))
