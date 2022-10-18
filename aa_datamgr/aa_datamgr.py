@@ -326,6 +326,9 @@ class AriXClashDataMgr(commands.Cog):
                         warUpdateStr += f"\n**War is now ended.**"
                     warUpdateStr += "\n\u200b\n\u200b"
 
+            if warUpdateStr == '':
+                warUpdateStr = "No Wars Found."
+
             sEmbed.add_field(
                 name=f"**War Updates Completed**",
                 value=warUpdateStr,
