@@ -12,16 +12,17 @@ from redbot.core import Config, commands
 from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
+from numerize import numerize
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 th_emotes = {
-    1:"<:TH7:825570842616397884>",
-    2:"<:TH7:825570842616397884>",
-    3:"<:TH7:825570842616397884>",
-    4:"<:TH7:825570842616397884>",
-    5:"<:TH7:825570842616397884>",
-    6:"<:TH7:825570842616397884>",
-    7:"<:TH7:825570842616397884>",
+    1:"<:TH8:825570963533463612>",
+    2:"<:TH8:825570963533463612>",
+    3:"<:TH8:825570963533463612>",
+    4:"<:TH8:825570963533463612>",
+    5:"<:TH8:825570963533463612>",
+    6:"<:TH8:825570963533463612>",
+    7:"<:TH8:825570963533463612>",
     8:"<:TH8:825570963533463612>",
     9:"<:TH9:825571026326781963>",
     10:"<:TH10:825571431131119666>",
@@ -204,10 +205,14 @@ async def datafile_save(self,file,new_data):
                 json.dump(new_data,file,indent=2)
         return
 
-async def get_current_alliance(self):
+async def get_current_alliance(self,rdict=False):
     allianceJson = await datafile_retrieve(self,'alliance')
-    clansList = list(allianceJson['clans'].keys())
-    memberList = list(allianceJson['members'].keys())
+    if rdict:
+        clansList = allianceJson['clans']
+        memberList = allianceJson['members']
+    else:
+        clansList = list(allianceJson['clans'].keys())
+        memberList = list(allianceJson['members'].keys())
     return clansList,memberList
 
 async def get_current_season():
@@ -256,9 +261,14 @@ async def player_shortfield(self,ctx,pObject):
     return title,fieldStr
 
 async def player_embed(self,ctx,pObject):
+    if pObject.isMember:
+        mStatus = f"***{pObject.memberStatus} of {pObject.homeClan['name']}***\n\n"
+    else:
+        mStatus = ""
+
     pEmbed = await clash_embed(ctx,
         title=f"{pObject.player.name} ({pObject.player.tag})",
-        message=f"<:Exp:825654249475932170>{pObject.player.exp_level}\u3000<:Clan:825654825509322752> {pObject.clanDescription}",
+        message=f"{mStatus}<:Exp:825654249475932170>{pObject.player.exp_level}\u3000<:Clan:825654825509322752> {pObject.clanDescription}",
         url=f"https://www.clashofstats.com/players/{pObject.player.tag.replace('#','')}",
         thumbnail=pObject.player.league.icon.url)
 
@@ -297,6 +307,53 @@ async def player_embed(self,ctx,pObject):
                 + f"\n<:BH_TroopStrength:827732057554812939> {pObject.builderTroopStrength}\u3000{hero_emotes['Battle Machine']} {pObject.battleMachine}"
                 + "\n\u200b",
             inline=False)
+
+    if pObject.isMember == True:
+        if isinstance(pObject.arixLastUpdate,str):
+            lastseen_tdelta = datetime.datetime.now() - datetime.datetime.strptime(player.arixLastUpdate,"%Y-%m-%d %H:%M:%S.%f")
+            lastseen_seconds = lastseen_tdelta.total_seconds()
+            lastseen_days,lastseen_seconds = divmod(lastseen_seconds,86400)
+            lastseen_hours,lastseen_seconds = divmod(lastseen_seconds,3600)
+            lastseen_minutes,lastseen_seconds = divmod(lastseen_seconds,60)
+        elif isinstance(pObject.arixLastUpdate,float):
+            cnow = time.time()
+            dtime = cnow - pObject.arixLastUpdate                            
+            dtime_days,dtime = divmod(dtime,86400)
+            dtime_hours,dtime = divmod(dtime,3600)
+            dtime_minutes,dtime = divmod(dtime,60)
+
+        lastseen_text = ''
+        if dtime_days > 0:
+            lastseen_text += f"{int(dtime_days)} days "
+        if dtime_hours > 0:
+            lastseen_text += f"{int(dtime_hours)} hours "
+        if dtime_minutes > 0:
+            lastseen_text += f"{int(dtime_minutes)} mins "
+        if lastseen_text == '':
+            lastseen_text = "a few seconds "
+
+        lootGold = numerize.numerize(pObject.arixLoot['gold']['season'],1)
+        lootElixir = numerize.numerize(pObject.arixLoot['elixir']['season'],1)
+        lootDarkElixir = numerize.numerize(pObject.arixLoot['darkElixir']['season'],1)
+
+        clanCapitalGold = numerize.numerize(pObject.arixClanCapital['capitalContributed']['season'],1)
+        capitalGoldLooted = numerize.numerize(pObject.arixClanCapital['capitalLooted']['season'],1)
+
+        pEmbed.add_field(
+            name=f"**Current Season Stats with AriX**",
+            value=f":stopwatch: Last updated: {lastseen_text} ago"
+                + f"\n<a:aa_AriX:1031773589231374407> {int(pObject.arixClanMembership['timeInHomeClan']/86400)} days spent in {pObject.homeClan['name']}"
+                + "\n**Donations**"
+                + f"\n<:donated:825574412589858886> {pObject.arixDonations['sent']['season']:,}\u3000<:received:825574507045584916> {pObject.arixDonations['received']['season']:,}"
+                + "\n**Loot**"
+                + f"\n<:gold:825613041198039130> {lootGold}\u3000<:elixir:825612858271596554> {lootElixir}\u3000<:darkelixir:825640568973033502> {lootDarkElixir}"
+                + "\n**Clan Capital**"
+                + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalGoldLooted:983374303552753664> {capitalGoldLooted}"
+                + "\n**War Performance**"
+                + f"\n<:TotalWars:827845123596746773> {len(pObject.arixWarLog)}\u3000<:TotalStars:825756777844178944> 0\u3000<:MissedHits:825755234412396575> 0"
+                + "\n*Use `;mywarlog` to view your War Log.*"+
+                + "\n\u200b",
+            inline=False)
     return pEmbed
 
 class ClashPlayerError(Exception):
@@ -307,33 +364,11 @@ class ClashClanError(Exception):
     def __init__(self,tag):
         self.errTag = tag
 
-async def getPlayer(self,ctx,tag,force_member=False):
-    if not coc.utils.is_valid_tag(tag):
-        raise ClashPlayerError(tag)
-        return None
-    try:
-        player = await self.cClient.get_player(tag)
-    except coc.NotFound:
-        raise ClashPlayerError(tag)
-        return None
-    
-    allianceJson = await datafile_retrieve(self,'alliance')
-    memberJson = allianceJson['members'].get(player.tag,None)
-
-    if memberJson:
-        membershipStatus = memberJson['status']
-    else:
-        memberJson = {}
-        membershipStatus = "Non-Member"
-
-    if memberJson.get('is_member',False) or force_member:
-        memberStatsJson = await datafile_retrieve(self,'members')
-        memberStats = memberStatsJson.get(player.tag,{})
-        memberObject = aMember(ctx,player,memberJson,memberStats)
-        return memberObject
-    else:
-        playerObject = aPlayer(ctx,player,memberJson)
-        return playerObject
+    async def clanErrEmbed(self):
+        errEmbed = await clash_embed(ctx,
+            message=f"Unable to find a clan with the tag {self.errTag}.",
+            color="fail")
+        return errEmbed
 
 async def getClan(self,ctx,tag):
     if not coc.utils.is_valid_tag(tag):
@@ -345,22 +380,30 @@ async def getClan(self,ctx,tag):
         raise ClashClanError(tag)
         return None
     
-    allianceJson = await datafile_retrieve(self,'alliance')
-    clanJson = allianceJson['clans'].get(clan.tag,{})
+    clanData, memberData = await get_current_alliance(self,rdict=True)
+    clanJson = clanData.get(clan.tag,{})
 
-    if memberJson:
-        membershipStatus = memberJson['status']
-    else:
-        membershipStatus = "Non-Member"
+    clanObject = aClan(ctx,clan,clanJson)
+    return clanObject
 
-    if memberJson.get('is_member',False) or force_member:
-        memberStatsJson = await datafile_retrieve(self,'members')
-        memberStats = memberStatsJson.get(player.tag,{})
-        memberObject = aMember(ctx,player,memberJson,memberStats)
-        return memberObject
-    else:
-        playerObject = aPlayer(ctx,player,memberJson)
-        return playerObject
+async def getPlayer(self,ctx,tag):
+    if not coc.utils.is_valid_tag(tag):
+        raise ClashPlayerError(tag)
+        return None
+    try:
+        player = await self.cClient.get_player(tag)
+    except coc.NotFound:
+        raise ClashPlayerError(tag)
+        return None
+    
+    clanData, memberData = await get_current_alliance(self,rdict=True)
+    memberStatsJson = await datafile_retrieve(self,'members')
+    
+    memberJson = memberData.get(player.tag,{})
+    memberStats = memberStatsJson.get(player.tag,{})
+        
+    memberObject = aMember(ctx,player,memberJson,memberStats)
+    return memberObject
 
 class MemberClassError(Exception):
     def __init__(self):
@@ -381,17 +424,36 @@ class aClan():
         self.ctx = ctx
         self.clan = clan
 
-        #from AllianceJson
-        self.abbrievation = allianceJson.get('abbr',"")
-        self.description = allianceJson.get('description',self.clan.description)
+        recruitmentDict = { 
+            'townHall': [],
+            'notes': ""
+            }
 
-class aPlayer():
-    def __init__(self,ctx,player,allianceJson):
+        #from AllianceJson
+        self.isAllianceClan = bool(allianceJson)
+        self.abbrievation = allianceJson.get('abbr',"")
+
+        try:
+            jsonDesc = allianceJson['description']
+        except:
+            jsonDesc = None
+
+        if bool(jsonDesc):
+            self.description = jsonDesc
+        else:
+            self.description = self.clan.description
+
+        self.recruitment = allianceJson.get('recruitment',recruitmentDict)
+
+class aMember():
+    #AriX Member Class to coordinate information exchange.
+    def __init__(self,ctx,player,allianceJson,memberStats):
         self.ctx = ctx
         self.player = player
+        self.timestamp = time.time()
 
         #from AllianceJson
-        self.homeClan = allianceJson.get('home_clan',"Non-Member")
+        self.homeClan = allianceJson.get('home_clan',{'tag':"",'name':""})
         self.isMember = allianceJson.get('is_member',False)
         self.memberStatus = allianceJson.get('status',"Non-Member")
         self.discordUser = allianceJson.get('discord_user',0)
@@ -446,14 +508,6 @@ class aPlayer():
         for spell in self.player.spells:
             if spell.name in coc.SPELL_ORDER:
                 self.homeSpellStrength += spell.level
-
-class aMember(aPlayer):
-    #AriX Member Class to coordinate information exchange.
-    def __init__(self,ctx,player,memberJson,memberStats):
-        self.ctx = ctx
-        aPlayer.__init__(self,self.ctx,player,memberJson)
-
-        self.timestamp = time.time()
 
         clanMembershipDict = { 
             'timeInHomeClan': 0,
@@ -536,7 +590,10 @@ class aMember(aPlayer):
         return allianceJson,memberJson
 
     def newMember(self,discordUser,homeClan):
-        self.homeClan = homeClan
+        self.homeClan = {
+            'tag':homeClan.tag,
+            'name':homeClan.name:
+            }
         self.isMember = True
         self.memberStatus = "Member"
         self.discordUser = discordUser
@@ -578,7 +635,7 @@ class aMember(aPlayer):
     def updateStats(self):
         self.arixTownHallLv = self.player.town_hall
 
-        if self.player.clan.tag == self.homeClan:
+        if self.player.clan.tag == self.homeClan['tag']:
             self.arixClanMembership['timeInHomeClan'] += (self.timestamp - self.arixLastUpdate)
         elif self.player.clan.tag not in self.arixClanMembership['otherClans']:
             self.arixClanMembership['otherClans'].append(self.player.clan.tag)

@@ -19,8 +19,11 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 load_dotenv()
 
 sys.path.append(os.getenv("RESOURCEPATH"))
-from clash_resources import token_confirmation, standard_confirmation, react_confirmation, clashFileLock, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed, player_shortfield, player_embed, getPlayer
-from clash_resources import ClashPlayerError
+
+import clash_resources
+from clash_resources import token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
+from clash_resources import getPlayer, player_shortfield, player_embed, ClashPlayerError
+from clash_resources import getClan, ClashClanError
 
 membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
 
@@ -37,7 +40,7 @@ async def datafile_defaults():
     return alliance,members,warlog,capitalraid
 
 class AriXClashDataMgr(commands.Cog):
-    """AriX Clash of Clans Data Management"""
+    """AriX Clash of Clans Data Module."""
 
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
@@ -100,7 +103,7 @@ class AriXClashDataMgr(commands.Cog):
                                         "\n\nIf you wish to continue, enter the token below as your next message.")
         await ctx.send(content=ctx.author.mention,embed=embed)
 
-        if not await token_confirmation(self,ctx):
+        if not await clash_resources.token_confirmation(self,ctx):
             return
         
         currSeason = await get_current_season()
@@ -126,7 +129,6 @@ class AriXClashDataMgr(commands.Cog):
     async def serversettings(self,ctx):
         """Configure settings for the current server."""
         if not ctx.invoked_subcommand:
-
             if ctx.channel.type == discord.ChannelType.private:
                 embed = await clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
                 return await ctx.send(embed=embed)
@@ -329,23 +331,19 @@ class AriXClashDataMgr(commands.Cog):
         if sendLogs or len(errLog)>0:
             await logChannelO.send(embed=sEmbed)
 
-    # @commands.command(name="test")
-    # async def test(self, ctx):
-    #     #testwar = await self.cClient.get_clan_war('28VUPJRPU')
+    @commands.command(name="refactor")
+    async def misc_command(self, ctx):
 
-    #     #await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
 
-    #     #tag = testwar.clan.tag
+            # testwar = await self.cClient.get_clan_war('28VUPJRPU')
 
-    #     #for member in testwar.members:
-    #     #    if member.clan.tag == tag:
-    #     #        await ctx.send(f"{member.map_position} {member.name}")
+            # await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
 
-    #     #for attack in testwar.attacks:
-    #     #    await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
+            # tag = testwar.clan.tag
 
-    #     uid = int(644530507505336330)
+            # for member in testwar.members:
+            #     if member.clan.tag == tag:
+            #         await ctx.send(f"{member.map_position} {member.name}")
 
-    #     user = ctx.bot.get_user(uid)
-
-    #     await ctx.send(f"{user.name} {user.discriminator}")
+            # for attack in testwar.attacks:
+            #     await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
