@@ -24,6 +24,8 @@ from clash_resources import token_confirmation, standard_confirmation, react_con
 from clash_resources import getPlayer, player_shortfield, player_embed, ClashPlayerError
 from clash_resources import getClan, ClashClanError
 
+membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
+
 class AriXClashLeaders(commands.Cog):
     """AriX Clash of Clans Leaders' Module."""
 
@@ -63,7 +65,7 @@ class AriXClashLeaders(commands.Cog):
         """Add a clan to the Alliance."""
 
         try:
-            c = await getClan(self,ctx,tag)
+            c, w = await getClan(self,ctx,tag)
         except ClashClanError as err:
             eEmbed = await err.errEmbed()
             return await ctx.send(embed=eEmbed)
@@ -121,7 +123,7 @@ class AriXClashLeaders(commands.Cog):
         """Remove a clan from the Alliance."""
 
         try:
-            c = await getClan(self,ctx,tag)
+            c, w = await getClan(self,ctx,tag)
         except ClashClanError as err:
             eEmbed = await err.errEmbed()
             return await ctx.send(embed=eEmbed)
@@ -195,7 +197,7 @@ class AriXClashLeaders(commands.Cog):
         for clanTag in currentClans:
             if allianceJson['clans'][clanTag]['abbr'] == clan_abbreviation:
                 try:
-                    c = await getClan(self,ctx,clanTag)
+                    c, w = await getClan(self,ctx,clanTag)
                 except:
                     eEmbed = await clash_embed(ctx=ctx,
                         message=f"An error was encountered when retrieving the clan {clanTag}.",
@@ -206,6 +208,10 @@ class AriXClashLeaders(commands.Cog):
 
         if not homeClan:
             return await ctx.send(f"The Clan abbreviation **{clan_abbreviation}** does not correspond to any registered clan.")
+
+        cClanMembers = {k:v for (k,v) in allianceJson['members'].items() if v['home_clan']['tag']==homeClan.clan.tag}
+
+        await ctx.send(len(cClanMembers))
 
         cEmbed = await clash_embed(ctx,
             title=f"Please confirm that you are adding the below accounts.",
@@ -465,7 +471,7 @@ class AriXClashLeaders(commands.Cog):
         for clanTag in currentClans:
             if allianceJson['clans'][clanTag]['abbr'] == clan_abbreviation:
                 try:
-                    c = await getClan(self,ctx,tag)
+                    c, w = await getClan(self,ctx,tag)
                 except:
                     eEmbed = await clash_embed(ctx=ctx,
                         message=f"An unknown error occurred.",
@@ -618,21 +624,22 @@ class AriXClashLeaders(commands.Cog):
 
     @commands.command(name="test")
     async def test(self, ctx):
-        #testwar = await self.cClient.get_clan_war('28VUPJRPU')
+        testwar = await self.cClient.get_clan_war('2yl99gc9l')
 
-        #await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
+        await ctx.send(type(testwar))
 
-        #tag = testwar.clan.tag
+        await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
 
-        #for member in testwar.members:
-        #    if member.clan.tag == tag:
-        #        await ctx.send(f"{member.map_position} {member.name}")
+        tag = testwar.clan.tag
 
-        #for attack in testwar.attacks:
-        #    await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
+        epoch = testwar.start_time.time.timestamp()
 
-        uid = int(644530507505336330)
+        await ctx.send(epoch)
+        await ctx.send(testwar.type)
 
-        user = ctx.bot.get_user(uid)
+        for member in testwar.members:
+            if member.clan.tag == tag:
+                await ctx.send(f"{member.map_position} {member.name}")
 
-        await ctx.send(f"{user.name} {user.discriminator}")
+        for attack in testwar.attacks:
+            await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")

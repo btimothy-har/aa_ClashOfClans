@@ -21,11 +21,9 @@ load_dotenv()
 sys.path.append(os.getenv("RESOURCEPATH"))
 
 import clash_resources
-from clash_resources import token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
+from clash_resources import membershipGrid, token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
 from clash_resources import getPlayer, player_shortfield, player_embed, ClashPlayerError
 from clash_resources import getClan, ClashClanError
-
-membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
 
 async def datafile_defaults():
     currSeason = await get_current_season()
@@ -237,6 +235,8 @@ class AriXClashDataMgr(commands.Cog):
         errLog = []
         st = time.time()
 
+        lastWarCheck = await self.config.lastWarCheck()
+
         season = await get_current_season()
         allianceJson = await datafile_retrieve(self,'alliance')
         memberStatsJson = await datafile_retrieve(self,'members')
@@ -284,6 +284,53 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}",
                 inline=False)
 
+        if st - lastWarCheck >= 900:
+            warUpdateStr = ''
+            warStateChk = ['inWar','warEnded']
+            for tag, clan in allianceJson['clans'].items():
+                mCount = 0
+                try:
+                    c, w = await getClan(self,ctx,tag)
+                except ClashClanError as err:
+                    p = None
+                    errD = {
+                        'tag':tag,
+                        'reason':'Unable to find a clan with this tag.'
+                        }
+                    errLog.append(errD)
+                    continue
+                except:
+                    p = None
+                    errD = {
+                        'tag':tag,
+                        'reason':'Unknown error.'
+                        }
+                    errLog.append(errD)
+                    continue
+
+                if w.war.state in warStateChk and w.warType=='classic':
+                    warUpdateStr += f"War found for {c.clan.tag} {c.clan.name}."
+
+                    wJson, mJson = w.toJson()
+                    warlogJson[tag][w.warID] = wJson
+
+                    for member in w.war.clan.members:
+                        if member.tag in list(allianceJson['members'].keys()):
+                            mCount += 1
+                            memberStatsJson[member.tag][warLog][w.warID] = mJson[member.tag]
+
+                    warUpdateStr += f"\nUpdated stats for {mCount} members."
+                    if w.war.state == 'warEnded':
+                        warUpdateStr += f"\n**War is now ended.**"
+                    warUpdateStr += "\n\u200b\n\u200b"
+
+            sEmbed.add_field(
+                name=f"**War Updates Completed**",
+                value=warUpdateStr,
+                inline=False)
+
+            await self.config.lastWarCheck.set(st)
+
         for tag, member in allianceJson['members'].items():
             try:
                 p = await getPlayer(self,ctx,tag)
@@ -303,11 +350,13 @@ class AriXClashDataMgr(commands.Cog):
                     }
                 errLog.append(errD)
                 continue
-            p.updateStats()
-            aJson, mJson = p.toJson()
 
-            memberStatsJson[tag] = mJson
-            successLog.append(p)
+            if p.isMember:
+                p.updateStats()
+                aJson, mJson = p.toJson()
+
+                memberStatsJson[tag] = mJson
+                successLog.append(p)
 
         await datafile_save(self,'members',memberStatsJson)
 
@@ -319,7 +368,7 @@ class AriXClashDataMgr(commands.Cog):
 
         sEmbed.add_field(
             name=f"**Member Updates Completed**",
-            value=f"{len(successLog)} records updated. {len(errLog)} errors encountered."+errStr,
+            value=f"{len(successLog)} records updated. {len(errLog)} errors encountered.",
             inline=False)
 
         sEmbed.add_field(
@@ -334,17 +383,3 @@ class AriXClashDataMgr(commands.Cog):
     async def misc_command(self, ctx):
 
         pass
-
-
-            # testwar = await self.cClient.get_clan_war('28VUPJRPU')
-
-            # await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
-
-            # tag = testwar.clan.tag
-
-            # for member in testwar.members:
-            #     if member.clan.tag == tag:
-            #         await ctx.send(f"{member.map_position} {member.name}")
-
-            # for attack in testwar.attacks:
-            #     await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
