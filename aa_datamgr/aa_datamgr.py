@@ -376,6 +376,12 @@ class AriXClashDataMgr(commands.Cog):
             value=f"{len(successLog)} records updated. {len(errLog)} errors encountered.",
             inline=False)
 
+        if len(errLog)>0:
+            sEmbed.add_field(
+                name=f"**Error Log**",
+                value=errStr,
+                inline=False)
+
         sEmbed.add_field(
             name=f"**Processing Time**",
             value=f"{round(et-st,2)} seconds",
