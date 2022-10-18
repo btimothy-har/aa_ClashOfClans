@@ -303,8 +303,6 @@ class AriXClashDataMgr(commands.Cog):
                     }
                 errLog.append(errD)
                 continue
-
-            await ctx.send(p.homeClan)
             p.updateStats()
             aJson, mJson = p.toJson()
 
