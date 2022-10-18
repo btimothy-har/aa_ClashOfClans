@@ -334,6 +334,8 @@ class AriXClashDataMgr(commands.Cog):
     @commands.command(name="refactor")
     async def misc_command(self, ctx):
 
+        pass
+
 
             # testwar = await self.cClient.get_clan_war('28VUPJRPU')
 
