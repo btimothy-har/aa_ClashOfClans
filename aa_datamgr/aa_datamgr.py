@@ -21,9 +21,11 @@ load_dotenv()
 sys.path.append(os.getenv("RESOURCEPATH"))
 
 import clash_resources
-from clash_resources import membershipGrid, token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
+from clash_resources import token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
 from clash_resources import getPlayer, player_shortfield, player_embed, ClashPlayerError
 from clash_resources import getClan, ClashClanError
+
+membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
 
 async def datafile_defaults():
     currSeason = await get_current_season()
