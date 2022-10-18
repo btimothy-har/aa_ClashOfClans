@@ -244,7 +244,7 @@ class AriXClashDataMgr(commands.Cog):
         capitalraidJson = await datafile_retrieve(self,'capitalraid')
 
         sEmbed = await clash_embed(ctx,
-                title="Data Update Status Report",
+                title="Data Update Report",
                 show_author=False)
 
         if str(season) != str(allianceJson['currentSeason']):
@@ -286,7 +286,7 @@ class AriXClashDataMgr(commands.Cog):
 
         for tag, member in allianceJson['members'].items():
             try:
-                p = await getPlayer(self,ctx,tag,force_member=True)
+                p = await getPlayer(self,ctx,tag)
             except ClashPlayerError as err:
                 p = None
                 errD = {
@@ -304,6 +304,7 @@ class AriXClashDataMgr(commands.Cog):
                 errLog.append(errD)
                 continue
 
+            await ctx.send(p.homeClan)
             p.updateStats()
             aJson, mJson = p.toJson()
 

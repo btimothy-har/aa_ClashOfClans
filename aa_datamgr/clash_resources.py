@@ -417,14 +417,8 @@ class MemberClassError(Exception):
         pass
 
 class MemberPromoteError(Exception):
-    def __init__(self,mObject):
-        self.mObject = mObject
-
-    async def get_embed(self,mObject):
-        errEmbed = await clash_embed(ctx,
-            message=f"Unable to promote **{mObject.player.tag} {mObject.player.name}**. Player is currently a {mObject.memberStatus}.",
-            color="fail")
-        self.eEmbed = errEmbed
+    def __init__(self):
+        pass
 
 class aClan():
     def __init__(self,ctx,clan,allianceJson):
@@ -635,17 +629,18 @@ class aMember():
     def updateRank(self,new_rank):
         valid_ranks = ["Member","Elder","Co-Leader","Leader"]
         if new_rank not in valid_ranks:
-            raise MemberPromoteError(self)
+            raise MemberPromoteError
         else:
             self.memberStatus = new_rank
 
     def updateStats(self):
         self.arixTownHallLv = self.player.town_hall
 
-        if self.player.clan.tag == self.homeClan['tag']:
-            self.arixClanMembership['timeInHomeClan'] += (self.timestamp - self.arixLastUpdate)
-        elif self.player.clan.tag not in self.arixClanMembership['otherClans']:
-            self.arixClanMembership['otherClans'].append(self.player.clan.tag)
+        if self.player.clan:
+            if self.player.clan.tag == self.homeClan['tag']:
+                self.arixClanMembership['timeInHomeClan'] += (self.timestamp - self.arixLastUpdate)
+            elif self.player.clan.tag not in self.arixClanMembership['otherClans']:
+                self.arixClanMembership['otherClans'].append(self.player.clan.tag)
 
         for achievement in self.player.achievements:
             if achievement.name == "Empire Builder":
