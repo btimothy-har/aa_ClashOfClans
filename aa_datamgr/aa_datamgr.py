@@ -211,7 +211,7 @@ class AriXClashDataMgr(commands.Cog):
 
     @commands.is_owner()
     @commands.command(name="drefresh")
-    async def data_update(self, ctx):
+    async def data_update(self, ctx, force_war=False):
 
         sendLogs = False
         newSeason = False
@@ -286,7 +286,7 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}",
                 inline=False)
 
-        if st - lastWarCheck >= 900:
+        if st - lastWarCheck >= 900 or force_war:
             warUpdateStr = ''
             warStateChk = ['inWar','warEnded']
             for tag, clan in allianceJson['clans'].items():
