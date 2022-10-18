@@ -286,7 +286,7 @@ async def player_embed(self,ctx,pObject):
 
     troopStrength = f"<:TotalTroopStrength:827730290491129856> {pObject.homeTroopStrength}/{maxTroops[0]} ({round((pObject.homeTroopStrength/maxTroops[0])*100)}%)"
     if pObject.player.town_hall >= 5:
-        troopStrength += f"\u3000<:TotalSpellStrength:827730290294259793> {pObject.homeSpellStrength}/{maxTroops[1]} ({round((pObject.homeSpellStrength/maxTroops[1])*100)}%)"                        
+        troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {pObject.homeSpellStrength}/{maxTroops[1]} ({round((pObject.homeSpellStrength/maxTroops[1])*100)}%)"                        
     if pObject.player.town_hall >= 7:
         troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {pObject.homeHeroStrength}/{maxTroops[2]} ({round((pObject.homeHeroStrength/maxTroops[2])*100)}%)"
 
@@ -308,7 +308,7 @@ async def player_embed(self,ctx,pObject):
                 + "\n\u200b",
             inline=False)
 
-    if pObject.isMember == True:
+    if pObject.isMember:
         if isinstance(pObject.arixLastUpdate,str):
             lastseen_tdelta = datetime.datetime.now() - datetime.datetime.strptime(player.arixLastUpdate,"%Y-%m-%d %H:%M:%S.%f")
             lastseen_seconds = lastseen_tdelta.total_seconds()
@@ -336,13 +336,20 @@ async def player_embed(self,ctx,pObject):
         lootElixir = numerize.numerize(pObject.arixLoot['elixir']['season'],1)
         lootDarkElixir = numerize.numerize(pObject.arixLoot['darkElixir']['season'],1)
 
+        if pObject.arixLoot['gold']['lastUpdate'] >= 2000000000:
+            lootGold = "max"
+        if pObject.arixLoot['elixir']['lastUpdate'] >= 2000000000:
+            lootElixir = "max"
+        if pObject.arixLoot['darkElixir']['lastUpdate'] >= 2000000000:
+            lootDarkElixir = "max"
+
         clanCapitalGold = numerize.numerize(pObject.arixClanCapital['capitalContributed']['season'],1)
         capitalGoldLooted = numerize.numerize(pObject.arixClanCapital['capitalLooted']['season'],1)
 
         pEmbed.add_field(
             name=f"**Current Season Stats with AriX**",
             value=f":stopwatch: Last updated: {lastseen_text} ago"
-                + f"\n<a:aa_AriX:1031773589231374407> {int(pObject.arixClanMembership['timeInHomeClan']/86400)} days spent in {pObject.homeClan['name']}"
+                + f"\n<a:aa_AriX:1031773589231374407> {int(pObject.arixClanMembership['timeInHomeClan']/86400)} day(s) spent in {pObject.homeClan['name']}"
                 + "\n**Donations**"
                 + f"\n<:donated:825574412589858886> {pObject.arixDonations['sent']['season']:,}\u3000<:received:825574507045584916> {pObject.arixDonations['received']['season']:,}"
                 + "\n**Loot**"
@@ -351,7 +358,7 @@ async def player_embed(self,ctx,pObject):
                 + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalGoldLooted:983374303552753664> {capitalGoldLooted}"
                 + "\n**War Performance**"
                 + f"\n<:TotalWars:827845123596746773> {len(pObject.arixWarLog)}\u3000<:TotalStars:825756777844178944> 0\u3000<:MissedHits:825755234412396575> 0"
-                + "\n*Use `;mywarlog` to view your War Log.*"+
+                + "\n*Use `;mywarlog` to view your War Log.*"
                 + "\n\u200b",
             inline=False)
     return pEmbed
@@ -592,7 +599,7 @@ class aMember():
     def newMember(self,discordUser,homeClan):
         self.homeClan = {
             'tag':homeClan.tag,
-            'name':homeClan.name:
+            'name':homeClan.name,
             }
         self.isMember = True
         self.memberStatus = "Member"

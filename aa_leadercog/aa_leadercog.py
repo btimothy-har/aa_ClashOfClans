@@ -581,7 +581,7 @@ class AriXClashLeaders(commands.Cog):
             for tag, member in allianceJson['members'].items():
                 if member['discord_user'] == user.id:
                     try:
-                        p = await getPlayer(self,ctx,tag,force_member=True)
+                        p = await getPlayer(self,ctx,tag)
                     except ClashPlayerError as err:
                         p = None
                         errD = {
@@ -601,7 +601,7 @@ class AriXClashLeaders(commands.Cog):
                         accounts.append(pEmbed)
         elif tag:
             try:
-                p = await getPlayer(self,ctx,tag,force_member=True)
+                p = await getPlayer(self,ctx,tag)
             except ClashPlayerError as err:
                 return await ctx.send(f'Unable to find a user with the tag {tag}.')
             except:
