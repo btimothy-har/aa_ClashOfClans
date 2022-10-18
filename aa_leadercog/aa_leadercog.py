@@ -566,7 +566,7 @@ class AriXClashLeaders(commands.Cog):
         accounts = []
 
         if not user_or_tag:
-            user = ctx.author.id
+            user = ctx.author
             tag = None
         else:
             try:
