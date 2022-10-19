@@ -215,6 +215,7 @@ class AriXClashDataMgr(commands.Cog):
 
         sendLogs = False
         newSeason = False
+        updateWar = False
 
         try:
             logsBool = await self.config.guild(ctx.guild).postlogs()
@@ -238,6 +239,9 @@ class AriXClashDataMgr(commands.Cog):
         st = time.time()
 
         lastWarCheck = await self.config.lastWarCheck()
+
+        if st - lastWarCheck >= 900:
+            updateWar = True
 
         season = await get_current_season()
         allianceJson = await datafile_retrieve(self,'alliance')
@@ -286,7 +290,7 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}",
                 inline=False)
 
-        if st - lastWarCheck >= 900 or force_war:
+        if updateWar or force_war:
             warUpdateStr = ''
             warStateChk = ['inWar','warEnded']
             for tag, clan in allianceJson['clans'].items():
@@ -301,36 +305,36 @@ class AriXClashDataMgr(commands.Cog):
                         }
                     errLog.append(errD)
                     continue
-                except:
+                except Exception as err:
                     p = None
                     errD = {
                         'tag':tag,
-                        'reason':'Unknown error.'
+                        'reason':err
                         }
                     errLog.append(errD)
                     continue
 
-                if w.war.state in warStateChk and w.warType=='classic':
-                    warUpdateStr += f"War found for {c.clan.tag} {c.clan.name}."
+                warUpdateStr += f"__{c.clan.tag} {c.clan.name}__\n- State: {w.war.state}\n- Type: {w.warType} war"
 
+                if w.war.state in warStateChk and w.warType=='classic':
                     wJson, mJson = w.toJson()
                     warlogJson[tag][w.warID] = wJson
 
                     for member in w.war.clan.members:
                         if member.tag in list(allianceJson['members'].keys()):
                             mCount += 1
-                            memberStatsJson[member.tag][warLog][w.warID] = mJson[member.tag]
+                            memberStatsJson[member.tag]['warLog'][w.warID] = mJson[member.tag]
 
                     warUpdateStr += f"\nUpdated stats for {mCount} members."
                     if w.war.state == 'warEnded':
                         warUpdateStr += f"\n**War is now ended.**"
-                    warUpdateStr += "\n\u200b\n\u200b"
+                    warUpdateStr += "\n\u200b"
 
             if warUpdateStr == '':
                 warUpdateStr = "No Wars Found."
 
             sEmbed.add_field(
-                name=f"**War Updates Completed**",
+                name=f"**Clan War Updates**",
                 value=warUpdateStr,
                 inline=False)
 
@@ -338,7 +342,7 @@ class AriXClashDataMgr(commands.Cog):
 
         for tag, member in allianceJson['members'].items():
             try:
-                p = await getPlayer(self,ctx,tag)
+                p = await getPlayer(self,ctx,tag,memberStatsJson)
             except ClashPlayerError as err:
                 p = None
                 errD = {
@@ -363,6 +367,7 @@ class AriXClashDataMgr(commands.Cog):
                 memberStatsJson[tag] = mJson
                 successLog.append(p)
 
+        await datafile_save(self,'warlog',warlogJson)
         await datafile_save(self,'members',memberStatsJson)
 
         et = time.time()
@@ -387,10 +392,15 @@ class AriXClashDataMgr(commands.Cog):
             value=f"{round(et-st,2)} seconds",
             inline=False)
         
-        if sendLogs or len(errLog)>0:
+        if sendLogs or len(errLog)>0 or updateWar:
             await logChannelO.send(embed=sEmbed)
 
     @commands.command(name="refactor")
     async def misc_command(self, ctx):
 
-        pass
+        memberStatsJson = await datafile_retrieve(self,'members')
+
+        for tag, member in memberStatsJson.items():
+            memberStatsJson[tag]['warLog'] = {}
+
+        await datafile_save(self,'members',memberStatsJson)

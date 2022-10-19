@@ -75,6 +75,9 @@ warTypeGrid = {
     'cwl':'cwl'
     }
 
+def get_th_emote(th:int):
+    return th_emotes[th]
+
 def response_check(ctx, m):
     if m.author.id == ctx.author.id:
         if m.channel.id == ctx.channel.id:
@@ -403,7 +406,7 @@ async def getClan(self,ctx,tag,war=False):
     warObject = aClanWar(ctx,cWar)
     return clanObject, warObject
 
-async def getPlayer(self,ctx,tag):
+async def getPlayer(self,ctx,tag,jsonOverride=None):
     if not coc.utils.is_valid_tag(tag):
         raise ClashPlayerError(tag)
         return None
@@ -414,7 +417,10 @@ async def getPlayer(self,ctx,tag):
         return None
     
     clanData, memberData = await get_current_alliance(self,rdict=True)
-    memberStatsJson = await datafile_retrieve(self,'members')
+    if jsonOverride:
+        memberStatsJson = jsonOverride
+    else:
+        memberStatsJson = await datafile_retrieve(self,'members')
     
     memberJson = memberData.get(player.tag,{})
     memberStats = memberStatsJson.get(player.tag,{})
@@ -455,40 +461,22 @@ class aClan():
             self.description = self.clan.description
         self.recruitment = allianceJson.get('recruitment',recruitmentDict)
 
-    async def updateClanWar(self,war):
-
-        for 
-
-        warLogEntry = {
-            'warType': warTypeGrid[war.type],
-            'warSize': war.team_size,
-            'startTime': 0,
-            'endTime': 0,
-            'opponent': {
-                'tag': war.opponent.tag,
-                'name': war.opponent.clan,
-                }
-            'results': {
-                'result': '',
-                'attackStars': '',
-                'attackDestruction': 0,
-                'defenseStars': '',
-                'defenseDestruction': '',
-                }
-            }
-
 class aClanWar():
     #AriX Class to handle Clan Wars.
     def __init__(self,ctx,war):
         self.ctx = ctx
         self.war = war
 
-        self.warID = self.war.start_time.time.timestamp()
+        self.warID = str(self.war.start_time.time.timestamp())
         self.warType = warTypeGrid[war.type]
 
         self.totalAttacks = self.war.attacks_per_member * self.war.team_size
 
-        self.avgStars = round(average([attack.stars for attack in self.war.clan.attacks]),2)
+        try:
+            self.avgStars = round(sum([attack.stars for attack in self.war.clan.attacks]) / len([attack for attack in self.war.clan.attacks]),2)
+        except:
+            self.avgStars = 0
+
         self.triples = [attack for attack in self.war.clan.attacks if attack.stars==3]
 
     def toJson(self):
@@ -496,6 +484,16 @@ class aClanWar():
         memberDetail = {}
 
         for member in self.war.clan.members:
+            try:
+                attackStars = int(sum([a.stars for a in member.attacks]))
+            except:
+                attackStars = 0
+
+            try:
+                attackDestruction = float(sum([a.destruction for a in member.attacks]))
+            except:
+                attackDestruction = 0
+
             sJson = {
                 'warType': self.warType,
                 'result': self.war.status,
@@ -507,14 +505,13 @@ class aClanWar():
                     'tag': self.war.opponent.tag,
                     'name': self.war.opponent.name,
                     },
-                'attackStars': int(sum([a.stars for a in member.attacks])),
-                'attackDestruction': float(sum([a.destruction for a in member.attacks])),
-                'defenseStars': int(member.best_opponent_attack.stars),
-                'defenseDestruction': float(member.best_opponent_attack.destruction),
+                'attackStars': attackStars,
+                'attackDestruction': attackDestruction,
+                'defenseStars': int(getattr(member.best_opponent_attack,"stars",0)),
+                'defenseDestruction': float(getattr(member.best_opponent_attack,"destruction",0)),
                 'missedAttacks': self.war.attacks_per_member - len(member.attacks)
                 }
-
-            memberSummary[member.tag] = mJson
+            memberSummary[member.tag] = sJson
 
         warLogJson = {
             'warType': self.warType,
@@ -523,14 +520,14 @@ class aClanWar():
             'endTime': self.war.end_time.time.timestamp(),
             'opponent': {
                 'tag': self.war.opponent.tag,
-                'name': self.war.opponent.clan,
-                }
+                'name': self.war.opponent.name,
+                },
             'performance': {
-                'totalAttacks':len(self.attacks),
+                'totalAttacks':len([attack for attack in self.war.clan.attacks]),
                 'triples': len(self.triples),
-                'average': self.avgStars
+                'average': self.avgStars,
                 'missed': self.totalAttacks - self.war.clan.attacks_used,
-                }
+                },
             'results': {
                 'result': self.war.status,
                 'attackStars': self.war.clan.stars,
