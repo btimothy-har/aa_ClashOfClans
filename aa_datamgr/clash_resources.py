@@ -477,7 +477,7 @@ class aClanWar():
         except:
             self.avgStars = 0
 
-        self.triples = [attack for attack in self.war.clan.attacks if attack.stars==3]
+        self.triples = [attack for attack in self.war.clan.attacks if attack.stars==3 and attack.attacker.town_hall == attack.defender.town_hall]
 
     def toJson(self):
         memberSummary = {}
@@ -505,6 +505,8 @@ class aClanWar():
                     'tag': self.war.opponent.tag,
                     'name': self.war.opponent.name,
                     },
+                'totalAttacks': len(member.attacks),
+                'triples': len([attack for attack in member.attacks if attack.stars==3 and attack.attacker.town_hall == attack.defender.town_hall]),
                 'attackStars': attackStars,
                 'attackDestruction': attackDestruction,
                 'defenseStars': int(getattr(member.best_opponent_attack,"stars",0)),
@@ -777,3 +779,17 @@ class aMember():
 
         self.arixClanCapital['capitalLooted']['season'] += capitalgold_looted_total - self.arixClanCapital['capitalLooted']['lastUpdate']
         self.arixClanCapital['capitalLooted']['lastUpdate'] = capitalgold_looted_total
+
+        self.arixWarStats['warsParticipated'] = len(self.arixWarLog)
+        self.arixWarStats['offenseStars'] = 0
+        self.arixWarStats['defenseStars'] = 0
+        self.arixWarStats['totalAttacks'] = 0
+        self.arixWarStats['triples'] = 0
+        self.arixWarStats['missedAttacks'] = 0
+
+        for wID,war in self.arixWarLog.items():
+            self.arixWarStats['offenseStars'] += war['attackStars']
+            self.arixWarStats['defenseStars'] += war['defenseStars']
+            self.arixWarStats['totalAttacks'] += war['totalAttacks']
+            self.arixWarStats['triples'] += war['triples']
+            self.arixWarStats['missedAttacks'] += war['missedAttacks']
