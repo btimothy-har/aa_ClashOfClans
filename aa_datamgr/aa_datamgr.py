@@ -44,7 +44,9 @@ class AriXClashDataMgr(commands.Cog):
 
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
-        default_global = {}
+        default_global = {
+            "last_data_log":0,
+            }
         default_guild = {
             "postlogs":False,
             "logchannel":0,
@@ -213,6 +215,7 @@ class AriXClashDataMgr(commands.Cog):
 
         sendLogs = False
         newSeason = False
+        lastLogSent = await self.config.default_clan.last_data_log()
 
         try:
             logsBool = await self.config.guild(ctx.guild).postlogs()
@@ -229,14 +232,11 @@ class AriXClashDataMgr(commands.Cog):
                 logChannelO = ctx.guild.get_channel(logChannel)
             except:
                 sendLogs = False
-                logChannelO = None
+                logChannelO = ctx.channel
 
         successLog = []
         errLog = []
         st = time.time()
-
-        if st - lastWarCheck >= 900:
-            updateWar = True
 
         season = await get_current_season()
         allianceJson = await datafile_retrieve(self,'alliance')
@@ -384,8 +384,9 @@ class AriXClashDataMgr(commands.Cog):
             value=f"{round(et-st,2)} seconds",
             inline=False)
         
-        if sendLogs or len(errLog)>0 or updateWar:
+        if sendLogs or len(errLog)>0 or (st-lastLogSent)>=3500:
             await logChannelO.send(embed=sEmbed)
+            await self.config.default_clan.last_data_log.set(st)
 
     @commands.command(name="refactor")
     async def misc_command(self, ctx):
