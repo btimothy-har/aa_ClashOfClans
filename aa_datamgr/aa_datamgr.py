@@ -44,9 +44,7 @@ class AriXClashDataMgr(commands.Cog):
 
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
-        default_global = {
-            "lastWarCheck":0
-            }
+        default_global = {}
         default_guild = {
             "postlogs":False,
             "logchannel":0,
@@ -211,11 +209,10 @@ class AriXClashDataMgr(commands.Cog):
 
     @commands.is_owner()
     @commands.command(name="drefresh")
-    async def data_update(self, ctx, force_war=False):
+    async def data_update(self, ctx):
 
         sendLogs = False
         newSeason = False
-        updateWar = False
 
         try:
             logsBool = await self.config.guild(ctx.guild).postlogs()
@@ -237,8 +234,6 @@ class AriXClashDataMgr(commands.Cog):
         successLog = []
         errLog = []
         st = time.time()
-
-        lastWarCheck = await self.config.lastWarCheck()
 
         if st - lastWarCheck >= 900:
             updateWar = True
@@ -290,54 +285,54 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}",
                 inline=False)
 
-        if updateWar or force_war:
-            warUpdateStr = ''
-            for tag, clan in allianceJson['clans'].items():
-                mCount = 0
-                try:
-                    c = await getClan(self,ctx,tag)
-                except Exception as err:
-                    c = None
-                    errD = {
-                        'tag':tag,
-                        'reason':err
-                        }
-                    errLog.append(errD)
-                    continue
+        warUpdateStr = ''
+        for tag, clan in allianceJson['clans'].items():
+            mCount = 0
+            try:
+                c = await getClan(self,ctx,tag)
+            except Exception as err:
+                c = None
+                errD = {
+                    'tag':tag,
+                    'reason':err
+                    }
+                errLog.append(errD)
+                continue
 
-                await c.updateWar(client=self.cClient)
-                nClanJson, nWarlogJson = c.toJson()
-                allianceJson['clans'][c.clan.tag] = nClanJson
-                warlogJson[tag] = nWarlogJson
+            await c.updateWar(client=self.cClient)
+            nClanJson, nWarlogJson = c.toJson()
+            allianceJson['clans'][c.clan.tag] = nClanJson
+            warlogJson[tag] = nWarlogJson
 
-                if c.warStateChange or c.warState == "inWar":
-                    warUpdateStr += f"__{c.clan.tag} {c.clan.name}__\n- State: {c.warState}\n- Type: {c.currentWar.warType} war"
+            if c.warStateChange or c.warState == "inWar":
+                warUpdateStr += f"__{c.clan.tag} {c.clan.name}__"
+                if c.warStateChange and c.warState == 'inWar':
+                    warUpdateStr += f"\n**War vs {c.currentWar.opponent.name} has begun!**"
+                if c.warState == 'warEnded':
+                    warUpdateStr += f"\n**War vs {c.currentWar.opponent.name} was {c.currentWar.status}.**"
 
-                    if c.warState != "notInWar" and c.currentWar.warType=='classic':
-                        wJson, mJson = c.currentWar.toJson()
-                        warlogJson[tag][c.currentWar.warID] = wJson
+                warUpdateStr += f"\nState: {c.warState}\n- Type: {c.currentWar.warType} war"
 
-                        for member in c.currentWar.war.clan.members:
-                            if member.tag in list(allianceJson['members'].keys()):
-                                mCount += 1
-                                memberStatsJson[member.tag]['warLog'][c.currentWar.warID] = mJson[member.tag]
+                if c.warState != "notInWar" and c.currentWar.warType=='classic':
+                    wJson, mJson = c.currentWar.toJson()
+                    warlogJson[tag][c.currentWar.warID] = wJson
 
-                        warUpdateStr += f"\n- Recognized {mCount} members in War."
-                        if c.warStateChange and c.warState == 'inWar':
-                            warUpdateStr += f"\n**War has begun.**"
-                        if c.warState == 'warEnded':
-                            warUpdateStr += f"\n**War is now ended.**"
-                        warUpdateStr += "\n\u200b"
+                    for member in c.currentWar.war.clan.members:
+                        if member.tag in list(allianceJson['members'].keys()):
+                            mCount += 1
+                            memberStatsJson[member.tag]['warLog'][c.currentWar.warID] = mJson[member.tag]
 
-            if warUpdateStr == '':
-                warUpdateStr = "No war updates."
+                    warUpdateStr += f"\n- Recognized {mCount} members in War."
 
-            sEmbed.add_field(
-                name=f"**Clan War Updates**",
-                value=warUpdateStr,
-                inline=False)
+        if warUpdateStr == '':
+            warUpdateStr = "No war updates."
 
-            await self.config.lastWarCheck.set(st)
+        sEmbed.add_field(
+            name=f"**Clan War**",
+            value=warUpdateStr,
+            inline=False)
+
+        await self.config.lastWarCheck.set(st)
 
         for tag, member in allianceJson['members'].items():
             try:
@@ -365,7 +360,7 @@ class AriXClashDataMgr(commands.Cog):
         et = time.time()
 
         sEmbed.add_field(
-            name=f"**Member Updates**",
+            name=f"**Members**",
             value=f"{len(successLog)} records updated. {len(errLog)} errors encountered.",
             inline=False)
 
