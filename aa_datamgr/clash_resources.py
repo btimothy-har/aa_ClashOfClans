@@ -75,6 +75,15 @@ warTypeGrid = {
     'cwl':'cwl'
     }
 
+warResultGrid = {
+    'winning':'won',
+    'tied':'tie',
+    'losing':'lost',
+    'won':'won',
+    'tie':'tie',
+    'lost':'lost',
+    }
+
 def get_th_emote(th:int):
     return th_emotes[th]
 
@@ -394,7 +403,6 @@ async def getClan(self,ctx,tag,war=False):
         return None
     try:
         clan = await self.cClient.get_clan(tag)
-        cWar = await self.cClient.get_clan_war(tag)
     except coc.NotFound:
         raise ClashClanError(tag)
         return None
@@ -402,19 +410,28 @@ async def getClan(self,ctx,tag,war=False):
     clanData, memberData = await get_current_alliance(self,rdict=True)
     clanJson = clanData.get(clan.tag,{})
 
-    clanObject = aClan(ctx,clan,clanJson)
-    warObject = aClanWar(ctx,cWar)
-    return clanObject, warObject
+    warlogJson = await datafile_retrieve(self,'warlog')
+    clanWarLog = warlogJson.get(clan.tag,{})
 
-async def getPlayer(self,ctx,tag,jsonOverride=None):
+    clanObject = aClan(
+        ctx=ctx,
+        clan=clan,
+        allianceJson=clanJson,
+        warlogJson=clanWarLog)
+    return clanObject
+
+async def getPlayer(self,ctx,tag,jsonOverride=None,noApi=False):
     if not coc.utils.is_valid_tag(tag):
         raise ClashPlayerError(tag)
         return None
-    try:
-        player = await self.cClient.get_player(tag)
-    except coc.NotFound:
-        raise ClashPlayerError(tag)
-        return None
+    if noApi:
+        player = None
+    else:
+        try:
+            player = await self.cClient.get_player(tag)
+        except coc.NotFound:
+            raise ClashPlayerError(tag)
+            return None
     
     clanData, memberData = await get_current_alliance(self,rdict=True)
     if jsonOverride:
@@ -425,7 +442,12 @@ async def getPlayer(self,ctx,tag,jsonOverride=None):
     memberJson = memberData.get(player.tag,{})
     memberStats = memberStatsJson.get(player.tag,{})
         
-    memberObject = aMember(ctx,player,memberJson,memberStats)
+    memberObject = aMember(
+        ctx=ctx,
+        tag=tag,
+        player=player,
+        allianceJson=memberJson,
+        memberStats=memberStats)
     return memberObject
 
 class MemberClassError(Exception):
@@ -437,8 +459,9 @@ class MemberPromoteError(Exception):
         pass
 
 class aClan():
-    def __init__(self,ctx,clan,allianceJson):
+    def __init__(self,ctx,clan,allianceJson=None,warlogJson=None):
         self.ctx = ctx
+        self.timestamp = time.time()
         self.clan = clan
 
         recruitmentDict = { 
@@ -459,7 +482,52 @@ class aClan():
             self.description = jsonDesc
         else:
             self.description = self.clan.description
+        self.arixDescription = jsonDesc
+
         self.recruitment = allianceJson.get('recruitment',recruitmentDict)
+
+        self.warState = allianceJson.get('warState',None)
+        self.warStateChange = False
+
+        warlogChk = {wID:w for (wID,w) in warlogJson.items() if self.timestamp > w['endTime'] and w.get('state','')!='warEnded'}
+
+        for wID, war in warlogChk.items():
+            warlogJson[wID]['state'] = 'warEnded'
+            warlogJson[wID]['results']['result'] = warResultGrid[war['results']['result']]
+
+        self.warlog = warlogJson
+
+    async def updateWar(self, client):
+        currWar = await client.get_clan_war(self.clan.tag)
+        self.currentWar = aClanWar(self.ctx,currWar)
+        if self.currentWar.war.state != self.warState:
+            self.warState = self.currentWar.war.state
+            self.warStateChange = True
+
+    def setAbbr(self,new_abbr:str):
+        self.abbrievation = new_abbr
+
+    def setDesc(self,new_desc:str):
+        self.arixDescription = new_desc
+
+    def setRecTH(self,*th_levels:int):
+        for th in th_levels:
+            if th not in self.recruitment['townHall']:
+                self.recruitment['townHall'].append(th)
+
+    def setRecNotes(self,note:str):
+        self.recruitment['notes'] = note
+
+    def toJson(self):
+        allianceJson = {
+            'name':self.clan.name,
+            'abbr':self.abbrievation,
+            'description': self.arixDescription,
+            'recruitment': self.recruitment,
+            'warState': self.warState,
+            }
+        warlogJson = self.warlog
+        return allianceJson, warlogJson
 
 class aClanWar():
     #AriX Class to handle Clan Wars.
@@ -477,26 +545,16 @@ class aClanWar():
         except:
             self.avgStars = 0
 
-        self.triples = [attack for attack in self.war.clan.attacks if attack.stars==3 and attack.attacker.town_hall == attack.defender.town_hall]
+        self.triples = [attack for attack in self.war.clan.attacks if attack.stars==3 and attack.attacker.town_hall <= attack.defender.town_hall]
 
     def toJson(self):
         memberSummary = {}
         memberDetail = {}
 
         for member in self.war.clan.members:
-            try:
-                attackStars = int(sum([a.stars for a in member.attacks]))
-            except:
-                attackStars = 0
-
-            try:
-                attackDestruction = float(sum([a.destruction for a in member.attacks]))
-            except:
-                attackDestruction = 0
-
             sJson = {
                 'warType': self.warType,
-                'result': self.war.status,
+                'result': warResultGrid[self.war.status], 
                 'clan': {
                     'tag': self.war.clan.tag,
                     'name': self.war.clan.name,
@@ -506,9 +564,9 @@ class aClanWar():
                     'name': self.war.opponent.name,
                     },
                 'totalAttacks': len(member.attacks),
-                'triples': len([attack for attack in member.attacks if attack.stars==3 and attack.attacker.town_hall == attack.defender.town_hall]),
-                'attackStars': attackStars,
-                'attackDestruction': attackDestruction,
+                'triples': len([attack for attack in member.attacks if attack.stars==3 and attack.attacker.town_hall <= attack.defender.town_hall]),
+                'attackStars': int(sum([getattr(a,'stars',0) for a in member.attacks])),
+                'attackDestruction': float(sum([getattr(a,'destruction',0) for a in member.attacks])),
                 'defenseStars': int(getattr(member.best_opponent_attack,"stars",0)),
                 'defenseDestruction': float(getattr(member.best_opponent_attack,"destruction",0)),
                 'missedAttacks': self.war.attacks_per_member - len(member.attacks)
@@ -518,6 +576,7 @@ class aClanWar():
         warLogJson = {
             'warType': self.warType,
             'warSize': self.war.team_size,
+            'state': self.war.state,
             'startTime': self.war.start_time.time.timestamp(),
             'endTime': self.war.end_time.time.timestamp(),
             'opponent': {
@@ -542,10 +601,23 @@ class aClanWar():
 
 class aMember():
     #AriX Member Class to coordinate information exchange.
-    def __init__(self,ctx,player,allianceJson,memberStats):
+    def __init__(self,ctx,tag,allianceJson,memberStats,player=None):
+        clanMembershipDict = { 
+            'timeInHomeClan': 0,
+            'currentClan': {
+                'tag':None,
+                'name':None,
+                'role':None,
+                },
+            'otherClans': [],
+            }
+
         self.ctx = ctx
-        self.player = player
         self.timestamp = time.time()
+        self.player = player
+        
+        self.tag = tag
+        self.name = getattr(self.player,'name',memberStats.get('name','Unknown'))
 
         #from AllianceJson
         self.homeClan = allianceJson.get('home_clan',{'tag':"",'name':""})
@@ -553,61 +625,67 @@ class aMember():
         self.memberStatus = allianceJson.get('status',"Non-Member")
         self.discordUser = allianceJson.get('discord_user',0)
         self.notes = allianceJson.get('notes',[])
-        
-        if self.player.town_hall >= 12:
-            th_desc = f"**{self.player.town_hall}**-{self.player.town_hall_weapon}"
-        else:
-            th_desc = f"**{self.player.town_hall}**"
-        self.thDescription = th_desc
 
-        if self.player.clan:
-            self.clanDescription = f"{self.player.role} of **{self.player.clan.name}**"
+        #basic player stats
+        self.exp_level = getattr(self.player,'exp_level',memberStats.get('explevel',0))
+        self.town_hall = getattr(self.player,'town_hall',memberStats.get('townhall',1))
+        self.town_hall_wpn = getattr(self.player,'town_hall_weapon',memberStats.get('townhall_weapon',0))
+        self.league = getattr(getattr(self.player,'league',None),'name',memberStats.get('league','Unranked'))
+        self.trophies = getattr(self.player,'trophies',memberStats.get('trophies',0))
+        self.warStars = getattr(self.player,'war_stars',memberStats.get('warStars',0))
+        self.warOptIn = getattr(self.player,'war_opted_in',memberStats.get('warOptIn',False))
+
+        if self.player:
+            self.clan = {
+                'tag': getattr(self.player.clan,'tag',None),
+                'name': getattr(self.player.clan,'name',None),
+                'role': str(getattr(self.player,'role',''))
+                }
         else:
-            self.clanDescription = f"No Clan"
+            self.clan = {
+                'tag': memberStats.get('clanMembership',clanMembershipDict)['currentClan']['tag'],
+                'name': memberStats.get('clanMembership',clanMembershipDict)['currentClan']['name'],
+                'role': memberStats.get('clanMembership',clanMembershipDict)['currentClan']['role'],
+                }
+
+        try:
+            self.clan_castle = sum([a.value for a in self.player.achievements if a.name == 'Empire Builder'])
+        except:
+            self.clan_castle = memberStats.get('clanCastleLevel',0)
+        
+        if self.town_hall >= 12:
+            self.thDesc = f"**{self.town_hall}**-{self.town_hall_wpn}"
+        else:
+            self.thDesc = f"**{self.town_hall}**"
+
+        if self.clan['tag']:
+            self.clanDesc = f"{self.clan['role']} of **{self.clan['name']}**"
+        else:
+            self.clanDesc = f"No Clan"
 
         self.homeTroopStrength = 0
         self.homeSpellStrength = 0
-        self.homeHeroStrength = 0
-        self.builderTroopStrength = 0
 
-        self.barbarianKing = 0
-        self.archerQueen = 0
-        self.grandWarden = 0
-        self.royalChampion = 0
-        self.battleMachine = 0
+        if not self.player:
+            self.barbarianKing = memberStats.get('heroes',None).get('barbarianKing',0)
+            self.archerQueen = memberStats.get('heroes',None).get('archerQueen',0)
+            self.grandWarden = memberStats.get('heroes',None).get('grandWarden',0)
+            self.royalChampion = memberStats.get('heroes',None).get('royalChampion',0)
 
-        for hero in self.player.heroes:
-            if hero.name == "Barbarian King":                        
-                self.barbarianKing = hero.level
-                self.homeHeroStrength += hero.level
-            if hero.name == "Archer Queen":                        
-                self.archerQueen = hero.level
-                self.homeHeroStrength += hero.level
-            if hero.name == "Grand Warden":                        
-                self.grandWarden = hero.level
-                self.homeHeroStrength += hero.level
-            if hero.name == "Royal Champion":                        
-                self.royalChampion = hero.level
-                self.homeHeroStrength += hero.level
-            if hero.name == "Battle Machine":
-                self.battleMachine = hero.level
+            self.homeTroopStrength = memberStats.get('troopStrength',0)
+            self.homeSpellStrength = memberStats.get('spellStrength',0)
 
-        for troop in self.player.troops:
-            if troop.name in coc.HOME_TROOP_ORDER:
-                self.homeTroopStrength += troop.level
-            if troop.name in coc.HERO_PETS_ORDER:
-                self.homeTroopStrength += troop.level
-            if troop.name in coc.BUILDER_TROOPS_ORDER:
-                self.builderTroopStrength += troop.level
+        else:
+            self.barbarianKing = sum([h.level for h in self.player.heroes if h.name=='Barbarian King'])
+            self.archerQueen = sum([h.level for h in self.player.heroes if h.name=='Archer Queen'])
+            self.grandWarden = sum([h.level for h in self.player.heroes if h.name=='Grand Warden'])
+            self.royalChampion = sum([h.level for h in self.player.heroes if h.name=='Royal Champion'])
 
-        for spell in self.player.spells:
-            if spell.name in coc.SPELL_ORDER:
-                self.homeSpellStrength += spell.level
-
-        clanMembershipDict = { 
-            'timeInHomeClan': 0,
-            'otherClans': []
-            }
+            self.homeTroopStrength = sum([t.level for t in self.player.troops if t.name in coc.HOME_TROOP_ORDER]) + sum([p.level for p in self.player.hero_pets])
+            self.homeSpellStrength = sum([s.level for s in self.player.spells if s.name in coc.SPELL_ORDER])
+            
+        self.homeHeroStrength = self.barbarianKing + self.archerQueen + self.grandWarden + self.royalChampion
+        
         donationsDict = {
             'received': {
                 'season': 0,
@@ -651,10 +729,9 @@ class aMember():
             'missedAttacks': 0
             }
 
+        self.clanMembership = memberStats.get('clanMembership',clanMembershipDict)
         self.arixLastUpdate = memberStats.get('lastUpdate',0)
-        self.arixTownHallLv = memberStats.get('townHallLevel',1)
         self.arixClanCastleLv = memberStats.get('clanCastleLevel',0)
-        self.arixClanMembership = memberStats.get('clanMembership',clanMembershipDict)
         self.arixDonations = memberStats.get('donations',donationsDict)
         self.arixLoot = memberStats.get('loot',lootDict)
         self.arixClanCapital = memberStats.get('clanCapital',clanCapitalDict)
@@ -671,16 +748,30 @@ class aMember():
             'notes':self.notes,
             }
         memberJson = {
-            'name': self.player.name,
+            'tag': self.tag,
+            'name': self.name,
             'lastUpdate': self.timestamp,
-            'townHallLevel': self.arixTownHallLv,
-            'clanCastleLevel': self.arixClanCastleLv,
-            'clanMembership': self.arixClanMembership,
+            'clanMembership': self.clanMembership,
+            'townHallLevel': self.town_hall,
+            'townHallWeapon': self.town_hall_wpn,
+            'clanCastleLevel': self.clan_castle,
+            'league': self.league,
+            'trophies': self.trophies,
+            'warStars': self.warStars,
+            'warOptIn': self.warOptIn,
+            'heroes': {
+                'barbarianKing':self.barbarianKing,
+                'archerQueen':self.archerQueen,
+                'grandWarden':self.grandWarden,
+                'royalChampion':self.royalChampion,
+                },
+            'troopStrength': self.homeTroopStrength,
+            'spellStrength': self.homeSpellStrength,
             'donations': self.arixDonations,
             'loot': self.arixLoot,
             'clanCapital': self.arixClanCapital,
             'warStats': self.arixWarStats,
-            'warLog': self.arixWarLog
+            'warLog': self.arixWarLog,
             }
         return allianceJson,memberJson
 
@@ -728,17 +819,18 @@ class aMember():
             self.memberStatus = new_rank
 
     def updateStats(self):
-        self.arixTownHallLv = self.player.town_hall
+        if not self.player:
+            #cannot update stats if player object is not provided
+            return
+        self.clanMembership['currentClan'] = self.clan
 
         if self.player.clan:
             if self.player.clan.tag == self.homeClan['tag']:
-                self.arixClanMembership['timeInHomeClan'] += (self.timestamp - self.arixLastUpdate)
-            elif self.player.clan.tag not in self.arixClanMembership['otherClans']:
-                self.arixClanMembership['otherClans'].append(self.player.clan.tag)
+                self.clanMembership['timeInHomeClan'] += (self.timestamp - self.arixLastUpdate)
+            elif self.player.clan.tag not in self.clanMembership['otherClans']:
+                self.clanMembership['otherClans'].append(self.player.clan.tag)
 
         for achievement in self.player.achievements:
-            if achievement.name == "Empire Builder":
-                self.arixClanCastleLv = achievement.value
             if achievement.name == "Gold Grab":
                 gold_total = achievement.value
             if achievement.name == "Elixir Escapade": 

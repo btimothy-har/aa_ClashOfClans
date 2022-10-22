@@ -17,6 +17,7 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
+from tabulate import tabulate
 
 load_dotenv()
 
@@ -80,7 +81,9 @@ class AriXClashLeaders(commands.Cog):
                 return await ctx.send(embed=embed)
 
         userClans = await self.config.user(ctx.author).default_clan()
-        userClans.append(clan_abbreviation)
+
+        for i in input_abbr:
+            userClans.append(i)
 
         await self.config.user(ctx.author).default_clan.set(userClans)
 
@@ -216,10 +219,10 @@ class AriXClashLeaders(commands.Cog):
         if not ctx.invoked_subcommand:
             pass
 
-    @membermanage.command(name="summary")
+    @membermanage.command(name="report")
     @commands.admin_or_permissions(administrator=True)
-    async def membermanage_summary(self,ctx,*clan_abbreviation:str):
-        """Generates a summary of all members in the provided clan(s). If no clan is provided, defaults to the user preference."""
+    async def membermanage_report(self,ctx,*clan_abbreviation:str):
+        """Generates a summary of all members in the provided clan(s)."""
         
         input_abbr = []
         output_embed = []
@@ -259,15 +262,12 @@ class AriXClashLeaders(commands.Cog):
                 continue
 
             cMembers = {tag:member for (tag,member) in currentMembers.items() if member['home_clan']['tag'] == c.clan.tag and member['is_member']==True}
-            xMembers = [member for member in c.clan.members if member.tag not in list(cMembers.keys())]
-            
-            oMembers = []
-            mMembers = []
-            eMembers = []
+            aMembers = []
 
-            th_Count = {15:0, 14:0, 13:0, 12:0, 11:0, 10:0, 9:0, 8:0, 7:0, 6:0, 5:0, 4:0, 3:0, 2:0, 1:0}
+            th_Count = {15:0, 14:0, 13:0, 12:0, 11:0, 10:0, 9:0, 8:0}
 
             for tag, member in cMembers.items():
+                mDict = {}
                 try:
                     p = await getPlayer(self,ctx,tag)
                 except ClashPlayerError as err:
@@ -286,47 +286,59 @@ class AriXClashLeaders(commands.Cog):
                     eMembers.append(tag)
                     continue
 
-                th_Count[p.player.town_hall] += 1
-                oMembers.append(p)
+                mDict['TH'] = p.player.town_hall
+                mDict['BK'] = p.barbarianKing
+                mDict['AQ'] = p.archerQueen
+                mDict['GW'] = p.grandWarden
+                mDict['RC'] = p.royalChampion
+                mDict['Name'] = p.player.name
 
-                if getattr(p.player.clan,"tag","") != p.homeClan.get('tag',''):
-                    mMembers.append(p)
+                aMembers.append(mDict)
+                title, value = await player_shortfield(self,ctx,p)
+                th_Count[max(p.player.town_hall,8)] += 1
 
-            averageTH = sum([m.player.town_hall for m in oMembers]) / len(oMembers)
+            aMembers = sorted(aMembers,key=lambda p:(p['TH'],p['Name']),reverse=True)
+            averageTH = sum([m['TH'] for m in aMembers]) / len(aMembers)
+
+            thStr = ""
+            for th,count in th_Count.items():
+                if count > 0:
+                    thStr += f"{get_th_emote(th)} {count}\u3000"
 
             cEmbed = await clash_embed(ctx=ctx,
                     title=f"{c.clan.tag} {c.clan.name}",
                     message=f"Level: {c.clan.level}\u3000\u3000Location: {c.clan.location} / {c.clan.chat_language}"
-                        + f"\n**Member Count:** {len(oMembers)}\u3000**Average TH**: {round(averageTH,2)}",
-                    thumbnail=c.clan.badge.url)
+                        + f"\nMember Count: {len(aMembers)}\u3000Average TH: {round(averageTH,2)}"
+                        + f"\n\n{thStr}"
+                        + f"```{tabulate(aMembers,headers='keys')}```")
 
-            th_comp_str = ""
-            for th, count in th_Count.items():
-                if count > 0:
-                    th_comp_str += f"{get_th_emote(th)} {count}\n"
+            # th_comp_str = ""
+            # for th, count in th_Count.items():
+            #     if count > 0:
+            #         th_comp_str += f"{get_th_emote(th)} {count}\n"
 
-            cEmbed.add_field(
-                name="**Townhall Composition**",
-                value=th_comp_str,
-                inline=False)
+            # cEmbed.add_field(
+            #     name="**Townhall Composition**",
+            #     value=th_comp_str,
+            #     inline=False)
 
-            if len(mMembers) > 0:
-                missingMembers_str = ""
-                for m in mMembers:
-                    title, value = await player_shortfield(self,ctx,m)
-                    missingMembers_str += f"__{m.player.name}__ ({m.player.tag})\n> {value}\n> <:Clan:825654825509322752> {m.clanDescription}\n"
-                cEmbed.add_field(
-                    name="**Members Not in Clan**",
-                    value=missingMembers_str,
-                    inline=False)
+            # if len(mMembers) > 0:
+            #     missingMembers_str = ""
+            #     for m in mMembers:
+                    
+            #         missingMembers_str += f"__{m.player.name}__ ({m.player.tag})\n> {value}\n> <:Clan:825654825509322752> {m.clanDescription}\n"
+            #     cEmbed.add_field(
+            #         name="**Members Not in Clan**",
+            #         value=missingMembers_str,
+            #         inline=False)
             
-            if len(xMembers) > 0:
-                extraMembers_str = ""
-                for m in xMembers:
-                    extraMembers_str += f"{m.tag} {m.name}\n"
-                cEmbed.add_field(
-                    name="**Extra Members in Clan**",
-                    value=extraMembers_str)
+            # if len(xMembers) > 0:
+            #     extraMembers_str = ""
+            #     for m in xMembers:
+            #         extraMembers_str += f"{m.tag} {m.name}\n"
+            #     cEmbed.add_field(
+            #         name="**Extra Members in Clan**",
+            #         value=extraMembers_str)
 
             output_embed.append(cEmbed)
 
@@ -794,22 +806,12 @@ class AriXClashLeaders(commands.Cog):
 
     @commands.command(name="test")
     async def test(self, ctx):
-        testwar = await self.cClient.get_clan_war('2yl99gc9l')
+        #cWar = await self.cClient.get_clan_war('92g9j8cg')
 
-        await ctx.send(type(testwar))
+        player = await self.cClient.get_player('q2ugp00qp')
 
-        await ctx.send(f"{testwar.clan.name} {testwar.opponent.name} {testwar.state} {testwar.team_size}")
+        await ctx.send(f"clan: {player.clan}")
+        await ctx.send(f"role: {player.role}")
 
-        tag = testwar.clan.tag
-
-        epoch = testwar.start_time.time.timestamp()
-
-        await ctx.send(epoch)
-        await ctx.send(testwar.type)
-
-        for member in testwar.members:
-            if member.clan.tag == tag:
-                await ctx.send(f"{member.map_position} {member.name}")
-
-        for attack in testwar.attacks:
-            await ctx.send(f"{attack.war} {attack.order} {attack.attacker_tag} vs {attack.defender_tag} {attack.stars} {attack.destruction} {attack.duration}")
+        league = await self.cClient.get_league_named(player.league.name)
+        await ctx.send(league.id)
