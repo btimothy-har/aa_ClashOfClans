@@ -215,6 +215,7 @@ class AriXClashDataMgr(commands.Cog):
 
         sendLogs = False
         newSeason = False
+        warStateChange = False
         lastLogSent = await self.config.last_data_log()
 
         try:
@@ -247,6 +248,8 @@ class AriXClashDataMgr(commands.Cog):
         sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
+
+        sEmbed.set_footer(text=f"AriX Alliance | Clash of Clans | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
 
         if str(season) != str(allianceJson['currentSeason']):
             newSeason = True
@@ -305,13 +308,14 @@ class AriXClashDataMgr(commands.Cog):
             warlogJson[tag] = nWarlogJson
 
             if c.warStateChange or c.warState == "inWar":
+                warStateChange = True
                 warUpdateStr += f"__{c.clan.tag} {c.clan.name}__"
                 if c.warStateChange and c.warState == 'inWar':
                     warUpdateStr += f"\n**War vs {c.currentWar.opponent.name} has begun!**"
                 if c.warState == 'warEnded':
                     warUpdateStr += f"\n**War vs {c.currentWar.opponent.name} was {c.currentWar.status}.**"
 
-                warUpdateStr += f"\nState: {c.warState}\n- Type: {c.currentWar.warType} war"
+                warUpdateStr += f"\n- State: {c.warState}\n- Type: {c.currentWar.warType} war"
 
                 if c.warState != "notInWar" and c.currentWar.warType=='classic':
                     wJson, mJson = c.currentWar.toJson()
@@ -382,7 +386,7 @@ class AriXClashDataMgr(commands.Cog):
             value=f"{round(et-st,2)} seconds",
             inline=False)
         
-        if sendLogs or len(errLog)>0 or (st-lastLogSent)>=3500:
+        if warStateChange or sendLogs or len(errLog)>0 or (st-lastLogSent)>=3500:
             await logChannelO.send(embed=sEmbed)
             await self.config.last_data_log.set(st)
 

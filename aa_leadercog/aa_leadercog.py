@@ -808,10 +808,8 @@ class AriXClashLeaders(commands.Cog):
     async def test(self, ctx):
         #cWar = await self.cClient.get_clan_war('92g9j8cg')
 
-        player = await self.cClient.get_player('q2ugp00qp')
+        clan = await self.cClient.get_clan('2yl99gc9l')
 
-        await ctx.send(f"clan: {player.clan}")
-        await ctx.send(f"role: {player.role}")
-
-        league = await self.cClient.get_league_named(player.league.name)
-        await ctx.send(league.id)
+        await ctx.send(f"clan: {clan.name}")
+        await ctx.send(f".{dir(self.cClient)}")
+        await ctx.send(f".{dir(clan)}")
