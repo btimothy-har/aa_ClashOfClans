@@ -388,7 +388,7 @@ class AriXClashDataMgr(commands.Cog):
             await logChannelO.send(embed=sEmbed)
             await self.config.last_data_log.set(st)
 
-    @commands.command(name="refactor")
+    @commands.command(name="data_test")
     async def misc_command(self, ctx):
 
-        pass
+        cWar = await self.cClient.get_clan_war('92g9j8cg')

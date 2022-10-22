@@ -82,6 +82,7 @@ warResultGrid = {
     'won':'won',
     'tie':'tie',
     'lost':'lost',
+    '':'',
     }
 
 def get_th_emote(th:int):
