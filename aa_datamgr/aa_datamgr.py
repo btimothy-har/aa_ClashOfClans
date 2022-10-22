@@ -332,8 +332,6 @@ class AriXClashDataMgr(commands.Cog):
             value=warUpdateStr,
             inline=False)
 
-        await self.config.lastWarCheck.set(st)
-
         for tag, member in allianceJson['members'].items():
             try:
                 p = await getPlayer(self,ctx,tag,jsonOverride=memberStatsJson)
