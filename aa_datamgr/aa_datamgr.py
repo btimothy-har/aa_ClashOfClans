@@ -215,7 +215,7 @@ class AriXClashDataMgr(commands.Cog):
 
         sendLogs = False
         newSeason = False
-        lastLogSent = await self.config.default_clan.last_data_log()
+        lastLogSent = await self.config.last_data_log()
 
         try:
             logsBool = await self.config.guild(ctx.guild).postlogs()
@@ -386,7 +386,7 @@ class AriXClashDataMgr(commands.Cog):
         
         if sendLogs or len(errLog)>0 or (st-lastLogSent)>=3500:
             await logChannelO.send(embed=sEmbed)
-            await self.config.default_clan.last_data_log.set(st)
+            await self.config.last_data_log.set(st)
 
     @commands.command(name="refactor")
     async def misc_command(self, ctx):
