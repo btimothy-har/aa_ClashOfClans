@@ -66,6 +66,7 @@ class AriXClashDataMgr(commands.Cog):
             await ctx.send("error")
         
         self.cDirPath = os.getenv("DATAPATH")
+        self.cApiKey = os.getenv("APIKEY")
         self.cClient = coc_client
 
         currSeason = await get_current_season()
@@ -311,8 +312,10 @@ class AriXClashDataMgr(commands.Cog):
             allianceJson['clans'][c.clan.tag] = nClanJson
             warlogJson[tag] = nWarlogJson
 
-            if c.warStateChange or c.warState == "inWar":
+            if c.warStateChange:
                 warStateChange = True
+
+            if c.warStateChange or c.warState == "inWar":
                 warUpdateStr += f"__{c.clan.tag} {c.clan.name}__"
                 if c.warStateChange and c.warState == 'inWar':
                     warUpdateStr += f"\n**War vs {c.currentWar.war.opponent.name} has begun!**"
@@ -393,11 +396,10 @@ class AriXClashDataMgr(commands.Cog):
 
         sEmbed.add_field(
             name=f"**Processing Time**",
-            value=f"{round(et-st,2)} seconds"
-                + f"\n*Average of {averageRunTime} seconds.*",
+            value=f"{round(et-st,2)} seconds. *Average: {averageRunTime} seconds.*",
             inline=False)
         
-        if warStateChange or sendLogs or len(errLog)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
+        if newSeason or warStateChange or sendLogs or len(errLog)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
             await logChannelO.send(embed=sEmbed)
             await self.config.last_data_log.set(st)
 
