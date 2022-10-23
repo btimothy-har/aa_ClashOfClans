@@ -45,7 +45,9 @@ class AriXClashDataMgr(commands.Cog):
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
+            "last_data_update":0,
             "last_data_log":0,
+            "update_runtimes":[],
             }
         default_guild = {
             "postlogs":False,
@@ -217,6 +219,8 @@ class AriXClashDataMgr(commands.Cog):
         newSeason = False
         warStateChange = False
         lastLogSent = await self.config.last_data_log()
+        lastDataUpdate = await self.config.last_data_update()
+        updateRunTime = await self.config.update_runtimes()
 
         try:
             logsBool = await self.config.guild(ctx.guild).postlogs()
@@ -249,7 +253,7 @@ class AriXClashDataMgr(commands.Cog):
                 title="Data Update Report",
                 show_author=False)
 
-        sEmbed.set_footer(text=f"AriX Alliance | Clash of Clans | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+        sEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
 
         if str(season) != str(allianceJson['currentSeason']):
             newSeason = True
@@ -381,14 +385,24 @@ class AriXClashDataMgr(commands.Cog):
                 value=errStr,
                 inline=False)
 
+        procTime = round(et-st,2)
+        updateRunTime.append(procTime)
+        if len(updateRunTime) > 100:
+            del updateRunTime[0]
+        averageRunTime = sum(updateRunTime) / len(updateRunTime)
+
         sEmbed.add_field(
             name=f"**Processing Time**",
-            value=f"{round(et-st,2)} seconds",
+            value=f"{round(et-st,2)} seconds"
+                + f"\n*Average of {averageRunTime} seconds.",
             inline=False)
         
-        if warStateChange or sendLogs or len(errLog)>0 or (st-lastLogSent)>=3500:
+        if warStateChange or sendLogs or len(errLog)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
             await logChannelO.send(embed=sEmbed)
             await self.config.last_data_log.set(st)
+
+        await self.config.last_data_update.set(st)
+        await self.config.update_runtimes.set(updateRunTime)
 
     @commands.command(name="data_test")
     async def misc_command(self, ctx):

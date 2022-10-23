@@ -711,6 +711,10 @@ class aMember():
                 'lastUpdate': 0
                 }
             }
+        clanGamesDict ={
+            'season':0,
+            'lastUpdate':0
+            }
         clanCapitalDict = {
             'capitalContributed': {
                 'season': 0,
@@ -735,6 +739,7 @@ class aMember():
         self.arixClanCastleLv = memberStats.get('clanCastleLevel',0)
         self.arixDonations = memberStats.get('donations',donationsDict)
         self.arixLoot = memberStats.get('loot',lootDict)
+        self.arixClanGames = memberStats.get('clanGames',clanGamesDict)
         self.arixClanCapital = memberStats.get('clanCapital',clanCapitalDict)
         self.arixWarStats = memberStats.get('warStats',warDict)
         self.arixWarLog = memberStats.get('warLog',{})
@@ -770,6 +775,7 @@ class aMember():
             'spellStrength': self.homeSpellStrength,
             'donations': self.arixDonations,
             'loot': self.arixLoot,
+            'clanGames': self.arixClanGames,
             'clanCapital': self.arixClanCapital,
             'warStats': self.arixWarStats,
             'warLog': self.arixWarLog,
@@ -796,10 +802,8 @@ class aMember():
                 capitalgold_contributed_total = achievement.value
             if achievement.name == "Aggressive Capitalism":
                 capitalgold_looted_total = achievement.value
-
-        #reset these to 0 as COC resets donation counts to 0 when someone changes clans
-        self.arixDonations['received']['lastUpdate'] = 0
-        self.arixDonations['sent']['lastUpdate'] = 0
+            if achievement.name == "Games Champion":
+                clangames_total = achievement.value
 
         #set new baselines for loot totals
         self.arixLoot['gold']['lastUpdate'] = gold_total
@@ -807,6 +811,11 @@ class aMember():
         self.arixLoot['darkElixir']['lastUpdate'] = darkelixir_total
         self.arixClanCapital['capitalContributed']['lastUpdate'] = capitalgold_contributed_total
         self.arixClanCapital['capitalLooted']['lastUpdate'] = capitalgold_looted_total
+        self.arixClanGames['lastUpdate'] = clangames_total
+
+        #reset these to 0 as COC resets donation counts to 0 when someone changes clans
+        self.arixDonations['received']['lastUpdate'] = 0
+        self.arixDonations['sent']['lastUpdate'] = 0
 
     def removeMember(self):
         self.isMember = False
@@ -842,6 +851,8 @@ class aMember():
                 capitalgold_contributed_total = achievement.value
             if achievement.name == "Aggressive Capitalism":
                 capitalgold_looted_total = achievement.value
+            if achievement.name == "Games Champion":
+                clangames_total = achievement.value
 
         if self.player.received >= self.arixDonations['received']['lastUpdate']:
             newDonationsRcvd = self.player.received - self.arixDonations['received']['lastUpdate']
@@ -869,6 +880,9 @@ class aMember():
 
         self.arixClanCapital['capitalContributed']['season'] += capitalgold_contributed_total - self.arixClanCapital['capitalContributed']['lastUpdate']
         self.arixClanCapital['capitalContributed']['lastUpdate'] = capitalgold_contributed_total
+
+        self.arixClanGames['season'] += clangames_total - self.arixClanGames['lastUpdate']
+        self.arixClanGames['lastUpdate'] = clangames_total
 
         self.arixClanCapital['capitalLooted']['season'] += capitalgold_looted_total - self.arixClanCapital['capitalLooted']['lastUpdate']
         self.arixClanCapital['capitalLooted']['lastUpdate'] = capitalgold_looted_total
