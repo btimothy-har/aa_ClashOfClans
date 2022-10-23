@@ -101,18 +101,14 @@ class AriXClashLeaders(commands.Cog):
 
         await ctx.tick()
 
-    @commands.group(name="arix",autohelp=False)
-    async def alliance_parent(self,ctx):
-        """Get information about the Alliance. Sub-commands allow leaders to manage the Alliance."""
+    @commands.group(name="clan")
+    async def clansettings(self,ctx):
+        """Manage clans in the Alliance."""
             
         if not ctx.invoked_subcommand:
-            currentClans,currentMembers = await get_current_alliance(self)
-            if not len(currentClans) > 0:
-                return await ctx.send("No clans found.")
+            pass
 
-            return await ctx.send(f"Clan Set:{currentClans}")
-
-    @alliance_parent.command(name="add")
+    @clansettings.command(name="add")
     @commands.admin_or_permissions(administrator=True)
     async def alliance_parent_addclan(self, ctx, tag:str, abbr:str):
         """Add a clan to the Alliance."""

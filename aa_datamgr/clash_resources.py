@@ -422,6 +422,7 @@ async def getClan(self,ctx,tag,war=False):
     return clanObject
 
 async def getPlayer(self,ctx,tag,jsonOverride=None,noApi=False):
+    clanData, memberData = await get_current_alliance(self,rdict=True)
     if not coc.utils.is_valid_tag(tag):
         raise ClashPlayerError(tag)
         return None
@@ -433,8 +434,13 @@ async def getPlayer(self,ctx,tag,jsonOverride=None,noApi=False):
         except coc.NotFound:
             raise ClashPlayerError(tag)
             return None
+        except:
+            if tag not in list(memberData.keys()):
+                raise ClashPlayerError(tag)
+                return None
+            else:
+                player = None
     
-    clanData, memberData = await get_current_alliance(self,rdict=True)
     if jsonOverride:
         memberStatsJson = jsonOverride
     else:

@@ -315,9 +315,9 @@ class AriXClashDataMgr(commands.Cog):
                 warStateChange = True
                 warUpdateStr += f"__{c.clan.tag} {c.clan.name}__"
                 if c.warStateChange and c.warState == 'inWar':
-                    warUpdateStr += f"\n**War vs {c.currentWar.opponent.name} has begun!**"
+                    warUpdateStr += f"\n**War vs {c.currentWar.war.opponent.name} has begun!**"
                 if c.warState == 'warEnded':
-                    warUpdateStr += f"\n**War vs {c.currentWar.opponent.name} was {c.currentWar.status}.**"
+                    warUpdateStr += f"\n**War vs {c.currentWar.war.opponent.name} was {c.currentWar.war.status}.**"
 
                 warUpdateStr += f"\n- State: {c.warState}\n- Type: {c.currentWar.warType} war"
 
@@ -389,12 +389,12 @@ class AriXClashDataMgr(commands.Cog):
         updateRunTime.append(procTime)
         if len(updateRunTime) > 100:
             del updateRunTime[0]
-        averageRunTime = sum(updateRunTime) / len(updateRunTime)
+        averageRunTime = round(sum(updateRunTime) / len(updateRunTime),2)
 
         sEmbed.add_field(
             name=f"**Processing Time**",
             value=f"{round(et-st,2)} seconds"
-                + f"\n*Average of {averageRunTime} seconds.",
+                + f"\n*Average of {averageRunTime} seconds.*",
             inline=False)
         
         if warStateChange or sendLogs or len(errLog)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
