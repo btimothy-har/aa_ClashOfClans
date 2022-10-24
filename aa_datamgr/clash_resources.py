@@ -375,7 +375,7 @@ async def player_embed(self,ctx,pObject):
         pEmbed.add_field(
             name=f"**Current Season Stats with AriX**",
             value=f":stopwatch: Last updated: {lastseen_text}ago"
-                + f"\n<a:aa_AriX:1031773589231374407> {int(pObject.arixClanMembership['timeInHomeClan']/86400)} day(s) spent in {pObject.homeClan['name']}"
+                + f"\n<a:aa_AriX:1031773589231374407> {int(pObject.clanMembership['timeInHomeClan']/86400)} day(s) spent in {pObject.homeClan['name']}"
                 + "\n**Donations**"
                 + f"\n<:donated:825574412589858886> {pObject.arixDonations['sent']['season']:,}\u3000<:received:825574507045584916> {pObject.arixDonations['received']['season']:,}"
                 + "\n**Loot**"
