@@ -309,11 +309,11 @@ async def player_embed(self,ctx,pObject):
     if pObject.player.town_hall >= 13:
         hero_description += f"\u3000{hero_emotes['Royal Champion']} {pObject.royalChampion}"
 
-    troopStrength = f"<:TotalTroopStrength:827730290491129856> {pObject.homeTroopStrength}/{maxTroops[0]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[0])),0)*100)}%)*"
+    troopStrength = f"<:TotalTroopStrength:827730290491129856> {pObject.homeTroopStrength}/{maxTroops[0]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[0])),0)*100,0)}%)*"
     if pObject.player.town_hall >= 5:
-        troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {pObject.homeSpellStrength}/{maxTroops[1]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[1])),0)*100)}%)*"                        
+        troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {pObject.homeSpellStrength}/{maxTroops[1]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[1])),0)*100,0)}%)*"                        
     if pObject.player.town_hall >= 7:
-        troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {pObject.homeHeroStrength}/{maxTroops[2]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[2])),0)*100)}%)*"
+        troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {pObject.homeHeroStrength}/{maxTroops[2]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[2])),0)*100,0)}%)*"
 
     pEmbed.add_field(
         name="**Home Village**",
@@ -381,7 +381,7 @@ async def player_embed(self,ctx,pObject):
                 + "\n**Loot**"
                 + f"\n<:gold:825613041198039130> {lootGold}\u3000<:elixir:825612858271596554> {lootElixir}\u3000<:darkelixir:825640568973033502> {lootDarkElixir}"
                 + "\n**Clan Capital**"
-                + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalRaids:1034032234572816384> {capitalGoldLooted}\u3000<:RaidMedals:983374303552753664> {raidMedalsEarned}"
+                + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalRaids:1034032234572816384> {capitalGoldLooted}\u3000<:RaidMedals:983374303552753664> {raidMedalsEarned:,}"
                 + "\n**War Performance**"
                 + f"\n<:TotalWars:827845123596746773> {pObject.arixWarStats['warsParticipated']}\u3000<:TotalStars:825756777844178944> {pObject.arixWarStats['offenseStars']}\u3000<:Triple:1034033279411687434> {pObject.arixWarStats['triples']}\u3000<:MissedHits:825755234412396575> {pObject.arixWarStats['missedAttacks']}"
                 + "\n*Use `;mywarlog` to view your War Log.*"
@@ -514,6 +514,9 @@ class aClan():
 
     async def updateWar(self, client):
         currWar = await client.get_clan_war(self.clan.tag)
+        if currWar.state == 'notInWar':
+            return
+        
         self.currentWar = aClanWar(self.ctx,currWar)
         if self.currentWar.war.state != self.warState:
             self.warState = self.currentWar.war.state
