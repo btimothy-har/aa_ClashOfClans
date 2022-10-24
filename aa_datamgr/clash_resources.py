@@ -288,7 +288,7 @@ async def player_embed(self,ctx,pObject):
     else:
         mStatus = ""
 
-    league = self.cClient.get_league_named(pObject.league)
+    league = await self.cClient.get_league_named(pObject.league)
 
     pEmbed = await clash_embed(ctx,
         title=f"{pObject.name} ({pObject.tag})",
