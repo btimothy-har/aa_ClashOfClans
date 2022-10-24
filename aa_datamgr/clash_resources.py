@@ -6,6 +6,7 @@ import asyncio
 import random
 import time
 import pytz
+import requests
 
 from dotenv import load_dotenv
 from redbot.core import Config, commands
@@ -496,6 +497,9 @@ class aClan():
         self.warState = allianceJson.get('warState',None)
         self.warStateChange = False
 
+        self.raidWeekendState = allianceJson.get('raidWeekendState',None)
+        self.raidStateChange = False
+
         warlogChk = {wID:w for (wID,w) in warlogJson.items() if self.timestamp > w['endTime'] and w.get('state','')!='warEnded'}
 
         for wID, war in warlogChk.items():
@@ -510,6 +514,21 @@ class aClan():
         if self.currentWar.war.state != self.warState:
             self.warState = self.currentWar.war.state
             self.warStateChange = True
+
+    async def updateRaidWeekend(self,apikey):
+        apiHeader = {'Accept':'application/json','authorization':'Bearer '+apikey}
+        apiUrl = f"https://api.clashofclans.com/v1/clans/%23{self.clan.tag.replace('#','')}/capitalraidseasons?limit=1"
+        apiResult = requests.get(apiUrl,headers=apiHeader)
+
+        if apiResult.status_code != 200:
+            return
+
+        raidJson = apiResult.json()
+        self.raidWeekend = aRaidWeekend(self.ctx,raidJson['items'][0])
+
+        if self.raidWeekend.state != self.raidWeekendState:
+            self.raidWeekendState = self.raidWeekend.state
+            self.raidStateChange = True
 
     def setAbbr(self,new_abbr:str):
         self.abbrievation = new_abbr
@@ -532,6 +551,7 @@ class aClan():
             'description': self.arixDescription,
             'recruitment': self.recruitment,
             'warState': self.warState,
+            'raidWeekendState': self.raidWeekendState
             }
         warlogJson = self.warlog
         return allianceJson, warlogJson
@@ -605,6 +625,94 @@ class aClanWar():
                 }
             }
         return warLogJson, memberSummary
+
+class aRaidMember():
+    def __init__(self,ctx,memberJson):
+        self.tag = memberJson.get('tag')
+        self.name = memberJson.get('name')
+        self.attacks = memberJson.get('attacks')
+        self.attackLimit = memberJson.get('attackLimit')
+        self.bonusLimit = memberJson.get('bonusAttackLimit')
+        self.resourcesLooted = memberJson.get('capitalResourcesLooted')
+
+class aRaidDistrict():
+    def __init__(self,districtJson):
+        self.id = districtJson.get('id',0)
+        self.name = districtJson.get('name','')
+        self.districtHallLevel = districtJson.get('districtHallLevel',0)
+        self.destructionPct = districtJson.get('destructionPercent',0)
+        self.attackCount = districtJson.get('attackCount',0)
+        self.totalLooted = districtJson.get('totalLooted',0)
+
+class aRaidAttackLog():
+    def __init__(self,ctx,logJson):
+        self.ctx = ctx
+        self.opponent = {
+            'tag': logJson['defender']['tag'],
+            'name': logJson['defender']['name']
+            }
+        self.attackCount = logJson.get('attackCount',0)
+        self.districtCount = logJson.get('districtCount',0)
+        self.districtDestroyed = logJson.get('districtsDestroyed',0)
+
+        self.districts = []
+
+        for district in logJson.get('districts',[]):
+            district = aRaidDistrict(districtJson=district)
+            self.districts.append(district)
+
+class aRaidWeekend():
+    def __init__(self,ctx,raidJson):
+        self.ctx = ctx
+        self.timestamp = time.time()
+
+        self.json = raidJson
+
+        self.state = raidJson.get('state','')
+
+        def convertTime(timeStr):
+            t1 = timeStr.split('.',1)
+            t2 = time.strptime(t1[0],'%Y%m%dT%H%M%S')
+            t3 = datetime(*t2[:6],tzinfo=pytz.utc)
+            return t3
+
+        startTime = convertTime(raidJson['startTime'])
+        self.startTime = startTime.timestamp()
+
+        endTime = convertTime(raidJson['endTime'])
+        self.endTime = endTime.timestamp()
+
+        self.rID = str(self.startTime)
+
+        self.capitalTotalLoot = raidJson.get('capitalTotalLoot',0)
+        self.raidsCompleted = raidJson.get('raidsCompleted',0)
+        self.totalAttacks = raidJson.get('totalAttacks',0)
+        self.districtsDestroyed = raidJson.get('enemyDistrictsDestroyed',0)
+        self.offensiveRewards = raidJson.get('offensiveReward',0)
+        self.defensiveReward = raidJson.get('defensiveReward',0)
+
+        self.members = []
+        for member in raidJson.get('members',[]):
+            member = aRaidMember(ctx=self.ctx,memberJson=member)
+            self.members.append(member)
+
+        self.totalMembers = len(self.members)
+
+        self.attackLog = raidJson.get('attackLog',[])
+
+    def toJson(self):
+        memberSummary = {}
+        memberDetail = {}
+
+        for member in self.members:
+            sJson = {
+                'attacks': member.attacks,
+                'resourcesLooted': member.resourcesLooted
+                }
+            memberSummary[member.tag] = sJson
+
+        capitalRaidJson = self.json
+        return capitalRaidJson, memberSummary
 
 class aMember():
     #AriX Member Class to coordinate information exchange.
@@ -726,10 +834,10 @@ class aMember():
                 'season': 0,
                 'lastUpdate': 0
                 },
-            'capitalLooted': {
-                'season': 0,
-                'lastUpdate': 0
-                }
+            'capitalRaids': {
+                'attacks': 0,
+                'resources': 0
+                },
             }
         warDict = {
             'warsParticipated': 0,
@@ -749,6 +857,7 @@ class aMember():
         self.arixClanCapital = memberStats.get('clanCapital',clanCapitalDict)
         self.arixWarStats = memberStats.get('warStats',warDict)
         self.arixWarLog = memberStats.get('warLog',{})
+        self.arixRaidLog = memberStats.get('raidLog',{})
 
     def toJson(self):
         allianceJson = {
@@ -784,6 +893,7 @@ class aMember():
             'clanGames': self.arixClanGames,
             'clanCapital': self.arixClanCapital,
             'warStats': self.arixWarStats,
+            'raidLog': self.arixRaidLog,
             'warLog': self.arixWarLog,
             }
         return allianceJson,memberJson
@@ -806,8 +916,6 @@ class aMember():
                 darkelixir_total = achievement.value
             if achievement.name == "Most Valuable Clanmate":
                 capitalgold_contributed_total = achievement.value
-            if achievement.name == "Aggressive Capitalism":
-                capitalgold_looted_total = achievement.value
             if achievement.name == "Games Champion":
                 clangames_total = achievement.value
 
@@ -816,7 +924,6 @@ class aMember():
         self.arixLoot['elixir']['lastUpdate'] = elixir_total
         self.arixLoot['darkElixir']['lastUpdate'] = darkelixir_total
         self.arixClanCapital['capitalContributed']['lastUpdate'] = capitalgold_contributed_total
-        self.arixClanCapital['capitalLooted']['lastUpdate'] = capitalgold_looted_total
         self.arixClanGames['lastUpdate'] = clangames_total
 
         #reset these to 0 as COC resets donation counts to 0 when someone changes clans
@@ -890,9 +997,6 @@ class aMember():
         self.arixClanGames['season'] += clangames_total - self.arixClanGames['lastUpdate']
         self.arixClanGames['lastUpdate'] = clangames_total
 
-        self.arixClanCapital['capitalLooted']['season'] += capitalgold_looted_total - self.arixClanCapital['capitalLooted']['lastUpdate']
-        self.arixClanCapital['capitalLooted']['lastUpdate'] = capitalgold_looted_total
-
         self.arixWarStats['warsParticipated'] = len(self.arixWarLog)
         self.arixWarStats['offenseStars'] = 0
         self.arixWarStats['defenseStars'] = 0
@@ -906,3 +1010,10 @@ class aMember():
             self.arixWarStats['totalAttacks'] += war['totalAttacks']
             self.arixWarStats['triples'] += war['triples']
             self.arixWarStats['missedAttacks'] += war['missedAttacks']
+
+        self.arixClanCapital['capitalRaids']['attacks'] = 0
+        self.arixClanCapital['capitalRaids']['resources'] = 0
+
+        for rID,raid in self.arixRaidLog.items():
+            self.arixClanCapital['capitalRaids']['attacks'] += raid['attacks']
+            self.arixClanCapital['capitalRaids']['resources'] += raid['resourcesLooted']

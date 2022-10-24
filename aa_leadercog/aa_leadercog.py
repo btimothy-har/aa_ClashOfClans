@@ -110,7 +110,7 @@ class AriXClashLeaders(commands.Cog):
 
     @clansettings.command(name="add")
     @commands.admin_or_permissions(administrator=True)
-    async def alliance_parent_addclan(self, ctx, tag:str, abbr:str):
+    async def clansettings_add(self, ctx, tag:str, abbr:str):
         """Add a clan to the Alliance."""
 
         try:
@@ -166,9 +166,9 @@ class AriXClashLeaders(commands.Cog):
 
         await ctx.send(f"Successfully added **{clan.tag} {clan.name}**!")
 
-    @alliance_parent.command(name="remove")
+    @clansettings.command(name="remove")
     @commands.admin_or_permissions(administrator=True)
-    async def alliance_parent_removeclan(self, ctx, tag:str):
+    async def clansettings_remove(self, ctx, tag:str):
         """Remove a clan from the Alliance."""
 
         try:

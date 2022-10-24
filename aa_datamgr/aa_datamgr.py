@@ -8,6 +8,7 @@ import json
 import asyncio
 import random
 import time
+import requests
 
 from dotenv import load_dotenv
 from redbot.core import Config, commands
@@ -219,6 +220,7 @@ class AriXClashDataMgr(commands.Cog):
         sendLogs = False
         newSeason = False
         warStateChange = False
+        raidStateChange = False
         lastLogSent = await self.config.last_data_log()
         lastDataUpdate = await self.config.last_data_update()
         updateRunTime = await self.config.update_runtimes()
@@ -294,8 +296,10 @@ class AriXClashDataMgr(commands.Cog):
                 inline=False)
 
         warUpdateStr = ''
+        raidUpdateStr = ''
         for tag, clan in allianceJson['clans'].items():
-            mCount = 0
+            wCount = 0
+            rCount = 0
             try:
                 c = await getClan(self,ctx,tag)
             except Exception as err:
@@ -308,6 +312,7 @@ class AriXClashDataMgr(commands.Cog):
                 continue
 
             await c.updateWar(client=self.cClient)
+            await c.updateRaidWeekend(apikey=os.getenv("CLASH_DEV_KEY"))
             nClanJson, nWarlogJson = c.toJson()
             allianceJson['clans'][c.clan.tag] = nClanJson
             warlogJson[tag] = nWarlogJson
@@ -330,17 +335,49 @@ class AriXClashDataMgr(commands.Cog):
 
                     for member in c.currentWar.war.clan.members:
                         if member.tag in list(allianceJson['members'].keys()):
-                            mCount += 1
+                            wCount += 1
                             memberStatsJson[member.tag]['warLog'][c.currentWar.warID] = mJson[member.tag]
 
-                    warUpdateStr += f"\n- Recognized {mCount} members in War."
+                    warUpdateStr += f"\n- Tracking stats for {wCount} members in War."
+
+            if c.raidStateChange:
+                raidStateChange = True
+
+            if c.raidStateChange or c.raidWeekend.state == "ongoing":
+                raidUpdateStr += f"__{c.clan.tag} {c.clan.name}__"
+
+                if c.raidStateChange and c.raidWeekend.state == 'ongoing':
+                    raidUpdateStr += f"\n**Raid Weekend has begun!**"
+                if c.raidWeekend.state == 'ended':
+                    raidUpdateStr += f"\n**Raid Weekend is now over.**"
+
+                raidUpdateStr += f"\n- State: {c.raidWeekend.state}"
+
+                rJson, mJson = c.raidWeekend.toJson()
+                capitalraidJson[c.clan.tag][str(c.raidWeekend.startTime)] = rJson
+
+                for member in c.raidWeekend.members:
+                    if member.tag in list(allianceJson['members'].keys()):
+                        rCount += 1
+                        memberStatsJson[member.tag]['raidLog'] = {}
+                        memberStatsJson[member.tag]['raidLog'][str(c.raidWeekend.startTime)] = mJson[member.tag]
+
+                raidUpdateStr += f"\n- Tracking stats for {rCount} members in Capital Raids."
 
         if warUpdateStr == '':
             warUpdateStr = "No war updates."
 
+        if raidUpdateStr == '':
+            raidUpdateStr = "No raid weekend updates."
+
         sEmbed.add_field(
             name=f"**Clan War**",
             value=warUpdateStr,
+            inline=False)
+
+        sEmbed.add_field(
+            name=f"**Capital Raids**",
+            value=raidUpdateStr,
             inline=False)
 
         for tag, member in allianceJson['members'].items():
@@ -365,6 +402,7 @@ class AriXClashDataMgr(commands.Cog):
         await datafile_save(self,'warlog',warlogJson)
         await datafile_save(self,'members',memberStatsJson)
         await datafile_save(self,'alliance',allianceJson)
+        await datafile_save(self,'capitalraid',capitalraidJson)
 
         et = time.time()
 
@@ -409,4 +447,18 @@ class AriXClashDataMgr(commands.Cog):
     @commands.command(name="data_test")
     async def misc_command(self, ctx):
 
-        cWar = await self.cClient.get_clan_war('92g9j8cg')
+        memberStatsJson = await datafile_retrieve(self,'members')
+        
+        for tag, member in memberStatsJson.items():
+            member['clanCapital'] = {
+                'capitalContributed': {
+                    'season':member['clanCapital']['capitalContributed']['season'],
+                    'lastUpdate':member['clanCapital']['capitalContributed']['lastUpdate'],
+                    },
+                'capitalRaids': {
+                    'attacks':0,
+                    'resources':0,
+                    },
+                }
+
+        await datafile_save(self,'members',memberStatsJson)
