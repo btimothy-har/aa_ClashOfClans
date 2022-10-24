@@ -277,8 +277,8 @@ async def player_shortfield(self,ctx,pObject):
     if pObject.player.town_hall >= 13:
         hero_description += f"\u2000{hero_emotes['Royal Champion']} {pObject.royalChampion}"
 
-    title = f"{pObject.player.name} ({pObject.player.tag})"
-    fieldStr = f"<:Exp:825654249475932170>{pObject.player.exp_level}\u3000{th_emotes.get(pObject.player.town_hall,'TH')} {pObject.thDescription}\u3000{hero_description}"
+    title = f"{pObject.name} ({pObject.tag})"
+    fieldStr = f"<:Exp:825654249475932170>{pObject.exp_level}\u3000{th_emotes.get(pObject.town_hall,'TH')} {pObject.thDesc}\u3000{hero_description}"
 
     return title,fieldStr
 
@@ -288,13 +288,16 @@ async def player_embed(self,ctx,pObject):
     else:
         mStatus = ""
 
-    pEmbed = await clash_embed(ctx,
-        title=f"{pObject.player.name} ({pObject.player.tag})",
-        message=f"{mStatus}<:Exp:825654249475932170>{pObject.player.exp_level}\u3000<:Clan:825654825509322752> {pObject.clanDescription}",
-        url=f"https://www.clashofstats.com/players/{pObject.player.tag.replace('#','')}",
-        thumbnail=pObject.player.league.icon.url)
+    league = self.cClient.get_league_named(pObject.league)
 
-    maxTroops = maxHomeLevels[pObject.player.town_hall]
+    pEmbed = await clash_embed(ctx,
+        title=f"{pObject.name} ({pObject.tag})",
+        message=f"{mStatus}<:Exp:825654249475932170>{pObject.exp_level}\u3000<:Clan:825654825509322752> {pObject.clanDesc}",
+        url=f"https://www.clashofstats.com/players/{pObject.tag.replace('#','')}",
+        thumbnail=league.icon.url)
+
+    maxTroops = maxHomeLevels[pObject.town_hall]
+    rushedTroops = maxHomeLevels[(pObject.town_hall-1)]
 
     hero_description = ""
     if pObject.player.town_hall >= 7:
@@ -306,29 +309,29 @@ async def player_embed(self,ctx,pObject):
     if pObject.player.town_hall >= 13:
         hero_description += f"\u3000{hero_emotes['Royal Champion']} {pObject.royalChampion}"
 
-    troopStrength = f"<:TotalTroopStrength:827730290491129856> {pObject.homeTroopStrength}/{maxTroops[0]} ({round((pObject.homeTroopStrength/maxTroops[0])*100)}%)"
+    troopStrength = f"<:TotalTroopStrength:827730290491129856> {pObject.homeTroopStrength}/{maxTroops[0]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[0])),0)*100)}%)*"
     if pObject.player.town_hall >= 5:
-        troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {pObject.homeSpellStrength}/{maxTroops[1]} ({round((pObject.homeSpellStrength/maxTroops[1])*100)}%)"                        
+        troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {pObject.homeSpellStrength}/{maxTroops[1]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[1])),0)*100)}%)*"                        
     if pObject.player.town_hall >= 7:
-        troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {pObject.homeHeroStrength}/{maxTroops[2]} ({round((pObject.homeHeroStrength/maxTroops[2])*100)}%)"
+        troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {pObject.homeHeroStrength}/{maxTroops[2]} *(Rushed: {round(max((1-(pObject.homeTroopStrength/rushedTroops[2])),0)*100)}%)*"
 
     pEmbed.add_field(
         name="**Home Village**",
-        value=f"{th_emotes.get(pObject.player.town_hall,'TH')} {pObject.thDescription}\u3000<:HomeTrophies:825589905651400704> {pObject.player.trophies} (best: {pObject.player.best_trophies})"
+        value=f"{th_emotes.get(pObject.town_hall,'TH')} {pObject.thDesc}\u3000<:HomeTrophies:825589905651400704> {pObject.trophies}\u3000<:TotalStars:825756777844178944> {pObject.warStars}"
             + f"{hero_description}"
             + "\n**Strength**"
             + f"\n{troopStrength}"
             + "\n\u200b",
         inline=False)
 
-    if pObject.player.builder_hall > 0:
-        pEmbed.add_field(
-            name="**Builder Base**",
-            value=f"<:BuilderHall:825640713215410176> {pObject.player.builder_hall}\u3000<:BuilderTrophies:825713625586466816> {pObject.player.versus_trophies} (best: {pObject.player.best_versus_trophies})"
-                + "\n**Strength**"
-                + f"\n<:BH_TroopStrength:827732057554812939> {pObject.builderTroopStrength}\u3000{hero_emotes['Battle Machine']} {pObject.battleMachine}"
-                + "\n\u200b",
-            inline=False)
+    #if pObject.player.builder_hall > 0:
+    #    pEmbed.add_field(
+    #        name="**Builder Base**",
+    #        value=f"<:BuilderHall:825640713215410176> {pObject.player.builder_hall}\u3000<:BuilderTrophies:825713625586466816> {pObject.player.versus_trophies} (best: {pObject.player.best_versus_trophies})"
+    #            + "\n**Strength**"
+    #            + f"\n<:BH_TroopStrength:827732057554812939> {pObject.builderTroopStrength}\u3000{hero_emotes['Battle Machine']} {pObject.battleMachine}"
+    #            + "\n\u200b",
+    #        inline=False)
 
     if pObject.isMember:
         if isinstance(pObject.arixLastUpdate,str):
@@ -366,20 +369,21 @@ async def player_embed(self,ctx,pObject):
             lootDarkElixir = "max"
 
         clanCapitalGold = numerize.numerize(pObject.arixClanCapital['capitalContributed']['season'],1)
-        capitalGoldLooted = numerize.numerize(pObject.arixClanCapital['capitalLooted']['season'],1)
+        capitalGoldLooted = numerize.numerize(pObject.arixClanCapital['capitalRaids']['resources'],1)
+        raidMedalsEarned = pObject.arixClanCapital['capitalRaids']['medals']
 
         pEmbed.add_field(
             name=f"**Current Season Stats with AriX**",
-            value=f":stopwatch: Last updated: {lastseen_text} ago"
+            value=f":stopwatch: Last updated: {lastseen_text}ago"
                 + f"\n<a:aa_AriX:1031773589231374407> {int(pObject.arixClanMembership['timeInHomeClan']/86400)} day(s) spent in {pObject.homeClan['name']}"
                 + "\n**Donations**"
                 + f"\n<:donated:825574412589858886> {pObject.arixDonations['sent']['season']:,}\u3000<:received:825574507045584916> {pObject.arixDonations['received']['season']:,}"
                 + "\n**Loot**"
                 + f"\n<:gold:825613041198039130> {lootGold}\u3000<:elixir:825612858271596554> {lootElixir}\u3000<:darkelixir:825640568973033502> {lootDarkElixir}"
                 + "\n**Clan Capital**"
-                + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalGoldLooted:983374303552753664> {capitalGoldLooted}"
+                + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalRaids:1034032234572816384> {capitalGoldLooted}\u3000<:RaidMedals:983374303552753664> {raidMedalsEarned}"
                 + "\n**War Performance**"
-                + f"\n<:TotalWars:827845123596746773> {len(pObject.arixWarLog)}\u3000<:TotalStars:825756777844178944> 0\u3000<:MissedHits:825755234412396575> 0"
+                + f"\n<:TotalWars:827845123596746773> {pObject.arixWarStats['warsParticipated']}\u3000<:TotalStars:825756777844178944> {pObject.arixWarStats['offenseStars']}\u3000<:Triple:1034033279411687434> {pObject.arixWarStats['triples']}\u3000<:MissedHits:825755234412396575> {pObject.arixWarStats['missedAttacks']}"
                 + "\n*Use `;mywarlog` to view your War Log.*"
                 + "\n\u200b",
             inline=False)
@@ -627,13 +631,14 @@ class aClanWar():
         return warLogJson, memberSummary
 
 class aRaidMember():
-    def __init__(self,ctx,memberJson):
+    def __init__(self,ctx,memberJson,offRew,defRew):
         self.tag = memberJson.get('tag')
         self.name = memberJson.get('name')
         self.attacks = memberJson.get('attacks')
         self.attackLimit = memberJson.get('attackLimit')
         self.bonusLimit = memberJson.get('bonusAttackLimit')
         self.resourcesLooted = memberJson.get('capitalResourcesLooted')
+        self.raidMedalsEarned = (self.attacks * offRew) + defRew
 
 class aRaidDistrict():
     def __init__(self,districtJson):
@@ -693,7 +698,11 @@ class aRaidWeekend():
 
         self.members = []
         for member in raidJson.get('members',[]):
-            member = aRaidMember(ctx=self.ctx,memberJson=member)
+            member = aRaidMember(
+                ctx=self.ctx,
+                memberJson=member,
+                offRew=self.offensiveRewards,
+                defRew=self.defensiveReward)
             self.members.append(member)
 
         self.totalMembers = len(self.members)
@@ -707,7 +716,8 @@ class aRaidWeekend():
         for member in self.members:
             sJson = {
                 'attacks': member.attacks,
-                'resourcesLooted': member.resourcesLooted
+                'resourcesLooted': member.resourcesLooted,
+                'medalsEarned': member.raidMedalsEarned
                 }
             memberSummary[member.tag] = sJson
 
@@ -836,7 +846,8 @@ class aMember():
                 },
             'capitalRaids': {
                 'attacks': 0,
-                'resources': 0
+                'resources': 0,
+                'medals':0
                 },
             }
         warDict = {
@@ -1013,7 +1024,9 @@ class aMember():
 
         self.arixClanCapital['capitalRaids']['attacks'] = 0
         self.arixClanCapital['capitalRaids']['resources'] = 0
+        self.arixClanCapital['capitalRaids']['medals'] = 0
 
         for rID,raid in self.arixRaidLog.items():
             self.arixClanCapital['capitalRaids']['attacks'] += raid['attacks']
             self.arixClanCapital['capitalRaids']['resources'] += raid['resourcesLooted']
+            self.arixClanCapital['capitalRaids']['medals'] += raid['medalsEarned']
