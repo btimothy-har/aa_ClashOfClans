@@ -2,9 +2,6 @@ import time
 
 from .constants import warTypeGrid
 from .notes import aNote
-#from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-#from .clan import aClan
-from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 
 class aClanWar():
     def __init__(self,ctx):
