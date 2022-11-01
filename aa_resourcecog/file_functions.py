@@ -1,4 +1,12 @@
 import json
+import pytz
+
+from datetime import datetime
+
+async def get_current_season():
+    helsinkiTz = pytz.timezone("Europe/Helsinki")
+    current_season = f"{datetime.now(helsinkiTz).month}-{datetime.now(helsinkiTz).year}"
+    return current_season
 
 async def get_current_alliance(self):
     with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:

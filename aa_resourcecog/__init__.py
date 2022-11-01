@@ -3,6 +3,7 @@ import sys
 import discord
 import coc
 import fasteners
+import json
 
 from dotenv import load_dotenv
 from redbot.core.bot import Red
@@ -10,19 +11,16 @@ from coc.ext import discordlinks
 from .aa_resourcecog import AriXClashResources
 
 from .constants import json_file_defaults
+from .file_functions import get_current_season
 
 load_dotenv()
 
 async def setup(bot:Red):
-    clash_client = coc.Client()
-    await clash_client.login_with_keys(
-        os.getenv("CLASH_DEV_KEY1"), 
-        os.getenv("CLASH_DEV_KEY2"),
-        os.getenv("CLASH_DEV_KEY3"),
-        os.getenv("CLASH_DEV_KEY4"),
-        os.getenv("CLASH_DEV_KEY5"),
+    bot.coc_client = coc.Client(
+        key_count=5,
+        key_names='Created for AriXBot, from coc.py',
         load_game_data=coc.LoadGameData(always=True))
-    bot.coc_client = clash_client
+    await bot.coc_client.login(os.getenv("CLASH_DEV_USER"),os.getenv("CLASH_DEV_PASS"))
     
     bot.discordlinks = await discordlinks.login(
         os.getenv("DISCORDLINKS_USER"),
@@ -35,8 +33,8 @@ async def setup(bot:Red):
         with bot.clash_file_lock.write_lock():
             with open(bot.clash_dir_path+'/seasons.json','w') as file:
                 season_default = json_file_defaults['seasons']
-                season_default['current'] = AriXClashResources.get_current_season()
-                json.dump(json_file_defaults['seasons'],file,indent=2)
+                season_default['current'] = await get_current_season()
+                json.dump(season_default,file,indent=2)
 
     if not os.path.exists(bot.clash_dir_path+'/alliance.json'):
         with bot.clash_file_lock.write_lock():

@@ -20,7 +20,7 @@ from datetime import datetime
 from string import ascii_letters, digits
 
 from .constants import confirmation_emotes
-from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
+from .file_functions import get_current_season, get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from .clan import aClan
@@ -166,8 +166,3 @@ class AriXClashResources(commands.Cog):
             for emoji in reaction_list:
                 await menu_message.remove_reaction(emoji,ctx.bot.user)
             return selection_list[sel_index]
-
-    async def get_current_season():
-        helsinkiTz = pytz.timezone("Europe/Helsinki")
-        current_season = f"{datetime.now(helsinkiTz).month}-{datetime.now(helsinkiTz).year}"
-        return current_season    

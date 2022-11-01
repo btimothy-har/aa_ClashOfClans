@@ -2,13 +2,12 @@ import coc
 import discord
 import time
 
-from .aa_resourcecog import
-from .constants import 
+#from .aa_resourcecog import
+#from .constants import 
 
 from .notes import aNote
-from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+#from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
+#from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 
 class aRaidWeekend():
     def __init__(self,ctx,clan):
@@ -54,10 +53,10 @@ class aRaidWeekend():
         self.offense_rewards = json_data['offense_rewards']
         self.defense_rewards = json_data['defense_rewards']
 
-        self.members = [aRaidMember.from_json() for m in json_data['members']]
+        self.members = [aRaidMember.from_json(clan=self.clan,raid_entry=self,json_data=m) for m in json_data['members']]
 
-        self.attack_log = [aRaidClan.from_json() for r in json_data['attack_log']]
-        self.defense_log = [aRaidClan.from_json() for r in json_data['defense_log']]
+        self.attack_log = [aRaidClan.from_json(raid_entry=self,json_data=r,raid_type='offense') for r in json_data['attack_log']]
+        self.defense_log = [aRaidClan.from_json(raid_entry=self,json_data=r,raid_type='defense') for r in json_data['defense_log']]
         return self
 
     @classmethod
@@ -82,7 +81,7 @@ class aRaidWeekend():
         self.offensive_reward = self.rw.offensive_reward
         self.defensive_reward = self.rw.defensive_reward
 
-        self.members = [aRaidMember.from_game(raid_entry=self,game_data=m,clan) for m in self.rw.members]
+        self.members = [aRaidMember.from_game(clan=self.clan,raid_entry=self,game_data=m) for m in self.rw.members]
 
         self.attack_log = [aRaidClan.from_game(raid_entry=self,game_data=a,raid_type='offense') for a in self.rw.attack_log]
         self.defense_log = [aRaidClan.from_game(raid_entry=self,game_data=a,raid_type='defense') for a in self.rw.defense_log]

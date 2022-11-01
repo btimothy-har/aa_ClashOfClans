@@ -11,28 +11,18 @@ import time
 import requests
 import fasteners
 
-from dotenv import load_dotenv
 from redbot.core import Config, commands
 from discord.utils import get
 from datetime import datetime
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
-from .aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from .constants import confirmation_emotes
-from .aa_resourcecog.notes import aNote
-from .aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from .aa_resourcecog.clan import aClan
-from .aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from .aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
-
-load_dotenv()
-
-sys.path.append(os.getenv("RESOURCEPATH"))
-
-import clash_resources
-from clash_resources import token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
-from clash_resources import getPlayer, player_shortfield, player_embed, ClashPlayerError
-from clash_resources import getClan, ClashClanError
+from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
+from aa_resourcecog.constants import confirmation_emotes
+from aa_resourcecog.notes import aNote
+from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
+from aa_resourcecog.clan import aClan
+from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
+from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 
 membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
 
