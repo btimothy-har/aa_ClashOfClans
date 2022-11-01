@@ -357,8 +357,8 @@ class aPlayer():
             tag=self.tag,
             new_data=memberJson)
 
-    async def new_member(self,discord_user,home_clan_tag):
-        self.home_clan = X
+    async def new_member(self,discord_user,home_clan):
+        self.home_clan = home_clan
         self.is_member = True
         self.arix_rank = 'Member'
         self.discord_user = discord_user
@@ -408,94 +408,6 @@ class aPlayer():
         player_log = aPlayerRaidLog.from_raid_member(raid_entry)
         rID = player_log.rID
         self.raidlog['rID'] = player_log
-
-    async def get_embed(self,ctx,client):
-        pass
-    #     if self.isMember:
-    #         mStatus = f"***{self.homeClan.role} of {self.homeClan.name}***\n\n"
-    #     else:
-    #         mStatus = ""
-
-    #     league = await client.get_league_named(p.league)
-
-    #     pEmbed = await clash_embed(
-    #         ctx=ctx,
-    #         title=f"{self.name} ({self.tag})",
-    #         message=f"{mStatus}<:Exp:825654249475932170>{self.exp_level}\u3000<:Clan:825654825509322752> {self.clan.description}",
-    #         url=f"https://www.clashofstats.com/players/{self.tag.replace('#','')}",
-    #         thumbnail=league.icon.url)
-
-    #     hero_description = ""
-    #     if pObject.player.town_hall >= 7:
-    #         hero_description = f"\n**Heroes**\n{hero_emotes['Barbarian King']} {self.barbarianKing}"
-    #     if pObject.player.town_hall >= 9:
-    #         hero_description += f"\u3000{hero_emotes['Archer Queen']} {self.archerQueen}"
-    #     if pObject.player.town_hall >= 11:
-    #         hero_description += f"\u3000{hero_emotes['Grand Warden']} {self.grandWarden}"
-    #     if pObject.player.town_hall >= 13:
-    #         hero_description += f"\u3000{hero_emotes['Royal Champion']} {self.royalChampion}"
-
-    # troopStrength = f"<:TotalTroopStrength:827730290491129856> {self.homeTroopStrength}"
-    # if pObject.player.town_hall >= 5:
-    #     troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {self.homeSpellStrength}"                        
-    # if pObject.player.town_hall >= 7:
-    #     troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {self.homeHeroStrength}"
-
-    # pEmbed.add_field(
-    #     name="**Home Village**",
-    #     value=f"{self.town_hall.emote} {self.town_hall.description}\u3000<:HomeTrophies:825589905651400704> {self.trophies}\u3000<:TotalStars:825756777844178944> {self.warStars}"
-    #         + f"{hero_description}"
-    #         + "\n**Strength**"
-    #         + f"\n{troopStrength}"
-    #         + "\n\u200b",
-    #     inline=False)
-
-    # if self.isMember:
-    #     dtime = self.timestamp - self.arixLastUpdate                            
-    #     dtime_days,dtime = divmod(dtime,86400)
-    #     dtime_hours,dtime = divmod(dtime,3600)
-    #     dtime_minutes,dtime = divmod(dtime,60)
-
-    #     lastseen_text = ''
-    #     if dtime_days > 0:
-    #         lastseen_text += f"{int(dtime_days)} days "
-    #     if dtime_hours > 0:
-    #         lastseen_text += f"{int(dtime_hours)} hours "
-    #     if dtime_minutes > 0:
-    #         lastseen_text += f"{int(dtime_minutes)} mins "
-    #     if lastseen_text == '':
-    #         lastseen_text = "a few seconds "
-
-    #     lootGold = numerize.numerize(self.arixLoot.gold_season,1)
-    #     lootElixir = numerize.numerize(self.arixLoot.elixir_season,1)
-    #     lootDarkElixir = numerize.numerize(self.arixLoot.darkelixir_season,1)
-
-    #     if self.arixLoot.gold_lastupdate >= 2000000000:
-    #         lootGold = "max"
-    #     if self.arixLoot.elixir_lastupdate >= 2000000000:
-    #         lootElixir = "max"
-    #     if self.arixLoot.darkelixir_lastupdate >= 2000000000:
-    #         lootDarkElixir = "max"
-
-    #     clanCapitalGold = numerize.numerize(self.arixCapitalContribution.season,1)
-    #     capitalGoldLooted = numerize.numerize(self.arixRaid_Resources,1)
-
-    #     pEmbed.add_field(
-    #         name=f"**Current Season Stats with AriX**",
-    #         value=f":stopwatch: Last updated: {lastseen_text}ago"
-    #             + f"\n<a:aa_AriX:1031773589231374407> {int(self.timeInHomeClan/86400)} day(s) spent in {self.homeClan.name}"
-    #             + "\n**Donations**"
-    #             + f"\n<:donated:825574412589858886> {self.arixDonations.sent_season:,}\u3000<:received:825574507045584916> {self.arixDonations.rcvd_season:,}"
-    #             + "\n**Loot**"
-    #             + f"\n<:gold:825613041198039130> {lootGold}\u3000<:elixir:825612858271596554> {lootElixir}\u3000<:darkelixir:825640568973033502> {lootDarkElixir}"
-    #             + "\n**Clan Capital**"
-    #             + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalRaids:1034032234572816384> {capitalGoldLooted}\u3000<:RaidMedals:983374303552753664> {self.arixRaid_Medals:,}"
-    #             + "\n**War Performance**"
-    #             + f"\n<:TotalWars:827845123596746773> {self.arixWar_Participated}\u3000<:TotalStars:825756777844178944> {self.arixWar_OffenseStars}\u3000<:Triple:1034033279411687434> {self.arixWar_Triples}\u3000<:MissedHits:825755234412396575> {self.arixWar_MissedAttacks}"
-    #             + "\n*Use `;mywarlog` to view your War Log.*"
-    #             + "\n\u200b",
-    #         inline=False)
-    # return pEmbed
 
 class aTownHall():
     def __init__(self,level=1,weapon=0):

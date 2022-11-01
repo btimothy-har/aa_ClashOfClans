@@ -166,3 +166,111 @@ class AriXClashResources(commands.Cog):
             for emoji in reaction_list:
                 await menu_message.remove_reaction(emoji,ctx.bot.user)
             return selection_list[sel_index]
+
+    async def player_embed(self,ctx,player):
+        if player.is_member:
+            mStatus = f"***{self.arix_rank} of {self.home_clan.name}***\n\n"
+        else:
+            mStatus = ""
+
+        if player.clan:
+            clan_description = f"{player.role} of {player.clan.name}"
+        else:
+            clan_description = "No Clan"
+
+        pEmbed = await clash_embed(
+            ctx=ctx,
+            title=f"{player.name} ({player.tag})",
+            message=f"{mStatus}<:Exp:825654249475932170>{player.exp_level}\u3000<:Clan:825654825509322752> {clan_description}",
+            url=f"https://www.clashofstats.com/players/{player.tag.replace('#','')}",
+            thumbnail=player.league.icon.url)
+
+        hero_description = ""
+        if player.town_hall.level >= 7:
+            hero_description = f"\n**Heroes**\n{hero_emotes['Barbarian King']} {sum([h.level for h in player.heroes if h.name=='Barbarian King'])}"
+        if player.town_hall.level >= 9:
+            hero_description += f"\u3000{hero_emotes['Archer Queen']} {sum([h.level for h in player.heroes if h.name=='Archer Queen'])}"
+        if player.town_hall.level >= 11:
+            hero_description += f"\u3000{hero_emotes['Grand Warden']} {sum([h.level for h in player.heroes if h.name=='Grand Warden'])}"
+        if player.town_hall.level >= 13:
+            hero_description += f"\u3000{hero_emotes['Royal Champion']} {sum([h.level for h in player.heroes if h.name=='Royal Champion'])}"
+
+        troopStrength = f"<:TotalTroopStrength:827730290491129856> {player.troop_strength}"
+        if player.town_hall.level >= 5:
+            troopStrength += f"\n<:TotalSpellStrength:827730290294259793> {player.spell_strength}"                        
+        if pObject.player.town_hall >= 7:
+            troopStrength += f"\n<:TotalHeroStrength:827730291149635596> {player.hero_strength}"
+
+        pEmbed.add_field(
+            name="**Home Village**",
+            value=f"{player.town_hall.emote} {player.town_hall.description}\u3000<:HomeTrophies:825589905651400704> {player.trophies}\u3000<:TotalStars:825756777844178944> {player.war_stars}"
+                + f"{hero_description}"
+                + "\n**Strength**"
+                + f"\n{troopStrength}"
+                + "\n\u200b",
+                inline=False)
+
+        return pEmbed
+
+    async def player_summary(self,ctx,player):
+        hero_description = ""
+        if player.town_hall.level >= 7:
+            hero_description = f"\n**Heroes**\n{hero_emotes['Barbarian King']} {sum([h.level for h in player.heroes if h.name=='Barbarian King'])}"
+        if player.town_hall.level >= 9:
+            hero_description += f"\u3000{hero_emotes['Archer Queen']} {sum([h.level for h in player.heroes if h.name=='Archer Queen'])}"
+        if player.town_hall.level >= 11:
+            hero_description += f"\u3000{hero_emotes['Grand Warden']} {sum([h.level for h in player.heroes if h.name=='Grand Warden'])}"
+        if player.town_hall.level >= 13:
+            hero_description += f"\u3000{hero_emotes['Royal Champion']} {sum([h.level for h in player.heroes if h.name=='Royal Champion'])}"
+
+        title = f"{player.name} ({player.tag})"
+        fieldStr = f"<:Exp:825654249475932170>{player.exp_level}\u3000{player.town_hall.emote} {player.town_hall.description}\u3000{hero_description}"
+
+        return title,fieldStr
+
+    # if self.isMember:
+    #     dtime = self.timestamp - self.arixLastUpdate                            
+    #     dtime_days,dtime = divmod(dtime,86400)
+    #     dtime_hours,dtime = divmod(dtime,3600)
+    #     dtime_minutes,dtime = divmod(dtime,60)
+
+    #     lastseen_text = ''
+    #     if dtime_days > 0:
+    #         lastseen_text += f"{int(dtime_days)} days "
+    #     if dtime_hours > 0:
+    #         lastseen_text += f"{int(dtime_hours)} hours "
+    #     if dtime_minutes > 0:
+    #         lastseen_text += f"{int(dtime_minutes)} mins "
+    #     if lastseen_text == '':
+    #         lastseen_text = "a few seconds "
+
+    #     lootGold = numerize.numerize(self.arixLoot.gold_season,1)
+    #     lootElixir = numerize.numerize(self.arixLoot.elixir_season,1)
+    #     lootDarkElixir = numerize.numerize(self.arixLoot.darkelixir_season,1)
+
+    #     if self.arixLoot.gold_lastupdate >= 2000000000:
+    #         lootGold = "max"
+    #     if self.arixLoot.elixir_lastupdate >= 2000000000:
+    #         lootElixir = "max"
+    #     if self.arixLoot.darkelixir_lastupdate >= 2000000000:
+    #         lootDarkElixir = "max"
+
+    #     clanCapitalGold = numerize.numerize(self.arixCapitalContribution.season,1)
+    #     capitalGoldLooted = numerize.numerize(self.arixRaid_Resources,1)
+
+    #     pEmbed.add_field(
+    #         name=f"**Current Season Stats with AriX**",
+    #         value=f":stopwatch: Last updated: {lastseen_text}ago"
+    #             + f"\n<a:aa_AriX:1031773589231374407> {int(self.timeInHomeClan/86400)} day(s) spent in {self.homeClan.name}"
+    #             + "\n**Donations**"
+    #             + f"\n<:donated:825574412589858886> {self.arixDonations.sent_season:,}\u3000<:received:825574507045584916> {self.arixDonations.rcvd_season:,}"
+    #             + "\n**Loot**"
+    #             + f"\n<:gold:825613041198039130> {lootGold}\u3000<:elixir:825612858271596554> {lootElixir}\u3000<:darkelixir:825640568973033502> {lootDarkElixir}"
+    #             + "\n**Clan Capital**"
+    #             + f"\n<:CapitalGoldContributed:971012592057339954> {clanCapitalGold}\u3000<:CapitalRaids:1034032234572816384> {capitalGoldLooted}\u3000<:RaidMedals:983374303552753664> {self.arixRaid_Medals:,}"
+    #             + "\n**War Performance**"
+    #             + f"\n<:TotalWars:827845123596746773> {self.arixWar_Participated}\u3000<:TotalStars:825756777844178944> {self.arixWar_OffenseStars}\u3000<:Triple:1034033279411687434> {self.arixWar_Triples}\u3000<:MissedHits:825755234412396575> {self.arixWar_MissedAttacks}"
+    #             + "\n*Use `;mywarlog` to view your War Log.*"
+    #             + "\n\u200b",
+    #         inline=False)
+    # return pEmbed
