@@ -35,6 +35,10 @@ class aClan():
         self.recruitment_level = []
         self.notes = []
 
+        self.announcement_channel = 0
+        self.war_reminder_freq = 0
+        self.raid_reminder_freq = 0
+
         #Clan Statuses
         self.war_state = ''
         self.war_state_change = False
@@ -75,25 +79,26 @@ class aClan():
 
         self.name = getattr(self.c,'name',None)
 
+        self.description = self.c.description
+
         #Alliance Attributes
         if clanInfo:
             self.is_alliance_clan = True
-        self.abbrievation = clanInfo.get('abbr','')
+            self.abbreviation = clanInfo.get('abbr','')
+            self.description = clanInfo.get('description',None)
+            if not self.description:
+                self.description = self.c.description
 
-        self.description = clanInfo.get('description',None)
-        if not self.description:
-            self.description = self.c.description
+            self.leader = clanInfo.get('leader',0)
+            self.recruitment_level = clanInfo.get('recruitment_level',[])
+            self.notes = clanInfo.get('notes',[])
 
-        self.leader = clanInfo.get('leader',0)
-        self.recruitment_level = clanInfo.get('recruitment_level',[])
-        self.notes = clanInfo.get('notes',[])
+            self.announcement_channel = clanInfo.get('announcement_channel',0)
+            self.war_reminder_freq = clanInfo.get('war_reminder_freq',[])
+            self.raid_reminder_freq = clanInfo.get('raid_reminder_freq',[])
 
-        self.announcement_channel = clanInfo.get('announcement_channel',0)
-        self.war_reminder_freq = clanInfo.get('war_reminder_freq',[])
-        self.raid_reminder_freq = clanInfo.get('raid_reminder_freq',[])
-
-        self.war_state = clanInfo.get('war_state','')
-        self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
+            self.war_state = clanInfo.get('war_state','')
+            self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
 
         self.war_log = {wid:aClanWar.from_json(self.ctx,wid,data) for (wid,data) in warLog.items()}
         self.raid_log = {rid:aRaidWeekend.from_json(self.ctx,rid,data) for (rid,data) in raidLog.items()}
@@ -102,7 +107,7 @@ class aClan():
     async def save_to_json(self):
         allianceJson = {
             'name':self.name,
-            'abbr':self.abbrievation,
+            'abbr':self.abbreviation,
             'description': self.description,
             'recruitment': self.recruitment_level,
             'notes': self.notes,
@@ -166,10 +171,11 @@ class aClan():
 
     async def add_to_alliance(self,abbreviation,leader:discord.User):
         self.is_alliance_clan = True
+        self.abbreviation = abbreviation
         self.leader = leader.id
 
     async def set_abbreviation(self,new_abbr:str):
-        self.abbrievation = new_abbr
+        self.abbreviation = new_abbr
 
     async def set_description(self,new_desc:str):
         self.description = new_desc

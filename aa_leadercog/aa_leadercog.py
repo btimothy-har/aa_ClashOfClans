@@ -22,6 +22,7 @@ from tabulate import tabulate
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.constants import confirmation_emotes
 from aa_resourcecog.notes import aNote
+from aa_resourcecog.file_functions import get_current_season, get_current_alliance
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -99,16 +100,13 @@ class AriXClashLeaders(commands.Cog):
     async def clan_manage_add(self, ctx, leader:discord.User, tag:str, abbr:str):
         """Add a clan to the Alliance."""
 
-        try:
-            c = await aClan.create(ctx,tag)
-        except ClashClanError as err:
-            eEmbed = await err.errEmbed()
-            return await ctx.send(embed=eEmbed)
-        except:
-            eEmbed = await resc.clash_embed(ctx=ctx,
-                message=f"An unknown error occurred.",
-                color="fail")
-            return await ctx.send(embed=eEmbed)
+        #try:
+        c = await aClan.create(ctx,tag)
+        #except Exception as e:
+        #    eEmbed = await resc.clash_embed(ctx=ctx,
+        #        message=f"{e}",
+        #        color="fail")
+        #    return await ctx.send(embed=eEmbed)
 
         if c.is_alliance_clan:
             embed = await resc.clash_embed(ctx=ctx,
@@ -128,14 +126,14 @@ class AriXClashLeaders(commands.Cog):
                         inline=False)
 
         cMsg = await ctx.send(embed=embed)
-        if not await resc.user_confirmation(ctx,cMsg):
+        if not await resc.user_confirmation(self,ctx,cMsg):
             return
 
         with ctx.bot.clash_file_lock.write_lock():
             await c.add_to_alliance(abbreviation=abbr.upper(),leader=leader)
             await c.save_to_json()
 
-        await ctx.send(f"Successfully added **{clan.tag} {clan.name}**!")
+        await ctx.send(f"Successfully added **{c.tag} {c.name}**!")
 
     @clan_manage.command(name="remove")
     @commands.admin_or_permissions(administrator=True)
@@ -144,12 +142,9 @@ class AriXClashLeaders(commands.Cog):
 
         try:
             c = await aClan.create(ctx,tag)
-        except ClashClanError as err:
-            eEmbed = await err.errEmbed()
-            return await ctx.send(embed=eEmbed)
-        except:
+        except Exception as e:
             eEmbed = await resc.clash_embed(ctx=ctx,
-                message=f"An unknown error occurred.",
+                message=f"{e}",
                 color="fail")
             return await ctx.send(embed=eEmbed)
 
@@ -170,7 +165,7 @@ class AriXClashLeaders(commands.Cog):
                         inline=False)
         
         cMsg = await ctx.send(embed=embed)
-        if not await resc.user_confirmation(ctx,cMsg):
+        if not await resc.user_confirmation(self,ctx,cMsg):
             return
 
         with ctx.bot.clash_file_lock.write_lock():
@@ -190,9 +185,9 @@ class AriXClashLeaders(commands.Cog):
         if not ctx.invoked_subcommand:
             pass
 
-    @membermanage.command(name="add")
+    @member_manage.command(name="add")
     @commands.admin_or_permissions(administrator=True)
-    async def membermanage_add(self,ctx,user:discord.User, clan_abbreviation:str, *tags):
+    async def member_manage_add(self,ctx,user:discord.User, clan_abbreviation:str, *tags):
         """Add members to the Alliance. Multiple tags can be separated by a blank space."""
 
         home_clan = None
@@ -201,7 +196,7 @@ class AriXClashLeaders(commands.Cog):
         success_add = []
         failed_add = []
 
-        clans, members = await get_current_alliance()
+        clans, members = await get_current_alliance(ctx)
 
         if not len(clans) >= 1:
             return await ctx.send("No clans registered to the Alliance! Please first register a clan with `[p]clanset add`.")
@@ -228,25 +223,25 @@ class AriXClashLeaders(commands.Cog):
                     + f"\nHome Clan: {home_clan.tag} {home_clan.name}")
 
         for tag in tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                await p.retrieve_data()
-            except ClashPlayerError as err:
-                p = None
-                errD = {
-                    'tag':tag,
-                    'reason':'Unable to find a user with this tag.'
-                    }
-                failed_add.append(errD)
-                continue
-            except:
-                p = None
-                errD = {
-                    'tag':tag,
-                    'reason':'Unknown error.'
-                    }
-                failed_add.append(errD)
-                continue
+            #try:
+            p = await aPlayer.create(ctx,tag)
+            await p.retrieve_data()
+            #except ClashPlayerError as err:
+            #    p = None
+            #    errD = {
+            #        'tag':tag,
+            #        'reason':'Unable to find a user with this tag.'
+            #        }
+            #    failed_add.append(errD)
+            #    continue
+            #except Exception as e:
+            #    p = None
+            #    errD = {
+            #        'tag':tag,
+            #        'reason':e,
+            #        }
+            #    failed_add.append(errD)
+            #    continue
 
             p_title, p_field = await resc.player_summary(ctx,p)
 
@@ -324,10 +319,10 @@ class AriXClashLeaders(commands.Cog):
 
         successStr = "\u200b"
         failStr = "\u200b"
-        for success in successAdd:
+        for success in success_add:
             successStr += f"**{success['player'].tag} {success['player'].name}** added to {success['clan'].tag} {success['clan'].name}.\n"
 
-        for fail in failedAdd:
+        for fail in failed_add:
             failStr += f"{fail['tag']}: {fail['reason']}\n"
 
         aEmbed = await resc.clash_embed(ctx=ctx,title=f"Operation: Add Member(s)")

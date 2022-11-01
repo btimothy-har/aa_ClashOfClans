@@ -8,5 +8,4 @@ from .aa_leadercog import AriXClashLeaders
 
 async def setup(bot:Red):
     cog = AriXClashLeaders()
-    await cog.cog_initialize()
     bot.add_cog(cog)

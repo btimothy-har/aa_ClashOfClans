@@ -90,7 +90,7 @@ class AriXClashResources(commands.Cog):
             else:
                 token_msg = await ctx.send(content=f"{ctx.author.mention}, please confirm the above action by sending the token below as your next message. You have 60 seconds to confirm.```{confirm_token}```")
             try:
-                reply_message = await ctx.bot.wait_for("message",timeout=60,check=chk_token)
+                reply_message = await ctx.bot.wait_for("message",timeout=60,check=response_check)
             except asyncio.TimeoutError:
                 await token_msg.edit(content="Confirmation timed out. Please try again.")
                 return False

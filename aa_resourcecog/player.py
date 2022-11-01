@@ -47,7 +47,7 @@ class aPlayer():
         #Player Attributes
         self.exp_level = 1
 
-        self.clan = aClan()
+        self.clan = aClan.create(ctx,None)
         self.role = ''
 
         #Home Village Stats
@@ -104,7 +104,7 @@ class aPlayer():
         self = aPlayer(ctx,tag)
 
         memberInfo = await alliance_file_handler(self.ctx,'members',self.tag)
-        memberStats = await data_file_handler(self.ctx,self.tag)
+        memberStats = await data_file_handler(self.ctx,'members',self.tag)
 
         self.name = memberStats.get('name',None)
 
@@ -421,8 +421,8 @@ class aTownHall():
 
 class aPlayerStat():
     def __init__(self,inputJson):
-        self.season = data.get('season',0)
-        self.lastupdate = data.get('lastUpdate',0)
+        self.season = inputJson.get('season',0)
+        self.lastupdate = inputJson.get('lastUpdate',0)
 
         if self.lastupdate >= 2000000000:
             self.statdisplay = 'max'

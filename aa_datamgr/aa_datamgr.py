@@ -17,8 +17,9 @@ from datetime import datetime
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.constants import confirmation_emotes
+from aa_resourcecog.constants import confirmation_emotes, json_file_defaults
 from aa_resourcecog.notes import aNote
+from aa_resourcecog.file_functions import get_current_season, get_current_alliance
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -59,10 +60,10 @@ class AriXClashDataMgr(commands.Cog):
     async def datafiles(self,ctx):
         """Checks if data files are present in the environment data path."""
         if not ctx.invoked_subcommand:
-            embed = await clash_embed(ctx=ctx,
+            embed = await resc.clash_embed(ctx=ctx,
                                         title="Data File Status",
                                         message=f"**seasons.json: {os.path.exists(self.cDirPath+'/seasons.json')}"
-                                                +f"**alliance.json**: {os.path.exists(self.cDirPath+'/alliance.json')}"
+                                                +f"\n**alliance.json**: {os.path.exists(self.cDirPath+'/alliance.json')}"
                                                 +f"\n**members.json**: {os.path.exists(self.cDirPath+'/members.json')}"
                                                 +f"\n**warlog.json**: {os.path.exists(self.cDirPath+'/warlog.json')}"
                                                 +f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}"
@@ -74,19 +75,19 @@ class AriXClashDataMgr(commands.Cog):
     async def datafiles_reset(self, ctx):
         """Erases all current data and resets all data files."""
 
-        embed = await clash_embed(ctx=ctx,
+        embed = await resc.clash_embed(ctx=ctx,
                                 title="Confirmation Required.",
                                 message=f"**This action erases __ALL__ data from the bot.**"+
                                         "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
         cMsg = await ctx.send(content=ctx.author.mention,embed=embed)
 
-        if not await resc.user_confirmation(ctx,cMsg,confirm_method='token_only'):
+        if not await resc.user_confirmation(self,ctx,cMsg,confirm_method='token_only'):
             return
         
         with ctx.bot.clash_file_lock.write_lock():
             with open(ctx.bot.clash_dir_path+'/seasons.json','w') as file:
                 season_default = json_file_defaults['seasons']
-                season_default['current'] = get_current_season()
+                season_default['current'] = await get_current_season()
                 json.dump(season_default,file,indent=2)
 
             with open(ctx.bot.clash_dir_path+'/alliance.json','w') as file:
@@ -101,7 +102,7 @@ class AriXClashDataMgr(commands.Cog):
             with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
                 json.dump({},file,indent=2)
             
-        embed = await clash_embed(ctx=ctx,
+        embed = await resc.clash_embed(ctx=ctx,
             title="All Data Files Reset.",
             message=f"**seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     +f"**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
