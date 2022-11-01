@@ -30,6 +30,8 @@ class aPlayer():
         self.p = None
         self.name = None
 
+        self.discord_link = None
+
         #Membership Attributes
         self.home_clan = None
         self.is_member = False
@@ -189,6 +191,7 @@ class aPlayer():
         self = aPlayer(ctx,tag)
         try:
             self.p = await ctx.bot.coc_client.get_player(self.tag)
+            self.discord_link = await ctx.bot.coc_client.get_links(self.tag)
         except coc.NotFound:
             self.p = None
             raise ClashPlayerError(message=f"Unable to find a player with the tag {tag}.")
@@ -199,6 +202,7 @@ class aPlayer():
         self.timestamp = time.time()
         try:
             self.p = await ctx.bot.coc_client.get_player(self.tag)
+            self.discord_link = await ctx.bot.coc_client.get_links(self.tag)
         except coc.NotFound:
             self.p = None
             raise ClashPlayerError(message=f"Unable to find a player with the tag {tag}.")
