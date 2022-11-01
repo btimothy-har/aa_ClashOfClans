@@ -5,6 +5,8 @@ import time
 from numerize import numerize
 from itertools import chain
 
+from coc.ext import discordlinks
+
 #from .aa_resourcecog import clash_embed, alliance_file_handler, data_file_handler
 from .constants import emotes_townhall, emotes_heroes, hero_availability, troop_availability, spell_availability
 from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
@@ -47,7 +49,7 @@ class aPlayer():
         #Player Attributes
         self.exp_level = 1
 
-        self.clan = aClan.create(ctx,None)
+        self.clan = None
         self.role = ''
 
         #Home Village Stats
@@ -191,7 +193,7 @@ class aPlayer():
         self = aPlayer(ctx,tag)
         try:
             self.p = await ctx.bot.coc_client.get_player(self.tag)
-            self.discord_link = await ctx.bot.coc_client.get_links(self.tag)
+            self.discord_link = await ctx.bot.discordlinks.get_links(self.tag)
         except coc.NotFound:
             self.p = None
             raise ClashPlayerError(message=f"Unable to find a player with the tag {tag}.")
@@ -201,8 +203,8 @@ class aPlayer():
     async def retrieve_data(self):
         self.timestamp = time.time()
         try:
-            self.p = await ctx.bot.coc_client.get_player(self.tag)
-            self.discord_link = await ctx.bot.coc_client.get_links(self.tag)
+            self.p = await self.ctx.bot.coc_client.get_player(self.tag)
+            self.discord_link = await self.ctx.bot.discordlinks.get_links(self.tag)
         except coc.NotFound:
             self.p = None
             raise ClashPlayerError(message=f"Unable to find a player with the tag {tag}.")
@@ -212,8 +214,8 @@ class aPlayer():
         self.exp_level = getattr(self.p,'exp_level',1)
 
         clan = getattr(self.p,'clan',None)
-        self.clan = aClan.create(self.ctx,getattr(clan,'tag',None))
-        self.role = getattr(self.p,'role','')
+        self.clan = await aClan.create(self.ctx,getattr(clan,'tag',None))
+        self.role = str(getattr(self.p,'role',''))
 
         self.town_hall = aTownHall(level=getattr(self.p,'town_hall',1),weapon=getattr(self.p,'town_hall_weapon',0))
         self.clan_castle = sum([a.value for a in self.p.achievements if a.name=='Empire Builder'])
@@ -248,7 +250,7 @@ class aPlayer():
             spell = aSpell.from_data(spell,self.town_hall.level)
             self.spells.append(spell)
 
-        self.pets = [aHeroPet.fromGameData(pet) for pet in self.hero_pets]
+        self.pets = [aHeroPet.from_data(pet) for pet in self.p.hero_pets]
 
         self.hero_strength = sum([hero.level for hero in self.heroes])
         self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
@@ -317,7 +319,7 @@ class aPlayer():
                 'tag': self.clan.tag,
                 'name': self.clan.name
                 },
-            'other_clans': self.otherClans,
+            'other_clans': self.other_clans,
             'town_hall': self.town_hall.level,
             'town_hall_weapon': self.town_hall.weapon,
             'clan_castle': self.clan_castle,
@@ -437,7 +439,7 @@ class aPlayerStat():
     def set_baseline(self,base_value):
         self.lastupdate = base_value
 
-    def to_json():
+    def to_json(self):
         statJson = {
             'season': self.season,
             'lastUpdate': self.lastupdate
@@ -481,10 +483,10 @@ class aHero():
         self.level = getattr(self.hero,'level',0)
         self.village = getattr(self.hero,'village','')
 
-        maxlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level)
+        maxlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level)
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
-        minlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level-1)
+        minlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level-1)
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
 
         if self.level < self.minlevel_for_townhall:
@@ -587,11 +589,11 @@ class aTroop():
         self.level = getattr(self.troop,'level',0)
         self.village = getattr(self.troop,'village','')
 
-        self.is_elixir_troop = inputJson.get('is_elixir_troop',False)
-        self.is_dark_troop = inputJson.get('is_dark_troop',False)
-        self.is_siege_machine = inputJson.get('is_siege_machine',False)
-        self.is_super_troop = inputJson.get('is_super_troop',False)
-        self.original_troop = inputJson.get('original_troop','')
+        self.is_elixir_troop = getattr(self.troop,'is_elixir_troop',False)
+        self.is_dark_troop = getattr(self.troop,'is_dark_troop',False)
+        self.is_siege_machine = getattr(self.troop,'is_siege_machine',False)
+        self.is_super_troop = getattr(self.troop,'is_super_troop',False)
+        self.original_troop = getattr(self.troop,'original_troop',None)
 
         maxlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level)
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)

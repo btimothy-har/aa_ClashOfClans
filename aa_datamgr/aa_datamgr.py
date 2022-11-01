@@ -19,7 +19,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults
 from aa_resourcecog.notes import aNote
-from aa_resourcecog.file_functions import get_current_season, get_current_alliance
+from aa_resourcecog.file_functions import get_current_season, get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -118,7 +118,7 @@ class AriXClashDataMgr(commands.Cog):
         """Configure channel to send log messages in."""
 
         if ctx.channel.type == discord.ChannelType.private:
-            embed = await clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
+            embed = await resc.clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
             return await ctx.send(embed=embed)
 
         if not channel:
@@ -129,7 +129,7 @@ class AriXClashDataMgr(commands.Cog):
             except:
                 channel_mention = f"No Channel Set"
 
-            embed = await clash_embed(ctx=ctx,
+            embed = await resc.clash_embed(ctx=ctx,
                 message=f"Logs are currently being sent in {channel_mention}.")
 
             return await ctx.send(embed=embed)
@@ -147,15 +147,14 @@ class AriXClashDataMgr(commands.Cog):
                 except:
                     channel_mention = f"No Channel Set"
 
-                embed = await clash_embed(ctx=ctx,
+                embed = await resc.clash_embed(ctx=ctx,
                     message=f"Logs will now be sent in {channel_mention}.",color='success')
                 return await ctx.send(embed=embed)
 
     @commands.is_owner()
     @commands.command(name="drefresh")
-    async def data_update(self, ctx):
+    async def data_update(self, ctx, send_logs=False):
 
-        send_logs = False
         is_new_season = False
         detected_war_change = False
         detected_raid_change = False
@@ -165,19 +164,21 @@ class AriXClashDataMgr(commands.Cog):
 
         try:
             log_channel_id = await self.config.guild(ctx.guild).logchannel()
-        except:
-            log_channel_id = ctx.channel.id
-        finally:
             log_channel = ctx.guild.get_channel(log_channel_id)
+        except:
+            pass
+
+        if not log_channel:
+            log_channel = ctx.channel
 
         success_log = []
         err_log = []
         st = time.time()
 
         season = await get_current_season()
-        clans, members = await get_current_alliance()
+        clans, members = await get_current_alliance(ctx)
 
-        sEmbed = await clash_embed(ctx,
+        sEmbed = await resc.clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
 
@@ -185,7 +186,7 @@ class AriXClashDataMgr(commands.Cog):
 
         #get file lock
         with ctx.bot.clash_file_lock.write_lock():
-            is_new_season, current_season, new_season = await season_file_handler(season)
+            is_new_season, current_season, new_season = await season_file_handler(ctx,season)
 
             if is_new_season:
                 sEmbed.add_field(
@@ -208,19 +209,20 @@ class AriXClashDataMgr(commands.Cog):
             for ctag in clans:
                 war_member_count = 0
                 raid_member_count = 0
-                try:
-                    c = await aClan.create(ctx,ctag)
-                except Exception as err:
-                    c = None
-                    err_dict = {
-                        'tag':tag,
-                        'reason':err
-                        }
-                    err_log.append(err_dict)
-                    continue
+                #try:
+                c = await aClan.create(ctx,ctag)
+                #except Exception as err:
+                #    c = None
+                #    err_dict = {
+                #        'tag':ctag,
+                #        'reason':err
+                #        }
+                #    err_log.append(err_dict)
+                #    continue
 
                 await c.update_clan_war()
                 await c.update_raid_weekend()
+
                 await c.save_to_json()
 
                 if c.war_state_change:
@@ -241,7 +243,7 @@ class AriXClashDataMgr(commands.Cog):
                                 war_member_count += 1
                                 dict_war_update[m.tag] = m
 
-                        warUpdateStr += f"\n- Tracking stats for {war_member_count} members in War."
+                        str_war_update += f"\n- Tracking stats for {war_member_count} members in War."
 
                 if c.raid_state_change:
                     detected_raid_change = True
@@ -280,16 +282,16 @@ class AriXClashDataMgr(commands.Cog):
                 inline=False)
 
             for mtag in members:
-                try:
-                    p = await aPlayer.create(ctx,mtag)
-                except Exception as err:
-                    p = None
-                    err_dict = {
-                        'tag':tag,
-                        'reason':err,
-                        }
-                    err_log.append(err_dict)
-                    continue
+                #try:
+                p = await aPlayer.create(ctx,mtag)
+                #except Exception as err:
+                #    p = None
+                #    err_dict = {
+                #        'tag':mtag,
+                #        'reason':err,
+                #        }
+                #    err_log.append(err_dict)
+                #    continue
 
                 if p.is_member and p.clan.tag in clans:
                     await p.retrieve_data()
@@ -338,7 +340,7 @@ class AriXClashDataMgr(commands.Cog):
             value=f"{round(et-st,2)} seconds. *Average: {average_run_time} seconds.*",
             inline=False)
         
-        if is_new_season or detected_war_change or detected_raid_change or len(err_log)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
+        if send_logs or is_new_season or detected_war_change or detected_raid_change or len(err_log)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
             await log_channel.send(embed=sEmbed)
             await self.config.last_data_log.set(st)
 

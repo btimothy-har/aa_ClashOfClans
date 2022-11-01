@@ -101,7 +101,7 @@ class aClan():
             self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
 
         self.war_log = {wid:aClanWar.from_json(self.ctx,wid,data) for (wid,data) in warLog.items()}
-        self.raid_log = {rid:aRaidWeekend.from_json(self.ctx,rid,data) for (rid,data) in raidLog.items()}
+        self.raid_log = {rid:aRaidWeekend.from_json(self.ctx,self,rid,data) for (rid,data) in raidLog.items()}
         return self
 
     async def save_to_json(self):
@@ -120,12 +120,12 @@ class aClan():
 
         warlogJson = {}
         for wid,war in self.war_log.items():
-            wID, wJson = war.toJson()
+            wID, wJson = war.to_json()
             warlogJson[wID] = wJson
 
         raidweekendJson = {}
         for rid,raid in self.raid_log.items():
-            rID, rJson = raid.toJson()
+            rID, rJson = raid.to_json()
             raidweekendJson[rID] = rJson
 
         await alliance_file_handler(
@@ -151,7 +151,7 @@ class aClan():
         if current_war.state == 'notInWar':
             return None
         
-        self.current_war = await aClanWar.create_from_gamedata(self.ctx,current_war)
+        self.current_war = aClanWar.from_game(self.ctx,current_war)
         if self.current_war.state != self.war_state:
             self.war_state = self.current_war.state
             self.war_state_change = True
@@ -160,8 +160,8 @@ class aClan():
             self.war_log[self.current_war.wID] = self.current_war
 
     async def update_raid_weekend(self):
-        current_raid_weekend = await self.ctx.bot.coc_client.get_raidlog(self.tag,False,1)
-        self.current_raid_weekend = aRaidWeekend(self.ctx,current_raid_weekend)
+        raid_log_gen = await self.ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
+        self.current_raid_weekend = aRaidWeekend.from_game(self.ctx,self,raid_log_gen[0])
 
         if self.current_raid_weekend.state != self.raid_weekend_state:
             self.raid_weekend_state = self.current_raid_weekend.state

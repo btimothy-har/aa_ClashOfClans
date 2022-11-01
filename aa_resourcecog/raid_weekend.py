@@ -35,7 +35,7 @@ class aRaidWeekend():
 
     @classmethod
     def from_json(cls,ctx,clan,raid_id,json_data):
-        self = aRaidWeekend(ctx)
+        self = aRaidWeekend(ctx,clan)
 
         self.rID = raid_id
         self.state = json_data['state']
@@ -61,7 +61,7 @@ class aRaidWeekend():
 
     @classmethod
     def from_game(cls,ctx,clan,game_data):
-        self = aRaidWeekend(ctx)
+        self = aRaidWeekend(ctx,clan)
         self.rw = game_data
 
         self.state = self.rw.state
@@ -110,21 +110,18 @@ class aRaidClan():
         self.raid_weekend = raid_entry
         self.r = None
         self.rID = self.raid_weekend.rID
-
         #offense or defense
         self.type = raid_type
-        
         self.clan_tag = ''
         self.clan_name = ''
-
-        self.attack_count - 0
+        self.attack_count = 0
         self.district_count = 0
         self.districts_destroyed = 0
         self.districts = []
 
     @classmethod
     def from_json(cls,raid_entry,json_data,raid_type):
-        self.aRaidClan(raid_entry,raid_type)
+        self = aRaidClan(raid_entry,raid_type)
         
         self.clan_tag = json_data['tag']
         self.clan_name = json_data['name']
@@ -199,7 +196,7 @@ class aRaidDistrict():
         districtJson = {
             'id': self.id,
             'name': self.name,
-            'hall_level': self.level,
+            'hall_level': self.hall_level,
             'destruction': self.destruction,
             'attack_count': self.attack_count,
             'resources_looted': self.resources_looted

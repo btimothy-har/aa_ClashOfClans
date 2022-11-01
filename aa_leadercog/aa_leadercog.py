@@ -243,7 +243,7 @@ class AriXClashLeaders(commands.Cog):
             #    failed_add.append(errD)
             #    continue
 
-            p_title, p_field = await resc.player_summary(ctx,p)
+            p_title, p_field = await resc.player_summary(self,ctx,p)
 
             #Discord User on file does not match new user: request confirmation.
             if p.discord_user != 0 and p.discord_user != user_id:
@@ -304,7 +304,7 @@ class AriXClashLeaders(commands.Cog):
 
         if len(process_add) > 0:
             cMsg = await ctx.send(embed=cEmbed)
-            if not await react_confirmation(self,ctx,cMsg):
+            if not await resc.user_confirmation(self,ctx,cMsg):
                 return
 
             for p in process_add:
