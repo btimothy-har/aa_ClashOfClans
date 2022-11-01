@@ -5,7 +5,7 @@ import time
 from numerize import numerize
 from itertools import chain
 
-from .aa_resourcecog import clash_embed, alliance_file_handler, data_file_handler
+#from .aa_resourcecog import clash_embed, alliance_file_handler, data_file_handler
 from .constants import emotes_townhall, emotes_heroes, hero_availability, troop_availability, spell_availability
 
 from .notes import aNote
@@ -176,7 +176,7 @@ class aPlayer():
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
         self.warlog = {wID:aPlayerWarLog.from_json(wID,wl) for (wID,wl) in memberStats.get('war_log',{}).items()}
-        self.raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats.get('raid_log'.{}).items()}
+        self.raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats.get('raid_log',{}).items()}
 
         self.war_stats = aPlayerWarStats(self.warlog)
         self.raid_stats = aPlayerRaidStats(self.raidlog)
@@ -405,6 +405,7 @@ class aPlayer():
         self.raidlog['rID'] = player_log
 
     async def get_embed(self,ctx,client):
+        pass
     #     if self.isMember:
     #         mStatus = f"***{self.homeClan.role} of {self.homeClan.name}***\n\n"
     #     else:
@@ -492,7 +493,7 @@ class aPlayer():
     # return pEmbed
 
 class aTownHall():
-    def __init__(self,level=1,weapon=0)
+    def __init__(self,level=1,weapon=0):
         self.level = level
         self.weapon = weapon
         self.emote = emotes_townhall[self.level]
@@ -778,7 +779,7 @@ class aPlayerWarStats():
         self.defense_destruction = 0
         self.total_attacks = 0
         self.triples = 0
-        self.missed_attacks 0
+        self.missed_attacks = 0
 
         for wID, war in warlog.items():
             self.missed_attacks += (war.total_attacks - len(war.attacks))

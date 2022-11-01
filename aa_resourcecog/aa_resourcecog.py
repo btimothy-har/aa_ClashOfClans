@@ -236,10 +236,10 @@ class AriXClashResources(commands.Cog):
     async def alliance_file_handler(ctx,entry_type,tag,new_data=None):
         with open(ctx.bot.clash_dir_path+'/alliance.json','w+') as file:
             file_json = json.load(file)
-                if new_data:
-                    file_json[entry_type][tag] = new_data
-                    json.dump(file_json,file,indent=2)
-                    file.truncate()
+            if new_data:
+                file_json[entry_type][tag] = new_data
+                json.dump(file_json,file,indent=2)
+                file.truncate()
         try:
             rJson = file_json[entry_type][tag]
         except KeyError:

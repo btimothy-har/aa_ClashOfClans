@@ -2,8 +2,8 @@ import coc
 import discord
 import time
 
-from .aa_resourcecog import
-from .constants import 
+#from .aa_resourcecog import
+#from .constants import 
 
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
