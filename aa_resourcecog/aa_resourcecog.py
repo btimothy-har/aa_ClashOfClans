@@ -187,13 +187,13 @@ class AriXClashResources(commands.Cog):
 
         hero_description = ""
         if player.town_hall.level >= 7:
-            hero_description = f"\n**Heroes**\n{emotes_heroes['Barbarian King']} {sum([h.level for h in player.heroes if h.name=='Barbarian King'])}"
+            hero_description = f"\n**Heroes**\n{emotes_army['Barbarian King']} {sum([h.level for h in player.heroes if h.name=='Barbarian King'])}"
         if player.town_hall.level >= 9:
-            hero_description += f"\u3000{emotes_heroes['Archer Queen']} {sum([h.level for h in player.heroes if h.name=='Archer Queen'])}"
+            hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in player.heroes if h.name=='Archer Queen'])}"
         if player.town_hall.level >= 11:
-            hero_description += f"\u3000{emotes_heroes['Grand Warden']} {sum([h.level for h in player.heroes if h.name=='Grand Warden'])}"
+            hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in player.heroes if h.name=='Grand Warden'])}"
         if player.town_hall.level >= 13:
-            hero_description += f"\u3000{emotes_heroes['Royal Champion']} {sum([h.level for h in player.heroes if h.name=='Royal Champion'])}"
+            hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in player.heroes if h.name=='Royal Champion'])}"
 
         troopStrength = f"<:TotalTroopStrength:827730290491129856> {player.troop_strength}"
         if player.town_hall.level >= 5:
@@ -215,13 +215,13 @@ class AriXClashResources(commands.Cog):
     async def player_summary(self,ctx,player):
         hero_description = ""
         if player.town_hall.level >= 7:
-            hero_description = f"\n**Heroes**\n{emotes_heroes['Barbarian King']} {sum([h.level for h in player.heroes if h.name=='Barbarian King'])}"
+            hero_description = f"\n**Heroes**\n{emotes_army['Barbarian King']} {sum([h.level for h in player.heroes if h.name=='Barbarian King'])}"
         if player.town_hall.level >= 9:
-            hero_description += f"\u3000{emotes_heroes['Archer Queen']} {sum([h.level for h in player.heroes if h.name=='Archer Queen'])}"
+            hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in player.heroes if h.name=='Archer Queen'])}"
         if player.town_hall.level >= 11:
-            hero_description += f"\u3000{emotes_heroes['Grand Warden']} {sum([h.level for h in player.heroes if h.name=='Grand Warden'])}"
+            hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in player.heroes if h.name=='Grand Warden'])}"
         if player.town_hall.level >= 13:
-            hero_description += f"\u3000{emotes_heroes['Royal Champion']} {sum([h.level for h in player.heroes if h.name=='Royal Champion'])}"
+            hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in player.heroes if h.name=='Royal Champion'])}"
 
         title = f"{player.name} ({player.tag})"
         fieldStr = f"<:Exp:825654249475932170>{player.exp_level}\u3000{player.town_hall.emote} {player.town_hall.description}\u3000{hero_description}"
