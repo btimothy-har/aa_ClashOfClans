@@ -232,6 +232,8 @@ class aPlayer():
         hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
         for hero_name in list(chain.from_iterable(hero_d)):
             hero = self.p.get_hero(name=hero_name)
+            if not hero:
+                hero = self.ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
             hero = aHero.from_data(hero,self.town_hall.level)
             self.heroes.append(hero)
 
@@ -239,6 +241,8 @@ class aPlayer():
         troop_d = [troop for (th,troop) in troop_availability.items() if th<=self.town_hall.level]
         for troop_name in list(chain.from_iterable(troop_d)):
             troop = self.p.get_troop(name=troop_name,is_home_troop=True)
+            if not troop:
+                troop = self.ctx.bot.coc_client.get_troop(name=troop_name,is_home_troop=True,townhall=self.town_hall.level)
             troop = aTroop.from_data(troop,self.town_hall.level)
             self.troops.append(troop)
 
@@ -246,6 +250,8 @@ class aPlayer():
         spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
         for spell_name in list(chain.from_iterable(spell_d)):
             spell = self.p.get_spell(name=spell_name)
+            if not spell:
+                troop = self.ctx.bot.coc_client.get_spell(name=spell_Name,townhall=self.town_hall.level)
             spell = aSpell.from_data(spell,self.town_hall.level)
             self.spells.append(spell)
 
@@ -469,7 +475,11 @@ class aHero():
         self = aHero()
         self.id = inputJson.get('id',0)
         self.name = inputJson.get('name','')
-        self.level = inputJson.get('level',0)
+        if type(self.hero.level) == int:
+            self.level = getattr(self.hero,'level',0)
+        else:
+            self.level = 0
+        self.village = getattr(self.troop,'village','')
         self.village = inputJson.get('village','')
         self.maxlevel_for_townhall = inputJson.get('maxlevel_for_townhall',0)
         self.minlevel_for_townhall = inputJson.get('minlevel_for_townhall',0)
@@ -593,7 +603,10 @@ class aTroop():
 
         self.id = getattr(self.troop,'id',0)
         self.name = getattr(self.troop,'name','')
-        self.level = getattr(self.troop,'level',0)
+        if type(self.troop.level) == int:
+            self.level = getattr(self.troop,'level',0)
+        else:
+            self.level = 0
         self.village = getattr(self.troop,'village','')
 
         self.is_elixir_troop = getattr(self.troop,'is_elixir_troop',False)
@@ -667,7 +680,10 @@ class aSpell():
 
         self.id = getattr(self.spell,'id',0)
         self.name = getattr(self.spell,'name','')
-        self.level = getattr(self.spell,'level',0)
+        if type(self.spell.level) == None:
+            self.level = 0
+        else:
+            self.level = getattr(self.spell,'level',0)
         self.village = getattr(self.spell,'village','')
 
         self.is_elixir_spell = getattr(self.spell,'is_elixir_spell',False)
