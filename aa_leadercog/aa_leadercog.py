@@ -20,7 +20,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.constants import confirmation_emotes, clanRanks
+from aa_resourcecog.constants import clanRanks
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_user_accounts
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
@@ -546,7 +546,7 @@ class AriXClashLeaders(commands.Cog):
 
     @commands.command(name="promote")
     async def member_promote(self,ctx,user:discord.User,clan_abbreviation:str):
-        """Promote."""
+        """Promote a member."""
 
         if ctx.author.id == user.id:
             return await ctx.send("Self-glorification is not allowed. Go grovel and beg for mercy.")
@@ -560,7 +560,7 @@ class AriXClashLeaders(commands.Cog):
 
     @commands.command(name="demote")
     async def member_demote(self,ctx,user:discord.User,clan_abbreviation:str):
-        """Demote."""
+        """Demote a member."""
 
         if ctx.author.id == user.id:
             return await ctx.send("Self-mutilation is strongly discouraged. You might want to seek help.")

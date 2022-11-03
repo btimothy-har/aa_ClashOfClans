@@ -106,7 +106,7 @@ class AriXClashDataMgr(commands.Cog):
         embed = await resc.clash_embed(ctx=ctx,
             title="All Data Files Reset.",
             message=f"**seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
-                    +f"**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
+                    +f"\n**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
                     +f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
                     +f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     +f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",

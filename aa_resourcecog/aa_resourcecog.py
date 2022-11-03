@@ -19,7 +19,7 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 
-from .constants import confirmation_emotes, emotes_heroes
+from .constants import confirmation_emotes, emotes_army
 from .file_functions import get_current_season, get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
