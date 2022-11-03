@@ -20,7 +20,7 @@ class aClan():
         self.tag = coc.utils.correct_tag(tag)
 
         if not coc.utils.is_valid_tag(tag):
-            raise InvalidTagError(message=f"The tag {self.tag} is not a valid tag.")
+            raise InvalidTag(tag)
 
         self.c = None
         self.name = None
@@ -30,6 +30,8 @@ class aClan():
         self.abbreviation = ''
         self.description = None
         self.leader = 0
+        self.co_leaders = []
+        self.elders = []
         self.recruitment_level = []
         self.notes = []
 
@@ -57,9 +59,8 @@ class aClan():
         self = aClan(ctx,tag)
         try:
             self.c = await ctx.bot.coc_client.get_clan(self.tag)
-        except coc.NotFound:
-            self.c = None
-            raise ClashPlayerError(message=f"Unable to find a clan with the tag {tag}.")
+        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
+            raise TerminateProcessing(exc) from exc
             return None
 
         clanInfo = await alliance_file_handler(
@@ -88,6 +89,8 @@ class aClan():
                 self.description = self.c.description
 
             self.leader = clanInfo.get('leader',0)
+            self.co_leaders = clanInfo.get('co_leaders',[])
+            self.elders = clanInfo.get('elders',[])
             self.recruitment_level = clanInfo.get('recruitment_level',[])
             self.notes = clanInfo.get('notes',[])
 
@@ -107,6 +110,9 @@ class aClan():
             'name':self.name,
             'abbr':self.abbreviation,
             'description': self.description,
+            'leader':self.leader,
+            'co_leaders': self.co_leaders,
+            'elders': self.elders,
             'recruitment': self.recruitment_level,
             'notes': self.notes,
             'announcement_channel': self.announcement_channel,
@@ -145,7 +151,12 @@ class aClan():
             new_data=raidweekendJson)
 
     async def update_clan_war(self):
-        current_war = await self.ctx.bot.coc_client.get_clan_war(self.tag)
+        try:
+            current_war = await self.ctx.bot.coc_client.get_clan_war(self.tag)
+        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
+            raise TerminateProcessing(exc) from exc
+            return None
+
         if current_war.state == 'notInWar':
             return None
         
@@ -158,7 +169,12 @@ class aClan():
             self.war_log[self.current_war.wID] = self.current_war
 
     async def update_raid_weekend(self):
-        raid_log_gen = await self.ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
+        try:
+            raid_log_gen = await self.ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
+        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
+            raise TerminateProcessing(exc) from exc
+            return None
+            
         self.current_raid_weekend = aRaidWeekend.from_game(self.ctx,self,raid_log_gen[0])
 
         if self.current_raid_weekend.state != self.raid_weekend_state:
@@ -171,6 +187,17 @@ class aClan():
         self.is_alliance_clan = True
         self.abbreviation = abbreviation
         self.leader = leader.id
+
+    async def add_staff(self,user_id,rank):
+        if rank == 'Elder':
+            self.elders.append(user_id)
+            self.co_leaders.remove(user_id)
+        if rank == 'Co-Leader':
+            self.co_leaders.append(user_id)
+            self.elders.remove(user_id)
+        if rank == 'Leader':
+            self.co_leaders.append(self.leader)
+            self.leader = user_id
 
     async def set_abbreviation(self,new_abbr:str):
         self.abbreviation = new_abbr

@@ -11,9 +11,36 @@ async def get_current_season():
 async def get_current_alliance(ctx):
     with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
         file_json = json.load(file)
-    clansList = list(file_json['clans'].keys())
-    memberList = list(file_json['members'].keys())
-    return clansList,memberList
+
+    clan_list = list(file_json['clans'].keys())
+    member_list = list(file_json['members'].keys())
+
+    return clan_list,member_list
+
+async def get_alliance_clan(ctx,abbreviation):
+    with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+        file_json = json.load(file)
+
+    select_clan = [tag for (tag,clan) in file_json['clans'].items() if clan['abbr']==abbreviation.upper()]
+
+    if len(select_clan) == 0:
+        return None
+    else:
+        return select_clan[0]
+
+async def get_user_accounts(ctx,user_id,clan_tag=None):
+    with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+        file_json = json.load(file)
+
+    if clan_tag:
+        select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and account['is_member']==True and account['home_clan']['tag']==clan_tag]
+    else:
+        select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and account['is_member']==True]
+
+    if len(select_account) == 0:
+        return None
+    else:
+        return select_account
 
 async def season_file_handler(ctx,season):
     is_new_season = False

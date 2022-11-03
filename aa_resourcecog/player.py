@@ -14,6 +14,7 @@ from .notes import aNote
 from .clan import aClan
 from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from .errors import TerminateProcessing, InvalidTag
 
 class ClashPlayerError(Exception):
     def __init__(self,message):
@@ -26,7 +27,8 @@ class aPlayer():
         self.tag = coc.utils.correct_tag(tag)
 
         if not coc.utils.is_valid_tag(tag):
-            raise ClashPlayerError(message=f"The tag {self.tag} is not a valid tag.")
+            raise InvalidTag(tag)
+            return None
 
         self.p = None
         self.name = None
@@ -193,9 +195,8 @@ class aPlayer():
         try:
             self.p = await ctx.bot.coc_client.get_player(self.tag)
             self.discord_link = await ctx.bot.discordlinks.get_links(self.tag)
-        except coc.NotFound:
-            self.p = None
-            raise ClashPlayerError(message=f"Unable to find a player with the tag {tag}.")
+        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
+            raise TerminateProcessing(exc) from exc
             return None
         return self
 
@@ -204,9 +205,8 @@ class aPlayer():
         try:
             self.p = await self.ctx.bot.coc_client.get_player(self.tag)
             self.discord_link = await self.ctx.bot.discordlinks.get_links(self.tag)
-        except coc.NotFound:
-            self.p = None
-            raise ClashPlayerError(message=f"Unable to find a player with the tag {tag}.")
+        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
+            raise TerminateProcessing(exc) from exc
             return None
 
         self.name = getattr(self.p,'name','')
@@ -261,8 +261,8 @@ class aPlayer():
         self.max_spell_strength = sum([spell.maxlevel_for_townhall for spell in self.spells])
 
     async def update_stats(self):
-        #only update stats if player is a member
-        if self.p and self.is_member:
+        #cannot update if data not retrieved
+        if self.p:
             if self.clan.tag == self.home_clan.tag:
                 self.time_in_home_clan += (self.timestamp - self.last_update)
             elif self.clan.tag not in self.other_clans:
@@ -285,6 +285,25 @@ class aPlayer():
                     self.capitalcontribution.update_stat(achievement.value)
                 if achievement.name == 'Games Champion':
                     self.clangames.update_stat(achievement.value)
+
+    async def set_baselines(self):
+        self.attack_wins.set_baseline(self.p.attack_wins)
+        self.defense_wins.set_baseline(self.p.defense_wins)
+
+        self.donations_sent.set_baseline(self.p.donations)
+        self.donations_rcvd.set_baseline(self.p.received)
+
+        for achievement in self.p.achievements:
+            if achievement.name == 'Gold Grab':
+                self.loot_gold.set_baseline(achievement.value)
+            if achievement.name == 'Elixir Escapade':
+                self.loot_elixir.set_baseline(achievement.value)
+            if achievement.name == 'Heroic Heist':
+                self.loot_darkelixir.set_baseline(achievement.value)
+            if achievement.name == 'Most Valuable Clanmate':
+                self.capitalcontribution.set_baseline(achievement.value)
+            if achievement.name == 'Games Champion':
+                self.clangames.set_baseline(achievement.value)
 
     async def save_to_json(self):
         allianceJson = {
@@ -361,32 +380,21 @@ class aPlayer():
     async def new_member(self,discord_user,home_clan):
         self.home_clan = home_clan
         self.is_member = True
-        self.arix_rank = 'Member'
+        if discord_user == home_clan.leader:
+            self.arix_rank = 'Leader'
+        elif discord_user in home_clan.co_leaders:
+            self.arix_rank = 'Co-Leader'
+        elif discord_user in home_clan.elders:
+            self.arix_rank = 'Elder'
+        else:
+            self.arix_rank = 'Member'
         self.discord_user = discord_user
-
-        self.attack_wins.set_baseline(self.p.attack_wins)
-        self.defense_wins.set_baseline(self.p.defense_wins)
-
-        self.donations_sent.set_baseline(self.p.donations)
-        self.donations_rcvd.set_baseline(self.p.received)
-
-        for achievement in self.p.achievements:
-            if achievement.name == 'Gold Grab':
-                self.loot_gold.set_baseline(achievement.value)
-            if achievement.name == 'Elixir Escapade':
-                self.loot_elixir.set_baseline(achievement.value)
-            if achievement.name == 'Heroic Heist':
-                self.loot_darkelixir.set_baseline(achievement.value)
-            if achievement.name == 'Most Valuable Clanmate':
-                self.capitalcontribution.set_baseline(achievement.value)
-            if achievement.name == 'Games Champion':
-                self.clangames.set_baseline(achievement.value)
 
     async def remove_member(self):
         self.arix_rank = 'Non-Member'
         self.is_member = False
 
-    async def updateRank(self,new_rank):
+    async def update_rank(self,new_rank):
         valid_ranks = ["Member","Elder","Co-Leader","Leader"]
         if new_rank not in valid_ranks:
             raise MemberPromoteError

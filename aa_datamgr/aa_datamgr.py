@@ -8,6 +8,7 @@ import json
 import asyncio
 import random
 import time
+import pytz
 import requests
 import fasteners
 
@@ -158,6 +159,7 @@ class AriXClashDataMgr(commands.Cog):
         is_new_season = False
         detected_war_change = False
         detected_raid_change = False
+        helsinkiTz = pytz.timezone("Europe/Helsinki")
         last_log_sent = await self.config.last_data_log()
         last_data_update = await self.config.last_data_update()
         run_time_hist = await self.config.update_runtimes()
@@ -174,6 +176,10 @@ class AriXClashDataMgr(commands.Cog):
         success_log = []
         err_log = []
         st = time.time()
+
+        is_cwl = False
+        if datetime.now(helsinkiTz).day <= 8:
+            is_cwl = True
 
         season = await get_current_season()
         clans, members = await get_current_alliance(ctx)
@@ -209,16 +215,18 @@ class AriXClashDataMgr(commands.Cog):
             for ctag in clans:
                 war_member_count = 0
                 raid_member_count = 0
-                #try:
-                c = await aClan.create(ctx,ctag)
-                #except Exception as err:
-                #    c = None
-                #    err_dict = {
-                #        'tag':ctag,
-                #        'reason':err
-                #        }
-                #    err_log.append(err_dict)
-                #    continue
+
+                try:
+                    c = await aClan.create(ctx,ctag)
+                except TerminateProcessing as e:
+                    eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                    eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+                    return await log_channel.send(eEmbed)
+                except Exception as e:
+                    c = None
+                    err_dict = {'tag':f'c{ctag}','reason':e}
+                    err_log.append(err_dict)
+                    continue
 
                 await c.update_clan_war()
                 await c.update_raid_weekend()
@@ -282,21 +290,32 @@ class AriXClashDataMgr(commands.Cog):
                 inline=False)
 
             for mtag in members:
-                #try:
-                p = await aPlayer.create(ctx,mtag)
-                #except Exception as err:
-                #    p = None
-                #    err_dict = {
-                #        'tag':mtag,
-                #        'reason':err,
-                #        }
-                #    err_log.append(err_dict)
-                #    continue
-
-                if p.is_member and p.clan.tag in clans:
+                try:
+                    p = await aPlayer.create(ctx,mtag)
                     await p.retrieve_data()
-                    await p.update_stats()
+                except TerminateProcessing as e:
+                    eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                    eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+                    return await log_channel.send(eEmbed)
+                except Exception as e:
+                    p = None
+                    err_dict = {'tag':f'm{mtag}','reason':e}
+                    err_log.append(err_dict)
+                    continue
+
+                if is_new_season:
+                    await p.set_baselines()
+
+                if is_cwl:
+                    await p.set_baselines()
                     success_log.append(p)
+                else:
+                    if p.is_member and p.clan.tag in clans:
+                        await p.update_stats()
+                        success_log.append(p)
+                    else:
+                        await p.set_baselines()
+                        success_log.append(p)
 
                 if p.tag in list(dict_war_update.keys()):
                     await p.update_war(dict_war_update[p.tag])
@@ -306,12 +325,11 @@ class AriXClashDataMgr(commands.Cog):
 
                 await p.save_to_json()
         #Lock releases here
-
         et = time.time()
 
         sEmbed.add_field(
             name=f"**Members**",
-            value=f"{len(success_log)} records updated. {len(err_log)} errors encountered.",
+            value=f"CWL State: {is_cwl}\n{len(success_log)} records updated. {len(err_log)} errors encountered.",
             inline=False)
 
         if len(err_log)>0:
