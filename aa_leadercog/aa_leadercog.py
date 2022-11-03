@@ -310,10 +310,10 @@ class AriXClashLeaders(commands.Cog):
         aEmbed = await resc.clash_embed(ctx=ctx,title=f"Operation: Add Member(s)")
 
         aEmbed.add_field(name=f"**__Success__**",
-                        value=successStr,
+                        value=success_str,
                         inline=False)
         aEmbed.add_field(name=f"**__Failed__**",
-                        value=failStr,
+                        value=error_str,
                         inline=False)
 
         return await ctx.send(embed=aEmbed)
@@ -386,11 +386,11 @@ class AriXClashLeaders(commands.Cog):
         aEmbed = await clash_embed(ctx=ctx,title=f"Operation: Remove Member(s)")
 
         aEmbed.add_field(name=f"**__Success__**",
-                        value=successStr,
+                        value=success_str,
                         inline=False)
 
         aEmbed.add_field(name=f"**__Failed__**",
-                        value=failStr,
+                        value=error_str,
                         inline=False)
         return await ctx.send(embed=aEmbed)
 
@@ -524,23 +524,23 @@ class AriXClashLeaders(commands.Cog):
                     error_log.append(err_dict)
 
         success_str = "\u200b"
-        fail_str = "\u200b"
+        error_str = "\u200b"
         for p in promote_accounts:
             if p.tag in current_leader:
                 success_str += f"**{p.tag} {p.name}** is now 'Co-Leader' of {target_clan.name}.\n"
             else:
                 success_str += f"**{p.tag} {p.name}** is now {clanRanks[rank]} of {target_clan.name}.\n"
 
-        for fail in error_log:
-            fail_str += f"{fail['tag']}: {fail['reason']}\n"
+        for error in error_log:
+            error_str += f"{error['tag']}: {error['reason']}\n"
 
         aEmbed = await resc.clash_embed(ctx=ctx,title=f"Operation Report: {action.capitalize()} {user.name}#{user.discriminator}")
 
         aEmbed.add_field(name=f"**__Success__**",
-                        value=successStr,
+                        value=success_str,
                         inline=False)
         aEmbed.add_field(name=f"**__Failed__**",
-                        value=failStr,
+                        value=error_str,
                         inline=False)
         return await ctx.send(embed=aEmbed)
 
