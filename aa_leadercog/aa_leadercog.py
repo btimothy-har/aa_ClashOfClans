@@ -9,8 +9,8 @@ import asyncio
 import random
 import time
 import re
+import fasteners
 
-from dotenv import load_dotenv
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
 from discord.utils import get
@@ -19,15 +19,15 @@ from string import ascii_letters, digits
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
-load_dotenv()
-
-sys.path.append(os.getenv("RESOURCEPATH"))
-from clash_resources import get_th_emote
-from clash_resources import token_confirmation, standard_confirmation, react_confirmation, datafile_retrieve, datafile_save, get_current_alliance, get_current_season, clash_embed
-from clash_resources import getPlayer, player_shortfield, player_embed, ClashPlayerError
-from clash_resources import getClan, ClashClanError
-
-membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
+from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
+from aa_resourcecog.constants import clanRanks
+from aa_resourcecog.notes import aNote
+from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_user_accounts
+from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
+from aa_resourcecog.clan import aClan
+from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
+from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.errors import TerminateProcessing
 
 class AriXClashLeaders(commands.Cog):
     """AriX Clash of Clans Leaders' Module."""
@@ -43,762 +43,726 @@ class AriXClashLeaders(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
-    async def cog_initialize(self):
-        #Initializes API Login and Data Directory.
-        coc_client = coc.EventsClient()
+    # @commands.group(name="leaderset",autohelp=False)
+    # async def leader_personalization(self,ctx):
+    #     """Allows Leaders to personalize the Leader Bot for personal convenience."""
+    #     pass
+
+    # @leader_personalization.command(name="myclan")
+    # @commands.admin_or_permissions(administrator=True)
+    # async def leader_personalization_myclan(self,ctx,*clan_abbreviation:str):
+    #     """Set a default clan for yourself. Accepts any of the registered clan abbreviations."""
+
+    #     input_abbr = []
+    #     for i in clan_abbreviation:
+    #         input_abbr.append(i.upper())
+
+    #     currentClans,currentMembers = await get_current_alliance(self,rdict=True)
+
+    #     clanAbbr = [v['abbr'] for (k,v) in currentClans.items()]
         
-        try:
-            await coc_client.login(os.getenv("CLASH_DEV_EMAIL"), os.getenv("CLASH_DEV_PASSWORD"))
-        except coc.InvalidCredentials as error:
-            await ctx.send("error")
-        
-        self.cDirPath = os.getenv("DATAPATH")
-        self.cClient = coc_client
+    #     for i in input_abbr:
+    #         if i not in clanAbbr:
+    #             embed = await clash_embed(ctx=ctx,
+    #                 message=f"The abbreviation **{i}** is not recognized. Please retry the command.\nRegistered abbreviations: {humanize_list(clanAbbr)}.",
+    #                 color="fail")
+    #             return await ctx.send(embed=embed)
 
-    @commands.group(name="leaderset",autohelp=False)
-    async def leader_personalization(self,ctx):
-        """Allows Leaders to personalize the Leader Bot for personal convenience."""
-        pass
+    #     userClans = await self.config.user(ctx.author).default_clan()
 
-    @leader_personalization.command(name="myclan")
-    @commands.admin_or_permissions(administrator=True)
-    async def leader_personalization_myclan(self,ctx,*clan_abbreviation:str):
-        """Set a default clan for yourself. Accepts any of the registered clan abbreviations."""
+    #     for i in input_abbr:
+    #         userClans.append(i)
 
-        input_abbr = []
-        for i in clan_abbreviation:
-            input_abbr.append(i.upper())
+    #     await self.config.user(ctx.author).default_clan.set(userClans)
 
-        currentClans,currentMembers = await get_current_alliance(self,rdict=True)
+    #     embed = await clash_embed(ctx=ctx,
+    #                 message=f"Your preferred clans have been updated to: {humanize_list(userClans)}.",
+    #                 color="success")
+    #     return await ctx.send(embed=embed)
 
-        clanAbbr = [v['abbr'] for (k,v) in currentClans.items()]
-        
-        for i in input_abbr:
-            if i not in clanAbbr:
-                embed = await clash_embed(ctx=ctx,
-                    message=f"The abbreviation **{i}** is not recognized. Please retry the command.\nRegistered abbreviations: {humanize_list(clanAbbr)}.",
-                    color="fail")
-                return await ctx.send(embed=embed)
+    # @leader_personalization.command(name="reset")
+    # @commands.admin_or_permissions(administrator=True)
+    # async def leader_personalization_reset(self,ctx,clan_abbreviation:str):
+    #     """Reset all customizations."""
 
-        userClans = await self.config.user(ctx.author).default_clan()
+    #     await self.config.user(ctx.author).default_clan.set([])
 
-        for i in input_abbr:
-            userClans.append(i)
+    #     await ctx.tick()
 
-        await self.config.user(ctx.author).default_clan.set(userClans)
-
-        embed = await clash_embed(ctx=ctx,
-                    message=f"Your preferred clans have been updated to: {humanize_list(userClans)}.",
-                    color="success")
-        return await ctx.send(embed=embed)
-
-    @leader_personalization.command(name="reset")
-    @commands.admin_or_permissions(administrator=True)
-    async def leader_personalization_reset(self,ctx,clan_abbreviation:str):
-        """Reset all customizations."""
-
-        await self.config.user(ctx.author).default_clan.set([])
-
-        await ctx.tick()
+    ###
+    ### CLAN MANAGEMENT COMMANDS
+    ###
 
     @commands.group(name="clan")
-    async def clansettings(self,ctx):
+    async def clan_manage(self,ctx):
         """Manage clans in the Alliance."""
             
         if not ctx.invoked_subcommand:
             pass
 
-    @clansettings.command(name="add")
+    @clan_manage.command(name="add")
     @commands.admin_or_permissions(administrator=True)
-    async def clansettings_add(self, ctx, tag:str, abbr:str):
+    async def clan_manage_add(self, ctx, leader:discord.User, tag:str, abbr:str):
         """Add a clan to the Alliance."""
 
         try:
-            c, w = await getClan(self,ctx,tag)
-        except ClashClanError as err:
-            eEmbed = await err.errEmbed()
-            return await ctx.send(embed=eEmbed)
-        except:
-            eEmbed = await clash_embed(ctx=ctx,
-                message=f"An unknown error occurred.",
-                color="fail")
+            c = await aClan.create(ctx,tag)
+        except Exception as e:
+            eEmbed = await resc.clash_embed(ctx=ctx,message=f"{e}",color="fail")
             return await ctx.send(embed=eEmbed)
 
-        if c.isAllianceClan:
-            embed = await clash_embed(ctx=ctx,
-                    message=f"The clan {c.clan.name} ({c.clan.tag}) is already part of the Alliance.",
+        if c.is_alliance_clan:
+            embed = await resc.clash_embed(ctx=ctx,
+                    message=f"The clan {c.name} ({c.tag}) is already part of the Alliance.",
                     color="fail",
                     thumbnail=c.clan.badge.url)
             return await ctx.send(embed=embed)
 
-        embed = await clash_embed(ctx=ctx,
-                            message=f"Please confirm that you would like to add the below clan.\nTo confirm, enter the token below as your next message.",
-                            thumbnail=c.clan.badge.url)
+        embed = await resc.clash_embed(ctx=ctx,
+                            message=f"Please confirm that you would like to add the below clan.",
+                            thumbnail=c.c.badge.url)
 
-        embed.add_field(name=f"**{c.clan.name} ({c.clan.tag})**",
-                        value=f"Level: {c.clan.level}\u3000\u3000Location: {c.clan.location} / {c.clan.chat_language}"
+        embed.add_field(name=f"**{c.name} ({c.tag})**",
+                        value=f"Level: {c.c.level}\u3000\u3000Location: {c.c.location} / {c.c.chat_language}"
+                            + f"\nLeader: {leader.mention}"
                             + f"\n```{c.description}```",
                         inline=False)
 
-        await ctx.send(embed=embed)
-
-        if not await token_confirmation(self,ctx):
+        cMsg = await ctx.send(embed=embed)
+        if not await resc.user_confirmation(self,ctx,cMsg):
             return
 
-        allianceJson = await datafile_retrieve(self,'alliance')
-        warlogJson = await datafile_retrieve(self,'warlog')
-        capitalraidJson = await datafile_retrieve(self,'capitalraid')
+        with ctx.bot.clash_file_lock.write_lock():
+            await c.add_to_alliance(abbreviation=abbr.upper(),leader=leader)
+            await c.save_to_json()
 
-        allianceJson['clans'][clan.tag] = {
-            'name':clan.name,
-            'abbr':abbr,
-            'description':'',
-            'recruitment':{
-                'townHall':[],
-                'notes':""}
-            }
-        warlogJson[clan.tag] = {}
-        capitalraidJson[clan.tag] = {}
+        await ctx.send(f"Successfully added **{c.tag} {c.name}**!")
 
-        await datafile_save(self,'alliance',allianceJson)
-        await datafile_save(self,'warlog',warlogJson)
-        await datafile_save(self,'capitalraid',capitalraidJson)
-
-        await ctx.send(f"Successfully added **{clan.tag} {clan.name}**!")
-
-    @clansettings.command(name="remove")
+    @clan_manage.command(name="remove")
     @commands.admin_or_permissions(administrator=True)
-    async def clansettings_remove(self, ctx, tag:str):
+    async def clan_manage_remove(self, ctx, tag:str):
         """Remove a clan from the Alliance."""
 
         try:
-            c, w = await getClan(self,ctx,tag)
-        except ClashClanError as err:
-            eEmbed = await err.errEmbed()
-            return await ctx.send(embed=eEmbed)
-        except:
-            eEmbed = await clash_embed(ctx=ctx,
-                message=f"An unknown error occurred.",
+            c = await aClan.create(ctx,tag)
+        except Exception as e:
+            eEmbed = await resc.clash_embed(ctx=ctx,
+                message=f"{e}",
                 color="fail")
             return await ctx.send(embed=eEmbed)
 
-        if not c.isAllianceClan:
-            embed = await clash_embed(ctx=ctx,
-                    message=f"The clan {c.clan.name} ({c.clan.tag}) is not part of the Alliance.",
+        if not c.is_alliance_clan:
+            embed = await resc.clash_embed(ctx=ctx,
+                    message=f"The clan {c.name} ({c.tag}) is not part of the Alliance.",
                     color="fail",
-                    thumbnail=c.clan.badge.url)
+                    thumbnail=c.c.badge.url)
             return await ctx.send(embed=embed)
 
-        embed = await clash_embed(ctx=ctx,
-                message=f"Please confirm that you would like to remove the below clan.\nTo confirm, enter the token below as your next message.",
-                thumbnail=c.clan.badge.url)
+        embed = await resc.clash_embed(ctx=ctx,
+                message=f"Please confirm that you would like to remove the below clan.",
+                thumbnail=c.c.badge.url)
 
-        embed.add_field(name=f"**{c.clan.name} ({c.clan.tag})**",
-                value=f"Level: {c.clan.level}\u3000\u3000Location: {c.clan.location} / {c.clan.chat_language}"+
+        embed.add_field(name=f"**{c.name} ({c.tag})**",
+                value=f"Level: {c.c.level}\u3000\u3000Location: {c.c.location} / {c.c.chat_language}"+
                             f"\n```{c.description}```",
                         inline=False)
-        await ctx.send(embed=embed)
-
-        if not await token_confirmation(self,ctx):
+        
+        cMsg = await ctx.send(embed=embed)
+        if not await resc.user_confirmation(self,ctx,cMsg):
             return
 
-        allianceJson = await datafile_retrieve(self,'alliance')
-        del allianceJson['clans'][clan.tag]
-        await datafile_save(self,'alliance',allianceJson)
-        await ctx.send(f"Successfully removed **{clan.tag} {clan.name}**!")
+        with ctx.bot.clash_file_lock.write_lock():
+            with open(ctx.bot.clash_dir_path+'/alliance.json','w+') as file:
+                file_json = json.load(file)
+                del file_json['clans'][c.tag]
+                json.dump(file_json,file,indent=2)
+                file.truncate()
+    
+        await ctx.send(f"Successfully removed **{c.tag} {c.name}**!")
+
+    ###
+    ### MEMBER MANAGEMENT COMMANDS
+    ###
 
     @commands.group(name="member",autohelp=False)
     @commands.admin_or_permissions(administrator=True)
-    async def membermanage(self,ctx):
+    async def member_manage(self,ctx):
         """Member Management Tasks."""
         
         if not ctx.invoked_subcommand:
             pass
 
-    @membermanage.command(name="report")
+    @member_manage.command(name="add")
     @commands.admin_or_permissions(administrator=True)
-    async def membermanage_report(self,ctx,*clan_abbreviation:str):
-        """Generates a summary of all members in the provided clan(s)."""
-        
-        input_abbr = []
-        output_embed = []
-        if clan_abbreviation:
-            for i in clan_abbreviation:
-                input_abbr.append(i.upper())
-        else:
-            input_abbr = await self.config.user(ctx.author).default_clan()
-
-        if not input_abbr:
-            embed = await clash_embed(ctx=ctx,
-                    message=f"To use this command, either provide a Clan Abbreviation, or set a default clan.",
-                    color="fail")
-            return await ctx.send(embed=embed)
-
-        currentClans,currentMembers = await get_current_alliance(self,rdict=True)
-
-        clanAbbr = [v['abbr'] for (k,v) in currentClans.items()]
-
-        for i in input_abbr:
-            if i not in clanAbbr:
-                embed = await clash_embed(ctx=ctx,
-                    message=f"The abbreviation **{i}** is not recognized. Please retry the command.\nRecognized abbreviations: {humanize_list(clanAbbr)}.",
-                    color="fail")
-                return await ctx.send(embed=embed)
-
-        rptClans = {tag:clan for (tag,clan) in currentClans.items() if clan['abbr'] in input_abbr}
-
-        for tag, clan in rptClans.items():
-            try:
-                c, w = await getClan(self,ctx,tag)
-            except:
-                eEmbed = await clash_embed(ctx=ctx,
-                    message=f"An error was encountered when retrieving information for {tag} {clan['name']}.",
-                    color="fail")
-                output_embed.append(eEmbed)
-                continue
-
-            cMembers = {tag:member for (tag,member) in currentMembers.items() if member['home_clan']['tag'] == c.clan.tag and member['is_member']==True}
-            aMembers = []
-
-            th_Count = {15:0, 14:0, 13:0, 12:0, 11:0, 10:0, 9:0, 8:0}
-
-            for tag, member in cMembers.items():
-                mDict = {}
-                try:
-                    p = await getPlayer(self,ctx,tag)
-                except ClashPlayerError as err:
-                    errD = {
-                        'tag':tag,
-                        'reason':'Unable to find a user with this tag.'
-                        }
-                    eMembers.append(tag)
-                    continue
-                except Exception as e:
-                    p = None
-                    errD = {
-                        'tag':tag,
-                        'reason':e
-                        }
-                    eMembers.append(tag)
-                    continue
-
-                mDict['TH'] = p.player.town_hall
-                mDict['BK'] = p.barbarianKing
-                mDict['AQ'] = p.archerQueen
-                mDict['GW'] = p.grandWarden
-                mDict['RC'] = p.royalChampion
-                mDict['Name'] = p.player.name
-
-                aMembers.append(mDict)
-                title, value = await player_shortfield(self,ctx,p)
-                th_Count[max(p.player.town_hall,8)] += 1
-
-            aMembers = sorted(aMembers,key=lambda p:(p['TH'],p['Name']),reverse=True)
-            averageTH = sum([m['TH'] for m in aMembers]) / len(aMembers)
-
-            thStr = ""
-            for th,count in th_Count.items():
-                if count > 0:
-                    thStr += f"{get_th_emote(th)} {count}\u3000"
-
-            cEmbed = await clash_embed(ctx=ctx,
-                    title=f"{c.clan.tag} {c.clan.name}",
-                    message=f"Level: {c.clan.level}\u3000\u3000Location: {c.clan.location} / {c.clan.chat_language}"
-                        + f"\nMember Count: {len(aMembers)}\u3000Average TH: {round(averageTH,2)}"
-                        + f"\n\n{thStr}"
-                        + f"```{tabulate(aMembers,headers='keys')}```")
-
-            # th_comp_str = ""
-            # for th, count in th_Count.items():
-            #     if count > 0:
-            #         th_comp_str += f"{get_th_emote(th)} {count}\n"
-
-            # cEmbed.add_field(
-            #     name="**Townhall Composition**",
-            #     value=th_comp_str,
-            #     inline=False)
-
-            # if len(mMembers) > 0:
-            #     missingMembers_str = ""
-            #     for m in mMembers:
-                    
-            #         missingMembers_str += f"__{m.player.name}__ ({m.player.tag})\n> {value}\n> <:Clan:825654825509322752> {m.clanDescription}\n"
-            #     cEmbed.add_field(
-            #         name="**Members Not in Clan**",
-            #         value=missingMembers_str,
-            #         inline=False)
-            
-            # if len(xMembers) > 0:
-            #     extraMembers_str = ""
-            #     for m in xMembers:
-            #         extraMembers_str += f"{m.tag} {m.name}\n"
-            #     cEmbed.add_field(
-            #         name="**Extra Members in Clan**",
-            #         value=extraMembers_str)
-
-            output_embed.append(cEmbed)
-
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            return await paginator.run()
-        elif len(output_embed)==1:
-            return await ctx.send(embed=output_embed[0])
-
-    @membermanage.command(name="add")
-    @commands.admin_or_permissions(administrator=True)
-    async def membermanage_add(self,ctx,user:discord.User, clan_abbreviation:str, *tags):
+    async def member_manage_add(self,ctx,user:discord.User, clan_abbreviation:str, *tags):
         """Add members to the Alliance. Multiple tags can be separated by a blank space."""
 
-        homeClan = None
+        home_clan = None
     
-        processAdd = []
-        successAdd = []
-        failedAdd = []
+        add_accounts = []
+        error_log = []
 
-        allianceJson = await datafile_retrieve(self,'alliance')
-        memberStatsJson = await datafile_retrieve(self,'members')
+        clans, members = await get_current_alliance(ctx)
 
-        currentClans = list(allianceJson['clans'].keys())
-        currentMembers = list(allianceJson['members'].keys())
-
-        if not len(currentClans) >= 1:
-            return await ctx.send("No clans registered to the Alliance! Please first register a clan with `[p]clanset add`.")
-
+        if not len(clans) >= 1:
+            return await ctx.send("No clans registered! Please first register a clan with `[p]clanset add`.")
         if len(tags) == 0:
             return await ctx.send("Provide Player Tags to be added. Separate multiple tags with a space.")
 
-        try:
-            userID = user.id
-        except:
-            return await ctx.send("Unable to retrieve Discord User ID.")
-
-        for clanTag in currentClans:
-            if allianceJson['clans'][clanTag]['abbr'] == clan_abbreviation:
-                try:
-                    c, w = await getClan(self,ctx,clanTag)
-                except:
-                    eEmbed = await clash_embed(ctx=ctx,
-                        message=f"An error was encountered when retrieving the clan {clanTag}.",
-                        color="fail")
-                    return await ctx.send(embed=eEmbed)
-                else:
-                    homeClan = c
-
-        if not homeClan:
+        home_clan = await get_alliance_clan(ctx,clan_abbreviation)
+        if not home_clan:
             return await ctx.send(f"The Clan abbreviation **{clan_abbreviation}** does not correspond to any registered clan.")
-
-        cClanMembers = {k:v for (k,v) in allianceJson['members'].items() if v['home_clan']['tag']==homeClan.clan.tag}
-
-        await ctx.send(len(cClanMembers))
-
-        cEmbed = await clash_embed(ctx,
-            title=f"Please confirm that you are adding the below accounts.",
-            message=f"Discord User: {user.mention}"
-                    + f"\nHome Clan: {homeClan.clan.tag} {homeClan.clan.name}")
+        try:
+            home_clan = await aClan.create(ctx,home_clan)
+        except Exception as e:
+            eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+            return await ctx.send(eEmbed)
 
         for tag in tags:
-            tag = coc.utils.correct_tag(tag)
+            #try:
+            p = await aPlayer.create(ctx,tag)
+            await p.retrieve_data()
+            p_title, p_field = await resc.player_summary(self,ctx,p)
+            #except TerminateProcessing as e:
+            #    eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+            #    return await ctx.send(eEmbed)
+            #except Exception as e:
+            #    p = None
+            #    err_dict = {'tag':tag,'reason':e}
+            #    error_log.append(err_dict)
+            #    continue
 
             try:
-                p = await getPlayer(self,ctx,tag)
-            except ClashPlayerError as err:
-                p = None
-                errD = {
-                    'tag':tag,
-                    'reason':'Unable to find a user with this tag.'
-                    }
-                failedAdd.append(errD)
-                continue
+                existing_user = ctx.bot.get_user(int(p.discord_user))
+                existing_user = existing_user.mention
             except:
-                p = None
-                errD = {
-                    'tag':tag,
-                    'reason':'Unknown error.'
-                    }
-                failedAdd.append(errD)
-                continue
-            
-            fTitle, fStr = await player_shortfield(self,ctx,p)
+                existing_user = "Invalid User"
 
-            if p.player.tag in currentMembers:
-                try:
-                    existing_user = ctx.bot.get_user(int(p.discordUser))
-                    existing_user = existing_user.mention
-                except:
-                    existing_user = "Invalid User"
-
-                if p.isMember == False:
-                    mStatus = "Non-Member"
-                else:
-                    mStatus = f"{p.memberStatus} of {p.homeClan['name']}"
-                
-                #Discord User on file does not match new user: request confirmation.
-                if p.discordUser != userID:
-                    zEmbed = await clash_embed(ctx,
-                        message=f"The account below is already linked to another user. Please confirm that you wish to continue.")
-                    zEmbed.add_field(
-                        name=f"**{fTitle}**",
-                        value=f"{fStr}\n{mStatus}\nLinked to: {existing_user}",
+            #Discord User on file does not match new user: request confirmation.
+            if p.discord_user != 0 and p.discord_user != user.id:
+                zEmbed = await resc.clash_embed(ctx,
+                    message=f"The account below is already linked to another user. Please confirm that you wish to continue.")
+                zEmbed.add_field(
+                        name=f"**{p_title}**",
+                        value=f"{p_field}\n{p.arix_rank} of {p.home_clan.name}\nLinked to: {existing_user}",
                         inline=False)
 
-                    zMsg = await ctx.send(embed=zEmbed)
-                    if not await react_confirmation(self,ctx,zMsg):
-                        errD = {
-                            'tag':tag,
-                            'reason':'Already registered to another user.'
-                            }
-                        failedAdd.append(errD)
-                        continue
-
-                #Is a current active member, but in a different clan: request confirmation.
-                elif p.isMember == True and homeClan.clan.tag != p.homeClan['tag']:
-                    zEmbed = await clash_embed(ctx,
-                        message=f"The account below is already an active member in the alliance. Please confirm that you wish to continue.")
-                    zEmbed.add_field(
-                        name=f"**{fTitle}**",
-                        value=f"{fStr}\n{mStatus}\nLinked to: {existing_user}",
-                        inline=False)
-
-                    zMsg = await ctx.send(embed=zEmbed)
-                    if not await react_confirmation(self,ctx,zMsg):
-                        errD = {
-                            'tag':tag,
-                            'reason':f"Already an active member in {p.homeClan['name']}."
-                            }
-                        failedAdd.append(errD)
-                        continue
-
-                #Current active member, and in the same clan: do not process.
-                elif p.isMember == True and homeClan.clan.tag == p.homeClan['tag']:
-                    errD = {
-                        'tag':tag,
-                        'reason':f"Already an active member in {p.homeClan['name']}."
-                        }
-                    failedAdd.append(errD)
+                zMsg = await ctx.send(embed=zEmbed)
+                if not await resc.user_confirmation(self,ctx,zMsg):
+                    err_dict = {'tag':p.tag,'reason':'Already registered to another user.'}
+                    error_log.append(err_dict)
                     continue
+            
+            #Is a current active member, but in a different clan: request confirmation.
+            if p.is_member and home_clan.tag != p.home_clan.tag:
+                zEmbed = await resc.clash_embed(ctx,
+                    message=f"The account below is already an active member in the alliance. Please confirm that you wish to continue.")
+                zEmbed.add_field(
+                    name=f"**{p_title}**",
+                    value=f"{p_field}\n{p.arix_rank} of {p.home_clan.name}\nLinked to: {existing_user}",
+                    inline=False)
+                zMsg = await ctx.send(embed=zEmbed)
+                if not await resc.user_confirmation(self,ctx,zMsg):
+                    err_dict = {
+                        'tag':p.tag,'reason':f"Already an active member in {p.home_clan.name}."
+                        }
+                    error_log.append(err_dict)
+                    continue
+            #Current active member, and in the same clan: do not process.
+            if p.is_member and home_clan.tag == p.home_clan.tag:
+                err_dict = {'tag':tag,'reason':f"Already an active member in {p.home_clan.name}."}
+                error_log.append(err_dict)
+                continue
+            add_accounts.append(p)
 
-            cEmbed.add_field(
-                name=f"**{fTitle}**",
-                value=f"{fStr}",
-                inline=False)
-            processAdd.append(p)
+        if len(add_accounts) > 0:
+            cEmbed = await resc.clash_embed(ctx,
+                title=f"Please confirm that you are adding the below accounts.",
+                message=f"Discord User: {user.mention}"
+                        + f"\nHome Clan: {home_clan.tag} {home_clan.name}")
 
-        if len(processAdd) > 0:
-            cMsg = await ctx.send(embed=cEmbed)
-            if not await react_confirmation(self,ctx,cMsg):
+            for p in add_accounts:
+                p_title, p_field = await resc.player_summary(self,ctx,p)
+                cEmbed.add_field(name=f"**{p_title}**",value=f"{p_field}",inline=False)
+
+            confirm_add = await ctx.send(embed=cEmbed)
+            if not await resc.user_confirmation(self,ctx,confirm_add):
                 return
+            
+            with ctx.bot.clash_file_lock.write_lock():
+                for p in add_accounts:
+                    #try:
+                    await p.new_member(user.id,home_clan)
+                    await p.set_baselines()
+                    await p.save_to_json()
+                    #except Exception as e:
+                    #    err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
+                    #    error_log.append(err_dict)
+                    #    add_accounts.remove(p)
 
-            for p in processAdd:
-                p.newMember(userID,homeClan)
-                pAllianceJson,pMemberJson = p.toJson()
-                    
-                allianceJson['members'][p.player.tag] = pAllianceJson
-                memberStatsJson[p.player.tag] = pMemberJson
-                successAdd.append(
-                    {
-                    'player':p,
-                    'clan':homeClan
-                    }
-                )
-            await datafile_save(self,'alliance',allianceJson)
-            await datafile_save(self,'members',memberStatsJson)
+        success_str = "\u200b"
+        error_str = "\u200b"
+        for p in add_accounts:
+            success_str += f"**{p.tag} {p.name}** added to {home_clan.tag} {home_clan.name}.\n"
 
-        successStr = "\u200b"
-        failStr = "\u200b"
-        for success in successAdd:
-            successStr += f"**{success['player'].player.tag} {success['player'].player.name}** added to {success['clan'].clan.tag} {success['clan'].clan.name}.\n"
+        for error in error_log:
+            error_str += f"{error['tag']}: {error['reason']}\n"
 
-        for fail in failedAdd:
-            failStr += f"{fail['tag']}: {fail['reason']}\n"
-
-        aEmbed = await clash_embed(ctx=ctx,title=f"Operation: Add Member(s)")
+        aEmbed = await resc.clash_embed(ctx=ctx,title=f"Operation: Add Member(s)")
 
         aEmbed.add_field(name=f"**__Success__**",
-                        value=successStr,
+                        value=success_str,
                         inline=False)
         aEmbed.add_field(name=f"**__Failed__**",
-                        value=failStr,
+                        value=error_str,
                         inline=False)
 
         return await ctx.send(embed=aEmbed)
 
-    @membermanage.command(name="remove")
+    @member_manage.command(name="remove")
     @commands.admin_or_permissions(administrator=True)
-    async def membermanage_remove(self,ctx,*tags):
+    async def member_manage_remove(self,ctx,*tags):
         """Remove members from the Alliance. Multiple tags can be separated by a blank space."""
 
-        processRemove = []
-        successRemove = []
-        failedRemove = []
+        remove_accounts = []
+        error_log = []
 
-        allianceJson = await datafile_retrieve(self,'alliance')
-
-        currentClans = list(allianceJson['clans'].keys())
-        currentMembers = list(allianceJson['members'].keys())
-
-        cEmbed = await clash_embed(ctx,
-            title=f"I found the below accounts to be removed. Please confirm this action.")
+        clans, members = await get_current_alliance(ctx)
 
         for tag in tags:
-            tag = coc.utils.correct_tag(tag)
-
-            if tag not in currentMembers:
-                errD = {
-                    'tag':tag,
-                    'reason':'Could not find this tag in the member list.'
-                    }
-                failedRemove.append(errD)
-                continue
-
-            if allianceJson['members'][tag]['is_member'] == False:
-                errD = {
-                    'tag':tag,
-                    'reason':'Not currently an active member.'
-                    }
-                failedRemove.append(errD)
-                continue
-
             try:
-                p = await getPlayer(self,ctx,tag)
-            except ClashPlayerError as err:
+                p = await aPlayer.create(ctx,tag)
+            except TerminateProcessing as e:
+                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                return await log_channel.send(eEmbed)
+            except Exception as e:
                 p = None
-                errD = {
-                    'tag':tag,
-                    'reason':'Unable to find a user with this tag.'
-                    }
-                failedRemove.append(errD)
-                continue
-            except:
-                p = None
-                errD = {
-                    'tag':tag,
-                    'reason':'Unknown error.'
-                    }
-                failedRemove.append(errD)
+                err_dict = {'tag':tag,'reason':e}
+                error_log.append(err_dict)
                 continue
 
-            fTitle, fStr = await player_shortfield(self,ctx,p)
-            cEmbed.add_field(
-                name=f"**{fTitle}**",
-                value=f"\n{fStr}"
-                    +f"\nHome Clan: {p.memberStatus} of {p.homeClan['name']}"
-                    + f"\nLinked To: <@{p.discordUser}>",
-                inline=False)
-            processRemove.append(p)
+            if not p.is_member:
+                err_dict = {'tag':tag,'reason':'This player is currently not an active member.'}
+                error_log.append(err_dict)
+                continue
 
-        if len(processRemove) > 0:
-            cMsg = await ctx.send(embed=cEmbed)
-            if not await react_confirmation(self,ctx,cMsg):
+            remove_accounts.append(p)
+
+        if len(remove_accounts) > 0:
+            cEmbed = await clash_embed(ctx,
+                title=f"I found the below accounts to be removed. Please confirm this action.")
+
+            for p in remove_accounts:
+                p_title, p_field = await resc.player_summary(self,ctx,p)
+
+                cEmbed.add_field(
+                    name=f"**{p_title}**",
+                    value=f"\n{p_field}"
+                        +f"\nHome Clan: {p.arix_rank} of {p.home_clan.name}"
+                        + f"\nLinked To: <@{p.discord_user}>",
+                    inline=False)
+
+            confirm_remove = await ctx.send(embed=cEmbed)
+            if not await resc.user_confirmation(self,ctx,confirm_remove):
                 return
 
-            for p in processRemove:
-                p.removeMember()
-                pAllianceJson,pMemberJson = p.toJson()
-                    
-                allianceJson['members'][p.player.tag] = pAllianceJson
-                successRemove.append(
-                    {
-                    'player':p,
-                    }
-                )
-            await datafile_save(self,'alliance',allianceJson)
+            with ctx.bot.clash_file_lock.write_lock():
+                for p in remove_accounts:
+                    try:
+                        await p.remove_member()
+                        await p.save_to_json()
+                    except Exception as e:
+                        err_dict = {'tag':p.tag,'reason':f"Error while removing: {e}"}
+                        error_log.append(err_dict)
+                        remove_accounts.remove(p)
 
-        successStr = "\u200b"
-        failStr = "\u200b"
-        for success in successRemove:
-            successStr += f"**{success['player'].player.tag} {success['player'].player.name}** removed from {p.homeClan['name']}.\n"
+        success_str = "\u200b"
+        error_str = "\u200b"
+        for p in remove_accounts:
+            success_str += f"**{p.tag} {p.name}** removed from {p.home_clan.name}.\n"
 
-        for fail in failedRemove:
-            failStr += f"{fail['tag']}: {fail['reason']}\n"
+        for error in error_log:
+            error_str += f"{error['tag']}: {error['reason']}\n"
 
         aEmbed = await clash_embed(ctx=ctx,title=f"Operation: Remove Member(s)")
 
         aEmbed.add_field(name=f"**__Success__**",
-                        value=successStr,
+                        value=success_str,
                         inline=False)
 
         aEmbed.add_field(name=f"**__Failed__**",
-                        value=failStr,
+                        value=error_str,
                         inline=False)
         return await ctx.send(embed=aEmbed)
 
-    @membermanage.command(name="promote")
-    @commands.admin_or_permissions(administrator=True)
-    async def membermanage_promote(self,ctx,user:discord.User, clan_abbreviation:str):
+    ###
+    ### PROMOTE & DEMOTE
+    ###
+    async def rank_handler(self, ctx, action, user:discord.User, clan_abbreviation):
         """Promote all of a User's Accounts in the specified clan. This command will take the member's highest rank and promote it one level higher."""
 
-        promoteClan = None
-    
-        processPromote = []
-        successPromote = []
-        failedPromote = []
+        rank_accounts = []
+        current_leader = []
+        error_log = []
 
-        allianceJson = await datafile_retrieve(self,'alliance')
-
-        currentClans = list(allianceJson['clans'].keys())
-        currentMembers = list(allianceJson['members'].keys())
-
-        if not len(currentClans) >= 1:
-            return await ctx.send("No clans registered to the Alliance! Please first register a clan with `[p]clanset add`.")
-
-        try:
-            userID = user.id
-        except:
-            return await ctx.send("Unable to retrieve Discord User ID.")
-
-        for clanTag in currentClans:
-            if allianceJson['clans'][clanTag]['abbr'] == clan_abbreviation:
-                try:
-                    c, w = await getClan(self,ctx,tag)
-                except:
-                    eEmbed = await clash_embed(ctx=ctx,
-                        message=f"An unknown error occurred.",
-                        color="fail")
-                    return await ctx.send(embed=eEmbed)
-                else:
-                    promoteClan = c
-
-        if not promoteClan:
+        target_clan = await get_alliance_clan(ctx,clan_abbreviation)
+        if not target_clan:
             return await ctx.send(f"The Clan abbreviation **{clan_abbreviation}** does not correspond to any registered clan.")
+        try:
+            target_clan = await aClan.create(ctx,target_clan)
+        except Exception as e:
+            eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+            return await ctx.send(eEmbed)
 
-        cEmbed = await clash_embed(ctx,
-            title=f"Please confirm that you would like to promote the below accounts.",
-            message=f"Discord User: {user.mention}"
-                + f"\nHome Clan: {promoteClan.clan.tag} {promoteClan.clan.name}")
+        target_accounts = await get_user_accounts(ctx,user.id,target_clan.tag)
 
-        currentRank = "Member"
-        for tag, member in allianceJson['members'].items(): 
-            if member['discord_user'] == userID and member['is_member'] == True and member['home_clan'] == promoteClan.clan.tag:
-                try:
-                    p = await getPlayer(self,ctx,tag,force_member=True)
-                except ClashPlayerError as err:
-                    p = None
-                    errD = {
-                        'tag':tag,
-                        'reason':'Unable to find a user with this tag.'
-                        }
-                    failedPromote.append(errD)
-                    continue
-                except:
-                    p = None
-                    errD = {
-                        'tag':tag,
-                        'reason':'Unknown error.'
-                        }
-                    failedPromote.append(errD)
-                    continue
+        if len(target_accounts) < 1:
+            return await ctx.send(f"This user has no active accounts in {target_clan.name}.")
 
-                fTitle, fStr = await player_shortfield(self,ctx,p)
-                cEmbed.add_field(
-                    name=f"**{fTitle}**",
-                    value=f"{fStr}",
-                    inline=False)
-                processPromote.append(p)
+        current_rank = 'Member'
+        for tag in target_accounts:
+            try:
+                p = await aPlayer.create(ctx,tag)
+            except TerminateProcessing as e:
+                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                return await ctx.send(eEmbed)
+            except Exception as e:
+                p = None
+                err_dict = {'tag':tag,'reason':e}
+                error_log.append(err_dict)
+                continue
 
-                if membershipGrid.index(p.memberStatus) > membershipGrid.index(currentRank):
-                    currentRank = p.memberStatus
+            if not p.is_member:
+                err_dict = {'tag':tag,'reason':'This player is currently not an active member.'}
+                error_log.append(err_dict)
+                continue
 
-        if len(processPromote) == 0:
-            return await ctx.send(f"This user does not have any valid accounts for promotion.")
+            if p.arix_rank == 'Elder':
+                current_rank = 'Elder'
+            if p.arix_rank == 'Co-Leader':
+                current_rank = 'Co-Leader'
+            if p.arix_rank == 'Leader':
+                current_rank = 'Leader'
 
-        if currentRank == "Leader":
-            newRank = "Leader"
-        else:
-            newRankID = membershipGrid.index(currentRank) + 1
-            newRank = membershipGrid[newRankID]
+            rank_accounts.append(p)
 
-        cEmbed.add_field(
-            name="**New Rank after Promotion**",
-            value=f"{newRank} of {promoteClan.clan.name}")
+        if action == 'promote' and current_rank == 'Leader':
+            return await ctx.send(f"{user.mention} is too OP and cannot be promoted any further.")
 
-        cMsg = await ctx.send(embed=cEmbed)
-        if not await react_confirmation(self,ctx,cMsg):
-            return
+        if action == 'demote' and current_rank == 'Leader':
+            return await ctx.send(f"You cannot demote a Clan Leader! To change Clan Leaders, promote a Co-Leader instead.")
 
-        for p in processPromote:
-            p.updateRank(newRank)
-            pAllianceJson, pMemberStatsJson = p.toJson()
-            allianceJson['members'][p.player.tag] = pAllianceJson
+        if action == 'demote' and current_rank == 'Member':
+            return await ctx.send(f"If {user.mention} gets demoted they would be banished to uranus.")
 
-            successPromote.append(p)
+        current_rank_index = clanRanks.index(current_rank)
+        if action == 'promote':
+            new_rank = clanRanks[current_rank_index+1]
+        if action == 'demote':
+            new_rank = clanRanks[current_rank_index-1]
 
-        await datafile_save(self,'alliance',allianceJson)
+        if new_rank == 'Elder':
+            if ctx.author.id == target_clan.leader or ctx.author.id in target_clan.co_leaders:
+                pass
+            elif ctx.author.id in ctx.bot.owner_ids:
+                pass
+            else:
+                return await ctx.send(f"You need to be a Co-Leader or Leader of {target_clan.name} to perform this operation.")
 
-        successStr = "\u200b"
-        failStr = "\u200b"
-        for success in successPromote:
-            successStr += f"**{success.player.tag} {success.player.name}** promoted to {newRank} of {promoteClan.clan.name}.\n"
+        if new_rank in ['Co-Leader','Leader']:
+            if ctx.author.id == target_clan.leader:
+                pass
+            elif ctx.author.id in ctx.bot.owner_ids:
+                pass
+            else:
+                return await ctx.send(f"You need to be a Leader of {target_clan.name} to perform this operation.")
 
-        for fail in failedPromote:
-            failStr += f"{fail['tag']}: {fail['reason']}\n"
+        if len(rank_accounts) > 0:
+            cEmbed = await resc.clash_embed(ctx,
+                title=f"Please confirm that you would like to {action} the below accounts.",
+                message=f"Discord User: {user.mention}"
+                    + f"\nHome Clan: {target_clan.tag} {target_clan.name}"
+                    + f"\nNew Rank: {new_rank}")
 
-        aEmbed = await clash_embed(ctx=ctx,title=f"Operation Report: Promote {user.name}#{user.discriminator}")
+            for p in rank_accounts:
+                p_title, p_field = await resc.player_summary(self,ctx,p)
+                cEmbed.add_field(name=f"**{p_title}**",value=f"{p_field}",inline=False)
+
+            confirm_rank = await ctx.send(embed=cEmbed)
+            if not await resc.user_confirmation(self,ctx,confirm_rank):
+                return
+
+            with ctx.bot.clash_file_lock.write_lock():
+                for p in rank_accounts:
+                    try:
+                        await p.update_rank(new_rank)
+                        await p.save_to_json()
+                    except Exception as e:
+                        err_dict = {'tag':p.tag,'reason':f"Error while updating rank: {e}"}
+                        error_log.append(err_dict)
+                        rank_accounts.remove(p)
+
+                #demote current leader to Co
+                if action=='promote' and new_rank == 'Leader':
+                    current_leader = await get_user_accounts(ctx,target_clan.leader,target_clan.tag)
+                    for tag in current_leader:
+                        try:
+                            p = await aPlayer.create(ctx,tag)
+                            await p.update_rank('Co-Leader')
+                            await p.save_to_json()
+                            rank_accounts.append(p)
+                        except TerminateProcessing as e:
+                            eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                            return await ctx.send(eEmbed)
+                        except Exception as e:
+                            p = None
+                            err_dict = {'tag':tag,'reason':f'Error while demoting leader: {e}'}
+                            error_log.append(err_dict)
+                            continue
+            
+                try: 
+                    await target_clan.add_staff(user.id,new_rank)
+                    await target_clan.save_to_json()
+                except Exception as e:
+                    err_dict = {'tag':target_clan.tag,'reason':f"Error while updating clan: {e}"}
+                    error_log.append(err_dict)
+
+        success_str = "\u200b"
+        error_str = "\u200b"
+        for p in rank_accounts:
+            if p.tag in current_leader:
+                success_str += f"**{p.tag} {p.name}** is now Co-Leader of {target_clan.name}.\n"
+            else:
+                success_str += f"**{p.tag} {p.name}** is now {new_rank} of {target_clan.name}.\n"
+
+        for error in error_log:
+            error_str += f"{error['tag']}: {error['reason']}\n"
+
+        aEmbed = await resc.clash_embed(ctx=ctx,title=f"Operation Report: {action.capitalize()} {user.name}#{user.discriminator}")
 
         aEmbed.add_field(name=f"**__Success__**",
-                        value=successStr,
+                        value=success_str,
                         inline=False)
-
         aEmbed.add_field(name=f"**__Failed__**",
-                        value=failStr,
+                        value=error_str,
                         inline=False)
         return await ctx.send(embed=aEmbed)
 
-    @commands.command(name="profile")
-    async def profile(self, ctx, user_or_tag=None):
+    @commands.command(name="promote")
+    async def member_promote(self,ctx,user:discord.User,clan_abbreviation:str):
+        """Promote a member."""
 
-        allianceJson = await datafile_retrieve(self,'alliance')
-        accounts = []
+        if ctx.author.id == user.id:
+            return await ctx.send("Self-glorification is not allowed. Go grovel and beg for mercy.")
 
-        if not user_or_tag:
-            user = ctx.author
-            tag = None
-        else:
-            try:
-                userID = re.search('@(.*)>',user_or_tag).group(1)
-                user = ctx.bot.get_user(int(userID))
-                tag = None
-            except:
-                tag = user_or_tag        
-                user = None
+        await self.rank_handler(
+            ctx=ctx,
+            action='promote',
+            user=user,
+            clan_abbreviation=clan_abbreviation)
 
-        if user:
-            for tag, member in allianceJson['members'].items():
-                if member['discord_user'] == user.id:
-                    try:
-                        p = await getPlayer(self,ctx,tag)
-                    except ClashPlayerError as err:
-                        p = None
-                        errD = {
-                            'tag':tag,
-                            'reason':'Unable to find a user with this tag.'
-                            }
-                        continue
-                    except:
-                        p = None
-                        errD = {
-                            'tag':tag,
-                            'reason':'Unknown error.'
-                            }
-                        continue
-                    else:
-                        pEmbed = await player_embed(self,ctx,p)
-                        accounts.append(pEmbed)
-        elif tag:
-            try:
-                p = await getPlayer(self,ctx,tag)
-            except ClashPlayerError as err:
-                return await ctx.send(f'Unable to find a user with the tag {tag}.')
-            except:
-                return await ctx.send(f'Unable to find a user with the tag {tag}.')
-            else:
-                pEmbed = await player_embed(self,ctx,p)
-                accounts.append(pEmbed)
+    @commands.command(name="demote")
+    async def member_demote(self,ctx,user:discord.User,clan_abbreviation:str):
+        """Demote a member."""
 
-        if len(accounts)>1:
-            paginator = BotEmbedPaginator(ctx,accounts)
-            return await paginator.run()
-        elif len(accounts)==1:
-            return await ctx.send(embed=embed)
+        if ctx.author.id == user.id:
+            return await ctx.send("Self-mutilation is strongly discouraged. You might want to seek help.")
+
+        await self.rank_handler(
+            ctx=ctx,
+            action='demote',
+            user=user,
+            clan_abbreviation=clan_abbreviation)
+
+    # @membermanage.command(name="report")
+    # @commands.admin_or_permissions(administrator=True)
+    # async def member_manage_report(self,ctx,*clan_abbreviation:str):
+    #     """Generates a summary of all members in the provided clan(s)."""
+        
+    #     input_abbr = []
+    #     output_embed = []
+    #     if clan_abbreviation:
+    #         for i in clan_abbreviation:
+    #             input_abbr.append(i.upper())
+    #     else:
+    #         input_abbr = await self.config.user(ctx.author).default_clan()
+
+    #     if not input_abbr:
+    #         embed = await clash_embed(ctx=ctx,
+    #                 message=f"To use this command, either provide a Clan Abbreviation, or set a default clan.",
+    #                 color="fail")
+    #         return await ctx.send(embed=embed)
+
+    #     currentClans,currentMembers = await get_current_alliance(self,rdict=True)
+
+    #     clanAbbr = [v['abbr'] for (k,v) in currentClans.items()]
+
+    #     for i in input_abbr:
+    #         if i not in clanAbbr:
+    #             embed = await clash_embed(ctx=ctx,
+    #                 message=f"The abbreviation **{i}** is not recognized. Please retry the command.\nRecognized abbreviations: {humanize_list(clanAbbr)}.",
+    #                 color="fail")
+    #             return await ctx.send(embed=embed)
+
+    #     rptClans = {tag:clan for (tag,clan) in currentClans.items() if clan['abbr'] in input_abbr}
+
+    #     for tag, clan in rptClans.items():
+    #         try:
+    #             c, w = await getClan(self,ctx,tag)
+    #         except:
+    #             eEmbed = await clash_embed(ctx=ctx,
+    #                 message=f"An error was encountered when retrieving information for {tag} {clan['name']}.",
+    #                 color="fail")
+    #             output_embed.append(eEmbed)
+    #             continue
+
+    #         cMembers = {tag:member for (tag,member) in currentMembers.items() if member['home_clan']['tag'] == c.clan.tag and member['is_member']==True}
+    #         aMembers = []
+
+    #         th_Count = {15:0, 14:0, 13:0, 12:0, 11:0, 10:0, 9:0, 8:0}
+
+    #         for tag, member in cMembers.items():
+    #             mDict = {}
+    #             try:
+    #                 p = await getPlayer(self,ctx,tag)
+    #             except ClashPlayerError as err:
+    #                 errD = {
+    #                     'tag':tag,
+    #                     'reason':'Unable to find a user with this tag.'
+    #                     }
+    #                 eMembers.append(tag)
+    #                 continue
+    #             except Exception as e:
+    #                 p = None
+    #                 errD = {
+    #                     'tag':tag,
+    #                     'reason':e
+    #                     }
+    #                 eMembers.append(tag)
+    #                 continue
+
+    #             mDict['TH'] = p.player.town_hall
+    #             mDict['BK'] = p.barbarianKing
+    #             mDict['AQ'] = p.archerQueen
+    #             mDict['GW'] = p.grandWarden
+    #             mDict['RC'] = p.royalChampion
+    #             mDict['Name'] = p.player.name
+
+    #             aMembers.append(mDict)
+    #             title, value = await player_shortfield(self,ctx,p)
+    #             th_Count[max(p.player.town_hall,8)] += 1
+
+    #         aMembers = sorted(aMembers,key=lambda p:(p['TH'],p['Name']),reverse=True)
+    #         averageTH = sum([m['TH'] for m in aMembers]) / len(aMembers)
+
+    #         thStr = ""
+    #         for th,count in th_Count.items():
+    #             if count > 0:
+    #                 thStr += f"{get_th_emote(th)} {count}\u3000"
+
+    #         cEmbed = await clash_embed(ctx=ctx,
+    #                 title=f"{c.clan.tag} {c.clan.name}",
+    #                 message=f"Level: {c.clan.level}\u3000\u3000Location: {c.clan.location} / {c.clan.chat_language}"
+    #                     + f"\nMember Count: {len(aMembers)}\u3000Average TH: {round(averageTH,2)}"
+    #                     + f"\n\n{thStr}"
+    #                     + f"```{tabulate(aMembers,headers='keys')}```")
+
+    #         # th_comp_str = ""
+    #         # for th, count in th_Count.items():
+    #         #     if count > 0:
+    #         #         th_comp_str += f"{get_th_emote(th)} {count}\n"
+
+    #         # cEmbed.add_field(
+    #         #     name="**Townhall Composition**",
+    #         #     value=th_comp_str,
+    #         #     inline=False)
+
+    #         # if len(mMembers) > 0:
+    #         #     missingMembers_str = ""
+    #         #     for m in mMembers:
+                    
+    #         #         missingMembers_str += f"__{m.player.name}__ ({m.player.tag})\n> {value}\n> <:Clan:825654825509322752> {m.clanDescription}\n"
+    #         #     cEmbed.add_field(
+    #         #         name="**Members Not in Clan**",
+    #         #         value=missingMembers_str,
+    #         #         inline=False)
+            
+    #         # if len(xMembers) > 0:
+    #         #     extraMembers_str = ""
+    #         #     for m in xMembers:
+    #         #         extraMembers_str += f"{m.tag} {m.name}\n"
+    #         #     cEmbed.add_field(
+    #         #         name="**Extra Members in Clan**",
+    #         #         value=extraMembers_str)
+
+    #         output_embed.append(cEmbed)
+
+    #     if len(output_embed)>1:
+    #         paginator = BotEmbedPaginator(ctx,output_embed)
+    #         return await paginator.run()
+    #     elif len(output_embed)==1:
+    #         return await ctx.send(embed=output_embed[0])
+
+    
+
+    
+
+    # @commands.command(name="profile")
+    # async def profile(self, ctx, user_or_tag=None):
+
+    #     allianceJson = await datafile_retrieve(self,'alliance')
+    #     accounts = []
+
+    #     if not user_or_tag:
+    #         user = ctx.author
+    #         tag = None
+    #     else:
+    #         try:
+    #             userID = re.search('@(.*)>',user_or_tag).group(1)
+    #             user = ctx.bot.get_user(int(userID))
+    #             tag = None
+    #         except:
+    #             tag = user_or_tag        
+    #             user = None
+
+    #     if user:
+    #         for tag, member in allianceJson['members'].items():
+    #             if member['discord_user'] == user.id:
+    #                 try:
+    #                     p = await getPlayer(self,ctx,tag)
+    #                 except ClashPlayerError as err:
+    #                     p = None
+    #                     errD = {
+    #                         'tag':tag,
+    #                         'reason':'Unable to find a user with this tag.'
+    #                         }
+    #                     continue
+    #                 except:
+    #                     p = None
+    #                     errD = {
+    #                         'tag':tag,
+    #                         'reason':'Unknown error.'
+    #                         }
+    #                     continue
+    #                 else:
+    #                     pEmbed = await player_embed(self,ctx,p)
+    #                     accounts.append(pEmbed)
+    #     elif tag:
+    #         try:
+    #             p = await getPlayer(self,ctx,tag)
+    #         except ClashPlayerError as err:
+    #             return await ctx.send(f'Unable to find a user with the tag {tag}.')
+    #         except:
+    #             return await ctx.send(f'Unable to find a user with the tag {tag}.')
+    #         else:
+    #             pEmbed = await player_embed(self,ctx,p)
+    #             accounts.append(pEmbed)
+
+    #     if len(accounts)>1:
+    #         paginator = BotEmbedPaginator(ctx,accounts)
+    #         return await paginator.run()
+    #     elif len(accounts)==1:
+    #         return await ctx.send(embed=embed)
 
     @commands.command(name="test")
     async def test(self, ctx):
