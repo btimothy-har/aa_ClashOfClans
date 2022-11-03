@@ -242,7 +242,7 @@ class aPlayer():
         for troop_name in list(chain.from_iterable(troop_d)):
             troop = self.p.get_troop(name=troop_name,is_home_troop=True)
             if not troop:
-                troop = self.ctx.bot.coc_client.get_troop(name=troop_name,is_home_troop=True,townhall=self.town_hall.level)
+                troop = self.ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
             troop = aTroop.from_data(troop,self.town_hall.level)
             self.troops.append(troop)
 
