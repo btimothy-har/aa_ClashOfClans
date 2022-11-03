@@ -26,20 +26,6 @@ from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 
-membershipGrid = ["Member", "Elder", "Co-Leader", "Leader"]
-
-async def datafile_defaults():
-    currSeason = await get_current_season()
-    alliance = {'currentSeason': currSeason,
-                'trackedSeasons': [],
-                'clans':{},
-                'members':{}
-                }
-    members = {}
-    warlog = {}
-    capitalraid = {}
-    return alliance,members,warlog,capitalraid
-
 class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
 
@@ -56,25 +42,55 @@ class AriXClashDataMgr(commands.Cog):
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
 
-    @commands.group(name="datafiles",autohelp=False)
+    @commands.group(name="data",autohelp=False)
     @commands.is_owner()
-    async def datafiles(self,ctx):
-        """Checks if data files are present in the environment data path."""
+    async def data_control(self,ctx):
+        """Manage the bot's Clash of Clans data."""
         if not ctx.invoked_subcommand:
-            embed = await resc.clash_embed(ctx=ctx,
-                                        title="Data File Status",
-                                        message=f"**seasons.json: {os.path.exists(self.cDirPath+'/seasons.json')}"
-                                                +f"\n**alliance.json**: {os.path.exists(self.cDirPath+'/alliance.json')}"
-                                                +f"\n**members.json**: {os.path.exists(self.cDirPath+'/members.json')}"
-                                                +f"\n**warlog.json**: {os.path.exists(self.cDirPath+'/warlog.json')}"
-                                                +f"\n**capitalraid.json**: {os.path.exists(self.cDirPath+'/capitalraid.json')}"
-                                                +f"\n\nRun `[p]datafiles init` to create any missing files.")
+
+            if ctx.channel.type == discord.ChannelType.private:
+                log_channel = "Not available in DMs."
+            else:
+                try:
+                    c_log_channel = await self.config.guild(ctx.guild).logchannel()
+                    c_log_channel = ctx.guild.get_channel(c_log_channel)
+                    log_channel = f"<#{c_log_channel.id}>"
+                except:
+                    log_channel = f"Log Channel Not Set"
+
+            last_update = await self.config.last_data_update()
+            last_log_sent = await self.config.last_data_log()
+            run_time = await self.config.update_runtimes()
+
+            average_run_time = round(sum(run_time)/len(run_time),2)
+
+            embed = await resc.clash_embed(ctx=ctx,title="System Status Report")
+            embed.add_field(
+                name="__Summary__",
+                value=f"> **File Path**: {ctx.bot.clash_dir_path}"
+                    + f"\n> **Log Channel**: {log_channel}",
+                inline=False)
+
+            embed.add_field(
+                name="__Data Files__",
+                value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
+                    + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
+                    + f"\n> **members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                    + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
+                    + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+                    inline=False)
+
+            embed.add_field(
+                name="__Refresh Status__",
+                value=f"> **Last Updated**: {round(time.time() - last_update,2)} seconds ago"
+                    + f"\n> **Average Run Time**: {average_run_time} seconds",
+                    inline=False)
             await ctx.send(embed=embed)
 
-    @datafiles.command(name="reset")
+    @data_control.command(name="resetall")
     @commands.is_owner()
-    async def datafiles_reset(self, ctx):
-        """Erases all current data and resets all data files."""
+    async def data_control_resetall(self, ctx):
+        """Erases all data and resets all data files to default."""
 
         embed = await resc.clash_embed(ctx=ctx,
                                 title="Confirmation Required.",
@@ -94,6 +110,40 @@ class AriXClashDataMgr(commands.Cog):
             with open(ctx.bot.clash_dir_path+'/alliance.json','w') as file:
                 json.dump(json_file_defaults['alliance'],file,indent=2)
 
+            with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
+                json.dump({},file,indent=2)
+
+            with open(ctx.bot.clash_dir_path+'/warlog.json','w') as file:
+                json.dump({},file,indent=2)
+
+            with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
+                json.dump({},file,indent=2)
+            
+        embed = await resc.clash_embed(ctx=ctx,
+            title="All Data Files Reset.",
+            message=f"**seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
+                    +f"\n**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
+                    +f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                    +f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
+                    +f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+            color="success")
+        return await ctx.send(embed=embed)
+
+    @data_control.command(name="reset")
+    @commands.is_owner()
+    async def data_control_reset(self, ctx):
+        """Erases data stored for Members, Clan Wars, and Capital Raids."""
+
+        embed = await resc.clash_embed(ctx=ctx,
+                                title="Confirmation Required.",
+                                message=f"**This action erases data stored for Members, Clan Wars, and Capital Raids.**"+
+                                        "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
+        cMsg = await ctx.send(content=ctx.author.mention,embed=embed)
+
+        if not await resc.user_confirmation(self,ctx,cMsg,confirm_method='token_only'):
+            return
+        
+        with ctx.bot.clash_file_lock.write_lock():
             with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
                 json.dump({},file,indent=2)
 
@@ -159,6 +209,7 @@ class AriXClashDataMgr(commands.Cog):
         is_new_season = False
         detected_war_change = False
         detected_raid_change = False
+        st = time.time()
         helsinkiTz = pytz.timezone("Europe/Helsinki")
         last_log_sent = await self.config.last_data_log()
         last_data_update = await self.config.last_data_update()
@@ -175,11 +226,6 @@ class AriXClashDataMgr(commands.Cog):
 
         success_log = []
         err_log = []
-        st = time.time()
-
-        is_cwl = False
-        if datetime.now(helsinkiTz).day <= 8:
-            is_cwl = True
 
         season = await get_current_season()
         clans, members = await get_current_alliance(ctx)
@@ -187,10 +233,14 @@ class AriXClashDataMgr(commands.Cog):
         sEmbed = await resc.clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
-
+        
         sEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
 
-        #get file lock
+        is_cwl = False
+        if datetime.now(helsinkiTz).day <= 8:
+            is_cwl = True
+
+        #file lock for new season
         with ctx.bot.clash_file_lock.write_lock():
             is_new_season, current_season, new_season = await season_file_handler(ctx,season)
 
@@ -208,11 +258,13 @@ class AriXClashDataMgr(commands.Cog):
                         + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                     inline=False)
 
-            str_war_update = ''
-            dict_war_update = {}
-            str_raid_update = ''
-            dict_raid_update = {}
-            for ctag in clans:
+        str_war_update = ''
+        dict_war_update = {}
+        str_raid_update = ''
+        dict_raid_update = {}
+        for ctag in clans:
+            #lock separately for each clan
+            with ctx.bot.clash_file_lock.write_lock():
                 war_member_count = 0
                 raid_member_count = 0
 
@@ -251,7 +303,7 @@ class AriXClashDataMgr(commands.Cog):
                                 war_member_count += 1
                                 dict_war_update[m.tag] = m
 
-                        str_war_update += f"\n- Tracking stats for {war_member_count} members in War."
+                        str_war_update += f"\n- Tracking stats for {war_member_count} members in War.\n"
 
                 if c.raid_state_change:
                     detected_raid_change = True
@@ -264,32 +316,34 @@ class AriXClashDataMgr(commands.Cog):
                     if c.current_raid_weekend.state == 'ended':
                         str_raid_update += f"\n**Raid Weekend is now over.**"
 
-                    str_raid_update += f"\n- State: {c.raidWeekend.state}"
+                    str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
 
                     for m in c.current_raid_weekend.members:
                         if m.tag in members:
                             raid_member_count += 1
                             dict_raid_update[m.tag] = m
 
-                    str_raid_update += f"\n- Tracking stats for {raid_member_count} members in Capital Raids."
+                    str_raid_update += f"\n- Tracking stats for {raid_member_count} members in Capital Raids.\n"
 
-            if str_war_update == '':
-                str_war_update = "No war updates."
+        if str_war_update == '':
+            str_war_update = "No war updates."
 
-            if str_raid_update == '':
-                str_raid_update = "No raid weekend updates."
+        if str_raid_update == '':
+            str_raid_update = "No raid weekend updates."
 
-            sEmbed.add_field(
-                name=f"**Clan War**",
-                value=str_war_update,
-                inline=False)
+        sEmbed.add_field(
+            name=f"**Clan War**",
+            value=str_war_update,
+            inline=False)
 
-            sEmbed.add_field(
-                name=f"**Capital Raids**",
-                value=str_raid_update,
-                inline=False)
+        sEmbed.add_field(
+            name=f"**Capital Raids**",
+            value=str_raid_update,
+            inline=False)
 
-            for mtag in members:
+        for mtag in members:
+            #lock separately for each member
+            with ctx.bot.clash_file_lock.write_lock():
                 try:
                     p = await aPlayer.create(ctx,mtag)
                     await p.retrieve_data()
@@ -324,7 +378,7 @@ class AriXClashDataMgr(commands.Cog):
                     await p.update_raidweekend(dict_raid_update[p.tag])
 
                 await p.save_to_json()
-        #Lock releases here
+        
         et = time.time()
 
         sEmbed.add_field(

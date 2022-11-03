@@ -219,39 +219,40 @@ class AriXClashLeaders(commands.Cog):
             return await ctx.send(eEmbed)
 
         for tag in tags:
+            #try:
+            p = await aPlayer.create(ctx,tag)
+            await p.retrieve_data()
+            p_title, p_field = await resc.player_summary(self,ctx,p)
+            #except TerminateProcessing as e:
+            #    eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+            #    return await ctx.send(eEmbed)
+            #except Exception as e:
+            #    p = None
+            #    err_dict = {'tag':tag,'reason':e}
+            #    error_log.append(err_dict)
+            #    continue
+
             try:
-                p = await aPlayer.create(ctx,tag)
-                await p.retrieve_data()
-                p_title, p_field = await resc.player_summary(self,ctx,p)
-            except TerminateProcessing as e:
-                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
-            except Exception as e:
-                p = None
-                err_dict = {'tag':tag,'reason':e}
-                error_log.append(err_dict)
-                continue
+                existing_user = ctx.bot.get_user(int(p.discord_user))
+                existing_user = existing_user.mention
+            except:
+                existing_user = "Invalid User"
 
             #Discord User on file does not match new user: request confirmation.
-            if p.discord_user != 0 and p.discord_user != user_id:
-                try:
-                    existing_user = ctx.bot.get_user(int(p.discord_user))
-                    existing_user = existing_user.mention
-                except:
-                    existing_user = "Invalid User"
-                else:
-                    zEmbed = await resc.clash_embed(ctx,
-                        message=f"The account below is already linked to another user. Please confirm that you wish to continue.")
-                    zEmbed.add_field(
+            if p.discord_user != 0 and p.discord_user != user.id:
+                zEmbed = await resc.clash_embed(ctx,
+                    message=f"The account below is already linked to another user. Please confirm that you wish to continue.")
+                zEmbed.add_field(
                         name=f"**{p_title}**",
                         value=f"{p_field}\n{p.arix_rank} of {p.home_clan.name}\nLinked to: {existing_user}",
                         inline=False)
 
-                    zMsg = await ctx.send(embed=zEmbed)
-                    if not await resc.user_confirmation(self,ctx,zMsg):
-                        err_dict = {'tag':p.tag,'reason':'Already registered to another user.'}
-                        error_log.append(err_dict)
-                        continue
+                zMsg = await ctx.send(embed=zEmbed)
+                if not await resc.user_confirmation(self,ctx,zMsg):
+                    err_dict = {'tag':p.tag,'reason':'Already registered to another user.'}
+                    error_log.append(err_dict)
+                    continue
+            
             #Is a current active member, but in a different clan: request confirmation.
             if p.is_member and home_clan.tag != p.home_clan.tag:
                 zEmbed = await resc.clash_embed(ctx,
@@ -290,14 +291,14 @@ class AriXClashLeaders(commands.Cog):
             
             with ctx.bot.clash_file_lock.write_lock():
                 for p in add_accounts:
-                    try:
-                        await p.new_member(user_id,home_clan)
-                        await p.set_baselines()
-                        await p.save_to_json()
-                    except Exception as e:
-                        err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
-                        error_log.append(err_dict)
-                        add_accounts.remove(p)
+                    #try:
+                    await p.new_member(user.id,home_clan)
+                    await p.set_baselines()
+                    await p.save_to_json()
+                    #except Exception as e:
+                    #    err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
+                    #    error_log.append(err_dict)
+                    #    add_accounts.remove(p)
 
         success_str = "\u200b"
         error_str = "\u200b"
@@ -437,7 +438,7 @@ class AriXClashLeaders(commands.Cog):
                 continue
 
             if p.arix_rank == 'Elder':
-                current_rank = 'Member'
+                current_rank = 'Elder'
             if p.arix_rank == 'Co-Leader':
                 current_rank = 'Co-Leader'
             if p.arix_rank == 'Leader':
@@ -448,14 +449,17 @@ class AriXClashLeaders(commands.Cog):
         if action == 'promote' and current_rank == 'Leader':
             return await ctx.send(f"{user.mention} is too OP and cannot be promoted any further.")
 
+        if action == 'demote' and current_rank == 'Leader':
+            return await ctx.send(f"You cannot demote a Clan Leader! To change Clan Leaders, promote a Co-Leader instead.")
+
         if action == 'demote' and current_rank == 'Member':
             return await ctx.send(f"If {user.mention} gets demoted they would be banished to uranus.")
 
         current_rank_index = clanRanks.index(current_rank)
         if action == 'promote':
-            new_rank = clanRanks(current_rank_index+1)
+            new_rank = clanRanks[current_rank_index+1]
         if action == 'demote':
-            new_rank = clanRanks(current_rank_index-1)
+            new_rank = clanRanks[current_rank_index-1]
 
         if new_rank == 'Elder':
             if ctx.author.id == target_clan.leader or ctx.author.id in target_clan.co_leaders:
@@ -474,7 +478,7 @@ class AriXClashLeaders(commands.Cog):
                 return await ctx.send(f"You need to be a Leader of {target_clan.name} to perform this operation.")
 
         if len(rank_accounts) > 0:
-            cEmbed = await clash_embed(ctx,
+            cEmbed = await resc.clash_embed(ctx,
                 title=f"Please confirm that you would like to {action} the below accounts.",
                 message=f"Discord User: {user.mention}"
                     + f"\nHome Clan: {target_clan.tag} {target_clan.name}"
@@ -516,8 +520,8 @@ class AriXClashLeaders(commands.Cog):
                             error_log.append(err_dict)
                             continue
             
-                try:
-                    await target_clan.add_staff(user.id,clanRanks[rank])
+                try: 
+                    await target_clan.add_staff(user.id,new_rank)
                     await target_clan.save_to_json()
                 except Exception as e:
                     err_dict = {'tag':target_clan.tag,'reason':f"Error while updating clan: {e}"}
@@ -525,11 +529,11 @@ class AriXClashLeaders(commands.Cog):
 
         success_str = "\u200b"
         error_str = "\u200b"
-        for p in promote_accounts:
+        for p in rank_accounts:
             if p.tag in current_leader:
-                success_str += f"**{p.tag} {p.name}** is now 'Co-Leader' of {target_clan.name}.\n"
+                success_str += f"**{p.tag} {p.name}** is now Co-Leader of {target_clan.name}.\n"
             else:
-                success_str += f"**{p.tag} {p.name}** is now {clanRanks[rank]} of {target_clan.name}.\n"
+                success_str += f"**{p.tag} {p.name}** is now {new_rank} of {target_clan.name}.\n"
 
         for error in error_log:
             error_str += f"{error['tag']}: {error['reason']}\n"
@@ -551,8 +555,7 @@ class AriXClashLeaders(commands.Cog):
         if ctx.author.id == user.id:
             return await ctx.send("Self-glorification is not allowed. Go grovel and beg for mercy.")
 
-        await rank_handler(
-            self=self,
+        await self.rank_handler(
             ctx=ctx,
             action='promote',
             user=user,
@@ -565,8 +568,7 @@ class AriXClashLeaders(commands.Cog):
         if ctx.author.id == user.id:
             return await ctx.send("Self-mutilation is strongly discouraged. You might want to seek help.")
 
-        await rank_handler(
-            self=self,
+        await self.rank_handler(
             ctx=ctx,
             action='demote',
             user=user,

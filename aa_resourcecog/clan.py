@@ -16,11 +16,6 @@ class aClan():
     def __init__(self,ctx,tag=None):
         self.timestamp = time.time()
         self.ctx = ctx
-        
-        self.tag = coc.utils.correct_tag(tag)
-
-        if not coc.utils.is_valid_tag(tag):
-            raise InvalidTag(tag)
 
         self.c = None
         self.name = None
@@ -52,11 +47,18 @@ class aClan():
         self.current_war = None
         self.current_raid_weekend = None
 
+        if tag:
+            self.tag = coc.utils.correct_tag(tag)
+            if not coc.utils.is_valid_tag(tag):
+                raise InvalidTag(tag)
+        else:
+            self.tag = None
+
     @classmethod
     async def create(cls,ctx,tag=None):
-        if not tag:
-            return None
         self = aClan(ctx,tag)
+        if not tag:
+            return self
         try:
             self.c = await ctx.bot.coc_client.get_clan(self.tag)
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
@@ -191,10 +193,12 @@ class aClan():
     async def add_staff(self,user_id,rank):
         if rank == 'Elder':
             self.elders.append(user_id)
-            self.co_leaders.remove(user_id)
+            if user_id in self.co_leaders:
+                self.co_leaders.remove(user_id)
         if rank == 'Co-Leader':
             self.co_leaders.append(user_id)
-            self.elders.remove(user_id)
+            if user_id in self.elders:
+                self.elders.remove(user_id)
         if rank == 'Leader':
             self.co_leaders.append(self.leader)
             self.leader = user_id

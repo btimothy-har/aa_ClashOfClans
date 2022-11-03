@@ -43,7 +43,7 @@ class aPlayer():
         self.notes = []
 
         #Membership Statistics
-        self.last_update = 0
+        self.last_update = time.time()
         self.time_in_home_clan = 0
         self.other_clans = []
 
@@ -98,7 +98,7 @@ class aPlayer():
 
         self.warLog = None
         self.warStats = None
-
+ 
         self.raidLog = None
         self.raidStats = None
 
@@ -123,7 +123,7 @@ class aPlayer():
         self.notes = [aNote(self.ctx,note) for note in memberInfo.get('notes',[])]
 
         #Membership Statistics
-        self.last_update = memberStats.get('last_update',0)
+        self.last_update = memberStats.get('last_update',time.time())
         self.time_in_home_clan = memberStats.get('time_in_home_clan',0)
         self.other_clans = memberStats.get('other_clans',[])
 
@@ -251,7 +251,7 @@ class aPlayer():
         for spell_name in list(chain.from_iterable(spell_d)):
             spell = self.p.get_spell(name=spell_name)
             if not spell:
-                troop = self.ctx.bot.coc_client.get_spell(name=spell_Name,townhall=self.town_hall.level)
+                spell = self.ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
             spell = aSpell.from_data(spell,self.town_hall.level)
             self.spells.append(spell)
 
@@ -269,11 +269,6 @@ class aPlayer():
     async def update_stats(self):
         #cannot update if data not retrieved
         if self.p:
-            if self.clan.tag == self.home_clan.tag:
-                self.time_in_home_clan += (self.timestamp - self.last_update)
-            elif self.clan.tag not in self.other_clans:
-                self.other_clans.append(self.clan.tag)
-
             self.attack_wins.update_stat(self.p.attack_wins)
             self.defense_wins.update_stat(self.p.defense_wins)
 
@@ -293,32 +288,38 @@ class aPlayer():
                     self.clangames.update_stat(achievement.value)
 
     async def set_baselines(self):
-        self.attack_wins.set_baseline(self.p.attack_wins)
-        self.defense_wins.set_baseline(self.p.defense_wins)
+        if self.p:
+            if self.clan.tag == self.home_clan.tag:
+                self.time_in_home_clan += (self.timestamp - self.last_update)
+            elif self.clan.tag not in self.other_clans:
+                self.other_clans.append(self.clan.tag)
 
-        self.donations_sent.set_baseline(self.p.donations)
-        self.donations_rcvd.set_baseline(self.p.received)
+            self.attack_wins.set_baseline(self.p.attack_wins)
+            self.defense_wins.set_baseline(self.p.defense_wins)
 
-        for achievement in self.p.achievements:
-            if achievement.name == 'Gold Grab':
-                self.loot_gold.set_baseline(achievement.value)
-            if achievement.name == 'Elixir Escapade':
-                self.loot_elixir.set_baseline(achievement.value)
-            if achievement.name == 'Heroic Heist':
-                self.loot_darkelixir.set_baseline(achievement.value)
-            if achievement.name == 'Most Valuable Clanmate':
-                self.capitalcontribution.set_baseline(achievement.value)
-            if achievement.name == 'Games Champion':
-                self.clangames.set_baseline(achievement.value)
+            self.donations_sent.set_baseline(self.p.donations)
+            self.donations_rcvd.set_baseline(self.p.received)
+
+            for achievement in self.p.achievements:
+                if achievement.name == 'Gold Grab':
+                    self.loot_gold.set_baseline(achievement.value)
+                if achievement.name == 'Elixir Escapade':
+                    self.loot_elixir.set_baseline(achievement.value)
+                if achievement.name == 'Heroic Heist':
+                    self.loot_darkelixir.set_baseline(achievement.value)
+                if achievement.name == 'Most Valuable Clanmate':
+                    self.capitalcontribution.set_baseline(achievement.value)
+                if achievement.name == 'Games Champion':
+                    self.clangames.set_baseline(achievement.value)
 
     async def save_to_json(self):
         allianceJson = {
             'name':self.name,
+            'is_member':self.is_member,
             'home_clan': {
                 'tag': self.home_clan.tag,
                 'name': self.home_clan.name
                 },
-            'is_member':self.is_member,
             'rank':self.arix_rank,
             'discord_user':self.discord_user,
             'notes':[n.to_json() for n in self.notes],
@@ -344,6 +345,7 @@ class aPlayer():
                 'name': self.clan.name
                 },
             'other_clans': self.other_clans,
+            'exp_level': self.exp_level,
             'town_hall': self.town_hall.level,
             'town_hall_weapon': self.town_hall.weapon,
             'clan_castle': self.clan_castle,
@@ -405,7 +407,7 @@ class aPlayer():
         if new_rank not in valid_ranks:
             raise MemberPromoteError
         else:
-            self.memberStatus = new_rank
+            self.arix_rank = new_rank
 
     async def add_note(self,ctx,message):
         new_note = await aNote.create_new(ctx,message)
@@ -475,11 +477,7 @@ class aHero():
         self = aHero()
         self.id = inputJson.get('id',0)
         self.name = inputJson.get('name','')
-        if type(self.hero.level) == int:
-            self.level = getattr(self.hero,'level',0)
-        else:
-            self.level = 0
-        self.village = getattr(self.troop,'village','')
+        self.level = inputJson.get('level','')
         self.village = inputJson.get('village','')
         self.maxlevel_for_townhall = inputJson.get('maxlevel_for_townhall',0)
         self.minlevel_for_townhall = inputJson.get('minlevel_for_townhall',0)
@@ -497,14 +495,20 @@ class aHero():
 
         self.id = getattr(self.hero,'id',0)
         self.name = getattr(self.hero,'name','')
-        self.level = getattr(self.hero,'level',0)
+        if type(self.hero.level) == int:
+            self.level = getattr(self.hero,'level',0)
+        else:
+            self.level = 0
         self.village = getattr(self.hero,'village','')
 
         maxlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level)
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
-        minlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level-1)
-        self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
+        try:
+            minlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level-1)
+            self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
+        except:
+            self.minlevel_for_townhall = 0
 
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
@@ -680,7 +684,7 @@ class aSpell():
 
         self.id = getattr(self.spell,'id',0)
         self.name = getattr(self.spell,'name','')
-        if type(self.spell.level) == None:
+        if not self.spell.level:
             self.level = 0
         else:
             self.level = getattr(self.spell,'level',0)
