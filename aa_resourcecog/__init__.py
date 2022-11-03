@@ -17,7 +17,7 @@ load_dotenv()
 
 async def setup(bot:Red):
     bot.coc_client = coc.Client(
-        key_count=5,
+        key_count=10,
         key_names='Created for AriXBot, from coc.py',
         load_game_data=coc.LoadGameData(always=True))
     await bot.coc_client.login(os.getenv("CLASH_DEV_USER"),os.getenv("CLASH_DEV_PASS"))
