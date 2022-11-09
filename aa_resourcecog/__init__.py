@@ -4,6 +4,7 @@ import discord
 import coc
 import fasteners
 import json
+import asyncio
 
 from dotenv import load_dotenv
 from redbot.core.bot import Red
@@ -27,6 +28,8 @@ async def setup(bot:Red):
         os.getenv("DISCORDLINKS_PASS"))
 
     bot.clash_dir_path = os.getenv("DATAPATH")
+
+    bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")
 
     if not os.path.exists(bot.clash_dir_path+'/seasons.json'):

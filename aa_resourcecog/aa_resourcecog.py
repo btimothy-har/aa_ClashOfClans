@@ -19,7 +19,7 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 
-from .constants import confirmation_emotes, emotes_army
+from .constants import confirmation_emotes, selection_emotes, emotes_army
 from .file_functions import get_current_season, get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
@@ -40,6 +40,14 @@ class AriXClashResources(commands.Cog):
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
+
+    async def convert_seconds_to_str(ctx,seconds):
+        dtime = seconds                      
+        dtime_days,dtime = divmod(dtime,86400)
+        dtime_hours,dtime = divmod(dtime,3600)
+        dtime_minutes,dtime = divmod(dtime,60)
+
+        return dtime_days, dtime_hours, dtime_minutes, dtime
 
     async def clash_embed(ctx, title=None, message=None, url=None, show_author=True, color=None, thumbnail=None, image=None):
         if not title:
@@ -123,49 +131,76 @@ class AriXClashResources(commands.Cog):
                     await cMsg.remove_reaction('<:red_cross:838461484312428575>',ctx.bot.user)
                     return False
 
-    async def multiple_choice_select(self, ctx:commands.Context, sEmbed, selection_list:list):
+    async def multiple_choice_select(self, ctx:commands.Context, sEmbed, selection_list:list, selection_text=None):
         #prepare embed from parent function - allows for greater customisability
         #selection_list should be in format [{'title':str, 'description':str},{'title':str, 'description':str}].
+
+        selection_emojis = []
+
+        if not selection_text:
+            selection_text = "\u200b"
 
         #Build List
         sel_text = ''
         sel_number = 0
-        reaction_list = []
         for item in selection_list:
-            if item['description']:
-                sel_str = f"{selection_emotes[sel_number]} **{item['title']}**\n{item['description']}"
+            #handle emojis
+
+            custom_emoji = item.get('emoji',None)
+
+            if custom_emoji:
+                emoji = item['emoji']
             else:
-                sel_str = f"{selection_emotes[sel_number]} {item['title']}"
-            reaction_list.append(selection_emotes[sel_number])
-            sel_text += sel_str + "\n\u200b"
+                hex_str = hex(224 + (6 + sel_number))[2:]
+                emoji = b"\\U0001f1a".replace(b"a", bytes(hex_str, "utf-8"))
+                emoji = emoji.decode("unicode-escape")
+            
+            selection_emojis.append(emoji)
+
+            if sel_number > 0:
+                sel_text += "\n\n\u200b"
+            if item['description']:
+                sel_str = f"{emoji} **{item['title']}**\n{item['description']}"
+            else:
+                sel_str = f"{emoji} {item['title']}"
+                
+            sel_text += sel_str
             sel_number += 1
 
+        sel_text += "\n\u200b"
+
         def chk_select(r,u):
-            if str(r.emoji) in reaction_list and r.message.id == menu_message.id and u.id == ctx.author.id:
+            if str(r.emoji) in selection_emojis and r.message.id == menu_message.id and u.id == ctx.author.id:
                 return True
             else:
                 return False
 
         sEmbed.add_field(
-            name="Select an option from the menu below:",
+            #name="Select an option from the menu below:",
+            name=selection_text,
             value=sel_text,
             inline=False)
 
         menu_message = await ctx.send(embed=sEmbed)
-        for emoji in reaction_list:
+        for emoji in selection_emojis:
             await menu_message.add_reaction(emoji)
+        await menu_message.add_reaction('<:red_cross:838461484312428575>')
         try:
             reaction, user = await ctx.bot.wait_for("reaction_add",timeout=60,check=chk_select)
         except asyncio.TimeoutError:
-            await ctx.send("Confirmation sequence timed out. Please try again.")
-            for emoji in reaction_list:
+            await ctx.send("Menu timed out.")
+            for emoji in selection_emojis:
                 await menu_message.remove_reaction(emoji,ctx.bot.user)
-            return None
+            return menu_message, None
         else:
-            sel_index = reaction_list.index(str(reaction.emoji))
-            for emoji in reaction_list:
-                await menu_message.remove_reaction(emoji,ctx.bot.user)
-            return selection_list[sel_index]
+            if str(reaction.emoji) == '<:red_cross:838461484312428575>':
+                await ctx.send("Menu cancelled.")
+                for emoji in selection_emojis:
+                    await menu_message.remove_reaction(emoji,ctx.bot.user)
+                return menu_message, None
+            else:
+                sel_index = selection_emojis.index(str(reaction.emoji))
+                return menu_message, selection_list[sel_index]
 
     async def player_embed(self,ctx,player):
         if player.is_member:
@@ -227,6 +262,35 @@ class AriXClashResources(commands.Cog):
         fieldStr = f"<:Exp:825654249475932170>{player.exp_level}\u3000{player.town_hall.emote} {player.town_hall.description}\u3000{hero_description}"
 
         return title,fieldStr
+
+    async def get_welcome_embed(self,ctx,user):
+        intro_embed = await self.clash_embed(ctx,
+            title="Congratulations! You're an AriX Member!",
+            message=f"Before going further, there are a few additional things you need to understand and do:"
+                + f"\n\nThe **AriX Alliance** is made up of 4 active clans:\n- ArmyOf9YearOlds (AO9)\n- Phoenix Reborn (PR)\n- Project AriX (PA)\n- Assassins (AS)"
+                + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)"
+                + f"\n\nIn turn, AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**.\n\u200b")
+
+        intro_embed.add_field(
+            name="**About CWLA**",
+            value=f"Through CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
+                + f"Clans are available from <:GoldLeagueII:1037033274146570360> Gold II all the way to <:ChampionLeagueI:1037033289564815430> Champions I. "
+                + f"\n\nNote: Allocations are made based on your town hall level and experience (e.g TH13 will probably let you be in Crystal 1 or Masters 3, TH12 will probably be Crystal etc.)."
+                + f"\n\u200b",
+            inline=False)
+
+        intro_embed.add_field(
+            name="**You are required to join the CWLA Server ASAP.**",
+            value=f"The server link is below. Follow the steps below to get yourself set up in CWLA:"
+                + f"\n\n1) Click on the :thumbsup: emoji in the Welcome channel (<#705036745619800154>)."
+                + f"\n2) In the ticket that opens, post your Player Tag(s) and the Clan you are joining."
+                + f"\n3) An Admin will approve you and set you up on the CWLA bot."
+                + f"\n\nTo participate in CWL each month, you will have to sign up in the CWLA Server using the CWLA Bot. We'll remind you when that time comes!",
+            inline=False)
+
+        intro_embed.set_author(name=f"{user.name}#{user.discriminator}",icon_url=f"{user.avatar_url}")
+
+        return intro_embed
 
     # if self.isMember:
     #     dtime = self.timestamp - self.arixLastUpdate                            

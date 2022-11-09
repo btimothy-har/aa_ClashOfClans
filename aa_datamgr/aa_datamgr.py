@@ -25,6 +25,7 @@ from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroP
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.errors import TerminateProcessing, InvalidTag
 
 class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
@@ -64,6 +65,18 @@ class AriXClashDataMgr(commands.Cog):
 
             average_run_time = round(sum(run_time)/len(run_time),2)
 
+            logdays, loghours, logminutes, logsecs = await resc.convert_seconds_to_str(ctx,time.time() - last_update)
+
+            update_str = ""
+            if logdays > 0:
+                update_str += f"{round(logdays,0)} day(s) "
+            if loghours > 0:
+                update_str += f"{round(loghours,0)} hour(s) "
+            if logminutes > 0:
+                update_str += f"{round(logminutes,0)} min(s) "
+            if logsecs > 0:
+                update_str += f"{round(logsecs,0)} sec(s) "
+
             embed = await resc.clash_embed(ctx=ctx,title="System Status Report")
             embed.add_field(
                 name="__Summary__",
@@ -82,7 +95,7 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Refresh Status__",
-                value=f"> **Last Updated**: {round(time.time() - last_update,2)} seconds ago"
+                value=f"> **Last Updated**: {update_str} ago"
                     + f"\n> **Average Run Time**: {average_run_time} seconds",
                     inline=False)
             await ctx.send(embed=embed)
@@ -101,7 +114,7 @@ class AriXClashDataMgr(commands.Cog):
         if not await resc.user_confirmation(self,ctx,cMsg,confirm_method='token_only'):
             return
         
-        with ctx.bot.clash_file_lock.write_lock():
+        with ctx.bot.clash_file_lock.acquire():
             with open(ctx.bot.clash_dir_path+'/seasons.json','w') as file:
                 season_default = json_file_defaults['seasons']
                 season_default['current'] = await get_current_season()
@@ -143,15 +156,16 @@ class AriXClashDataMgr(commands.Cog):
         if not await resc.user_confirmation(self,ctx,cMsg,confirm_method='token_only'):
             return
         
-        with ctx.bot.clash_file_lock.write_lock():
-            with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
-                json.dump({},file,indent=2)
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
+                    json.dump({},file,indent=2)
 
-            with open(ctx.bot.clash_dir_path+'/warlog.json','w') as file:
-                json.dump({},file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/warlog.json','w') as file:
+                    json.dump({},file,indent=2)
 
-            with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
-                json.dump({},file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
+                    json.dump({},file,indent=2)
             
         embed = await resc.clash_embed(ctx=ctx,
             title="All Data Files Reset.",
@@ -224,6 +238,7 @@ class AriXClashDataMgr(commands.Cog):
         if not log_channel:
             log_channel = ctx.channel
 
+        war_reminders = {}
         success_log = []
         err_log = []
 
@@ -241,89 +256,162 @@ class AriXClashDataMgr(commands.Cog):
             is_cwl = True
 
         #file lock for new season
-        with ctx.bot.clash_file_lock.write_lock():
-            is_new_season, current_season, new_season = await season_file_handler(ctx,season)
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                is_new_season, current_season, new_season = await season_file_handler(ctx,season)
 
-            if is_new_season:
-                sEmbed.add_field(
-                    name=f"**New Season Initialized: {new_season}**",
-                    value=f"__Files Saved__"
-                        + f"\n**{new_season}/members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/members.json')}"
-                        + f"\n**{new_season}/warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/warlog.json')}"
-                        + f"\n**{new_season}/capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/capitalraid.json')}"
-                        + f"\n\u200b\n"
-                        + f"__Files Created__"
-                        + f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
-                        + f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
-                        + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
-                    inline=False)
+        if is_new_season:
+            sEmbed.add_field(
+                name=f"**New Season Initialized: {new_season}**",
+                value=f"__Files Saved__"
+                    + f"\n**{new_season}/members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/members.json')}"
+                    + f"\n**{new_season}/warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/warlog.json')}"
+                    + f"\n**{new_season}/capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/capitalraid.json')}"
+                    + f"\n\u200b\n"
+                    + f"__Files Created__"
+                    + f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                    + f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
+                    + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+                inline=False)
 
         str_war_update = ''
         dict_war_update = {}
         str_raid_update = ''
         dict_raid_update = {}
+
         for ctag in clans:
             #lock separately for each clan
-            with ctx.bot.clash_file_lock.write_lock():
-                war_member_count = 0
-                raid_member_count = 0
+            async with ctx.bot.async_file_lock:
+                with ctx.bot.clash_file_lock.write_lock():
+                    war_member_count = 0
+                    raid_member_count = 0
 
-                try:
-                    c = await aClan.create(ctx,ctag)
-                except TerminateProcessing as e:
-                    eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
-                    eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
-                    return await log_channel.send(eEmbed)
-                except Exception as e:
-                    c = None
-                    err_dict = {'tag':f'c{ctag}','reason':e}
-                    err_log.append(err_dict)
-                    continue
+                    try:
+                        c = await aClan.create(ctx,ctag)
+                    except TerminateProcessing as e:
+                        eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                        eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+                        return await log_channel.send(eEmbed)
+                    except Exception as e:
+                        c = None
+                        err_dict = {'tag':f'c{ctag}','reason':e}
+                        err_log.append(err_dict)
+                        continue
 
-                await c.update_clan_war()
-                await c.update_raid_weekend()
+                    await c.update_member_count()
+                    await c.update_clan_war()
+                    await c.update_raid_weekend()
+                    await c.save_to_json()
 
-                await c.save_to_json()
+            if c.war_state_change:
+                detected_war_change = True
 
-                if c.war_state_change:
-                    detected_war_change = True
+            if c.war_state_change or c.war_state == "inWar":
+                str_war_update += f"__{c.tag} {c.name}__"
+                if c.war_state_change and c.war_state == 'inWar':
+                    str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
+                if c.war_state == 'warEnded':
+                    str_war_update += f"\n**War vs {c.current_war.opponent.name} was {c.current_war.result}.**"
 
-                if c.war_state_change or c.war_state == "inWar":
-                    str_war_update += f"__{c.tag} {c.name}__"
-                    if c.war_state_change and c.war_state == 'inWar':
-                        str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
-                    if c.war_state == 'warEnded':
-                        str_war_update += f"\n**War vs {c.current_war.opponent.name} was {c.current_war.result}.**"
+                str_war_update += f"\n- State: {c.war_state}\n- Type: {c.current_war.type} war"
 
-                    str_war_update += f"\n- State: {c.war_state}\n- Type: {c.current_war.type} war"
-
-                    if c.war_state != "notInWar" and c.current_war.type == 'classic':
-                        for m in c.current_war.clan.members:
-                            if m.tag in members:
-                                war_member_count += 1
-                                dict_war_update[m.tag] = m
-
-                        str_war_update += f"\n- Tracking stats for {war_member_count} members in War.\n"
-
-                if c.raid_state_change:
-                    detected_raid_change = True
-
-                if c.raid_state_change or c.current_raid_weekend.state == "ongoing":
-                    str_raid_update += f"__{c.tag} {c.name}__"
-
-                    if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
-                        str_raid_update += f"\n**Raid Weekend has begun!**"
-                    if c.current_raid_weekend.state == 'ended':
-                        str_raid_update += f"\n**Raid Weekend is now over.**"
-
-                    str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
-
-                    for m in c.current_raid_weekend.members:
+                if c.war_state != "notInWar" and c.current_war.type == 'classic':
+                    for m in c.current_war.clan.members:
                         if m.tag in members:
-                            raid_member_count += 1
-                            dict_raid_update[m.tag] = m
+                            war_member_count += 1
+                            dict_war_update[m.tag] = m
 
-                    str_raid_update += f"\n- Tracking stats for {raid_member_count} members in Capital Raids.\n"
+                    str_war_update += f"\n- Tracking stats for {war_member_count} members in War.\n"
+
+            if c.raid_state_change:
+                detected_raid_change = True
+
+            if c.raid_state_change or c.current_raid_weekend.state == "ongoing":
+                str_raid_update += f"__{c.tag} {c.name}__"
+
+                if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
+                    str_raid_update += f"\n**Raid Weekend has begun!**"
+                    if c.announcement_channel:
+                        channel = ctx.guild.get_channel(c.announcement_channel)
+                        announcement_str = "Raid Weekend has begun!"
+                        
+                        if c.member_role:
+                            role = ctx.guild.get_role(c.member_role)
+                            announcement_str += f"\n\n{role.mention}"
+
+                        rm = discord.AllowedMentions(roles=True)
+                        await channel.send(content="announcement_str",allowed_mentions=rm)
+
+                if c.current_raid_weekend.state == 'ended':
+                    str_raid_update += f"\n**Raid Weekend is now over.**"
+
+                    if c.announcement_channel:
+                        raid_end_embed = await resc.clash_embed(ctx=ctx,
+                            title=f"Raid Weekend Results: {c.name} ({c.tag})",
+                            message=f"\n**Maximum Reward: {(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,}** <:RaidMedals:983374303552753664>"
+                                + f"\n\nOffensive Rewards: {c.current_raid_weekend.offensive_reward * 6} <:RaidMedals:983374303552753664>"
+                                + f"\nDefensive Rewards: {c.current_raid_weekend.defensive_reward} <:RaidMedals:983374303552753664>"
+                                ,
+                            thumbnail=c.c.badge.url,
+                            show_author=False)
+
+                        raid_end_embed.add_field(
+                            name="Start Date",
+                            value=f"{datetime.fromtimestamp(c.current_raid_weekend.start_time).strftime('%d %b %Y')}",
+                            inline=True)
+
+                        raid_end_embed.add_field(
+                            name="End Date",
+                            value=f"{datetime.fromtimestamp(c.current_raid_weekend.end_time).strftime('%d %b %Y')}",
+                            inline=True)
+
+                        raid_end_embed.add_field(
+                            name="Number of Participants",
+                            value=f"{len(c.current_raid_weekend.members)}",
+                            inline=False)
+
+                        raid_end_embed.add_field(
+                            name="Total Loot Gained",
+                            value=f"{c.current_raid_weekend.total_loot:,} <:CapitalGoldContributed:971012592057339954>",
+                            inline=True)
+
+                        raid_end_embed.add_field(
+                            name="Number of Attacks",
+                            value=f"{c.current_raid_weekend.raid_attack_count}",
+                            inline=True)
+
+                        raid_end_embed.add_field(
+                            name="Districts Destroyed",
+                            value=f"{c.current_raid_weekend.districts_destroyed}",
+                            inline=True)
+
+                        raid_end_embed.add_field(
+                            name="Offensive Raids Completed",
+                            value=f"{c.current_raid_weekend.offense_raids_completed}",
+                            inline=True)
+
+                        raid_end_embed.add_field(
+                            name="Defensive Raids Completed",
+                            value=f"{c.current_raid_weekend.defense_raids_completed}",
+                            inline=True)
+
+                        channel = ctx.guild.get_channel(c.announcement_channel)
+                        rm = discord.AllowedMentions(roles=True)
+
+                        if c.member_role:
+                            role = ctx.guild.get_role(c.member_role)
+                            await channel.send(content=f"{role.mention}",embed=raid_end_embed,allowed_mentions=rm)
+                        else:
+                            await channel.send(embed=raid_end_embed)
+
+                str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
+
+                for m in c.current_raid_weekend.members:
+                    if m.tag in members:
+                        raid_member_count += 1
+                        dict_raid_update[m.tag] = m
+
+                str_raid_update += f"\n- Tracking stats for {raid_member_count} members in Capital Raids.\n"
 
         if str_war_update == '':
             str_war_update = "No war updates."
@@ -343,41 +431,42 @@ class AriXClashDataMgr(commands.Cog):
 
         for mtag in members:
             #lock separately for each member
-            with ctx.bot.clash_file_lock.write_lock():
-                try:
-                    p = await aPlayer.create(ctx,mtag)
-                    await p.retrieve_data()
-                except TerminateProcessing as e:
-                    eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
-                    eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
-                    return await log_channel.send(eEmbed)
-                except Exception as e:
-                    p = None
-                    err_dict = {'tag':f'm{mtag}','reason':e}
-                    err_log.append(err_dict)
-                    continue
+            async with ctx.bot.async_file_lock:
+                with ctx.bot.clash_file_lock.write_lock():
+                    try:
+                        p = await aPlayer.create(ctx,mtag)
+                        await p.retrieve_data()
+                    except TerminateProcessing as e:
+                        eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                        eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+                        return await log_channel.send(eEmbed)
+                    except Exception as e:
+                        p = None
+                        err_dict = {'tag':f'm{mtag}','reason':e}
+                        err_log.append(err_dict)
+                        continue
 
-                if is_new_season:
-                    await p.set_baselines()
+                    if is_new_season:
+                        await p.set_baselines()
 
-                if is_cwl:
-                    await p.set_baselines()
-                    success_log.append(p)
-                else:
-                    if p.is_member and p.clan.tag in clans:
-                        await p.update_stats()
-                        success_log.append(p)
-                    else:
+                    if is_cwl:
                         await p.set_baselines()
                         success_log.append(p)
+                    else:
+                        if p.is_member and p.clan.tag in clans:
+                            await p.update_stats()
+                            success_log.append(p)
+                        else:
+                            await p.set_baselines()
+                            success_log.append(p)
 
-                if p.tag in list(dict_war_update.keys()):
-                    await p.update_war(dict_war_update[p.tag])
+                    if p.tag in list(dict_war_update.keys()):
+                        await p.update_war(dict_war_update[p.tag])
 
-                if p.tag in list(dict_raid_update.keys()):
-                    await p.update_raidweekend(dict_raid_update[p.tag])
+                    if p.tag in list(dict_raid_update.keys()):
+                        await p.update_raidweekend(dict_raid_update[p.tag])
 
-                await p.save_to_json()
+                    await p.save_to_json()
         
         et = time.time()
 

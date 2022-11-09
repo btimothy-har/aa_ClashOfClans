@@ -33,6 +33,7 @@ class aPlayer():
         self.p = None
         self.name = None
 
+        self.share_link = ""
         self.discord_link = None
 
         #Membership Attributes
@@ -52,6 +53,7 @@ class aPlayer():
 
         self.clan = None
         self.role = ''
+        self.clan_description = ''
 
         #Home Village Stats
         self.town_hall = aTownHall(level=1,weapon=0)
@@ -72,8 +74,10 @@ class aPlayer():
         self.troops = []
         self.spells = []
         self.pets = []
+
         self.hero_strength = 0
         self.max_hero_strength = 0
+        self.hero_description = ''
 
         self.troop_strength = 0
         self.max_troop_strength = 0
@@ -111,6 +115,8 @@ class aPlayer():
 
         self.name = memberStats.get('name',None)
 
+        self.share_link = f"https://link.clashofclans.com/en?action=OpenClanProfile&tag=%23{format(self.tag.strip('#'))}"
+
         #Membership Attributes
         try:
             hcTag = memberInfo['home_clan']['tag']
@@ -141,6 +147,11 @@ class aPlayer():
         self.clan = await aClan.create(ctx,cTag)
         self.role = memberStats.get('role','')
 
+        if self.clan.tag:
+            self.clan_description = f"{self.role} of {self.clan.name}"
+        else:
+            self.clan_description = "No Clan"
+
         #Home Village Stats
         self.league = await ctx.bot.coc_client.get_league_named(memberStats.get('league','Unranked')) 
         self.trophies = memberStats.get('trophies',0)
@@ -160,6 +171,16 @@ class aPlayer():
 
         self.hero_strength = sum([hero.level for hero in self.heroes])
         self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
+
+        self.hero_description = ""
+        if self.town_hall.level >= 7:
+            self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
+        if self.town_hall.level >= 9:
+            self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
+        if self.town_hall.level >= 11:
+            self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
+        if self.town_hall.level >= 13:
+            self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
 
         self.troop_strength = sum([troop.level for troop in self.troops])
         self.max_troop_strength = sum([troop.maxlevel_for_townhall for troop in self.troops])
@@ -194,7 +215,8 @@ class aPlayer():
         self = aPlayer(ctx,tag)
         try:
             self.p = await ctx.bot.coc_client.get_player(self.tag)
-            self.discord_link = await ctx.bot.discordlinks.get_links(self.tag)
+            get_links = await ctx.bot.discordlinks.get_links(self.tag)
+            self.discord_link = get_links[0][1]
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
             raise TerminateProcessing(exc) from exc
             return None
@@ -204,7 +226,8 @@ class aPlayer():
         self.timestamp = time.time()
         try:
             self.p = await self.ctx.bot.coc_client.get_player(self.tag)
-            self.discord_link = await self.ctx.bot.discordlinks.get_links(self.tag)
+            get_links = await self.ctx.bot.discordlinks.get_links(self.tag)
+            self.discord_link = get_links[0][1]
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
             raise TerminateProcessing(exc) from exc
             return None
@@ -215,6 +238,11 @@ class aPlayer():
         clan = getattr(self.p,'clan',None)
         self.clan = await aClan.create(self.ctx,getattr(clan,'tag',None))
         self.role = str(getattr(self.p,'role',''))
+
+        if self.clan.tag:
+            self.clan_description = f"{self.role} of {self.clan.name}"
+        else:
+            self.clan_description = "No Clan"
 
         self.town_hall = aTownHall(level=getattr(self.p,'town_hall',1),weapon=getattr(self.p,'town_hall_weapon',0))
         self.clan_castle = sum([a.value for a in self.p.achievements if a.name=='Empire Builder'])
@@ -259,6 +287,15 @@ class aPlayer():
 
         self.hero_strength = sum([hero.level for hero in self.heroes])
         self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
+        self.hero_description = ""
+        if self.town_hall.level >= 7:
+            self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
+        if self.town_hall.level >= 9:
+            self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
+        if self.town_hall.level >= 11:
+            self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
+        if self.town_hall.level >= 13:
+            self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
 
         self.troop_strength = sum([troop.level for troop in self.troops])
         self.max_troop_strength = sum([troop.maxlevel_for_townhall for troop in self.troops])
@@ -385,29 +422,50 @@ class aPlayer():
             tag=self.tag,
             new_data=memberJson)
 
-    async def new_member(self,discord_user,home_clan):
+    async def new_member(self,ctx,discord_user,home_clan):
+        
+        leader_role = ctx.guild.get_role(int(home_clan.leader_role))
+        coleader_role = ctx.guild.get_role(int(home_clan.coleader_role))
+        elder_role = ctx.guild.get_role(int(home_clan.elder_role))
+        member_role = ctx.guild.get_role(int(home_clan.member_role))
+
         self.home_clan = home_clan
         self.is_member = True
-        if discord_user == home_clan.leader:
+
+        if member_role:
+            await ctx.bot.add_roles(user,member_role)
+
+        if discord_user.id == home_clan.leader:
             self.arix_rank = 'Leader'
-        elif discord_user in home_clan.co_leaders:
+            if leader_role:
+                await ctx.bot.add_roles(user,leader_role)
+            if coleader_role:
+                await ctx.bot.add_roles(user,coleader_role)
+            if elder_role:
+                await ctx.bot.add_roles(user,elder_role)
+
+        elif discord_user.id in home_clan.co_leaders:
             self.arix_rank = 'Co-Leader'
-        elif discord_user in home_clan.elders:
+            if coleader_role:
+                await ctx.bot.add_roles(user,coleader_role)
+            if elder_role:
+                await ctx.bot.add_roles(user,elder_role)
+
+        elif discord_user.id in home_clan.elders:
             self.arix_rank = 'Elder'
+            if elder_role:
+                await ctx.bot.add_roles(user,elder_role)
+
         else:
             self.arix_rank = 'Member'
-        self.discord_user = discord_user
+        self.discord_user = discord_user.id
 
     async def remove_member(self):
         self.arix_rank = 'Non-Member'
         self.is_member = False
 
     async def update_rank(self,new_rank):
-        valid_ranks = ["Member","Elder","Co-Leader","Leader"]
-        if new_rank not in valid_ranks:
-            raise MemberPromoteError
-        else:
-            self.arix_rank = new_rank
+        self.arix_rank = new_rank
 
     async def add_note(self,ctx,message):
         new_note = await aNote.create_new(ctx,message)

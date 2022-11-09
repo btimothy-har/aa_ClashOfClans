@@ -1,12 +1,14 @@
 import coc
 import discord
 import time
+import json
 
 #from .constants import 
 from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
 from .notes import aNote
 from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from .errors import TerminateProcessing, InvalidTag
 
 class ClashClanError(Exception):
     def __init__(self,message):
@@ -24,23 +26,37 @@ class aClan():
         self.is_alliance_clan = False
         self.abbreviation = ''
         self.description = None
+        self.level = 0
+        self.capital_hall = 0
+        self.emoji = ''
         self.leader = 0
         self.co_leaders = []
         self.elders = []
+        self.member_count = 0
         self.recruitment_level = []
         self.notes = []
 
+        self.member_role = 0
+        self.elder_role = 0
+        self.coleader_role = 0
+        self.leader_role = 0
+
         self.announcement_channel = 0
-        self.war_reminder_freq = 0
-        self.raid_reminder_freq = 0
+        self.reminder_channel = 0
+        self.send_war_reminder = False
+        self.send_raid_reminder = False
+        
+        self.war_reminder_tracking = []
+        self.raid_reminder_tracking = []
 
         #Clan Statuses
         self.war_state = ''
         self.war_state_change = False
+        
 
         self.raid_weekend_state = ''
         self.raid_state_change = False
-
+        
         self.war_log = None
         self.raid_log = None
 
@@ -80,12 +96,19 @@ class aClan():
 
         self.name = getattr(self.c,'name',None)
 
+        self.level = getattr(self.c,'level',0)
+        try:
+            self.capital_hall = [d.hall_level for d in self.c.capital_districts if d.name=="Capital Peak"][0]
+        except:
+            self.capital_hall = 0
+
         self.description = self.c.description
 
         #Alliance Attributes
         if clanInfo:
             self.is_alliance_clan = True
             self.abbreviation = clanInfo.get('abbr','')
+            self.emoji = clanInfo.get('emoji','')
             self.description = clanInfo.get('description',None)
             if not self.description:
                 self.description = self.c.description
@@ -93,12 +116,24 @@ class aClan():
             self.leader = clanInfo.get('leader',0)
             self.co_leaders = clanInfo.get('co_leaders',[])
             self.elders = clanInfo.get('elders',[])
-            self.recruitment_level = clanInfo.get('recruitment_level',[])
-            self.notes = clanInfo.get('notes',[])
+            self.member_count = clanInfo.get('member_count',0)
+            self.recruitment_level = clanInfo.get('recruitment',[])
+
+            notes = [aNote.from_json(self.ctx,n) for n in clanInfo.get('notes',[])]
+            self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
+
+            self.member_role = clanInfo.get('member_role',0)
+            self.elder_role = clanInfo.get('elder_role',0)
+            self.coleader_role = clanInfo.get('coleader_role',0)
+            self.leader_role = clanInfo.get('leader_role',0)
 
             self.announcement_channel = clanInfo.get('announcement_channel',0)
-            self.war_reminder_freq = clanInfo.get('war_reminder_freq',[])
-            self.raid_reminder_freq = clanInfo.get('raid_reminder_freq',[])
+            self.reminder_channel = clanInfo.get('reminder_channel',0)
+            self.send_war_reminder = clanInfo.get('send_war_reminder',False)
+            self.send_raid_reminder = clanInfo.get('send_raid_reminder',False)
+
+            self.war_reminder_tracking = clanInfo.get('war_reminder_tracking',[])
+            self.raid_reminder_tracking = clanInfo.get('raid_reminder_tracking',[])
 
             self.war_state = clanInfo.get('war_state','')
             self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
@@ -111,15 +146,26 @@ class aClan():
         allianceJson = {
             'name':self.name,
             'abbr':self.abbreviation,
+            'emoji':self.emoji,
             'description': self.description,
+            'level': self.level,
+            'capital_hall': self.capital_hall,
             'leader':self.leader,
             'co_leaders': self.co_leaders,
             'elders': self.elders,
+            'member_count': self.member_count,
             'recruitment': self.recruitment_level,
-            'notes': self.notes,
+            'notes': [n.to_json() for n in self.notes],
+            'member_role': self.member_role,
+            'elder_role': self.elder_role,
+            'coleader_role': self.coleader_role,
+            'leader_role': self.leader_role,
             'announcement_channel': self.announcement_channel,
-            'war_reminder_freq': self.war_reminder_freq,
-            'raid_reminder_freq': self.raid_reminder_freq,
+            'reminder_channel': self.reminder_channel,
+            'send_war_reminder': self.send_war_reminder,
+            'send_raid_reminder': self.send_raid_reminder,
+            'war_reminder_tracking': self.war_reminder_tracking,
+            'raid_reminder_tracking': self.raid_reminder_tracking,
             'war_state': self.war_state,
             'raid_weekend_state': self.raid_weekend_state,
             }
@@ -170,6 +216,13 @@ class aClan():
         if self.current_war.state in ['inWar','warEnded']:
             self.war_log[self.current_war.wID] = self.current_war
 
+    async def update_member_count(self):
+        with open(self.ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+            file_json = json.load(file)
+
+        ct = len([tag for (tag,member) in file_json['members'].items() if member['is_member']==True and member['home_clan']['tag']==self.tag])
+        self.member_count = ct
+
     async def update_raid_weekend(self):
         try:
             raid_log_gen = await self.ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
@@ -185,23 +238,78 @@ class aClan():
 
         self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
 
-    async def add_to_alliance(self,abbreviation,leader:discord.User):
+    async def add_to_alliance(self,leader:discord.User,abbreviation,emoji,leader_role,coleader_role,elder_role,member_role):
         self.is_alliance_clan = True
-        self.abbreviation = abbreviation
         self.leader = leader.id
+        self.abbreviation = abbreviation
+        self.emoji = emoji
+        self.leader_role = leader_role.id
+        self.coleader_role = coleader_role.id
+        self.elder_role = elder_role.id
+        self.member_role = member_role.id
 
-    async def add_staff(self,user_id,rank):
-        if rank == 'Elder':
-            self.elders.append(user_id)
-            if user_id in self.co_leaders:
-                self.co_leaders.remove(user_id)
-        if rank == 'Co-Leader':
-            self.co_leaders.append(user_id)
+    async def add_staff(self,ctx,user,rank):
+
+        leader_role = ctx.guild.get_role(int(self.leader_role))
+        coleader_role = ctx.guild.get_role(int(self.coleader_role))
+        elder_role = ctx.guild.get_role(int(self.elder_role))
+        member_role = ctx.guild.get_role(int(self.member_role))
+
+        if rank == 'Member':
             if user_id in self.elders:
-                self.elders.remove(user_id)
+                self.elders.remove(user.id)
+            if user_id in self.co_leaders:
+                self.co_leaders.remove(user.id)
+            try:
+                if leader_role:
+                    await ctx.bot.remove_roles(user,leader_role)
+                if coleader_role:
+                    await ctx.bot.remove_roles(user,coleader_role)
+                if elder_role:
+                    await ctx.bot.remove_roles(user,elder_role)
+            except:
+                pass
+
+        if rank == 'Elder':
+            self.elders.append(user.id)
+            if user_id in self.co_leaders:
+                self.co_leaders.remove(user.id)
+            try:
+                if leader_role:
+                    await ctx.bot.remove_roles(user,leader_role)
+                if coleader_role:
+                    await ctx.bot.remove_roles(user,coleader_role)
+                if elder_role:
+                    await ctx.bot.add_roles(user,elder_role)
+            except:
+                pass
+
+        if rank == 'Co-Leader':
+            self.co_leaders.append(user.id)
+            if user_id in self.elders:
+                self.elders.remove(user.id)
+            try:
+                if leader_role:
+                    await ctx.bot.remove_roles(user,leader_role)
+                if coleader_role:
+                    await ctx.bot.add_roles(user,coleader_role)
+                if elder_role:
+                    await ctx.bot.add_roles(user,elder_role)
+            except:
+                pass
+
         if rank == 'Leader':
             self.co_leaders.append(self.leader)
-            self.leader = user_id
+            self.leader = user.id
+            try:
+                if leader_role:
+                    await ctx.bot.add_roles(user,leader_role)
+                if coleader_role:
+                    await ctx.bot.add_roles(user,coleader_role)
+                if elder_role:
+                    await ctx.bot.add_roles(user,elder_role)
+            except:
+                pass
 
     async def set_abbreviation(self,new_abbr:str):
         self.abbreviation = new_abbr
@@ -209,7 +317,11 @@ class aClan():
     async def set_description(self,new_desc:str):
         self.description = new_desc
 
-    async def set_recruitment_level(self,*th_levels:int):
+    async def set_emoji(self,emoji):
+        self.emoji = emoji
+
+    async def set_recruitment_level(self,ctx,th_levels:list):
+        self.recruitment_level = []
         for th in th_levels:
             if th not in self.recruitment_level:
                 self.recruitment_level.append(th)
@@ -217,8 +329,23 @@ class aClan():
     async def set_announcement_channel(self,channel_id):
         self.announcement_channel = channel_id
 
+    async def set_reminder_channel(self,channel_id):
+        self.reminder_channel = channel_id
+
+    async def toggle_war_reminders(self):
+        if self.send_war_reminder:
+            self.send_war_reminder = False
+        else:
+            self.send_war_reminder = True
+
+    async def toggle_raid_reminders(self):
+        if self.send_raid_reminder:
+            self.send_raid_reminder = False
+        else:
+            self.send_raid_reminder = True
+
     async def add_note(self,ctx,message):
-        new_note = await aNote.create_new(ctx,message)
+        new_note = aNote.create_new(ctx,message)
         self.notes.append(new_note)
 
         sorted_notes = sorted(self.notes,key=lambda n:(n.timestamp),reverse=False)

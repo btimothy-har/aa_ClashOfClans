@@ -1,6 +1,6 @@
 confirmation_emotes = ['<:green_check:838461472324583465>','<:red_cross:838461484312428575>']
 
-selection_emotes = []
+selection_emotes = [":one:",":two:",":three:"]
 
 json_file_defaults = {
     'seasons': {
@@ -41,6 +41,19 @@ emotes_builderhall = {
     7: "<:bb07:1037001025221054494>",
     8: "<:bb08:1037001026294788116>",
     9: "<:bb09:1037001027687297045>",
+    }
+
+emotes_capitalhall = {
+    1:"<:Capital_Hall1:1038113658145886229>",
+    2:"<:Capital_Hall2:1038113660041711626>",
+    3:"<:Capital_Hall3:1038113661811695708>",
+    4:"<:Capital_Hall4:1038113663644602409>",
+    5:"<:Capital_Hall5:1038113665569792000>",
+    6:"<:Capital_Hall6:1038113667822129206>",
+    7:"<:Capital_Hall7:1038113669801844876>",
+    8:"<:Capital_Hall8:1038113671630573679>",
+    9:"<:Capital_Hall9:1038113673547362304>",
+    10:"<:Capital_Hall10:1038113473487441970>",
     }
 
 emotes_league = {

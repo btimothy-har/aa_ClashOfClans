@@ -2,6 +2,7 @@ import json
 import pytz
 
 from datetime import datetime
+from .constants import clanRanks
 
 async def get_current_season():
     helsinkiTz = pytz.timezone("Europe/Helsinki")
@@ -12,7 +13,12 @@ async def get_current_alliance(ctx):
     with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
         file_json = json.load(file)
 
-    clan_list = list(file_json['clans'].keys())
+    clans = file_json['clans']
+    try:
+        clan_list = sorted(clans, key=lambda x: (clans[x]['level'],clans[x]['capital_hall']),reverse=True)
+    except:
+        clan_list = list(clans.keys())
+    
     member_list = list(file_json['members'].keys())
 
     return clan_list,member_list
@@ -21,12 +27,22 @@ async def get_alliance_clan(ctx,abbreviation):
     with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
         file_json = json.load(file)
 
-    select_clan = [tag for (tag,clan) in file_json['clans'].items() if clan['abbr']==abbreviation.upper()]
+    clans = file_json['clans']
+    select_clan = [tag for (tag,clan) in clans.items() if clan['abbr']==abbreviation.upper()]
 
     if len(select_clan) == 0:
         return None
     else:
         return select_clan[0]
+
+async def get_alliance_members(ctx,clan):
+    with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+        file_json = json.load(file)
+
+    members = file_json['members']
+    select_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==clan.tag]
+
+    return select_members
 
 async def get_user_accounts(ctx,user_id,clan_tag=None):
     with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
@@ -38,9 +54,31 @@ async def get_user_accounts(ctx,user_id,clan_tag=None):
         select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and account['is_member']==True]
 
     if len(select_account) == 0:
-        return None
+        return []
     else:
         return select_account
+
+async def get_staff_position(ctx,user_id,rank_or_higher):
+
+    i = clanRanks.index(rank_or_higher)
+    t_rank = clanRanks[i:]
+
+    with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+        file_json = json.load(file)
+
+    clans = file_json['clans']
+    c_tags = sorted(clans, key=lambda x: (clans[x]['level'],clans[x]['capital_hall']),reverse=True)
+
+    ret_tags = []
+    for c in c_tags:
+        if "Leader" in t_rank and user_id==clans[c]['leader']:
+            ret_tags.append(c)
+        if "Co-Leader" in t_rank and user_id in clans[c]['co_leaders']:
+            ret_tags.append(c)
+        if "Elder" in t_rank and user_id in clans[c]['elders']:
+            ret_tags.append(c)
+
+    return ret_tags
 
 async def season_file_handler(ctx,season):
     is_new_season = False
