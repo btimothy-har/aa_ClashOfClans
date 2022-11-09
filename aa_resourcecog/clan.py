@@ -281,9 +281,9 @@ class aClan():
             if discord_member:    
                 try:
                     if leader_role:
-                        await discord_member:.remove_roles(leader_role)
+                        await discord_member.remove_roles(leader_role)
                     if coleader_role:
-                        await discord_member:.remove_roles(coleader_role)
+                        await discord_member.remove_roles(coleader_role)
                     if elder_role:
                         await discord_member.add_roles(elder_role)
                 except:

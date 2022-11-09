@@ -231,7 +231,7 @@ class AriXClashLeaders(commands.Cog):
 
         confirm_embed = await resc.clash_embed(ctx=ctx,
             title=f"New Clan: {c.name} ({c.tag})",
-            message=f"Leader: {leader.mention}\nAbbreviation: {clan_abbreviation}\u3000Emoji: {emoji}"
+            message=f"Leader: {leader.mention}\nAbbreviation: `{clan_abbreviation}`\u3000Emoji: {emoji}"
                 + f"\n\n<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} {c.capital_hall}\u3000Members: {c.c.member_count}"
                 + f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
                 + f"\n:globe_with_meridians: {c.c.location.name}\u3000<:HomeTrophies:825589905651400704> {c.c.points}\u3000<:BuilderTrophies:825713625586466816> {c.c.versus_points}"
@@ -259,7 +259,7 @@ class AriXClashLeaders(commands.Cog):
 
         final_embed = await resc.clash_embed(ctx=ctx,
             title=f"Clan Sucessfully Added: {c.name} ({c.tag})",
-            message=f"Leader: {leader.mention}\u3000Abbr: {clan_abbreviation}\u3000Emoji: {emoji}"
+            message=f"Leader: {leader.mention}\u3000Abbr: `{clan_abbreviation}`\u3000Emoji: {emoji}"
                 + f"\n\n<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} {c.capital_hall}\u3000Members: {c.c.member_count}"
                 + f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
                 + f"\n:globe_with_meridians: {c.c.location.name}\u3000<:HomeTrophies:825589905651400704> {c.c.points}\u3000<:BuilderTrophies:825713625586466816> {c.c.versus_points}"
@@ -798,7 +798,7 @@ class AriXClashLeaders(commands.Cog):
                 error_log.append(err_dict)
                 continue
 
-            player_notes = "**__Important Notes__**"
+            player_notes = ""
             try:
                 existing_user = ctx.bot.get_user(int(p.discord_user))
                 existing_user = existing_user.mention
@@ -813,13 +813,18 @@ class AriXClashLeaders(commands.Cog):
             if p.is_member:
                 player_notes += f"\n- This account is already a {p.arix_rank} in {p.home_clan.emoji} {p.home_clan.name}."
 
+            if player_notes != "":
+                p_notes = "\n\n**__Important Notes__**" + player_notes
+            else:
+                p_notes = ""
+
             player_embed = await resc.clash_embed(ctx,
                 title=f"Add Member: {p.name} ({p.tag})",
                 message=f"*[Click here to open in-game]({p.p.share_link})*"
                     + f"\n\nLinking to: {user.mention}"
                     + f"\n<:Exp:825654249475932170> {p.exp_level}\u3000<:Clan:825654825509322752> {p.clan_description}"
                     + f"\n{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies} (best: {p.best_trophies})\u3000<:TotalStars:825756777844178944> {p.war_stars}"
-                    + f"\n\n{player_notes}\n\u200b")
+                    + f"{p_notes}\n\u200b")
 
             menu, selected_clan = await resc.multiple_choice_select(self,
                 ctx=ctx,
@@ -867,7 +872,28 @@ class AriXClashLeaders(commands.Cog):
             await ctx.send(embed=error_embed)
 
         if added_count >0:
-            intro_embed = await resc.get_welcome_embed(ctx,user)
+            intro_embed = await resc.clash_embed(ctx,
+                title="Congratulations! You're an AriX Member!",
+                message=f"Before going further, there are a few additional things you need to understand and do:"
+                    + f"\n\nThe **AriX Alliance** is made up of 4 active clans:\n- ArmyOf9YearOlds (AO9)\n- Phoenix Reborn (PR)\n- Project AriX (PA)\n- Assassins (AS)"
+                    + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)"
+                    + f"\n\nIn turn, AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**.\n\u200b")
+            intro_embed.add_field(
+                name="**About CWLA**",
+                value=f"Through CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
+                    + f"Clans are available from <:GoldLeagueII:1037033274146570360> Gold II all the way to <:ChampionLeagueI:1037033289564815430> Champions I. "
+                    + f"\n\nNote: Allocations are made based on your town hall level and experience (e.g TH13 will probably let you be in Crystal 1 or Masters 3, TH12 will probably be Crystal etc.)."
+                    + f"\n\u200b",
+                inline=False)
+            intro_embed.add_field(
+                name="**You are required to join the CWLA Server ASAP.**",
+                value=f"The server link is below. Follow the steps below to get yourself set up in CWLA:"
+                    + f"\n\n1) Click on the :thumbsup: emoji in the Welcome channel (<#705036745619800154>)."
+                    + f"\n2) In the ticket that opens, post your Player Tag(s) and the Clan you are joining."
+                    + f"\n3) An Admin will approve you and set you up on the CWLA bot."
+                    + f"\n\nTo participate in CWL each month, you will have to sign up in the CWLA Server using the CWLA Bot. We'll remind you when that time comes!",
+                inline=False)
+            intro_embed.set_author(name=f"{user.name}#{user.discriminator}",icon_url=f"{user.avatar_url}")
 
             try:
                 await user.send(embed=intro_embed)

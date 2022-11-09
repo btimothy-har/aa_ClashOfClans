@@ -167,6 +167,7 @@ class AriXClashResources(commands.Cog):
             sel_text += sel_str
             sel_number += 1
 
+        selection_emojis.append('<:red_cross:838461484312428575>')
         sel_text += "\n\u200b"
 
         def chk_select(r,u):
@@ -184,7 +185,6 @@ class AriXClashResources(commands.Cog):
         menu_message = await ctx.send(embed=sEmbed)
         for emoji in selection_emojis:
             await menu_message.add_reaction(emoji)
-        await menu_message.add_reaction('<:red_cross:838461484312428575>')
         try:
             reaction, user = await ctx.bot.wait_for("reaction_add",timeout=60,check=chk_select)
         except asyncio.TimeoutError:
@@ -262,35 +262,6 @@ class AriXClashResources(commands.Cog):
         fieldStr = f"<:Exp:825654249475932170>{player.exp_level}\u3000{player.town_hall.emote} {player.town_hall.description}\u3000{hero_description}"
 
         return title,fieldStr
-
-    async def get_welcome_embed(ctx,user):
-        intro_embed = await self.clash_embed(ctx,
-            title="Congratulations! You're an AriX Member!",
-            message=f"Before going further, there are a few additional things you need to understand and do:"
-                + f"\n\nThe **AriX Alliance** is made up of 4 active clans:\n- ArmyOf9YearOlds (AO9)\n- Phoenix Reborn (PR)\n- Project AriX (PA)\n- Assassins (AS)"
-                + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)"
-                + f"\n\nIn turn, AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**.\n\u200b")
-
-        intro_embed.add_field(
-            name="**About CWLA**",
-            value=f"Through CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
-                + f"Clans are available from <:GoldLeagueII:1037033274146570360> Gold II all the way to <:ChampionLeagueI:1037033289564815430> Champions I. "
-                + f"\n\nNote: Allocations are made based on your town hall level and experience (e.g TH13 will probably let you be in Crystal 1 or Masters 3, TH12 will probably be Crystal etc.)."
-                + f"\n\u200b",
-            inline=False)
-
-        intro_embed.add_field(
-            name="**You are required to join the CWLA Server ASAP.**",
-            value=f"The server link is below. Follow the steps below to get yourself set up in CWLA:"
-                + f"\n\n1) Click on the :thumbsup: emoji in the Welcome channel (<#705036745619800154>)."
-                + f"\n2) In the ticket that opens, post your Player Tag(s) and the Clan you are joining."
-                + f"\n3) An Admin will approve you and set you up on the CWLA bot."
-                + f"\n\nTo participate in CWL each month, you will have to sign up in the CWLA Server using the CWLA Bot. We'll remind you when that time comes!",
-            inline=False)
-
-        intro_embed.set_author(name=f"{user.name}#{user.discriminator}",icon_url=f"{user.avatar_url}")
-
-        return intro_embed
 
     # if self.isMember:
     #     dtime = self.timestamp - self.arixLastUpdate                            
