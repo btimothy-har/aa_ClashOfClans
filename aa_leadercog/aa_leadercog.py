@@ -351,7 +351,7 @@ class AriXClashLeaders(commands.Cog):
 
         confirm_embed = await resc.clash_embed(ctx=ctx,
             title=f"Leader Override: {c.emoji} {c.name} ({c.tag})",
-            message=f"New Leader: <@{c.leader}>"
+            message=f"New Leader: <@{new_leader.mention}>"
                 + f"\n\n<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} {c.capital_hall}\u3000Members: {c.member_count}"
                 + f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
                 + f"\n:globe_with_meridians: {c.c.location.name}\u3000<:HomeTrophies:825589905651400704> {c.c.points}\u3000<:BuilderTrophies:825713625586466816> {c.c.versus_points}"
@@ -369,7 +369,7 @@ class AriXClashLeaders(commands.Cog):
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
                 try:
-                    await c.add_staff(new_leader,"Leader")
+                    await c.add_staff(ctx,new_leader,"Leader")
                     await c.save_to_json()
                 except Exception as e:
                     err_embed = await resc.clash_embed(ctx,
@@ -450,6 +450,11 @@ class AriXClashLeaders(commands.Cog):
             sEmbed=selection_embed,
             selection_list=selection_dict,
             selection_text="Select an option below.")
+
+        if not selected_option:
+            return
+
+        await menu.delete()
 
         if selected_option['id'] == 'announcement_channel':
             request_msg = await ctx.send(content=f"{ctx.author.mention}, please specify the Announcement Channel for {c.emoji} **{c.name}**.")
