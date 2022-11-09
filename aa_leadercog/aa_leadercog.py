@@ -351,7 +351,7 @@ class AriXClashLeaders(commands.Cog):
 
         confirm_embed = await resc.clash_embed(ctx=ctx,
             title=f"Leader Override: {c.emoji} {c.name} ({c.tag})",
-            message=f"New Leader: <@{new_leader.mention}>"
+            message=f"New Leader: {new_leader.mention}"
                 + f"\n\n<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} {c.capital_hall}\u3000Members: {c.member_count}"
                 + f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
                 + f"\n:globe_with_meridians: {c.c.location.name}\u3000<:HomeTrophies:825589905651400704> {c.c.points}\u3000<:BuilderTrophies:825713625586466816> {c.c.versus_points}"
@@ -388,7 +388,7 @@ class AriXClashLeaders(commands.Cog):
             url=c.c.share_link,
             color='success')
     
-        await confirm_embed.delete()
+        await confirm_remove.delete()
         await ctx.send(embed=final_embed)
 
 
@@ -597,7 +597,6 @@ class AriXClashLeaders(commands.Cog):
 
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
-                await ctx.send(f"ff{locked}")
                 await c.set_recruitment_level(ctx,th_levels)
                 await c.save_to_json()
 
@@ -1244,7 +1243,7 @@ class AriXClashLeaders(commands.Cog):
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
                 try: 
-                    await handle_rank['clan'].add_staff(user,new_rank)
+                    await handle_rank['clan'].add_staff(ctx,user,new_rank)
                     await handle_rank['clan'].save_to_json()
                 except Exception as e:
                     err_dict = {'tag':handle_rank['clan'].tag,'reason':f"Error while updating clan: {e}"}
@@ -1472,16 +1471,17 @@ class AriXClashLeaders(commands.Cog):
         await menu.edit(embed=wait_embed)
 
         if selected_report['id'] == 'summary':
-            await self.report_member_summary(ctx,c)
+            o = await self.report_member_summary(ctx,c)
+            
 
         if selected_report['id'] == 'allmembers':
-            await self.report_all_members(ctx,c)
+            o = await self.report_all_members(ctx,c)
 
         if selected_report['id'] == 'missing':
-            await self.report_missing_members(ctx,c)
+            o = await self.report_missing_members(ctx,c)
 
         if selected_report['id'] == 'unrecognized':
-            await self.report_unrecognized_members(ctx,c)
+            o = await self.report_unrecognized_members(ctx,c)
 
         if selected_report['id'] == 'activity':
             ##
@@ -1490,8 +1490,13 @@ class AriXClashLeaders(commands.Cog):
         if selected_report['id'] == 'clan':
             ##
             pass
-
+        
         await menu.delete()
+        if len(o)>1:
+            paginator = BotEmbedPaginator(ctx,o)
+            await paginator.run()
+        elif len(o)==1:
+            await ctx.send(embed=o[0])
 
     async def report_member_summary(self,ctx,clan):
         output_embed = []
@@ -1640,12 +1645,7 @@ class AriXClashLeaders(commands.Cog):
                 + f"\n\n{box(tabulate(hero_strength_output,headers='keys',tablefmt='pretty'))}")
         output_embed.append(hero_strength_embed)
 
-
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            await paginator.run()
-        elif len(output_embed)==1:
-            await ctx.send(embed=output_embed[0])
+        return output_embed
 
 
     async def report_all_members(self,ctx,clan):
@@ -1703,11 +1703,7 @@ class AriXClashLeaders(commands.Cog):
 
             output_embed.append(members_embed)
 
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            await paginator.run()
-        elif len(output_embed)==1:
-            await ctx.send(embed=output_embed[0])
+        return output_embed
 
 
     async def report_missing_members(self,ctx,clan):
@@ -1765,11 +1761,7 @@ class AriXClashLeaders(commands.Cog):
 
             output_embed.append(members_not_in_clan_embed)
 
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            await paginator.run()
-        elif len(output_embed)==1:
-            await ctx.send(embed=output_embed[0])
+        return output_embed
 
 
     async def report_unrecognized_members(self,ctx,clan):
@@ -1824,11 +1816,7 @@ class AriXClashLeaders(commands.Cog):
 
             output_embed.append(members_unrecognized_embed)
 
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            await paginator.run()
-        elif len(output_embed)==1:
-            await ctx.send(embed=output_embed[0])
+        return output_embed
 
 
     # @commands.command(name="profile")
