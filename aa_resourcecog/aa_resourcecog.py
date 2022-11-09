@@ -263,7 +263,7 @@ class AriXClashResources(commands.Cog):
 
         return title,fieldStr
 
-    async def get_welcome_embed(self,ctx,user):
+    async def get_welcome_embed(ctx,user):
         intro_embed = await self.clash_embed(ctx,
             title="Congratulations! You're an AriX Member!",
             message=f"Before going further, there are a few additional things you need to understand and do:"

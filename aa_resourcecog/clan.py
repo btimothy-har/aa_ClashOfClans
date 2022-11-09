@@ -255,61 +255,68 @@ class aClan():
         elder_role = ctx.guild.get_role(int(self.elder_role))
         member_role = ctx.guild.get_role(int(self.member_role))
 
+        discord_member = ctx.guild.get_member(user.id)
+
         if rank == 'Member':
-            if user_id in self.elders:
+            if user.id in self.elders:
                 self.elders.remove(user.id)
-            if user_id in self.co_leaders:
+            if user.id in self.co_leaders:
                 self.co_leaders.remove(user.id)
-            try:
-                if leader_role:
-                    await ctx.bot.remove_roles(user,leader_role)
-                if coleader_role:
-                    await ctx.bot.remove_roles(user,coleader_role)
-                if elder_role:
-                    await ctx.bot.remove_roles(user,elder_role)
-            except:
-                pass
+
+            if discord_member:
+                try:
+                    if leader_role:
+                        await discord_member.remove_roles(leader_role)
+                    if coleader_role:
+                        await discord_member.remove_roles(coleader_role)
+                    if elder_role:
+                        await discord_member.remove_roles(elder_role)
+                except:
+                    pass
 
         if rank == 'Elder':
             self.elders.append(user.id)
-            if user_id in self.co_leaders:
+            if user.id in self.co_leaders:
                 self.co_leaders.remove(user.id)
-            try:
-                if leader_role:
-                    await ctx.bot.remove_roles(user,leader_role)
-                if coleader_role:
-                    await ctx.bot.remove_roles(user,coleader_role)
-                if elder_role:
-                    await ctx.bot.add_roles(user,elder_role)
-            except:
-                pass
+            if discord_member:    
+                try:
+                    if leader_role:
+                        await discord_member:.remove_roles(leader_role)
+                    if coleader_role:
+                        await discord_member:.remove_roles(coleader_role)
+                    if elder_role:
+                        await discord_member.add_roles(elder_role)
+                except:
+                    pass
 
         if rank == 'Co-Leader':
             self.co_leaders.append(user.id)
-            if user_id in self.elders:
+            if user.id in self.elders:
                 self.elders.remove(user.id)
-            try:
-                if leader_role:
-                    await ctx.bot.remove_roles(user,leader_role)
-                if coleader_role:
-                    await ctx.bot.add_roles(user,coleader_role)
-                if elder_role:
-                    await ctx.bot.add_roles(user,elder_role)
-            except:
-                pass
+            if discord_member:
+                try:
+                    if leader_role:
+                        await discord_member.remove_roles(leader_role)
+                    if coleader_role:
+                        await discord_member.add_roles(coleader_role)
+                    if elder_role:
+                        await discord_member.add_roles(elder_role)
+                except:
+                    pass
 
         if rank == 'Leader':
             self.co_leaders.append(self.leader)
             self.leader = user.id
-            try:
-                if leader_role:
-                    await ctx.bot.add_roles(user,leader_role)
-                if coleader_role:
-                    await ctx.bot.add_roles(user,coleader_role)
-                if elder_role:
-                    await ctx.bot.add_roles(user,elder_role)
-            except:
-                pass
+            if discord_member:
+                try:
+                    if leader_role:
+                        await discord_member.add_roles(leader_role)
+                    if coleader_role:
+                        await discord_member.add_roles(coleader_role)
+                    if elder_role:
+                        await discord_member.add_roles(elder_role)
+                except:
+                    pass
 
     async def set_abbreviation(self,new_abbr:str):
         self.abbreviation = new_abbr

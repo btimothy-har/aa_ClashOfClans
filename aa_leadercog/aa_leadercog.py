@@ -867,7 +867,7 @@ class AriXClashLeaders(commands.Cog):
             await ctx.send(embed=error_embed)
 
         if added_count >0:
-            intro_embed = await resc.get_welcome_embed(self,ctx,user)
+            intro_embed = await resc.get_welcome_embed(ctx,user)
 
             try:
                 await user.send(embed=intro_embed)

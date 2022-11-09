@@ -429,32 +429,34 @@ class aPlayer():
         elder_role = ctx.guild.get_role(int(home_clan.elder_role))
         member_role = ctx.guild.get_role(int(home_clan.member_role))
 
+        discord_member = ctx.guild.get_member(discord_user.id)
+
         self.home_clan = home_clan
         self.is_member = True
 
-        if member_role:
-            await ctx.bot.add_roles(user,member_role)
+        if discord_member and member_role:
+            await discord_member.add_roles(member_role)
 
         if discord_user.id == home_clan.leader:
             self.arix_rank = 'Leader'
-            if leader_role:
-                await ctx.bot.add_roles(user,leader_role)
-            if coleader_role:
-                await ctx.bot.add_roles(user,coleader_role)
-            if elder_role:
-                await ctx.bot.add_roles(user,elder_role)
+            if discord_member and leader_role:
+                await discord_member.add_roles(leader_role)
+            if discord_member and coleader_role:
+                await discord_member.add_roles(coleader_role)
+            if discord_member and elder_role:
+                await discord_member.add_roles(elder_role)
 
         elif discord_user.id in home_clan.co_leaders:
             self.arix_rank = 'Co-Leader'
-            if coleader_role:
-                await ctx.bot.add_roles(user,coleader_role)
-            if elder_role:
-                await ctx.bot.add_roles(user,elder_role)
+            if discord_member and coleader_role:
+                await discord_member.add_roles(coleader_role)
+            if discord_member and elder_role:
+                await discord_member.add_roles(elder_role)
 
         elif discord_user.id in home_clan.elders:
             self.arix_rank = 'Elder'
-            if elder_role:
-                await ctx.bot.add_roles(user,elder_role)
+            if discord_member and elder_role:
+                await discord_member.add_roles(elder_role)
 
         else:
             self.arix_rank = 'Member'
