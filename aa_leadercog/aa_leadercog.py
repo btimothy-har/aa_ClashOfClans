@@ -152,7 +152,7 @@ class AriXClashLeaders(commands.Cog):
             return
         else:
             leader_id = re.search('@(.*)>',leader_response.content).group(1)
-            leader = ctx.bot.get_user(int(leader_id))
+            leader = await ctx.bot.fetch_user(int(leader_id))
             await leader_msg.delete()
             await leader_response.delete()
 
