@@ -29,7 +29,7 @@ from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, 
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 from aa_resourcecog.errors import TerminateProcessing
 
-class AriXClashLeaders(commands.Cog):
+class AriXLeaderCommands(commands.Cog):
     """AriX Clash of Clans Leaders' Module."""
 
     def __init__(self):
@@ -1875,59 +1875,3 @@ class AriXClashLeaders(commands.Cog):
     #         return await paginator.run()
     #     elif len(accounts)==1:
     #         return await ctx.send(embed=embed)
-
-    @commands.command(name="claninfo")
-    async def clan_information(self,ctx):
-        """Gets information about clans in the alliance."""
-
-        clans, members = await get_current_alliance(ctx)
-        alliance_clans = []
-
-        for tag in clans:
-            try:    
-                c = await aClan.create(ctx,tag)
-            except Exception as e:
-                eEmbed = await resc.clash_embed(ctx=ctx,message=f"{e}",color="fail")
-                return await ctx.send(embed=eEmbed)
-            alliance_clans.append(c)
-
-        m_text = ""
-
-        for c in alliance_clans:
-            th_str = ""
-            for th in c.recruitment_level:
-                th_str += f"{emotes_townhall[th]} "
-
-            c_str = f"**__[{c.emoji} {c.name} ({c.tag})]({c.c.share_link})__**"
-            c_str += f"\n> <:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} {c.capital_hall}\u3000Leader: <@{c.leader}>"
-            c_str += f"\n> {emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
-            c_str += f"\n> Members: {c.member_count}/50\u3000Recruiting: {th_str}"
-            c_str += f"\n\n{c.description}"
-            
-            if alliance_clans.index(c) != (len(alliance_clans)-1):
-                c_str += f"\n\u200b\n\u200b\n\u200b"
-
-            m_text += c_str
-
-        rEmbed = await resc.clash_embed(ctx=ctx,
-            title="AriX Alliance | Clash of Clans",
-            message=m_text,
-            thumbnail="https://i.imgur.com/TZF5r54.png")
-
-        await ctx.send(embed=rEmbed)
-
-    @commands.command(name="testing")
-    async def test_ask(self, ctx):
-        #cWar = await self.cClient.get_clan_war('92g9j8cg')
-
-        leader_role_msg = await ctx.send(content=f"{ctx.author.mention}, please mention the Leader role for **cc**.")
-        try:
-            leader_role_response = await ctx.bot.wait_for("message",timeout=60)
-        except asyncio.TimeoutError:
-            await emoji_msg.edit(content="Operation cancelled.")
-            return
-        else:
-            leader_role = leader_role_response.content
-
-        await ctx.send(type(leader_role))
-        await ctx.send(f"`{leader_role}`")

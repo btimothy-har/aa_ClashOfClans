@@ -115,7 +115,7 @@ class aPlayer():
 
         self.name = memberStats.get('name',None)
 
-        self.share_link = f"https://link.clashofclans.com/en?action=OpenClanProfile&tag=%23{format(self.tag.strip('#'))}"
+        self.share_link = f"https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=%23{format(self.tag.strip('#'))}"
 
         #Membership Attributes
         try:
@@ -171,6 +171,9 @@ class aPlayer():
 
         self.hero_strength = sum([hero.level for hero in self.heroes])
         self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
+        self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
+
+        self.hero_rushed_pct = round((max(self.min_hero_strength - self.hero_strength,0) / self.min_hero_strength)*100,1)
 
         self.hero_description = ""
         if self.town_hall.level >= 7:
@@ -184,9 +187,15 @@ class aPlayer():
 
         self.troop_strength = sum([troop.level for troop in self.troops])
         self.max_troop_strength = sum([troop.maxlevel_for_townhall for troop in self.troops])
+        self.min_troop_strength = sum([troop.minlevel_for_townhall for troop in self.troops])
+
+        self.troop_rushed_pct = round((max(self.min_troop_strength - self.troop_strength,0) / self.min_troop_strength)*100,1)
 
         self.spell_strength = sum([spell.level for spell in self.spells])
         self.max_spell_strength = sum([spell.maxlevel_for_townhall for spell in self.spells])
+        self.min_spell_strength = sum([spell.minlevel_for_townhall for spell in self.spells])
+
+        self.spell_rushed_pct = round((max(self.min_spell_strength - self.spell_strength,0) / self.min_spell_strength)*100,1)
 
         self.attack_wins = aPlayerStat(memberStats.get('attack_wins',{}))
         self.defense_wins = aPlayerStat(memberStats.get('defense_wins',{}))
@@ -503,6 +512,10 @@ class aPlayerStat():
 
         if self.lastupdate >= 2000000000:
             self.statdisplay = 'max'
+        elif self.season >= 100000:
+            self.statdisplay = numerize.numerize(self.season,1)
+        else:
+            self.statdisplay = f"{self.season:,}"
 
     def update_stat(self,new_value):
         if new_value >= self.lastupdate:
