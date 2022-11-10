@@ -100,11 +100,11 @@ class aPlayer():
 
         self.capitalcontribution = aPlayerStat({})
 
-        self.warLog = None
-        self.warStats = None
+        self.warlog = None
+        self.war_stats = None
  
-        self.raidLog = None
-        self.raidStats = None
+        self.raidlog = None
+        self.raid_stats = None
 
     @classmethod
     async def create(cls,ctx,tag):
@@ -518,7 +518,7 @@ class aPlayerStat():
             self.statdisplay = f"{self.season:,}"
 
     def update_stat(self,new_value):
-        if new_value >= self.lastupdate:
+        if new_value > self.lastupdate:
             stat_increment = new_value - self.lastupdate
         else:
             stat_increment = new_value

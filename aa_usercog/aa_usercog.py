@@ -20,7 +20,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.constants import confirmation_emotes
+from aa_resourcecog.constants import emotes_townhall, emotes_army, hero_availability, troop_availability, spell_availability, emotes_league
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
@@ -93,62 +93,59 @@ class AriXMemberCommands(commands.Cog):
         if not user:
             user = ctx.author
 
-        user_account_tags = await get_user_accounts(user.id)
+        user_account_tags = await get_user_accounts(ctx,user.id)
 
         user_accounts = []
-        for tag in user_accounts:
+        for tag in user_account_tags:
             try:
                 p = await aPlayer.create(ctx,tag)
             except Exception as e:
                 eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
+                return await ctx.send(embed=eEmbed)
             user_accounts.append(p)
 
         profile_embed = await resc.clash_embed(ctx,
             title=f"{user.name}#{user.discriminator}",
             thumbnail=user.avatar_url)
 
-        user_accounts = sorted(remove_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
+        user_accounts = sorted(user_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
 
-        main_accounts = [a for a in user_accounts if a.arix_rank!='alt']
-        alt_accounts = [a for a in user_accounts if a.arix_rank=='alt']
+        main_accounts = [a for a in user_accounts if a.arix_rank not in ['alt']]
+        alt_accounts = [a for a in user_accounts if a.arix_rank in ['alt']]
 
         if len(main_accounts) == 0:
             eEmbed = await resc.clash_embed(ctx,message=f"{user.mention} is not an AriX Member.")
-            return await ctx.send(eEmbed)
+            return await ctx.send(embed=eEmbed)
 
         if len(main_accounts) > 0:
-            main_str = ""
             for p in main_accounts:
-                main_str = f"**[{p.name} {p.tag}]({p.share_link})**"
+                main_str = ""
+                
                 if p.is_member:
                     main_str += f"\n> *{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}*"
                 main_str += f"\n> <:Exp:825654249475932170> {p.exp_level}\u3000{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies}"
                 main_str += f"\n> {p.hero_description}"
+                main_str += f"\n> [Open in-game]({p.share_link})"
+                main_str += "\n\u200b"
 
-                if main_accounts.index(p) < len(main_accounts):
-                    main_str += "\n\n\u200b"
-
-            profile_embed.add_field(
-                name="**__Member Accounts__**",
-                value=main_str,
-                inline=False)
+                profile_embed.add_field(
+                    name=f"**{p.name} {p.tag}**",
+                    value=main_str,
+                    inline=False)
 
         if len(alt_accounts) > 0:
             alt_str = ""
             for p in alt_accounts:
-                alt_str = f"**[{p.name} {p.tag}]({p.share_link})**"
                 alt_str += f"\n> *AriX alternate account*"
                 alt_str += f"\n> <:Exp:825654249475932170> {p.exp_level}\u3000{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies}"
                 alt_str += f"\n> {p.hero_description}"
+                alt_str += f"\n> [Open in-game]({p.share_link})"
+                alt_str += "\n\u200b"
 
-                if alt_accounts.index(p) < len(alt_accounts):
-                    alt_str += "\n\n\u200b"
-
-            profile_embed.add_field(
-                name="**__Non-Member Accounts__**",
-                value=alt_str,
-                inline=False)
+                profile_embed.add_field(
+                    name=f"**{p.name} {p.tag}**",
+                    value=alt_str,
+                    inline=False)
 
         return await ctx.send(embed=profile_embed)
 
@@ -164,7 +161,7 @@ class AriXMemberCommands(commands.Cog):
         output_embed = []
 
         if not player_tags:
-            player_tags = await get_user_accounts(ctx.author.id)
+            player_tags = await get_user_accounts(ctx,ctx.author.id)
 
         accounts = []
         error_log = []
@@ -218,18 +215,18 @@ class AriXMemberCommands(commands.Cog):
             if a.is_member:
                 home_clan_str = ""
                 if a.home_clan.tag:
-                    d, h, m, s = await convert_seconds_to_str(ctx,a.time_in_home_clan)
+                    d, h, m, s = await resc.convert_seconds_to_str(ctx,a.time_in_home_clan)
                     home_clan_str += f"\n{a.home_clan.emoji} {int(d)} days spent in {a.home_clan.name}"
 
                 last_update_str = ""
                 ltime = time.time() - a.last_update
-                d, h, m, s = await convert_seconds_to_str(ctx,ltime)
+                d, h, m, s = await resc.convert_seconds_to_str(ctx,ltime)
                 if d > 0:
-                    last_update_str += f"{int(d) days} "
+                    last_update_str += f"{int(d)} days "
                 if h > 0:
-                    last_update_str += f"{int(h) hours} "
+                    last_update_str += f"{int(h)} hours "
                 if m > 0:
-                    last_update_str += f"{int(m) minutes} "
+                    last_update_str += f"{int(m)} minutes "
                 if last_update_str == "":
                     last_update_str = "a few seconds "
 
