@@ -27,6 +27,7 @@ from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroP
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.errors import TerminateProcessing
 
 class AriXMemberCommands(commands.Cog):
     """AriX Clash of Clans Members' Module."""
@@ -190,11 +191,18 @@ class AriXMemberCommands(commands.Cog):
                 else:
                     member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
 
+            discord_msg = ""
+            if a.discord_user:
+                discord_msg += f"\nLinked to: <@{a.discord_user}>"
+            elif a.discord_link:
+                discord_msg += f"\nLinked to <@{a.discord_link}>"
+
             pEmbed = await resc.clash_embed(
                 ctx=ctx,
                 title=f"{a.name} ({a.tag})",
                 message=f"{member_status}"
-                    + f"<:Exp:825654249475932170>{a.exp_level}\u3000<:Clan:825654825509322752> {a.clan_description}",
+                    + f"<:Exp:825654249475932170>{a.exp_level}\u3000<:Clan:825654825509322752> {a.clan_description}"
+                    + f"{discord_msg}",
                 url=f"{a.share_link}",
                 thumbnail=f"{a.league.icon.medium}")
 
@@ -253,6 +261,94 @@ class AriXMemberCommands(commands.Cog):
             await paginator.run()
         elif len(output_embed)==1:
             await ctx.send(embed=output_embed[0])
+
+    @commands.command(name="nickname")
+    async def user_setnickname(self,ctx):
+        """
+        Change your server nickname.
+
+        Your server nickname can be changed to match one of your registered accounts.
+        """
+
+        user = ctx.author
+
+        accounts = []
+        home_clans = []
+        player_tags = await get_user_accounts(ctx,ctx.author.id)
+
+        for tag in player_tags:
+            try:
+                p = await aPlayer.create(ctx,tag)
+                if not p.is_member:
+                    await p.retrieve_data()
+            except Exception as e:
+                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                return await ctx.send(eEmbed)
+
+            if p.home_clan.tag not in [c.tag for c in home_clans]:
+                home_clans.append(p.home_clan)
+            accounts.append(p)
+
+        accounts = sorted(accounts,key=lambda p:(p.exp_level,p.town_hall.level),reverse=True)
+        home_clans = sorted(home_clans,key=lambda c:(c.level,c.capital_hall),reverse=True)
+
+        selection_list = []
+        for a in accounts:
+            a_dict = {
+                'id': f"{a.tag}",
+                'title': f"{a.name} ({a.tag})",
+                'description': f"{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}\n<:Exp:825654249475932170> {p.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}"
+                }
+            selection_list.append(a_dict)
+
+        nick_embed = await resc.clash_embed(ctx,
+            title=f"Nickname Change: {user.name}#{user.discriminator}",
+            thumbnail=user.avatar_url)
+
+        menu, selected_account = await resc.multiple_choice_select(self,
+            ctx=ctx,
+            sEmbed=nick_embed,
+            selection_list=selection_list,
+            selection_text="Select an account from the list below to be your nickname.")
+
+        if not selected_account:
+            end_embed = await resc.clash_embed(ctx,
+                message=f"Did not receive a response. Operation cancelled.",
+                color='fail')
+            return await menu.edit(embed=end_embed)
+
+        await menu.delete()
+
+        new_nickname = [a.name for a in accounts if a.tag == selected_account['id']][0]
+
+        clan_ct = 0
+        clan_str = ""
+        for clan in home_clans:
+            clan_ct += 1
+            if clan_ct > 1:
+                clan_str += ", "
+            clan_str += clan.abbreviation
+
+        new_nickname += f" | {clan_str}"
+
+        try:
+            await ctx.author.edit(nick=new_nickname)
+            success_embed = await resc.clash_embed(ctx,
+                message=f"{ctx.author.mention} your nickname has been set to {new_nickname}.",
+                color='success')
+        except:
+            end_embed = await resc.clash_embed(ctx,
+                message=f"I don't have permissions to change your nickname. New nickname: {new_nickname}",
+                color='fail')
+            return await ctx.send(embed=end_embed)
+
+
+
+
+
+
+
+
 
 
 

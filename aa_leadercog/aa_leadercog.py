@@ -1323,6 +1323,8 @@ class AriXLeaderCommands(commands.Cog):
         user_alliance_accounts_tags = await get_user_accounts(ctx,user.id)
         user_linked_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
+        await ctx.send(user_linked_accounts)
+
         user_alliance_accounts = []
         user_other_accounts = []
         user_error_tags = []

@@ -209,7 +209,10 @@ class aPlayer():
         else:
             self.spell_rushed_pct = 0
 
-        self.overall_rushed_pct = round(((rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength))*100,1)
+        if (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength) > 0:
+            self.overall_rushed_pct = round(((rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength))*100,1)
+        else:
+            self.overall_rushed_pct = 0
 
         self.attack_wins = aPlayerStat(memberStats.get('attack_wins',{}))
         self.defense_wins = aPlayerStat(memberStats.get('defense_wins',{}))
@@ -550,6 +553,7 @@ class aTownHall():
         self.level = level
         self.weapon = weapon
         self.emote = emotes_townhall[self.level]
+        self.emoji = self.emote
         if self.level >= 12:
             self.description = f"**{self.level}**-{self.weapon}"
         else:
