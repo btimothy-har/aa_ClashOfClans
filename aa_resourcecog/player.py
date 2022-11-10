@@ -173,8 +173,8 @@ class aPlayer():
         self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
         self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
 
+        rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
         if self.min_hero_strength > 0:
-            rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
             self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,1)
         else:
             self.hero_rushed_pct = 0
@@ -189,13 +189,12 @@ class aPlayer():
         if self.town_hall.level >= 13:
             self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
 
-        self.min_troop_strength = sum([troop.minlevel_for_townhall for troop in self.troops])
         self.troop_strength = sum([troop.level for troop in self.troops]) + sum([pet.level for pet in self.pets])
         self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.pets]))
         self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.pets]))
 
+        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.pets if p.level < p.minlevel_for_townhall])
         if self.min_troop_strength > 0:
-            rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.pets if p.level < p.minlevel_for_townhall])
             self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,1)
         else:
             self.troop_rushed_pct = 0
@@ -204,8 +203,8 @@ class aPlayer():
         self.max_spell_strength = sum([spell.maxlevel_for_townhall for spell in self.spells])
         self.min_spell_strength = sum([spell.minlevel_for_townhall for spell in self.spells])
 
+        rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
         if self.min_spell_strength > 0:
-            rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
             self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,1)
         else:
             self.spell_rushed_pct = 0
