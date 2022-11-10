@@ -186,26 +186,28 @@ class AriXMemberCommands(commands.Cog):
             member_status = ""
             if a.is_member:
                 if a.arix_rank == 'alt':
-                    member_status = f"***AriX alternate account***\n\n"
+                    member_status = f"***AriX alternate account***\n"
                 else:
-                    member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n\n"
+                    member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
 
             pEmbed = await resc.clash_embed(
                 ctx=ctx,
                 title=f"{a.name} ({a.tag})",
                 message=f"{member_status}"
                     + f"<:Exp:825654249475932170>{a.exp_level}\u3000<:Clan:825654825509322752> {a.clan_description}",
-                url=f"{a.share_link}")
+                url=f"{a.share_link}",
+                thumbnail=f"{a.league.icon.medium}")
 
-            base_strength = f"<:TotalTroopStrength:827730290491129856> {p.troop_strength} / {p.max_troop_strength} (Rushed: {p.troop_rushed_pct}%)"
-            if p.town_hall.level >= 5:
-                base_strength += f"\n<:TotalSpellStrength:827730290294259793> {p.spell_strength} / {p.max_spell_strength} (Rushed: {p.spell_rushed_pct}%)"
-            if p.town_hall.level >= 7:
-                base_strength += f"\n<:TotalHeroStrength:827730290294259793> {p.hero_strength} / {p.max_hero_strength} (Rushed: {p.hero_rushed_pct}%)"
+            base_strength = f"<:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength} *(rushed: {a.troop_rushed_pct}%)*"
+            if a.town_hall.level >= 5:
+                base_strength += f"\n<:TotalSpellStrength:827730290294259793> {a.spell_strength} / {a.max_spell_strength} *(rushed: {a.spell_rushed_pct}%)*"
+            if a.town_hall.level >= 7:
+                base_strength += f"\n<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength} *(rushed: {a.hero_rushed_pct}%)*"
+            base_strength += "\n\u200b"
 
             pEmbed.add_field(
                 name="**Home Village**",
-                value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[p.league.name]} (best: {p.best_trophies})"
+                value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})"
                     + f"\n**Heroes**"
                     + f"\n{a.hero_description}"
                     + f"\n**Strength**"
@@ -246,13 +248,11 @@ class AriXMemberCommands(commands.Cog):
 
             output_embed.append(pEmbed)
 
-            if len(output_embed)>1:
-                paginator = BotEmbedPaginator(ctx,output_embed)
-                await paginator.run()
-            elif len(output_embed)==1:
-                await ctx.send(embed=output_embed[0])
-
-            await ctx.send(error_log)
+        if len(output_embed)>1:
+            paginator = BotEmbedPaginator(ctx,output_embed)
+            await paginator.run()
+        elif len(output_embed)==1:
+            await ctx.send(embed=output_embed[0])
 
 
 

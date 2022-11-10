@@ -228,3 +228,21 @@ spell_availability = {
     14: [],
     15: []
     }
+
+pet_availability = {
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+    5: [],
+    6: [],
+    7: [],
+    8: [],
+    9: [],
+    10: [],
+    11: [],
+    12: [],
+    13: [],
+    14: ['L.A.S.S.I','Electro Owl','Mighty Yak','Unicorn'],
+    15: ['Frosty','Diggy','Poison Lizard','Phoenix']
+    }
