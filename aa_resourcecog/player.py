@@ -518,11 +518,12 @@ class aPlayerStat():
             self.statdisplay = f"{self.season:,}"
 
     def update_stat(self,new_value):
-        if new_value > self.lastupdate:
+        if new_value >= self.lastupdate:
             stat_increment = new_value - self.lastupdate
         else:
             stat_increment = new_value
         self.season += stat_increment
+        self.lastupdate = new_value
 
     def set_baseline(self,base_value):
         self.lastupdate = base_value

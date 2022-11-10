@@ -248,9 +248,12 @@ class AriXMemberCommands(commands.Cog):
 
             if len(output_embed)>1:
                 paginator = BotEmbedPaginator(ctx,output_embed)
-                return await paginator.run()
+                await paginator.run()
             elif len(output_embed)==1:
-                return await ctx.send(embed=output_embed[0])
+                await ctx.send(embed=output_embed[0])
+
+            await ctx.send(error_log)
+
 
 
 
