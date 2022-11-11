@@ -37,7 +37,7 @@ async def clash_embed(ctx, title=None, message=None, url=None, show_author=True,
     embed.set_footer(text="AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
     return embed
 
-async def user_confirmation(ctx: commands.Context, cMsg, confirm_method=None) -> bool:
+async def user_confirmation(ctx, cMsg, confirm_method=None) -> bool:
     def response_check(m):
         if m.author.id == ctx.author.id:
             if m.channel.id == ctx.channel.id:
@@ -95,7 +95,7 @@ async def user_confirmation(ctx: commands.Context, cMsg, confirm_method=None) ->
                 await cMsg.remove_reaction('<:red_cross:838461484312428575>',ctx.bot.user)
                 return False
 
-async def multiple_choice_select(ctx:commands.Context, sEmbed, selection_list:list, selection_text=None, cancel_message=None):
+async def multiple_choice_select(ctx, sEmbed, selection_list:list, selection_text=None, cancel_message=None):
     #prepare embed from parent function - allows for greater customisability
     #selection_list should be in format [{'title':str, 'description':str},{'title':str, 'description':str}].
     
