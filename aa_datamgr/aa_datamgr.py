@@ -18,6 +18,7 @@ from datetime import datetime
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
+from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
@@ -63,9 +64,12 @@ class AriXClashDataMgr(commands.Cog):
             last_log_sent = await self.config.last_data_log()
             run_time = await self.config.update_runtimes()
 
-            average_run_time = round(sum(run_time)/len(run_time),2)
+            try:
+                average_run_time = round(sum(run_time)/len(run_time),2)
+            except:
+                average_run_time = 0
 
-            logdays, loghours, logminutes, logsecs = await resc.convert_seconds_to_str(ctx,time.time() - last_update)
+            logdays, loghours, logminutes, logsecs = await convert_seconds_to_str(ctx,time.time() - last_update)
 
             update_str = ""
             if logdays > 0:
@@ -77,7 +81,7 @@ class AriXClashDataMgr(commands.Cog):
             if logsecs > 0:
                 update_str += f"{round(logsecs,0)} sec(s) "
 
-            embed = await resc.clash_embed(ctx=ctx,title="System Status Report")
+            embed = await clash_embed(ctx=ctx,title="System Status Report")
             embed.add_field(
                 name="__Summary__",
                 value=f"> **File Path**: {ctx.bot.clash_dir_path}"
@@ -105,13 +109,13 @@ class AriXClashDataMgr(commands.Cog):
     async def data_control_resetall(self, ctx):
         """Erases all data and resets all data files to default."""
 
-        embed = await resc.clash_embed(ctx=ctx,
+        embed = await clash_embed(ctx=ctx,
                                 title="Confirmation Required.",
                                 message=f"**This action erases __ALL__ data from the bot.**"+
                                         "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
         cMsg = await ctx.send(content=ctx.author.mention,embed=embed)
 
-        if not await resc.user_confirmation(self,ctx,cMsg,confirm_method='token_only'):
+        if not await user_confirmation(ctx,cMsg,confirm_method='token_only'):
             return
         
         with ctx.bot.clash_file_lock.acquire():
@@ -132,7 +136,7 @@ class AriXClashDataMgr(commands.Cog):
             with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
                 json.dump({},file,indent=2)
             
-        embed = await resc.clash_embed(ctx=ctx,
+        embed = await clash_embed(ctx=ctx,
             title="All Data Files Reset.",
             message=f"**seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     +f"\n**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
@@ -147,13 +151,13 @@ class AriXClashDataMgr(commands.Cog):
     async def data_control_reset(self, ctx):
         """Erases data stored for Members, Clan Wars, and Capital Raids."""
 
-        embed = await resc.clash_embed(ctx=ctx,
-                                title="Confirmation Required.",
-                                message=f"**This action erases data stored for Members, Clan Wars, and Capital Raids.**"+
-                                        "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
+        embed = await clash_embed(ctx=ctx,
+            title="Confirmation Required.",
+            message=f"**This action erases data stored for Members, Clan Wars, and Capital Raids.**"+
+                "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
         cMsg = await ctx.send(content=ctx.author.mention,embed=embed)
 
-        if not await resc.user_confirmation(self,ctx,cMsg,confirm_method='token_only'):
+        if not await user_confirmation(ctx,cMsg,confirm_method='token_only'):
             return
         
         async with ctx.bot.async_file_lock:
@@ -167,7 +171,7 @@ class AriXClashDataMgr(commands.Cog):
                 with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
                     json.dump({},file,indent=2)
             
-        embed = await resc.clash_embed(ctx=ctx,
+        embed = await clash_embed(ctx=ctx,
             title="All Data Files Reset.",
             message=f"**seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     +f"\n**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
@@ -183,7 +187,7 @@ class AriXClashDataMgr(commands.Cog):
         """Configure channel to send log messages in."""
 
         if ctx.channel.type == discord.ChannelType.private:
-            embed = await resc.clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
+            embed = await clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
             return await ctx.send(embed=embed)
 
         if not channel:
@@ -194,7 +198,7 @@ class AriXClashDataMgr(commands.Cog):
             except:
                 channel_mention = f"No Channel Set"
 
-            embed = await resc.clash_embed(ctx=ctx,
+            embed = await clash_embed(ctx=ctx,
                 message=f"Logs are currently being sent in {channel_mention}.")
 
             return await ctx.send(embed=embed)
@@ -212,7 +216,7 @@ class AriXClashDataMgr(commands.Cog):
                 except:
                     channel_mention = f"No Channel Set"
 
-                embed = await resc.clash_embed(ctx=ctx,
+                embed = await clash_embed(ctx=ctx,
                     message=f"Logs will now be sent in {channel_mention}.",color='success')
                 return await ctx.send(embed=embed)
 
@@ -245,7 +249,7 @@ class AriXClashDataMgr(commands.Cog):
         season = await get_current_season()
         clans, members = await get_current_alliance(ctx)
 
-        sEmbed = await resc.clash_embed(ctx,
+        sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
         
@@ -289,7 +293,7 @@ class AriXClashDataMgr(commands.Cog):
                     try:
                         c = await aClan.create(ctx,ctag)
                     except TerminateProcessing as e:
-                        eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                        eEmbed = await clash_embed(ctx,message=e,color='fail')
                         eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
                         return await log_channel.send(eEmbed)
                     except Exception as e:
@@ -346,7 +350,7 @@ class AriXClashDataMgr(commands.Cog):
                     str_raid_update += f"\n**Raid Weekend is now over.**"
 
                     if c.announcement_channel:
-                        raid_end_embed = await resc.clash_embed(ctx=ctx,
+                        raid_end_embed = await clash_embed(ctx=ctx,
                             title=f"Raid Weekend Results: {c.name} ({c.tag})",
                             message=f"\n**Maximum Reward: {(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,}** <:RaidMedals:983374303552753664>"
                                 + f"\n\nOffensive Rewards: {c.current_raid_weekend.offensive_reward * 6} <:RaidMedals:983374303552753664>"
@@ -437,7 +441,7 @@ class AriXClashDataMgr(commands.Cog):
                         p = await aPlayer.create(ctx,mtag)
                         await p.retrieve_data()
                     except TerminateProcessing as e:
-                        eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                        eEmbed = await clash_embed(ctx,message=e,color='fail')
                         eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
                         return await log_channel.send(eEmbed)
                     except Exception as e:
