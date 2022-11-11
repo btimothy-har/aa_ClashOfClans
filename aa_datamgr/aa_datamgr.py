@@ -340,7 +340,7 @@ class AriXClashDataMgr(commands.Cog):
                             announcement_str += f"\n\n{role.mention}"
 
                         rm = discord.AllowedMentions(roles=True)
-                        await channel.send(content="announcement_str",allowed_mentions=rm)
+                        await channel.send(content=announcement_str,allowed_mentions=rm)
 
                 if c.current_raid_weekend.state == 'ended':
                     str_raid_update += f"\n**Raid Weekend is now over.**"

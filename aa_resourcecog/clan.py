@@ -140,6 +140,7 @@ class aClan():
 
         self.war_log = {wid:aClanWar.from_json(self.ctx,wid,data) for (wid,data) in warLog.items()}
         self.raid_log = {rid:aRaidWeekend.from_json(self.ctx,self,rid,data) for (rid,data) in raidLog.items()}
+
         return self
 
     async def save_to_json(self):

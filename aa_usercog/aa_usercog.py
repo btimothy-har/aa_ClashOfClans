@@ -20,6 +20,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
+from aa_resourcecog.discordutils import clash_embed, user_confirmation, multiple_choice_select
 from aa_resourcecog.constants import emotes_townhall, emotes_army, hero_availability, troop_availability, spell_availability, emotes_league
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
@@ -55,15 +56,15 @@ class AriXMemberCommands(commands.Cog):
             try:    
                 c = await aClan.create(ctx,tag)
             except Exception as e:
-                eEmbed = await resc.clash_embed(ctx=ctx,message=f"{e}",color="fail")
+                eEmbed = await clash_embed(ctx=ctx,message=f"{e}",color="fail")
                 return await ctx.send(embed=eEmbed)
             alliance_clans.append(c)
 
         if len(alliance_clans) == 0:
-            eEmbed = await resc.clash_embed(ctx=ctx,message=f"There are no clans registered.",color="fail")
+            eEmbed = await clash_embed(ctx=ctx,message=f"There are no clans registered.",color="fail")
             return await ctx.send(embed=eEmbed)
 
-        rEmbed = await resc.clash_embed(ctx=ctx,
+        rEmbed = await clash_embed(ctx=ctx,
             title="AriX Alliance | Clash of Clans",
             image="https://i.imgur.com/TZF5r54.png")
 
@@ -101,11 +102,11 @@ class AriXMemberCommands(commands.Cog):
             try:
                 p = await aPlayer.create(ctx,tag)
             except Exception as e:
-                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                eEmbed = await clash_embed(ctx,message=e,color='fail')
                 return await ctx.send(embed=eEmbed)
             user_accounts.append(p)
 
-        profile_embed = await resc.clash_embed(ctx,
+        profile_embed = await clash_embed(ctx,
             title=f"{user.name}#{user.discriminator}",
             thumbnail=user.avatar_url)
 
@@ -115,7 +116,7 @@ class AriXMemberCommands(commands.Cog):
         alt_accounts = [a for a in user_accounts if a.arix_rank in ['alt']]
 
         if len(main_accounts) == 0:
-            eEmbed = await resc.clash_embed(ctx,message=f"{user.mention} is not an AriX Member.")
+            eEmbed = await clash_embed(ctx,message=f"{user.mention} is not an AriX Member.")
             return await ctx.send(embed=eEmbed)
 
         if len(main_accounts) > 0:
@@ -172,7 +173,7 @@ class AriXMemberCommands(commands.Cog):
                 if not p.is_member:
                     await p.retrieve_data()
             except TerminateProcessing as e:
-                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
+                eEmbed = await clash_embed(ctx,message=e,color='fail')
                 return await ctx.send(eEmbed)
             except Exception as e:
                 p = None
@@ -225,12 +226,12 @@ class AriXMemberCommands(commands.Cog):
             if a.is_member:
                 home_clan_str = ""
                 if a.home_clan.tag:
-                    d, h, m, s = await resc.convert_seconds_to_str(ctx,a.time_in_home_clan)
+                    d, h, m, s = await convert_seconds_to_str(ctx,a.time_in_home_clan)
                     home_clan_str += f"\n{a.home_clan.emoji} {int(d)} days spent in {a.home_clan.name}"
 
                 last_update_str = ""
                 ltime = time.time() - a.last_update
-                d, h, m, s = await resc.convert_seconds_to_str(ctx,ltime)
+                d, h, m, s = await convert_seconds_to_str(ctx,ltime)
                 if d > 0:
                     last_update_str += f"{int(d)} days "
                 if h > 0:
@@ -270,75 +271,21 @@ class AriXMemberCommands(commands.Cog):
         Your server nickname can be changed to match one of your registered accounts.
         """
 
-        user = ctx.author
+        new_nickname = await resc.user_nickname_handler(self,ctx,ctx.author)
 
-        accounts = []
-        home_clans = []
-        player_tags = await get_user_accounts(ctx,ctx.author.id)
-
-        for tag in player_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                if not p.is_member:
-                    await p.retrieve_data()
-            except Exception as e:
-                eEmbed = await resc.clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
-
-            if p.home_clan.tag not in [c.tag for c in home_clans]:
-                home_clans.append(p.home_clan)
-            accounts.append(p)
-
-        accounts = sorted(accounts,key=lambda p:(p.exp_level,p.town_hall.level),reverse=True)
-        home_clans = sorted(home_clans,key=lambda c:(c.level,c.capital_hall),reverse=True)
-
-        selection_list = []
-        for a in accounts:
-            a_dict = {
-                'id': f"{a.tag}",
-                'title': f"{a.name} ({a.tag})",
-                'description': f"{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}\n<:Exp:825654249475932170> {p.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}"
-                }
-            selection_list.append(a_dict)
-
-        nick_embed = await resc.clash_embed(ctx,
-            title=f"Nickname Change: {user.name}#{user.discriminator}",
-            thumbnail=user.avatar_url)
-
-        menu, selected_account = await resc.multiple_choice_select(self,
-            ctx=ctx,
-            sEmbed=nick_embed,
-            selection_list=selection_list,
-            selection_text="Select an account from the list below to be your nickname.")
-
-        if not selected_account:
-            end_embed = await resc.clash_embed(ctx,
-                message=f"Did not receive a response. Operation cancelled.",
-                color='fail')
-            return await menu.edit(embed=end_embed)
-
-        await menu.delete()
-
-        new_nickname = [a.name for a in accounts if a.tag == selected_account['id']][0]
-
-        clan_ct = 0
-        clan_str = ""
-        for clan in home_clans:
-            clan_ct += 1
-            if clan_ct > 1:
-                clan_str += ", "
-            clan_str += clan.abbreviation
-
-        new_nickname += f" | {clan_str}"
+        if not new_nickname:
+            return
 
         try:
-            await ctx.author.edit(nick=new_nickname)
-            success_embed = await resc.clash_embed(ctx,
+            discord_member = ctx.guild.get_member(ctx.author.id)
+            await discord_member.edit(nick=new_nickname)
+            success_embed = await clash_embed(ctx,
                 message=f"{ctx.author.mention} your nickname has been set to {new_nickname}.",
                 color='success')
+            return await ctx.send(embed=success_embed)
         except:
-            end_embed = await resc.clash_embed(ctx,
-                message=f"I don't have permissions to change your nickname. New nickname: {new_nickname}",
+            end_embed = await clash_embed(ctx,
+                message=f"{ctx.author.mention}, I don't have permissions to change your nickname.",
                 color='fail')
             return await ctx.send(embed=end_embed)
 
