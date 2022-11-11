@@ -73,13 +73,13 @@ class AriXClashDataMgr(commands.Cog):
 
             update_str = ""
             if logdays > 0:
-                update_str += f"{round(logdays,0)} day(s) "
+                update_str += f"{int(round(logdays,0))} day(s) "
             if loghours > 0:
-                update_str += f"{round(loghours,0)} hour(s) "
+                update_str += f"{int(round(loghours,0))} hour(s) "
             if logminutes > 0:
-                update_str += f"{round(logminutes,0)} min(s) "
+                update_str += f"{int(round(logminutes,0))} min(s) "
             if logsecs > 0:
-                update_str += f"{round(logsecs,0)} sec(s) "
+                update_str += f"{int(round(logsecs,0))} sec(s) "
 
             embed = await clash_embed(ctx=ctx,title="System Status Report")
             embed.add_field(

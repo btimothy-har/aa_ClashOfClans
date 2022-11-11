@@ -19,7 +19,7 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 
-from .discordutils import clash_embed, user_confirmation, multiple_choice_select
+from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
 from .file_functions import get_current_season, get_current_alliance, get_user_accounts, season_file_handler, alliance_file_handler, data_file_handler
 from .notes import aNote
@@ -69,22 +69,24 @@ class AriXClashResources(commands.Cog):
         m_description = ""
         if p.is_member:
             if p.arix_rank not in ['alt']:
-                m_description = f"***{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}***\n"
+                m_description = f"***{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}***"
             else:
-                m_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***\n"
+                m_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
 
         text_full += f"{m_description}"
+        if m_description:
+            text_full += "\n"
         text_full += f"<:Exp:825654249475932170> {p.exp_level}\u3000<:Clan:825654825509322752> {p.clan_description}"
         text_full += f"\n{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies} (best: {p.best_trophies})"
         text_full += f"\n{p.hero_description}"
         text_full += f"\n[Open player in-game]({p.share_link})"
         
-        text_summary += f"<:Exp:825654249475932170> {p.exp_level}\u3000"
+        text_summary += f"{p.town_hall.emote} {p.town_hall.description}\u3000"
         if p.is_member and p.arix_rank not in ['alt']:
             text_summary += f"{m_description}"
         else:
             text_summary += f"<:Clan:825654825509322752> {p.clan_description}"
-        text_summary += f"\u3000{emotes_league[p.league.name]} {p.trophies} (best: {p.best_trophies})"
+        text_summary += f"\u3000{emotes_league[p.league.name]} {p.trophies}"
 
         return title, text_full, text_summary
 
@@ -116,8 +118,8 @@ class AriXClashResources(commands.Cog):
         return intro_embed
 
     async def user_nickname_handler(ctx,user):
-        menu = None
         accounts = []
+        leader_clans = []
         home_clans = []
         player_tags = await get_user_accounts(ctx,user.id)
 
@@ -135,6 +137,9 @@ class AriXClashResources(commands.Cog):
                     home_clans.append(p.home_clan)
                 accounts.append(p)
 
+            if p.arix_rank == 'Leader' and p.home_clan.tag not in [c.tag for c in leader_clans]:
+                leader_clans.append(p.home_clan)
+
         accounts = sorted(accounts,key=lambda p:(p.exp_level,p.town_hall.level),reverse=True)
         home_clans = sorted(home_clans,key=lambda c:(c.level,c.capital_hall),reverse=True)
 
@@ -150,7 +155,7 @@ class AriXClashResources(commands.Cog):
             selected_account = {
                 'id': f"{a.tag}",
                 'title': f"{a.name} {a.tag}",
-                'description': f"{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\n<:Exp:825654249475932170> {a.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}"
+                'description': f"{a.town_hall.emote} {a.town_hall.description}\u3000{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\u3000{emotes_league[a.league.name]} {a.trophies}"
                 }
         
         else:
@@ -159,7 +164,7 @@ class AriXClashResources(commands.Cog):
                 a_dict = {
                     'id': f"{a.tag}",
                     'title': f"{a.name} ({a.tag})",
-                    'description': f"{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\n<:Exp:825654249475932170> {a.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}"
+                    'description': f"{a.town_hall.emote} {a.town_hall.description}\u3000{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\u3000{emotes_league[a.league.name]} {a.trophies}"
                     }
                 selection_list.append(a_dict)
 
@@ -167,25 +172,21 @@ class AriXClashResources(commands.Cog):
                 title=f"Nickname Change: {user.name}#{user.discriminator}",
                 thumbnail=f"{user.avatar_url}")
 
-            menu, selected_account = await multiple_choice_select(ctx,
+            selected_account = await multiple_choice_select(ctx,
                 sEmbed=nick_embed,
                 selection_list=selection_list,
-                selection_text="Select an account from the list below to be your nickname.")
+                selection_text="Select an account from the list below to be the new nickname.")
 
         if not selected_account:
-            end_embed = await resc_cog.clash_embed(ctx,
-                message=f"Did not receive a response. Operation cancelled.",
-                color='fail')
-            await menu.edit(embed=end_embed)
             return None
-
-        if menu:
-            await menu.delete()
         
         new_nickname = [a.name for a in accounts if a.tag == selected_account['id']][0]
 
         clan_ct = 0
         clan_str = ""
+        if len(leader_clans) > 0:
+            home_clans = leader_clans
+
         for clan in home_clans:
             clan_ct += 1
             if clan_ct > 1:

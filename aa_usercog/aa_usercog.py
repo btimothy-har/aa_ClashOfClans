@@ -18,9 +18,10 @@ from datetime import datetime
 from string import ascii_letters, digits
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
+from numerize import numerize
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.discordutils import clash_embed, user_confirmation, multiple_choice_select
+from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
 from aa_resourcecog.constants import emotes_townhall, emotes_army, hero_availability, troop_availability, spell_availability, emotes_league
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
@@ -106,8 +107,10 @@ class AriXMemberCommands(commands.Cog):
                 return await ctx.send(embed=eEmbed)
             user_accounts.append(p)
 
+        discord_member = ctx.guild.get_member(user.id)
+
         profile_embed = await clash_embed(ctx,
-            title=f"{user.name}#{user.discriminator}",
+            title=f"{discord_member.display_name}",
             thumbnail=user.avatar_url)
 
         user_accounts = sorted(user_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
@@ -121,32 +124,20 @@ class AriXMemberCommands(commands.Cog):
 
         if len(main_accounts) > 0:
             for p in main_accounts:
-                main_str = ""
-                
-                if p.is_member:
-                    main_str += f"\n> *{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}*"
-                main_str += f"\n> <:Exp:825654249475932170> {p.exp_level}\u3000{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies}"
-                main_str += f"\n> {p.hero_description}"
-                main_str += f"\n> [Open in-game]({p.share_link})"
-                main_str += "\n\u200b"
+                title, text, summary = await resc.player_description(ctx,p)
 
                 profile_embed.add_field(
-                    name=f"**{p.name} {p.tag}**",
-                    value=main_str,
+                    name=f"**{title}**",
+                    value=f"{text}\n\u200b",
                     inline=False)
 
         if len(alt_accounts) > 0:
             alt_str = ""
             for p in alt_accounts:
-                alt_str += f"\n> *AriX alternate account*"
-                alt_str += f"\n> <:Exp:825654249475932170> {p.exp_level}\u3000{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies}"
-                alt_str += f"\n> {p.hero_description}"
-                alt_str += f"\n> [Open in-game]({p.share_link})"
-                alt_str += "\n\u200b"
 
                 profile_embed.add_field(
-                    name=f"**{p.name} {p.tag}**",
-                    value=alt_str,
+                    name=f"**{title}**",
+                    value=f"{text}\n\u200b",
                     inline=False)
 
         return await ctx.send(embed=profile_embed)
@@ -194,11 +185,11 @@ class AriXMemberCommands(commands.Cog):
 
             discord_msg = ""
             if a.discord_user:
-                discord_msg += f"\nLinked to: <@{a.discord_user}>"
+                discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_user}>"
             elif a.discord_link:
-                discord_msg += f"\nLinked to <@{a.discord_link}>"
+                discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_link}>"
 
-            pEmbed = await resc.clash_embed(
+            pEmbed = await clash_embed(
                 ctx=ctx,
                 title=f"{a.name} ({a.tag})",
                 message=f"{member_status}"
@@ -245,6 +236,10 @@ class AriXMemberCommands(commands.Cog):
                     name=f"**Current Season Stats with AriX**",
                     value=f":stopwatch: Last updated: {last_update_str}ago"
                         + f"{home_clan_str}"
+                        + f"\n\n**Attacks Won**"
+                        + f"\n<:Attack:828103854814003211> {a.attack_wins.statdisplay}"
+                        + f"\n**Defenses Won**"
+                        + f"\n<:Defense:828103708956819467> {a.defense_wins.statdisplay}"
                         + f"\n**Donations**"
                         + f"\n<:donated:825574412589858886> {a.donations_sent.statdisplay}\u3000<:received:825574507045584916> {a.donations_rcvd.statdisplay}"
                         + f"\n**Loot**"
@@ -252,8 +247,46 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**Clan Capital**"
                         + f"\n<:CapitalGoldContributed:971012592057339954> {a.capitalcontribution.statdisplay}\u3000<:CapitalRaids:1034032234572816384> {a.raid_stats.raids_participated}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned:,}"
                         + f"\n**War Performance**"
-                        + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000<:TotalStars:825756777844178944> {a.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}",
+                        + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
+                        + f"\n**Clan Games**"
+                        + f"\n<:ClanGames:834063648494190602> {a.clangames.statdisplay}",
                     inline=False)
+
+            else:
+                pEmbed.add_field(
+                    name=f"**Season Activity**",
+                    value=f"**Attacks Won**"
+                        + f"\n<:Attack:828103854814003211> {a.p.attack_wins}"
+                        + f"\n**Defenses Won**"
+                        + f"\n<:Defense:828103708956819467> {a.p.defense_wins}"
+                        + f"\n**Donations**"
+                        + f"\n<:donated:825574412589858886> {a.p.donations}\u3000<:received:825574507045584916> {a.p.received}\n\u200b",
+                    inline=False)
+
+                for achievement in a.p.achievements:
+                    if achievement.name == 'Gold Grab':
+                        gold_value = achievement.value
+                    if achievement.name == 'Elixir Escapade':
+                        elixir_value = achievement.value
+                    if achievement.name == 'Heroic Heist':
+                        darkelixir_value = achievement.value
+                    if achievement.name == 'Aggressive Capitalism':
+                        capitalraided_value = achievement.value
+                    if achievement.name == 'Games Champion':
+                        clangames_value = achievement.value
+                    if achievement.name == 'War League Legend':
+                        warleague_value = achievement.value
+
+                pEmbed.add_field(
+                    name=f"**Lifetime Stats**",
+                    value=f"**Loot**"
+                        + f"\n<:gold:825613041198039130> {numerize.numerize(gold_value,1)}\u3000<:elixir:825612858271596554> {numerize.numerize(elixir_value,1)}\u3000<:darkelixir:825640568973033502> {numerize.numerize(darkelixir_value,1)}"
+                        + f"\n**Clan Capital**"
+                        + f"\n<:CapitalGoldContributed:971012592057339954> {numerize.numerize(a.p.clan_capital_contributions,1)}\u3000<:CapitalRaids:1034032234572816384> {numerize.numerize(capitalraided_value,1)}"
+                        + f"\n**War Stats**"
+                        + f"\n<:WarStars:825756777844178944> {a.p.war_stars:,}\u3000<:ClanWarLeagues:825752759948279848> {warleague_value:,}"
+                        + f"\n**Clan Games**"
+                        + f"\n<:ClanGames:834063648494190602> {clangames_value:,}")
 
             output_embed.append(pEmbed)
 
@@ -288,14 +321,6 @@ class AriXMemberCommands(commands.Cog):
                 message=f"{ctx.author.mention}, I don't have permissions to change your nickname.",
                 color='fail')
             return await ctx.send(embed=end_embed)
-
-
-
-
-
-
-
-
 
 
 

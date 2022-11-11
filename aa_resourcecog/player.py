@@ -126,7 +126,8 @@ class aPlayer():
         self.is_member = memberInfo.get('is_member',False)
         self.arix_rank = memberInfo.get('rank','Non-Member')
         self.discord_user = memberInfo.get('discord_user',0)
-        self.notes = [aNote(self.ctx,note) for note in memberInfo.get('notes',[])]
+        notes = [aNote.from_json(self.ctx,n) for n in memberInfo.get('notes',[])]
+        self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
         #Membership Statistics
         self.last_update = memberStats.get('last_update',time.time())
@@ -532,7 +533,7 @@ class aPlayer():
         self.arix_rank = new_rank
 
     async def add_note(self,ctx,message):
-        new_note = await aNote.create_new(ctx,message)
+        new_note = aNote.create_new(ctx,message)
         self.notes.append(new_note)
 
         sorted_notes = sorted(self.notes,key=lambda n:(n.timestamp),reverse=False)
