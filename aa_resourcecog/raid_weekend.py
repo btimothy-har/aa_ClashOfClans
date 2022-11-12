@@ -74,8 +74,8 @@ class aRaidWeekend():
         self.raid_attack_count = self.rw.attack_count
         self.districts_destroyed = self.rw.destroyed_district_count
 
-        self.offensive_reward = self.rw.offensive_reward
-        self.defensive_reward = self.rw.defensive_reward
+        self.offense_rewards = self.rw.offensive_reward
+        self.defense_rewards = self.rw.defensive_reward
 
         self.members = [aRaidMember.from_game(clan=self.clan,raid_entry=self,game_data=m) for m in self.rw.members]
 

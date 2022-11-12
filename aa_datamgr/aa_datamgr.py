@@ -352,9 +352,9 @@ class AriXClashDataMgr(commands.Cog):
                     if c.announcement_channel:
                         raid_end_embed = await clash_embed(ctx=ctx,
                             title=f"Raid Weekend Results: {c.name} ({c.tag})",
-                            message=f"\n**Maximum Reward: {(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,}** <:RaidMedals:983374303552753664>"
-                                + f"\n\nOffensive Rewards: {c.current_raid_weekend.offensive_reward * 6} <:RaidMedals:983374303552753664>"
-                                + f"\nDefensive Rewards: {c.current_raid_weekend.defensive_reward} <:RaidMedals:983374303552753664>"
+                            message=f"\n**Maximum Reward: {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,}** <:RaidMedals:983374303552753664>"
+                                + f"\n\nOffensive Rewards: {c.current_raid_weekend.offense_rewards * 6} <:RaidMedals:983374303552753664>"
+                                + f"\nDefensive Rewards: {c.current_raid_weekend.defense_rewards} <:RaidMedals:983374303552753664>"
                                 ,
                             thumbnail=c.c.badge.url,
                             show_author=False)

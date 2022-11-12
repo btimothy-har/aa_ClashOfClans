@@ -1561,8 +1561,24 @@ class AriXLeaderCommands(commands.Cog):
             pass
 
         if selected_report['id'] == 'excel':
-            file = await self.report_to_excel(ctx,c)
-            return await ctx.send(file=discord.File('file'))
+            file,err_log = await self.report_to_excel(ctx,c)
+
+            err_str = ""
+            if len(err_log) > 0:
+                for l in err_log:
+                    err_str += f"{l['tag']}: {l['reason']}\n"
+                if len(err_str) > 1024:
+                    err_str = err_str[0:500]
+
+            rept_embed = await clash_embed(ctx,
+                title="Get Excel Report",
+                message=f"Your report is available for download below."
+                    + f"\n\n{err_str}",
+                color='success')
+
+            await wembed.delete()
+            await ctx.send(embed=rept_embed)
+            return await ctx.send(file=discord.File(file))
         
         await wembed.delete()
 
@@ -1931,6 +1947,7 @@ class AriXLeaderCommands(commands.Cog):
 
         member_tags = await get_alliance_members(ctx,clan)
         members = []
+        error_log = []
 
         for m in member_tags:
             try:
@@ -1948,15 +1965,14 @@ class AriXLeaderCommands(commands.Cog):
 
         members = sorted(members,key=lambda a:(a.town_hall.level,sum([h.level for h in a.heroes]),a.exp_level),reverse=True)
 
-        dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%m%S')}"
-        report_file = f"{ctx.bot.clash_report_path}/{ctx.author.display_name}_{clan_abbreviation}_{dt}.xlsx"
+        dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
+        report_file = f"{ctx.bot.clash_report_path}/{ctx.author.display_name}_{clan.abbreviation}_{dt}.xlsx"
 
-        rp_workbook = xslxwriter.Workbook(report_file)
+        rp_workbook = xlsxwriter.Workbook(report_file)
         bold = rp_workbook.add_format({'bold': True})
 
         mem_worksheet = rp_workbook.add_worksheet('Members')
-
-        headers = ['Tag',
+        mem_headers = ['Tag',
             'Name',
             'Discord User',
             'Home Clan',
@@ -2002,7 +2018,7 @@ class AriXLeaderCommands(commands.Cog):
 
         row = 0
         col = 0
-        for h in headers:
+        for h in mem_headers:
             mem_worksheet.write(row,col,h,bold)
             col += 1
 
@@ -2019,14 +2035,14 @@ class AriXLeaderCommands(commands.Cog):
                 m_user = ctx.bot.get_user(int(m.discord_user))
                 m_user_display = m_user.display_name
             except:
-                m_user_display = m.discord_user
+                m_user_display = str(m.discord_user)
             m_data.append(m_user_display)
 
             m_data.append(m.home_clan.name)
             m_data.append(m.arix_rank)
 
-            d, h, m, s = await convert_seconds_to_str(ctx,m.time_in_home_clan)
-            m_data.append(d)
+            dd, hh, mm, ss = await convert_seconds_to_str(ctx,m.time_in_home_clan)
+            m_data.append(dd)
 
             m_data.append(m.exp_level)
             m_data.append(m.town_hall.level)
@@ -2044,13 +2060,17 @@ class AriXLeaderCommands(commands.Cog):
             m_data.append(sum([h.level for h in m.heroes if h.name=='Archer Queen']))
             m_data.append(sum([h.level for h in m.heroes if h.name=='Grand Warden']))
             m_data.append(sum([h.level for h in m.heroes if h.name=='Royal Champion']))
-            m_data.append(round((m.hero_strength / m.max_hero_strength)*100),1)
 
+            hero_completion = round((m.hero_strength/m.max_hero_strength)*100,1)
+            m_data.append(hero_completion)
+
+            troop_completion = round((m.troop_strength/m.max_troop_strength)*100,1)
             m_data.append(m.troop_strength)
-            m_data.append(round((m.troop_strength / m.max_troop_strength)*100),1)
+            m_data.append(troop_completion)
 
+            spell_completion = round((m.spell_strength/m.max_spell_strength)*100,1)
             m_data.append(m.spell_strength)
-            m_data.append(round((m.spell_strength / m.max_spell_strength)*100),1)
+            m_data.append(spell_completion)
 
             m_data.append(m.attack_wins.season)
             m_data.append(m.defense_wins.season)
@@ -2087,6 +2107,159 @@ class AriXLeaderCommands(commands.Cog):
                 mem_worksheet.write(row,col,d)
                 col += 1
 
+        war_worksheet = rp_workbook.add_worksheet('Clan Wars')
+        war_headers = [
+            'Clan',
+            'Clan Tag',
+            'Opponent',
+            'Opponent Tag',
+            'War Type',
+            'Start Time',
+            'End Time',
+            'State',
+            'Size',
+            'Attacks per Member',
+            'Result',
+            'Clan Stars',
+            'Clan Destruction',
+            'Average Attack Duration',
+            'Member Tag',
+            'Member Name',
+            'Member Townhall',
+            'Member Map Position',
+            'Attack Order',
+            'Attack Defender',
+            'Attack Stars',
+            'Attack Destruction',
+            'Attack Duration',
+            'Defense Order',
+            'Defense Attacker',
+            'Defense Stars',
+            'Defense Destruction',
+            'Defense Duration',
+            ]
+
+        row = 0
+        col = 0
+        for h in war_headers:
+            war_worksheet.write(row,col,h,bold)
+            col += 1
+
+        for wid, war in clan.war_log.items():
+            for m in war.clan.members:
+                for i in range(0,war.attacks_per_member):
+
+                    mwar_data = []
+                    mwar_data.append(war.clan.name)
+                    mwar_data.append(war.clan.tag)
+                    mwar_data.append(war.opponent.name)
+                    mwar_data.append(war.opponent.tag)
+                    mwar_data.append(war.type)
+                    mwar_data.append(datetime.fromtimestamp(war.start_time).strftime('%b %d %Y %H:%M:%S'))
+                    mwar_data.append(datetime.fromtimestamp(war.end_time).strftime('%b %d %Y %H:%M:%S'))
+                    mwar_data.append(war.state)
+                    mwar_data.append(war.size)
+                    mwar_data.append(war.attacks_per_member)
+                    mwar_data.append(war.result)
+
+                    mwar_data.append(war.clan.stars)
+                    mwar_data.append(war.clan.destruction)
+                    mwar_data.append(war.clan.average_attack_duration)
+
+                    mwar_data.append(m.tag)
+                    mwar_data.append(m.name)
+                    mwar_data.append(m.town_hall)
+                    mwar_data.append(m.map_position)
+                    try:
+                        a = m.attacks[i]
+                        mwar_data.append(a.order)
+                        mwar_data.append(a.defender)
+                        mwar_data.append(a.stars)
+                        mwar_data.append(a.destruction)
+                        mwar_data.append(a.duration)
+                    except:
+                        mwar_data.append(None)
+                        mwar_data.append(None)
+                        mwar_data.append(None)
+                        mwar_data.append(None)
+                        mwar_data.append(None)
+
+                    if i == 0:
+                        try:
+                            mwar_data.append(m.best_opponent_attack.order)
+                            mwar_data.append(m.best_opponent_attack.attacker)
+                            mwar_data.append(m.best_opponent_attack.stars)
+                            mwar_data.append(m.best_opponent_attack.destruction)
+                            mwar_data.append(m.best_opponent_attack.duration)
+                        except:
+                            mwar_data.append(None)
+                            mwar_data.append(None)
+                            mwar_data.append(None)
+                            mwar_data.append(None)
+                            mwar_data.append(None)
+
+                    col = 0
+                    row += 1
+                    for d in mwar_data:
+                        war_worksheet.write(row,col,d)
+                        col += 1
+
+        raid_worksheet = rp_workbook.add_worksheet('Raid Weekends')
+        raid_headers = [
+            'Clan',
+            'Clan Tag',
+            'Start Date',
+            'End Date',
+            'State',
+            'Total Loot Gained',
+            'Offensive Raids Completed',
+            'Defensive Raids Completed',
+            'Raid Attack Count',
+            'Districts Destroyed',
+            'Offense Rewards',
+            'Defense Rewards',
+            'Participant Tag',
+            'Participant Name',
+            'Number of Attacks',
+            'Capital Gold Looted',
+            'Raid Medals'
+            ]
+
+        row = 0
+        col = 0
+        for h in raid_headers:
+            raid_worksheet.write(row,col,h,bold)
+            col += 1
+
+        for rid, r in clan.raid_log.items():
+            for m in r.members:
+                raid_data = []
+
+                raid_data.append(r.clan.name)
+                raid_data.append(r.clan.tag)
+                raid_data.append(datetime.fromtimestamp(r.start_time).strftime('%b %d %Y'))
+                raid_data.append(datetime.fromtimestamp(r.end_time).strftime('%b %d %Y'))
+                raid_data.append(r.state)
+                raid_data.append(r.total_loot)
+                raid_data.append(r.offense_raids_completed)
+                raid_data.append(r.defense_raids_completed)
+                raid_data.append(r.raid_attack_count)
+                raid_data.append(r.districts_destroyed)
+                raid_data.append(r.offense_rewards)
+                raid_data.append(r.defense_rewards)
+                #m_data = raid_data
+                raid_data.append(m.tag)
+                raid_data.append(m.name)
+                raid_data.append(m.attack_count)
+                raid_data.append(m.resources_looted)
+                raid_data.append(m.medals_earned)
+
+                col = 0
+                row += 1
+                for d in raid_data:
+                    raid_worksheet.write(row,col,d)
+                    col += 1
+
         rp_workbook.close()
 
-        return report_file
+        return report_file, error_log
