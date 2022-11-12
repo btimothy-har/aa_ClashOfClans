@@ -10,6 +10,7 @@ import random
 import time
 import re
 import fasteners
+import xlsxwriter
 
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
@@ -1463,6 +1464,7 @@ class AriXLeaderCommands(commands.Cog):
     ### - Clan Report
     ###     > War Trends
     ###     > Raid Trends
+    ### - Excel Extract
 
     ####################################################################################################
 
@@ -1515,6 +1517,12 @@ class AriXLeaderCommands(commands.Cog):
                 'id': 'clan',
                 'title': 'Clan Performance Summary',
                 'description': f"War Trends, Raid Trends"
+                },
+            {
+                'emoji': '<:download:1040800550373044304>',
+                'id': 'excel',
+                'title': 'Download to Excel (.xlsx)',
+                'description': 'Get an Excel file containing all Member, Clan War, and Raid Weekend data.'
                 }
             ]
 
@@ -1551,6 +1559,10 @@ class AriXLeaderCommands(commands.Cog):
         if selected_report['id'] == 'clan':
             ##
             pass
+
+        if selected_report['id'] == 'excel':
+            file = await self.report_to_excel(ctx,c)
+            return await ctx.send(file=discord.File('file'))
         
         await wembed.delete()
 
@@ -1913,3 +1925,168 @@ class AriXLeaderCommands(commands.Cog):
 
         return output_embed, error_log
 
+
+
+    async def report_to_excel(self,ctx,clan):
+
+        member_tags = await get_alliance_members(ctx,clan)
+        members = []
+
+        for m in member_tags:
+            try:
+                p = await aPlayer.create(ctx,m)
+            except TerminateProcessing as e:
+                return await error_end_processing(ctx,
+                    preamble=f"Error encountered while retrieving data for {m}.",
+                    err=e)
+            except Exception as e:
+                p = None
+                errD = {'tag':m,'reason':e}
+                error_log.append(errD)
+                continue
+            members.append(p)
+
+        members = sorted(members,key=lambda a:(a.town_hall.level,sum([h.level for h in a.heroes]),a.exp_level),reverse=True)
+
+        dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%m%S')}"
+        report_file = f"{ctx.bot.clash_report_path}/{ctx.author.display_name}_{clan_abbreviation}_{dt}.xlsx"
+
+        rp_workbook = xslxwriter.Workbook(report_file)
+        bold = rp_workbook.add_format({'bold': True})
+
+        mem_worksheet = rp_workbook.add_worksheet('Members')
+
+        headers = ['Tag',
+            'Name',
+            'Discord User',
+            'Home Clan',
+            'Rank',
+            'Days in Home Clan',
+            'Exp',
+            'Townhall',
+            'TH Weapon',
+            'Current Clan',
+            'Role in Clan',
+            'League',
+            'Trophies',
+            'Barbarian King',
+            'Archer Queen',
+            'Grand Warden',
+            'Royal Champion',
+            'Hero Completion',
+            'Troop Levels',
+            'Troop Completion',
+            'Spell Levels',
+            'Spell Completion',
+            'Attack Wins',
+            'Defense Wins',
+            'Donations Sent',
+            'Donations Received',
+            'Gold Looted',
+            'Elixir Looted',
+            'Dark Elixir Looted',
+            'Clan Games Points',
+            'Wars Participated',
+            'Total Attacks',
+            'Missed Attacks',
+            'Triples',
+            'Offense Stars',
+            'Offense Destruction',
+            'Defense Stars',
+            'Defense Destruction',
+            'Raids Participated',
+            'Raid Attacks',
+            'Capital Gold Looted',
+            'Raid Medals Earned',
+            'Capital Contribution']
+
+        row = 0
+        col = 0
+        for h in headers:
+            mem_worksheet.write(row,col,h,bold)
+            col += 1
+
+        for m in members:
+            col = 0
+            row += 1
+
+            m_data = []
+
+            m_data.append(m.tag)
+            m_data.append(m.name)
+
+            try:
+                m_user = ctx.bot.get_user(int(m.discord_user))
+                m_user_display = m_user.display_name
+            except:
+                m_user_display = m.discord_user
+            m_data.append(m_user_display)
+
+            m_data.append(m.home_clan.name)
+            m_data.append(m.arix_rank)
+
+            d, h, m, s = await convert_seconds_to_str(ctx,m.time_in_home_clan)
+            m_data.append(d)
+
+            m_data.append(m.exp_level)
+            m_data.append(m.town_hall.level)
+            m_data.append(m.town_hall.weapon)
+
+            m_data.append(f"{m.clan.name} ({m.clan.tag})")
+
+            m_data.append(m.role)
+
+            m_data.append(m.league.name)
+
+            m_data.append(m.trophies)
+
+            m_data.append(sum([h.level for h in m.heroes if h.name=='Barbarian King']))
+            m_data.append(sum([h.level for h in m.heroes if h.name=='Archer Queen']))
+            m_data.append(sum([h.level for h in m.heroes if h.name=='Grand Warden']))
+            m_data.append(sum([h.level for h in m.heroes if h.name=='Royal Champion']))
+            m_data.append(round((m.hero_strength / m.max_hero_strength)*100),1)
+
+            m_data.append(m.troop_strength)
+            m_data.append(round((m.troop_strength / m.max_troop_strength)*100),1)
+
+            m_data.append(m.spell_strength)
+            m_data.append(round((m.spell_strength / m.max_spell_strength)*100),1)
+
+            m_data.append(m.attack_wins.season)
+            m_data.append(m.defense_wins.season)
+
+            m_data.append(m.donations_sent.season)
+            m_data.append(m.donations_rcvd.season)
+
+            m_data.append(m.loot_gold.season)
+            m_data.append(m.loot_elixir.season)
+            m_data.append(m.loot_darkelixir.season)
+
+            m_data.append(m.clangames.season)
+
+            m_data.append(m.war_stats.wars_participated)
+            m_data.append(m.war_stats.total_attacks)
+            m_data.append(m.war_stats.missed_attacks)
+
+            m_data.append(m.war_stats.triples)
+            m_data.append(m.war_stats.offense_stars)
+
+            m_data.append(m.war_stats.offense_destruction)
+
+            m_data.append(m.war_stats.defense_stars)
+            m_data.append(m.war_stats.defense_destruction)
+
+            m_data.append(m.raid_stats.raids_participated)
+
+            m_data.append(m.raid_stats.raid_attacks)
+            m_data.append(m.raid_stats.resources_looted)
+            m_data.append(m.raid_stats.medals_earned)
+            m_data.append(m.capitalcontribution.season)
+
+            for d in m_data:
+                mem_worksheet.write(row,col,d)
+                col += 1
+
+        rp_workbook.close()
+
+        return report_file

@@ -28,6 +28,8 @@ async def setup(bot:Red):
         os.getenv("DISCORDLINKS_PASS"))
 
     bot.clash_dir_path = os.getenv("DATAPATH")
+    bot.clash_report_path = os.getenv('REPORTPATH')
+    bot.eclipse_path = os.getenv('ECLIPSEPATH')
 
     bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")

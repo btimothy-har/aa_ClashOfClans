@@ -30,7 +30,7 @@ async def clash_embed(ctx, title=None, message=None, url=None, show_author=True,
     else:
         embed = discord.Embed(title=title,description=message,color=color)
     if show_author:
-        embed.set_author(name=f"{ctx.author.display_name}#{ctx.author.discriminator}",icon_url=ctx.author.avatar_url)
+        embed.set_author(name=f"{ctx.author.display_name}",icon_url=ctx.author.avatar_url)
     if thumbnail:
         embed.set_thumbnail(url=thumbnail)
     if image:

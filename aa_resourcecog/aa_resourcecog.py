@@ -47,12 +47,11 @@ class AriXClashResources(commands.Cog):
         title = ""
         text_full = ""
         text_summary = ""
-        title += f"{c.name} ({c.tag})"
+        title += f"{c.name}"
 
-        text_full += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000Members: {c.c.member_count}"
-        text_full += f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
-        text_full += f"\n:globe_with_meridians: {c.c.location.name}\u3000<:HomeTrophies:825589905651400704> {c.c.points}\u3000<:BuilderTrophies:825713625586466816> {c.c.versus_points}"
-        text_full += f"\n[Open clan in-game]({c.c.share_link})"
+        text_full += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000<:Members:1040672942524215337> {c.member_count}"
+        text_full += f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\n<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
+        text_full += f"\n[Clan Link: {c.tag}]({c.c.share_link})"
 
         text_summary += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000{emotes_league[c.c.war_league.name]} {c.c.war_league.name}"
 
@@ -64,7 +63,7 @@ class AriXClashResources(commands.Cog):
         title = ""
         text_full = ""
         text_summary = ""
-        title += f"{p.name} ({p.tag})"
+        title += f"{p.name}"
 
         m_description = ""
         if p.is_member:
@@ -79,7 +78,7 @@ class AriXClashResources(commands.Cog):
         text_full += f"<:Exp:825654249475932170> {p.exp_level}\u3000<:Clan:825654825509322752> {p.clan_description}"
         text_full += f"\n{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies} (best: {p.best_trophies})"
         text_full += f"\n{p.hero_description}"
-        text_full += f"\n[Open player in-game]({p.share_link})"
+        text_full += f"\n[Player Link: {p.tag}]({p.share_link})"
         
         text_summary += f"{p.town_hall.emote} {p.town_hall.description}\u3000"
         if p.is_member and p.arix_rank not in ['alt']:
@@ -175,12 +174,15 @@ class AriXClashResources(commands.Cog):
             selected_account = await multiple_choice_select(ctx,
                 sEmbed=nick_embed,
                 selection_list=selection_list,
-                selection_text="Select an account from the list below to be the new nickname.")
+                selection_text="Select an account from the list below to be the new nickname.\n")
 
         if not selected_account:
             return None
         
         new_nickname = [a.name for a in accounts if a.tag == selected_account['id']][0]
+
+        new_nickname = new_nickname.replace('[AriX]','')
+        new_nickname = new_nickname.strip()
 
         clan_ct = 0
         clan_str = ""

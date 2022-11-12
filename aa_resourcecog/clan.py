@@ -102,6 +102,8 @@ class aClan():
         except:
             self.capital_hall = 0
 
+        self.member_count = self.c.member_count
+
         self.description = self.c.description
 
         #Alliance Attributes

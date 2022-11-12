@@ -22,14 +22,14 @@ from numerize import numerize
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
-from aa_resourcecog.constants import emotes_townhall, emotes_army, hero_availability, troop_availability, spell_availability, emotes_league
+from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
-from aa_resourcecog.errors import TerminateProcessing
+from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 class AriXMemberCommands(commands.Cog):
     """AriX Clash of Clans Members' Module."""
@@ -45,6 +45,32 @@ class AriXMemberCommands(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
+    @commands.command(name="nickname")
+    async def user_setnickname(self,ctx):
+        """
+        Change your server nickname.
+
+        Your server nickname can be changed to match one of your registered accounts.
+        """
+
+        new_nickname = await resc.user_nickname_handler(ctx,ctx.author)
+
+        if not new_nickname:
+            return
+
+        try:
+            discord_member = ctx.guild.get_member(ctx.author.id)
+            await discord_member.edit(nick=new_nickname)
+            success_embed = await clash_embed(ctx,
+                message=f"{ctx.author.mention} your nickname has been set to {new_nickname}.",
+                color='success')
+            return await ctx.send(embed=success_embed)
+        except:
+            end_embed = await clash_embed(ctx,
+                message=f"{ctx.author.mention}, I don't have permissions to change your nickname.",
+                color='fail')
+            return await ctx.send(embed=end_embed)
+
     @commands.command(name="arix")
     async def arix_information(self,ctx):
         """
@@ -57,8 +83,9 @@ class AriXMemberCommands(commands.Cog):
             try:    
                 c = await aClan.create(ctx,tag)
             except Exception as e:
-                eEmbed = await clash_embed(ctx=ctx,message=f"{e}",color="fail")
-                return await ctx.send(embed=eEmbed)
+                return await error_end_processing(ctx,
+                    preamble=f"Error encountered while retrieving clan {tag}",
+                    err=e)
             alliance_clans.append(c)
 
         if len(alliance_clans) == 0:
@@ -67,21 +94,55 @@ class AriXMemberCommands(commands.Cog):
 
         rEmbed = await clash_embed(ctx=ctx,
             title="AriX Alliance | Clash of Clans",
-            image="https://i.imgur.com/TZF5r54.png")
+            thumbnail="https://i.imgur.com/TZF5r54.png",
+            show_author=False)
 
         for c in alliance_clans:
             th_str = ""
             for th in c.recruitment_level:
                 th_str += f"{emotes_townhall[th]} "
 
+            title, text, summary = await resc.clan_description(ctx,c)
+
             rEmbed.add_field(
-                name=f"{c.emoji} {c.name} ({c.tag})",
-                value=f"\n> <:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} {c.capital_hall}\u3000Leader: <@{c.leader}>"
-                    + f"\n> {emotes_league[c.c.war_league.name]} {c.c.war_league.name}\u3000<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
-                    + f"\n> Members: {c.member_count}/50\u3000Recruiting: {th_str}"
-                    + f"\n> [Click here to open in-game]({c.c.share_link})"
-                    + f"\n\n{c.description}",
+                name=f"{c.emoji} **{c.name}**",
+                value=f"\nLeader: <@{c.leader}>"
+                    + f"\n{text}"
+                    + f"\n\n> **Recruiting: {th_str}**"
+                    + f"\n\n{c.description}\n\u200b",
                 inline=False)
+
+        await ctx.send(embed=rEmbed)
+
+    @commands.command(name="getclan")
+    async def clan_information(self,ctx,tag):
+        """
+        Gets information about a specified clan tag.
+        """
+        try:    
+            c = await aClan.create(ctx,tag)
+        except Exception as e:
+            return await error_end_processing(ctx,
+                preamble=f"Error encountered while retrieving clan {tag}",
+                err=e)
+
+        title, text, summary = await resc.clan_description(ctx,c)
+
+        th_str = "Recruiting: "
+        for th in c.recruitment_level:
+            th_str += f"{emotes_townhall[th]} "
+
+        clan_str = ""
+        clan_str += f"{text}"
+        if len(c.recruitment_level) > 0:
+            clan_str += f"\n\n{th_str}"
+        clan_str += f"\n\n{c.description}"
+
+        rEmbed = await clash_embed(ctx=ctx,
+            title=f"{c.emoji} {title}",
+            message=clan_str,
+            thumbnail=c.c.badge.medium,
+            show_author=False)
 
         await ctx.send(embed=rEmbed)
 
@@ -295,32 +356,6 @@ class AriXMemberCommands(commands.Cog):
             await paginator.run()
         elif len(output_embed)==1:
             await ctx.send(embed=output_embed[0])
-
-    @commands.command(name="nickname")
-    async def user_setnickname(self,ctx):
-        """
-        Change your server nickname.
-
-        Your server nickname can be changed to match one of your registered accounts.
-        """
-
-        new_nickname = await resc.user_nickname_handler(self,ctx,ctx.author)
-
-        if not new_nickname:
-            return
-
-        try:
-            discord_member = ctx.guild.get_member(ctx.author.id)
-            await discord_member.edit(nick=new_nickname)
-            success_embed = await clash_embed(ctx,
-                message=f"{ctx.author.mention} your nickname has been set to {new_nickname}.",
-                color='success')
-            return await ctx.send(embed=success_embed)
-        except:
-            end_embed = await clash_embed(ctx,
-                message=f"{ctx.author.mention}, I don't have permissions to change your nickname.",
-                color='fail')
-            return await ctx.send(embed=end_embed)
 
 
 
