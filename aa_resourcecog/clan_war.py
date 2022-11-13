@@ -321,12 +321,14 @@ class aPlayerWarLog():
         
         self.town_hall = json_data['town_hall']
         self.map_position = json_data['map_position']
-        self.total_attacks = json_data['map_position']
+        self.total_attacks = json_data['total_attacks']
 
         self.best_opponent_attack = aWarAttack.from_json(war_id=self.wID,json_data=json_data.get('best_opponent_attack',None))
 
         self.attacks = [aWarAttack.from_json(war_id=self.wID,json_data=attack) for attack in json_data.get('attacks',[])]
         self.defenses = [aWarAttack.from_json(war_id=self.wID,json_data=defense) for defense in json_data.get('defenses',[])]
+
+        return self
 
     def to_json(self):
         warJson = {

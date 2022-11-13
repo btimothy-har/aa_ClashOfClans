@@ -11,6 +11,7 @@ import time
 import pytz
 import requests
 import fasteners
+import matplotlib.pyplot as plt
 
 from redbot.core import Config, commands
 from discord.utils import get
@@ -440,18 +441,18 @@ class AriXClashDataMgr(commands.Cog):
             #lock separately for each member
             async with ctx.bot.async_file_lock:
                 with ctx.bot.clash_file_lock.write_lock():
-                    try:
-                        p = await aPlayer.create(ctx,mtag)
-                        await p.retrieve_data()
-                    except TerminateProcessing as e:
-                        eEmbed = await clash_embed(ctx,message=e,color='fail')
-                        eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
-                        return await log_channel.send(eEmbed)
-                    except Exception as e:
-                        p = None
-                        err_dict = {'tag':f'm{mtag}','reason':e}
-                        err_log.append(err_dict)
-                        continue
+                    #try:
+                    p = await aPlayer.create(ctx,mtag)
+                    await p.retrieve_data()
+                    #except TerminateProcessing as e:
+                    #    eEmbed = await clash_embed(ctx,message=e,color='fail')
+                    #    eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+                    #    return await log_channel.send(eEmbed)
+                    #except Exception as e:
+                    #    p = None
+                    #    err_dict = {'tag':f'm{mtag}','reason':e}
+                    #    err_log.append(err_dict)
+                    #    continue
 
                     if is_new_season:
                         await p.set_baselines()
@@ -478,17 +479,18 @@ class AriXClashDataMgr(commands.Cog):
             if p.discord_user not in list(role_sync.keys()):
                 role_sync[p.discord_user] = {}
 
-            if p.home_clan.tag in list(role_sync[p.discord_user].keys()):
-                n_rank = clanRanks.index(p.arix_rank)
-                e_rank = clanRanks.index(role_sync[p.discord_user][p.home_clan.tag]['rank'])
+            if p.home_clan.tag:
+                if p.home_clan.tag in list(role_sync[p.discord_user].keys()):
+                    n_rank = clanRanks.index(p.arix_rank)
+                    e_rank = clanRanks.index(role_sync[p.discord_user][p.home_clan.tag]['rank'])
 
-                if n_rank > e_rank:
-                    role_sync[p.discord_user][p.home_clan.tag]['rank'] = p.arix_rank
-            else:
-                role_sync[p.discord_user][p.home_clan.tag] = {
-                    'clan': p.home_clan,
-                    'rank': p.arix_rank
-                    }
+                    if n_rank > e_rank:
+                        role_sync[p.discord_user][p.home_clan.tag]['rank'] = p.arix_rank
+                else:
+                    role_sync[p.discord_user][p.home_clan.tag] = {
+                        'clan': p.home_clan,
+                        'rank': p.arix_rank
+                        }
 
         role_count = 0
         for user, rank_info in role_sync.items():
@@ -562,8 +564,6 @@ class AriXClashDataMgr(commands.Cog):
                         except:
                             pass
 
-                await ctx.send(role_clan_tags)
-
                 if len(role_clan_tags) > 0:
                     for c in [c for c in alliance_clans if c.tag in role_clan_tags]:
                         member_role = ctx.bot.alliance_server.get_role(int(c.member_role))
@@ -614,13 +614,22 @@ class AriXClashDataMgr(commands.Cog):
             del run_time_hist[0]
         average_run_time = round(sum(run_time_hist) / len(run_time_hist),2)
 
+        run_time_plot = ctx.bot.clash_dir_path+"/runtimeplot.png"
+
+        plt.plot(run_time_hist)
+        plt.savefig(run_time_plot)
+
+        run_time_plot_file = discord.File(run_time_plot,filename='run_time_plot.png')
+        sEmbed.set_image(url=f"attachment://run_time_plot.png")
+
         sEmbed.add_field(
             name=f"**Processing Time**",
             value=f"{round(et-st,2)} seconds. *Average: {average_run_time} seconds.*",
             inline=False)
+
         
         if send_logs or is_new_season or detected_war_change or detected_raid_change or len(err_log)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
-            await log_channel.send(embed=sEmbed)
+            await log_channel.send(embed=sEmbed,file=run_time_plot_file)
             await self.config.last_data_log.set(st)
 
         await self.config.last_data_update.set(st)
