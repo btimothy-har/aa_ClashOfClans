@@ -157,7 +157,7 @@ emotes_army = {
     "Super Bowler": "<:SuperBowler:1037032276665585815>",
     }
 
-clanRanks = ['Member','Elder','Co-Leader','Leader']
+clanRanks = ['Non-Member','Guest','Member','Elder','Co-Leader','Leader']
 
 warTypeGrid = {
     'random':'classic',

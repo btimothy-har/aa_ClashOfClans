@@ -71,6 +71,106 @@ class AriXMemberCommands(commands.Cog):
                 color='fail')
             return await ctx.send(embed=end_embed)
 
+    @commands.command(name="register")
+    async def user_add_guest_account(self,ctx):
+        """
+        Register a Guest account to the Alliance.
+
+        This lets our Leaders know who you are should you visit our clans.
+        """
+
+        user_account_tags = await get_user_accounts(ctx,ctx.author.id)
+
+
+        embed = await clash_embed(ctx,message="I will DM you to continue the linking process. Please ensure your DMs are open!")
+
+        await ctx.send(content=ctx.author.mention,embed=embed)
+
+        await ctx.author.send(f"Hello, {ctx.author.mention}! Let's link your non-Member Clash accounts to AriX as Guest accounts. This will let you bring these accounts into our clans. Please send any message to continue.")
+
+        def dm_check(m):
+            return m.author == ctx.author and m.guild is None
+        
+        try:
+            startmsg = await ctx.bot.wait_for("message",timeout=60,check=dm_check)
+        except asyncio.TimeoutError:
+            return await ctx.author.send("Sorry, you timed out. Restart the process from the AriX server.")
+
+        await ctx.author.send("```What is the Player Tag of the account you'd like to link?```**The image below shows where you can get your tag.**\nhttps://imgur.com/X0PjMya")
+        try:
+            msg_player_tag = await ctx.bot.wait_for("message",timeout=120,check=dm_check)
+        except asyncio.TimeoutError:
+            return await ctx.author.send("Sorry, you timed out. Restart the process from the AriX server.")
+
+        new_tag = coc.utils.correct_tag(msg_player_tag.content)
+        if not coc.utils.is_valid_tag(new_tag):
+            embed = await clash_embed(ctx,
+                message="This tag seems to be invalid.",
+                color="fail")
+            return await ctx.author.send(embed=embed)
+
+        if new_tag in user_account_tags:
+            embed = await clash_embed(ctx,
+                message="This account is already registered with AriX!",
+                color="fail")
+            return await ctx.author.send(embed=embed)
+
+        await ctx.author.send("```Please provide your in-game API Token.```**The image below shows how to retrieve your API Token.**\nhttps://imgur.com/Q1JwMzK")
+        try:
+            msg_api_token = await ctx.bot.wait_for("message",timeout=120,check=dm_check)
+        except asyncio.TimeoutError:
+            return await ctx.author.send("Sorry, you timed out. Restart the process from the Ataraxy server.")
+
+        player_tag = str(msg_player_tag.content)
+        api_token = str(msg_api_token.content)
+
+        waitmsg = await ctx.author.send("Verifying...")
+
+        try:
+            verify = await ctx.bot.coc_client.verify_player_token(player_tag=player_tag,token=api_token)
+        except Exception as e:
+            await waitmsg.delete()
+            err_embed = await clash_embed(ctx,message=f"An error occurred while verifying: {e}.",color='fail')
+            return await ctx.author.send(embed=err_embed)
+
+        if not verify:
+            embed = await clash_embed(ctx,
+                message="The token you provided seems to be invalid. Please try again.",
+                color="fail")
+            await waitmsg.delete()
+            return await ctx.author.send(embed=embed)
+        else:
+            try:
+                p = await aPlayer.create(ctx,new_tag)
+                await p.retrieve_data()
+            except Exception as e:
+                return await error_end_processing(ctx,
+                    preamble=f"Error encountered while fetching this account.",
+                    err=e)
+
+            if p.is_member:
+                err_embed = await clash_embed(ctx,message=f"The account {p.tag} {p.name} is already an AriX Member!",color='fail')
+                return await ctx.author.send(embed=err_embed)
+            else:
+                async with ctx.bot.async_file_lock:
+                    with ctx.bot.clash_file_lock.write_lock():
+                        try:
+                            await p.new_member(ctx,ctx.author)
+                            await p.set_baselines()
+                            await p.save_to_json()
+                        except Exception as e:
+                            err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
+                            await ctx.author.send(embed=err_embed)
+                            return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
+
+                title, text, summary = await resc.player_description(ctx,p)
+
+                player_embed = await clash_embed(ctx,
+                    message=f"The account {p.tag} {p.name} was successfully added as a Guest account!",
+                    color='success')
+
+                return await ctx.send(embed=player_embed)
+
     @commands.command(name="arix")
     async def arix_information(self,ctx):
         """
@@ -176,8 +276,8 @@ class AriXMemberCommands(commands.Cog):
 
         user_accounts = sorted(user_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
 
-        main_accounts = [a for a in user_accounts if a.arix_rank not in ['alt']]
-        alt_accounts = [a for a in user_accounts if a.arix_rank in ['alt']]
+        main_accounts = [a for a in user_accounts if a.arix_rank not in ['Guest']]
+        alt_accounts = [a for a in user_accounts if a.arix_rank in ['Guest']]
 
         if len(main_accounts) == 0:
             eEmbed = await clash_embed(ctx,message=f"{user.mention} is not an AriX Member.")
@@ -239,16 +339,21 @@ class AriXMemberCommands(commands.Cog):
         for a in accounts:
             member_status = ""
             if a.is_member:
-                if a.arix_rank == 'alt':
-                    member_status = f"***AriX alternate account***\n"
-                else:
-                    member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
+                member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
+            if a.arix_rank == 'Guest':
+                member_status = f"***AriX Guest Account***\n"
+                
 
             discord_msg = ""
             if a.discord_user:
                 discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_user}>"
             elif a.discord_link:
                 discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_link}>"
+
+            if a.league.name == 'Unranked':
+                league_img = "https://i.imgur.com/TZF5r54.png"
+            else:
+                league_img = a.league.icon.medium
 
             pEmbed = await clash_embed(
                 ctx=ctx,
@@ -257,7 +362,7 @@ class AriXMemberCommands(commands.Cog):
                     + f"<:Exp:825654249475932170>{a.exp_level}\u3000<:Clan:825654825509322752> {a.clan_description}"
                     + f"{discord_msg}",
                 url=f"{a.share_link}",
-                thumbnail=f"{a.league.icon.medium}")
+                thumbnail=league_img)
 
             base_strength = f"<:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength} *(rushed: {a.troop_rushed_pct}%)*"
             if a.town_hall.level >= 5:

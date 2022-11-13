@@ -294,7 +294,7 @@ class aPlayerWarLog():
         self.result = self.p.clan.war.result
 
         self.clan = aPlayerWarClan.from_war(self.p.clan)
-        if warplayer.is_opponent:
+        if war_player.is_opponent:
             self.opponent = aPlayerWarClan.from_war(self.p.clan.war.clan)
         else:
             self.opponent = aPlayerWarClan.from_war(self.p.clan.war.opponent)
@@ -316,17 +316,17 @@ class aPlayerWarLog():
         self.wID = war_id
         self.type = json_data.get('type','')
         self.result = json_data.get('result','')
-        self.clan = aPlayerWarClan.from_json(wardata['clan'])
-        self.opponent = aPlayerWarClan.from_json(wardata['opponent'])
+        self.clan = aPlayerWarClan.from_json(json_data['clan'])
+        self.opponent = aPlayerWarClan.from_json(json_data['opponent'])
         
-        self.town_hall = wardata['town_hall']
-        self.map_position = wardata['map_position']
-        self.total_attacks = wardata['map_position']
+        self.town_hall = json_data['town_hall']
+        self.map_position = json_data['map_position']
+        self.total_attacks = json_data['map_position']
 
-        self.best_opponent_attack = aWarAttack.from_json(war_id=self.wID,json_data=wardata.get('best_opponent_attack',None))
+        self.best_opponent_attack = aWarAttack.from_json(war_id=self.wID,json_data=json_data.get('best_opponent_attack',None))
 
-        self.attacks = [aWarAttack.from_json(war_id=self.wID,json_data=attack) for attack in wardata.get('attacks',[])]
-        self.defenses = [aWarAttack.from_json(war_id=self.wID,json_data=defense) for defense in wardata.get('defenses',[])]
+        self.attacks = [aWarAttack.from_json(war_id=self.wID,json_data=attack) for attack in json_data.get('attacks',[])]
+        self.defenses = [aWarAttack.from_json(war_id=self.wID,json_data=defense) for defense in json_data.get('defenses',[])]
 
     def to_json(self):
         warJson = {
@@ -341,7 +341,7 @@ class aPlayerWarLog():
             'attacks': [a.to_json() for a in self.attacks],
             'defenses': [d.to_json() for d in self.defenses]
             }
-        return self.warID, warJson
+        return self.wID, warJson
 
 class aPlayerWarClan():
     def __init__(self):

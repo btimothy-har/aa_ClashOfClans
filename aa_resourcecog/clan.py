@@ -39,7 +39,6 @@ class aClan():
         self.member_role = 0
         self.elder_role = 0
         self.coleader_role = 0
-        self.leader_role = 0
 
         self.announcement_channel = 0
         self.reminder_channel = 0
@@ -127,7 +126,6 @@ class aClan():
             self.member_role = clanInfo.get('member_role',0)
             self.elder_role = clanInfo.get('elder_role',0)
             self.coleader_role = clanInfo.get('coleader_role',0)
-            self.leader_role = clanInfo.get('leader_role',0)
 
             self.announcement_channel = clanInfo.get('announcement_channel',0)
             self.reminder_channel = clanInfo.get('reminder_channel',0)
@@ -162,7 +160,6 @@ class aClan():
             'member_role': self.member_role,
             'elder_role': self.elder_role,
             'coleader_role': self.coleader_role,
-            'leader_role': self.leader_role,
             'announcement_channel': self.announcement_channel,
             'reminder_channel': self.reminder_channel,
             'send_war_reminder': self.send_war_reminder,
@@ -241,24 +238,21 @@ class aClan():
 
         self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
 
-    async def add_to_alliance(self,leader:discord.User,abbreviation,emoji,leader_role,coleader_role,elder_role,member_role):
+    async def add_to_alliance(self,leader:discord.User,abbreviation,emoji,coleader_role,elder_role,member_role):
         self.is_alliance_clan = True
         self.leader = leader.id
         self.abbreviation = abbreviation
         self.emoji = emoji
-        self.leader_role = leader_role.id
         self.coleader_role = coleader_role.id
         self.elder_role = elder_role.id
         self.member_role = member_role.id
 
     async def add_staff(self,ctx,user,rank):
+        coleader_role = ctx.bot.alliance_server.get_role(int(self.coleader_role))
+        elder_role = ctx.bot.alliance_server.get_role(int(self.elder_role))
+        member_role = ctx.bot.alliance_server.get_role(int(self.member_role))
 
-        leader_role = ctx.guild.get_role(int(self.leader_role))
-        coleader_role = ctx.guild.get_role(int(self.coleader_role))
-        elder_role = ctx.guild.get_role(int(self.elder_role))
-        member_role = ctx.guild.get_role(int(self.member_role))
-
-        discord_member = ctx.guild.get_member(user.id)
+        discord_member = ctx.bot.alliance_server.get_member(user.id)
 
         if rank == 'Member':
             if user.id in self.elders:
@@ -268,8 +262,6 @@ class aClan():
 
             if discord_member:
                 try:
-                    if leader_role:
-                        await discord_member.remove_roles(leader_role)
                     if coleader_role:
                         await discord_member.remove_roles(coleader_role)
                     if elder_role:
@@ -283,8 +275,6 @@ class aClan():
                 self.co_leaders.remove(user.id)
             if discord_member:    
                 try:
-                    if leader_role:
-                        await discord_member.remove_roles(leader_role)
                     if coleader_role:
                         await discord_member.remove_roles(coleader_role)
                     if elder_role:
@@ -298,8 +288,6 @@ class aClan():
                 self.elders.remove(user.id)
             if discord_member:
                 try:
-                    if leader_role:
-                        await discord_member.remove_roles(leader_role)
                     if coleader_role:
                         await discord_member.add_roles(coleader_role)
                     if elder_role:
@@ -308,12 +296,11 @@ class aClan():
                     pass
 
         if rank == 'Leader':
+            #demote existing leader to Co
             self.co_leaders.append(self.leader)
             self.leader = user.id
             if discord_member:
                 try:
-                    if leader_role:
-                        await discord_member.add_roles(leader_role)
                     if coleader_role:
                         await discord_member.add_roles(coleader_role)
                     if elder_role:

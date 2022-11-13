@@ -49,9 +49,9 @@ async def get_user_accounts(ctx,user_id,clan_tag=None):
         file_json = json.load(file)
 
     if clan_tag:
-        select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and account['is_member']==True and account['home_clan']['tag']==clan_tag]
+        select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and (account['is_member']==True or account['rank']=='Guest') and account['home_clan']['tag']==clan_tag]
     else:
-        select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and account['is_member']==True]
+        select_account = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id and (account['is_member']==True or account['rank']=='Guest')]
 
     if len(select_account) == 0:
         return []

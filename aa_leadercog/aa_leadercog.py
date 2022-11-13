@@ -155,11 +155,14 @@ class AriXLeaderCommands(commands.Cog):
             thumbnail=c.c.badge.url)
         add_msg = await ctx.send(embed=info_embed)
 
-        leader_msg = await ctx.send(content=f"{ctx.author.mention}, who will be the Leader of this clan? Please mention the user.")
+
+        leader_embed = await clash_embed(ctx,message=f"Who will be the **Leader** of **{c.tag} {c.name}**?\n\nPlease mention the user.")
+        leader_msg = await ctx.send(content=f"{ctx.author.mention}", embed=leader_embed)
         try:
             leader_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
-            await leader_msg.edit(content="Operation cancelled.")
+            timeout_embed = await clash_embed(ctx,message=f"Operation timed out.")
+            await leader_msg.edit(embed=timeout_embed)
             return
         else:
             leader_id = re.search('@(.*)>',leader_response.content).group(1)
@@ -167,48 +170,46 @@ class AriXLeaderCommands(commands.Cog):
             await leader_msg.delete()
             await leader_response.delete()
 
-        abbr_msg = await ctx.send(content=f"{ctx.author.mention}, please specify the abbreviation for **{c.name}**.")
+        abbr_embed = await clash_embed(ctx,
+            message=f"Please specify the abbreviation for **{c.tag} {c.name}**?\n\nThis will be used to identify the clan within the Alliance.")
+        abbr_msg = await ctx.send(content=f"{ctx.author.mention}", embed=abbr_embed)
         try:
             abbr_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
-            await abbr_msg.edit(content="Operation cancelled.")
+            timeout_embed = await clash_embed(ctx,message=f"Operation timed out.")
+            await leader_msg.edit(embed=timeout_embed)
             return
         else:
             clan_abbreviation = abbr_response.content.upper()
             check_abbr = await get_alliance_clan(ctx,clan_abbreviation)
             if not force and check_abbr:
-                return await ctx.send(content=f"The abbreviation {clan_abbreviation} is already in use. Please try again.")
+                in_use_embed = await clash_embed(ctx,message=f"The abbreviation {clan_abbreviation} is already in use. Please try again.")
+                return await ctx.send(embed=in_use_embed)
             await abbr_msg.delete()
             await abbr_response.delete()
 
-        emoji_msg = await ctx.send(content=f"{ctx.author.mention}, please specify the emoji for **{c.name}**.")
+        emoji_embed = await clash_embed(ctx,
+            message=f"Please provide the emoji for **{c.tag} {c.name}**.\n\nNote: The emoji must be from a server that the bot is invited to.")
+        emoji_msg = await ctx.send(content=f"{ctx.author.mention}", embed=emoji_embed)
         try:
             emoji_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
-            await emoji_msg.edit(content="Operation cancelled.")
+            timeout_embed = await clash_embed(ctx,message=f"Operation timed out.")
+            await emoji_msg.edit(embed=timeout_embed)
             return
         else:
             emoji = emoji_response.content
             await emoji_msg.delete()
             await emoji_response.delete()
 
-        leader_role_msg = await ctx.send(content=f"{ctx.author.mention}, please mention the **Leader** role for **{c.name}**.")
-        try:
-            leader_role_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-        except asyncio.TimeoutError:
-            await leader_role_msg.edit(content="Operation cancelled.")
-            return
-        else:
-            leader_role_id = re.search('@&(.*)>',leader_role_response.content).group(1)
-            leader_role = ctx.guild.get_role(int(leader_role_id))
-            await leader_role_msg.delete()
-            await leader_role_response.delete()
-
-        coleader_role_msg = await ctx.send(content=f"{ctx.author.mention}, please mention the **Co-Leader** role for **{c.name}**.")
+        coleader_role_embed = await clash_embed(ctx,
+            message=f"Please mention the **Co-Leader** role for **{c.tag} {c.name}**.")
+        coleader_role_msg = await ctx.send(content=f"{ctx.author.mention}", embed=coleader_role_embed)
         try:
             coleader_role_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
-            await coleader_role_msg.edit(content="Operation cancelled.")
+            timeout_embed = await clash_embed(ctx,message=f"Operation timed out.")
+            await coleader_role_msg.edit(embed=timeout_embed)
             return
         else:
             coleader_role_id = re.search('@&(.*)>',coleader_role_response.content).group(1)
@@ -216,11 +217,14 @@ class AriXLeaderCommands(commands.Cog):
             await coleader_role_msg.delete()
             await coleader_role_response.delete()
 
-        elder_role_msg = await ctx.send(content=f"{ctx.author.mention}, please mention the **Elder** role for **{c.name}**.")
+        elder_role_embed = await clash_embed(ctx,
+            message=f"Please mention the **Elder** role for **{c.tag} {c.name}**.")
+        elder_role_msg = await ctx.send(content=f"{ctx.author.mention}", embed=elder_role_embed)
         try:
             elder_role_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
-            await elder_role_msg.edit(content="Operation cancelled.")
+            timeout_embed = await clash_embed(ctx,message=f"Operation timed out.")
+            await elder_role_msg.edit(embed=timeout_embed)
             return
         else:
             elder_role_id = re.search('@&(.*)>',elder_role_response.content).group(1)
@@ -228,11 +232,14 @@ class AriXLeaderCommands(commands.Cog):
             await elder_role_msg.delete()
             await elder_role_response.delete()
 
-        member_role_msg = await ctx.send(content=f"{ctx.author.mention}, please mention the **Member** role for **{c.name}**.")
+        member_role_embed = await clash_embed(ctx,
+            message=f"Please mention the **Member** role for **{c.tag} {c.name}**.")
+        member_role_msg = await ctx.send(content=f"{ctx.author.mention}", embed=member_role_embed)
         try:
             member_role_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
-            await member_role_msg.edit(content="Operation cancelled.")
+            timeout_embed = await clash_embed(ctx,message=f"Operation timed out.")
+            await member_role_msg.edit(embed=timeout_embed)
             return
         else:
             member_role_id = re.search('@&(.*)>',member_role_response.content).group(1)
@@ -259,7 +266,6 @@ class AriXLeaderCommands(commands.Cog):
                     leader=leader,
                     abbreviation=clan_abbreviation,
                     emoji=emoji,
-                    leader_role=leader_role,
                     coleader_role=coleader_role,
                     elder_role=elder_role,
                     member_role=member_role)

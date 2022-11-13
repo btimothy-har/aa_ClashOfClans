@@ -228,7 +228,7 @@ class aRaidMember():
         self.name = game_data.name
         self.attack_count = game_data.attack_count
         self.resources_looted = game_data.capital_resources_looted
-        self.medals_earned = (self.attack_count * self.raid_weekend.offensive_reward) + self.raid_weekend.defensive_reward
+        self.medals_earned = (self.attack_count * self.raid_weekend.offense_rewards) + self.raid_weekend.defense_rewards
         self.attacks = [aRaidAttack.from_game(raid_id=self.raid_weekend.rID,game_data=a) for a in game_data.attacks]
         return self
 

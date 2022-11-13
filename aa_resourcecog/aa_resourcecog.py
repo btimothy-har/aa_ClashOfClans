@@ -42,6 +42,38 @@ class AriXClashResources(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
+    @commands.command(name="status")
+    @commands.is_owner()
+    async def system_status(self,ctx):
+        """Gets information on the system status."""
+
+        if ctx.bot.alliance_server:
+            try:
+                a_server = ctx.bot.alliance_server.name
+            except:
+                a_server = ctx.guild.name
+        else:
+            a_server = ctx.guild.name
+
+        embed = await clash_embed(ctx=ctx,title="System Status Report")
+        embed.add_field(
+            name="__Summary__",
+            value=f"> **Alliance Server**: {a_server}"
+                + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
+                + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
+                + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
+            inline=False)
+
+        embed.add_field(
+            name="__Data Files__",
+            value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
+                + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
+                + f"\n> **members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
+                + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+                inline=False)
+        await ctx.send(embed=embed)
+
     async def clan_description(ctx,c):
         #build title
         title = ""
@@ -67,7 +99,7 @@ class AriXClashResources(commands.Cog):
 
         m_description = ""
         if p.is_member:
-            if p.arix_rank not in ['alt']:
+            if p.arix_rank not in ['Guest']:
                 m_description = f"***{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}***"
             else:
                 m_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
@@ -81,7 +113,7 @@ class AriXClashResources(commands.Cog):
         text_full += f"\n[Player Link: {p.tag}]({p.share_link})"
         
         text_summary += f"{p.town_hall.emote} {p.town_hall.description}\u3000"
-        if p.is_member and p.arix_rank not in ['alt']:
+        if p.is_member and p.arix_rank not in ['Guest']:
             text_summary += f"{m_description}"
         else:
             text_summary += f"<:Clan:825654825509322752> {p.clan_description}"
@@ -131,7 +163,7 @@ class AriXClashResources(commands.Cog):
                 eEmbed = await clash_embed(ctx,message=e,color='fail')
                 return await ctx.send(eEmbed)
 
-            if p.arix_rank != 'alt':
+            if p.arix_rank != 'Guest':
                 if p.home_clan.tag not in [c.tag for c in home_clans]:
                     home_clans.append(p.home_clan)
                 accounts.append(p)

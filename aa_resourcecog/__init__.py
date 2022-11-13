@@ -31,6 +31,8 @@ async def setup(bot:Red):
     bot.clash_report_path = os.getenv('REPORTPATH')
     bot.eclipse_path = os.getenv('ECLIPSEPATH')
 
+    bot.alliance_server = bot.get_guild(int(os.getenv('ALLIANCESERVER')))
+
     bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")
 

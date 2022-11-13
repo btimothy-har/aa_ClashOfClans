@@ -19,7 +19,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
-from aa_resourcecog.constants import confirmation_emotes, json_file_defaults
+from aa_resourcecog.constants import confirmation_emotes, json_file_defaults, clanRanks
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
@@ -242,12 +242,14 @@ class AriXClashDataMgr(commands.Cog):
         if not log_channel:
             log_channel = ctx.channel
 
+        role_sync = {}
         war_reminders = {}
         success_log = []
         err_log = []
 
         season = await get_current_season()
         clans, members = await get_current_alliance(ctx)
+        alliance_clans = []
 
         sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
@@ -256,7 +258,7 @@ class AriXClashDataMgr(commands.Cog):
         sEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
 
         is_cwl = False
-        if datetime.now(helsinkiTz).day <= 8:
+        if datetime.now(helsinkiTz).day <= 9:
             is_cwl = True
 
         #file lock for new season
@@ -302,6 +304,7 @@ class AriXClashDataMgr(commands.Cog):
                         err_log.append(err_dict)
                         continue
 
+                    alliance_clans.append(c)
                     await c.update_member_count()
                     await c.update_clan_war()
                     await c.update_raid_weekend()
@@ -336,11 +339,11 @@ class AriXClashDataMgr(commands.Cog):
                 if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
                     str_raid_update += f"\n**Raid Weekend has begun!**"
                     if c.announcement_channel:
-                        channel = ctx.guild.get_channel(c.announcement_channel)
+                        channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
                         announcement_str = "Raid Weekend has begun!"
                         
                         if c.member_role:
-                            role = ctx.guild.get_role(c.member_role)
+                            role = ctx.bot.alliance_server.get_role(c.member_role)
                             announcement_str += f"\n\n{role.mention}"
 
                         rm = discord.AllowedMentions(roles=True)
@@ -399,11 +402,11 @@ class AriXClashDataMgr(commands.Cog):
                             value=f"{c.current_raid_weekend.defense_raids_completed}",
                             inline=True)
 
-                        channel = ctx.guild.get_channel(c.announcement_channel)
+                        channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
                         rm = discord.AllowedMentions(roles=True)
 
                         if c.member_role:
-                            role = ctx.guild.get_role(c.member_role)
+                            role = ctx.bot.alliance_server.get_role(c.member_role)
                             await channel.send(content=f"{role.mention}",embed=raid_end_embed,allowed_mentions=rm)
                         else:
                             await channel.send(embed=raid_end_embed)
@@ -425,7 +428,7 @@ class AriXClashDataMgr(commands.Cog):
 
         sEmbed.add_field(
             name=f"**Clan War**",
-            value=str_war_update,
+            value=f"CWL State: {is_cwl}\n{str_war_update}",
             inline=False)
 
         sEmbed.add_field(
@@ -457,7 +460,7 @@ class AriXClashDataMgr(commands.Cog):
                         await p.set_baselines()
                         success_log.append(p)
                     else:
-                        if p.is_member and p.clan.tag in clans:
+                        if p.is_member and p.clan.is_alliance_clan:
                             await p.update_stats()
                             success_log.append(p)
                         else:
@@ -471,12 +474,124 @@ class AriXClashDataMgr(commands.Cog):
                         await p.update_raidweekend(dict_raid_update[p.tag])
 
                     await p.save_to_json()
-        
+
+            if p.discord_user not in list(role_sync.keys()):
+                role_sync[p.discord_user] = {}
+
+            if p.home_clan.tag in list(role_sync[p.discord_user].keys()):
+                n_rank = clanRanks.index(p.arix_rank)
+                e_rank = clanRanks.index(role_sync[p.discord_user][p.home_clan.tag]['rank'])
+
+                if n_rank > e_rank:
+                    role_sync[p.discord_user][p.home_clan.tag]['rank'] = p.arix_rank
+            else:
+                role_sync[p.discord_user][p.home_clan.tag] = {
+                    'clan': p.home_clan,
+                    'rank': p.arix_rank
+                    }
+
+        role_count = 0
+        for user, rank_info in role_sync.items():
+            role_clan_tags = [c.tag for c in alliance_clans]
+            discord_member = ctx.bot.alliance_server.get_member(int(user))
+
+            if discord_member:
+                role_change = False
+                await ctx.send(f"{user}:{rank_info}")
+                
+                for clan_tag, rank_info in rank_info.items():
+                    
+                    role_clan_tags.remove(clan_tag)
+
+                    member_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].member_role))
+                    elder_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].elder_role))
+                    coleader_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].coleader_role))
+
+                    if rank_info['rank'] == 'Guest' or rank_info['rank'] == 'Non-Member':
+                        try:
+                            if member_role in discord_member.roles:
+                                await discord_member.remove_roles(member_role)
+                                role_change = True
+                            if elder_role in discord_member.roles:
+                                await discord_member.remove_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
+                        except:
+                            pass
+
+                    if rank_info['rank'] == 'Member':
+                        try:
+                            if member_role not in discord_member.roles:
+                                await discord_member.add_roles(member_role)
+                                role_change = True
+                            if elder_role in discord_member.roles:
+                                await discord_member.remove_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
+                        except:
+                            pass
+                        
+                    if rank_info['rank'] == 'Elder':
+                        try:
+                            if member_role not in discord_member.roles:
+                                await discord_member.add_roles(member_role)
+                                role_change = True
+                            if elder_role not in discord_member.roles:
+                                await discord_member.add_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
+                        except:
+                            pass
+                        
+                    if rank_info['rank'] == 'Leader':
+                        try:    
+                            if member_role not in discord_member.roles:
+                                await discord_member.add_roles(member_role)
+                                role_change = True
+                            if elder_role not in discord_member.roles:
+                                await discord_member.add_roles(elder_role)
+                                role_change = True
+                            if coleader_role not in discord_member.roles:
+                                await discord_member.add_roles(coleader_role)
+                                role_change = True
+                        except:
+                            pass
+
+                await ctx.send(role_clan_tags)
+
+                if len(role_clan_tags) > 0:
+                    for c in [c for c in alliance_clans if c.tag in role_clan_tags]:
+                        member_role = ctx.bot.alliance_server.get_role(int(c.member_role))
+                        elder_role = ctx.bot.alliance_server.get_role(int(c.elder_role))
+                        coleader_role = ctx.bot.alliance_server.get_role(int(c.coleader_role))
+
+                        try:
+                            if member_role in discord_member.roles:
+                                await discord_member.remove_roles(member_role)
+                                role_change = True
+                            if elder_role in discord_member.roles:
+                                await discord_member.remove_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
+                        except:
+                            pass
+
+                if role_change:
+                    role_count += 1
+
         et = time.time()
 
         sEmbed.add_field(
             name=f"**Members**",
-            value=f"CWL State: {is_cwl}\n{len(success_log)} records updated. {len(err_log)} errors encountered.",
+            value=f"{len(success_log)} records updated.\nUpdated roles for {role_count} members.\n{len(err_log)} errors encountered.",
             inline=False)
 
         if len(err_log)>0:

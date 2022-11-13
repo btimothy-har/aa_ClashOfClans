@@ -486,44 +486,48 @@ class aPlayer():
             tag=self.tag,
             new_data=memberJson)
 
-    async def new_member(self,ctx,discord_user,home_clan):
-        leader_role = ctx.guild.get_role(int(home_clan.leader_role))
-        coleader_role = ctx.guild.get_role(int(home_clan.coleader_role))
-        elder_role = ctx.guild.get_role(int(home_clan.elder_role))
-        member_role = ctx.guild.get_role(int(home_clan.member_role))
+    async def new_member(self,ctx,discord_user,home_clan=None):
 
-        discord_member = ctx.guild.get_member(discord_user.id)
+        discord_member = ctx.bot.alliance_server.get_member(discord_user.id)
+        self.discord_user = discord_user.id
 
-        self.home_clan = home_clan
-        self.is_member = True
+        if home_clan:
+            coleader_role = ctx.bot.alliance_server.get_role(int(home_clan.coleader_role))
+            elder_role = cctx.bot.alliance_server.get_role(int(home_clan.elder_role))
+            member_role = ctx.bot.alliance_server.get_role(int(home_clan.member_role))
+            
+            self.home_clan = home_clan
+            self.is_member = True
 
-        if discord_member and member_role:
-            await discord_member.add_roles(member_role)
+            if discord_member and member_role:
+                await discord_member.add_roles(member_role)
 
-        if discord_user.id == home_clan.leader:
-            self.arix_rank = 'Leader'
-            if discord_member and leader_role:
-                await discord_member.add_roles(leader_role)
-            if discord_member and coleader_role:
-                await discord_member.add_roles(coleader_role)
-            if discord_member and elder_role:
-                await discord_member.add_roles(elder_role)
+            if discord_user.id == home_clan.leader:
+                self.arix_rank = 'Leader'
+                if discord_member and coleader_role:
+                    await discord_member.add_roles(coleader_role)
+                if discord_member and elder_role:
+                    await discord_member.add_roles(elder_role)
 
-        elif discord_user.id in home_clan.co_leaders:
-            self.arix_rank = 'Co-Leader'
-            if discord_member and coleader_role:
-                await discord_member.add_roles(coleader_role)
-            if discord_member and elder_role:
-                await discord_member.add_roles(elder_role)
+            elif discord_user.id in home_clan.co_leaders:
+                self.arix_rank = 'Co-Leader'
+                if discord_member and coleader_role:
+                    await discord_member.add_roles(coleader_role)
+                if discord_member and elder_role:
+                    await discord_member.add_roles(elder_role)
 
-        elif discord_user.id in home_clan.elders:
-            self.arix_rank = 'Elder'
-            if discord_member and elder_role:
-                await discord_member.add_roles(elder_role)
+            elif discord_user.id in home_clan.elders:
+                self.arix_rank = 'Elder'
+                if discord_member and elder_role:
+                    await discord_member.add_roles(elder_role)
+            
+            else:
+                self.arix_rank = 'Member'
 
         else:
-            self.arix_rank = 'Member'
-        self.discord_user = discord_user.id
+            self.home_clan = await aClan.create(ctx,None)
+            self.is_member = False
+            self.arix_rank = 'Guest'
 
     async def remove_member(self):
         self.arix_rank = 'Non-Member'
