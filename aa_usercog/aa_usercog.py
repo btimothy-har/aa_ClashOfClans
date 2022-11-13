@@ -83,10 +83,10 @@ class AriXMemberCommands(commands.Cog):
 
 
         embed = await clash_embed(ctx,message="I will DM you to continue the linking process. Please ensure your DMs are open!")
-
         await ctx.send(content=ctx.author.mention,embed=embed)
 
-        await ctx.author.send(f"Hello, {ctx.author.mention}! Let's link your non-Member Clash accounts to AriX as Guest accounts. This will let you bring these accounts into our clans. Please send any message to continue.")
+        embed = await clash_embed(ctx,message="Let's link your non-Member Clash accounts to AriX as Guest accounts. This will let you bring these accounts into our clans.\n\n**Please send any message to continue.**")
+        await ctx.author.send(f"Hello, {ctx.author.mention}!",embed=embed)
 
         def dm_check(m):
             return m.author == ctx.author and m.guild is None
@@ -94,18 +94,25 @@ class AriXMemberCommands(commands.Cog):
         try:
             startmsg = await ctx.bot.wait_for("message",timeout=60,check=dm_check)
         except asyncio.TimeoutError:
-            return await ctx.author.send("Sorry, you timed out. Restart the process from the AriX server.")
+            timeout_embed = await clash_embed(ctx,
+                message="Sorry, you timed out. Please restart the process by re-using the `register` command from the AriX server.",
+                color='fail')
+            return await ctx.author.send(embed=timeout_embed)
 
-        await ctx.author.send("```What is the Player Tag of the account you'd like to link?```**The image below shows where you can get your tag.**\nhttps://imgur.com/X0PjMya")
+        embed = await clash_embed(ctx,
+            message="What is the **Player Tag** of the account you'd like to link?")
+        await ctx.author.send(embed=embed)
         try:
             msg_player_tag = await ctx.bot.wait_for("message",timeout=120,check=dm_check)
         except asyncio.TimeoutError:
-            return await ctx.author.send("Sorry, you timed out. Restart the process from the AriX server.")
+            timeout_embed = await clash_embed(ctx,
+                message="Sorry, you timed out. Please restart the process by re-using the `register` command from the AriX server.",
+                color='fail')
 
         new_tag = coc.utils.correct_tag(msg_player_tag.content)
         if not coc.utils.is_valid_tag(new_tag):
             embed = await clash_embed(ctx,
-                message="This tag seems to be invalid.",
+                message="This tag seems to be invalid. Please try again by using the `register` command from the AriX server.",
                 color="fail")
             return await ctx.author.send(embed=embed)
 
@@ -115,7 +122,10 @@ class AriXMemberCommands(commands.Cog):
                 color="fail")
             return await ctx.author.send(embed=embed)
 
-        await ctx.author.send("```Please provide your in-game API Token.```**The image below shows how to retrieve your API Token.**\nhttps://imgur.com/Q1JwMzK")
+        embed = await clash_embed(ctx,
+            message="Please provide your **in-game API Token.**\n\nTo locate your token, please follow the instructions in the image below.")
+        embed.set_image(url='https://imgur.com/Q1JwMzK')
+        await ctx.author.send(embed=embed)
         try:
             msg_api_token = await ctx.bot.wait_for("message",timeout=120,check=dm_check)
         except asyncio.TimeoutError:
@@ -124,7 +134,9 @@ class AriXMemberCommands(commands.Cog):
         player_tag = str(msg_player_tag.content)
         api_token = str(msg_api_token.content)
 
-        waitmsg = await ctx.author.send("Verifying...")
+        embed = await clash_embed(ctx,
+            message="Verifying... please wait.")
+        waitmsg = await ctx.author.send(embed=embed)
 
         try:
             verify = await ctx.bot.coc_client.verify_player_token(player_tag=player_tag,token=api_token)
