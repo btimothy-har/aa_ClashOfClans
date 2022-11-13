@@ -2151,7 +2151,9 @@ class AriXLeaderCommands(commands.Cog):
             war_worksheet.write(row,col,h,bold)
             col += 1
 
-        for wid, war in clan.war_log.items():
+        wid_sorted = sorted([wid for wid in list(clan.war_log.keys())],reverse=True)
+        for wid in wid_sorted:
+            war = clan.war_log[wid]
             for m in war.clan.members:
                 for i in range(0,war.attacks_per_member):
 
@@ -2237,7 +2239,9 @@ class AriXLeaderCommands(commands.Cog):
             raid_worksheet.write(row,col,h,bold)
             col += 1
 
-        for rid, r in clan.raid_log.items():
+        rid_sorted = sorted([rid for rid in list(clan.raid_log.keys())],reverse=True)
+        for rid in rid_sorted:
+            r = clan.raid_log[rid]
             for m in r.members:
                 raid_data = []
 

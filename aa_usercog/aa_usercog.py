@@ -124,12 +124,15 @@ class AriXMemberCommands(commands.Cog):
 
         embed = await clash_embed(ctx,
             message="Please provide your **in-game API Token.**\n\nTo locate your token, please follow the instructions in the image below.")
-        embed.set_image(url='https://imgur.com/Q1JwMzK')
+        embed.set_image(url='https://i.imgur.com/Q1JwMzK.png')
         await ctx.author.send(embed=embed)
         try:
             msg_api_token = await ctx.bot.wait_for("message",timeout=120,check=dm_check)
         except asyncio.TimeoutError:
-            return await ctx.author.send("Sorry, you timed out. Restart the process from the Ataraxy server.")
+            timeout_embed = await clash_embed(ctx,
+                message="Sorry, you timed out. Please restart the process by re-using the `register` command from the AriX server.",
+                color='fail')
+            return await ctx.author.send(embed=timeout_embed)
 
         player_tag = str(msg_player_tag.content)
         api_token = str(msg_api_token.content)

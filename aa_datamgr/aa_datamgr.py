@@ -14,9 +14,11 @@ import fasteners
 import matplotlib.pyplot as plt
 
 from redbot.core import Config, commands
+from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
 from discord.utils import get
 from datetime import datetime
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
+from tabulate import tabulate
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
@@ -354,6 +356,20 @@ class AriXClashDataMgr(commands.Cog):
                     str_raid_update += f"\n**Raid Weekend is now over.**"
 
                     if c.announcement_channel:
+
+                        members_ranked = sorted(c.current_raid_weekend.members, key=lambda x: (x.resources_looted),reverse=True)
+                        rank = 0
+                        rank_table = []
+                        for m in members_ranked[0:5]:
+                            rank += 1
+                            m_table = {
+                                "P": rank,
+                                "Name": m.name,
+                                "Looted": f"{m.resources_looted:,}",
+                                "Attacks": m.attack_count,
+                                }
+                            rank_table.append(m_table)
+
                         raid_end_embed = await clash_embed(ctx=ctx,
                             title=f"Raid Weekend Results: {c.name} ({c.tag})",
                             message=f"\n**Maximum Reward: {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,}** <:RaidMedals:983374303552753664>"
@@ -402,6 +418,11 @@ class AriXClashDataMgr(commands.Cog):
                             name="Defensive Raids Completed",
                             value=f"{c.current_raid_weekend.defense_raids_completed}",
                             inline=True)
+
+                        test_embed.add_field(
+                            name='**Raid Leaderboard**',
+                            value=f"{box(tabulate(rank_table,headers='keys',tablefmt='pretty'))}",
+                            inline=False)
 
                         channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
                         rm = discord.AllowedMentions(roles=True)
