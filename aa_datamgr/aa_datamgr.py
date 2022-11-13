@@ -497,11 +497,10 @@ class AriXClashDataMgr(commands.Cog):
 
             if discord_member:
                 role_change = False
-                await ctx.send(f"{user}:{rank_info}")
-                
                 for clan_tag, rank_info in rank_info.items():
                     
-                    role_clan_tags.remove(clan_tag)
+                    if clan_tag in role_clan_tags:
+                        role_clan_tags.remove(clan_tag)
 
                     member_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].member_role))
                     elder_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].elder_role))
