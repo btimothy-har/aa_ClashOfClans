@@ -616,8 +616,10 @@ class AriXClashDataMgr(commands.Cog):
 
         run_time_plot = ctx.bot.clash_dir_path+"/runtimeplot.png"
 
+        plt.figure()
         plt.plot(run_time_hist)
         plt.savefig(run_time_plot)
+        plt.clf()
 
         run_time_plot_file = discord.File(run_time_plot,filename='run_time_plot.png')
         sEmbed.set_image(url=f"attachment://run_time_plot.png")
