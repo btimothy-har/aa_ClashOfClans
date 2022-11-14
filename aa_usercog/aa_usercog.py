@@ -676,9 +676,9 @@ class AriXMemberCommands(commands.Cog):
 
         await new_base.save_to_json()
 
-        embed = await new_base.base_embed(ctx)
+        embed,image = await new_base.base_embed(ctx)
 
-        return await ctx.send(content="Base Added!",embed=embed)
+        return await ctx.send(content="Base Added!",embed=embed,file=image)
 
 
 
