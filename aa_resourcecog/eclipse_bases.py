@@ -89,8 +89,8 @@ class eWarBase():
 			base_json=baseJson
 			)
 
-	async def base_embed(self):
-		embed = await eclipse_embed(self.ctx,
+	async def base_embed(self,ctx):
+		embed = await eclipse_embed(ctx,
 			title=f"**TH{self.town_hall} {self.base_type}**",
 			message=f"From: {self.source} / Builder: {self.builder}"
 				+ f"\nDate Added: {datetime.fromtimestamp(st).strftime('%d %b %Y')}"
