@@ -316,7 +316,7 @@ class AriXClashDataMgr(commands.Cog):
             if c.war_state_change:
                 detected_war_change = True
 
-            if c.war_state_change or c.war_state == "inWar":
+            if c.current_war and (c.war_state_change or c.war_state == "inWar"):
                 str_war_update += f"__{c.tag} {c.name}__"
                 if c.war_state_change and c.war_state == 'inWar':
                     str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
