@@ -15,7 +15,7 @@ class eWarBase():
 
 		self.defensive_cc_id = defensive_cc_link.split('&army=',1)[1]
 		self.defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={self.defensive_cc_id}"
-		parsed_cc = client.parse_army_link(self.defensive_cc_link)
+		parsed_cc = ctx.bot.coc_client.parse_army_link(self.defensive_cc_link)
 		for troop in parsed_cc:
 			if parsed_cc.index(troop) != 0:
 				self.defensive_cc_str += "\n"
