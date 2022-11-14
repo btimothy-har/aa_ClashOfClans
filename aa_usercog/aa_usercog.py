@@ -552,12 +552,14 @@ class AriXMemberCommands(commands.Cog):
             {
                 'id': 'rh',
                 'emoji': "<:RHBB:1041627382018211900>",
-                'title': "RH Base Building"
+                'title': "RH Base Building",
+                'description': None
                 },
             {
                 'id': 'other',
                 'emoji': "<a:aa_AriX:1031773589231374407>",
-                'title': "Others"
+                'title': "Others",
+                'description': None
                 }
             ]
         base_source_embed = await eclipse_embed(ctx,
@@ -577,7 +579,7 @@ class AriXMemberCommands(commands.Cog):
         base_builder_embed = await eclipse_embed(ctx,
             title="Add Base -- Step 3",
             message=f"Provide the Name of the Builder. If no Builder is specified, please respond with an asterisk [`*`].")
-        base_builder_msg = await ctx.send(embed=base_link_embed)
+        base_builder_msg = await ctx.send(embed=base_builder_embed)
 
         try:
             builder_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
@@ -595,19 +597,23 @@ class AriXMemberCommands(commands.Cog):
         base_type_list = [
             {
                 'id': 'home',
-                'title': 'Trophy/Farm Base'
+                'title': 'Trophy/Farm Base',
+                'description': None
                 },
             {
                 'id': 'legends',
-                'title': 'Legends Base'
+                'title': 'Legends Base',
+                'description': None
                 },
             {
                 'id': 'anti2',
-                'title': 'War Base: Anti-2 Star'
+                'title': 'War Base: Anti-2 Star',
+                'description': None
                 },
             {   
                 'id': 'anti3',
-                'title': 'War Base: Anti-3 Star'
+                'title': 'War Base: Anti-3 Star',
+                'description': None
                 }
             ]
         base_type_embed = await eclipse_embed(ctx,
@@ -629,7 +635,7 @@ class AriXMemberCommands(commands.Cog):
         defensive_cc_embed = await eclipse_embed(ctx,
             title="Add Base -- Step 5",
             message=f"Provide the Army Link for the Defensive Clan Castle.")
-        defensive_cc_msg = await ctx.send(embed=base_type_embed)
+        defensive_cc_msg = await ctx.send(embed=defensive_cc_embed)
         try:
             army_link_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
         except asyncio.TimeoutError:
@@ -649,13 +655,29 @@ class AriXMemberCommands(commands.Cog):
 
         base_image_msg = await ctx.send(embed=base_image_embed)
         try:
-            base_image_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
+            base_image_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
             timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
             await base_image_msg.edit(embed=timeout_embed)
             return
         else:
             base_image = base_image_response.attachments[0]
+            await base_image_response.delete()
+
+
+        new_base = await eWarBase.new_base(ctx=ctx,
+            base_link=base_link,
+            source=base_source,
+            base_builder=base_builder,
+            base_type=base_type,
+            defensive_cc=defensive_cc,
+            image_attachment=base_image)
+
+        await new_base.save_to_json()
+
+        return await ctx.send("hello")
+
+
 
 
 

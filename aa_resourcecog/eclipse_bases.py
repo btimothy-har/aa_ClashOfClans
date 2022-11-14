@@ -14,7 +14,7 @@ class eWarBase():
 		self.base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={self.id}"
 
 		self.defensive_cc_id = defensive_cc_link.split('&army=',1)[1]
-		self.defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={defensive_cc_id}"
+		self.defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={self.defensive_cc_id}"
 		parsed_cc = client.parse_army_link(self.defensive_cc_link)
 		for troop in parsed_cc:
 			if parsed_cc.index(troop) != 0:
