@@ -31,6 +31,8 @@ from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, 
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
+from aa_resourcecog.eclipse_bases import eWarBase
+
 class AriXMemberCommands(commands.Cog):
     """AriX Clash of Clans Members' Module."""
 
@@ -229,37 +231,37 @@ class AriXMemberCommands(commands.Cog):
 
         await ctx.send(embed=rEmbed)
 
-    @commands.command(name="getclan")
-    async def clan_information(self,ctx,tag):
-        """
-        Gets information about a specified clan tag.
-        """
-        try:    
-            c = await aClan.create(ctx,tag)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {tag}",
-                err=e)
+    # @commands.command(name="getclan")
+    # async def clan_information(self,ctx,tag):
+    #     """
+    #     Gets information about a specified clan tag.
+    #     """
+    #     try:    
+    #         c = await aClan.create(ctx,tag)
+    #     except Exception as e:
+    #         return await error_end_processing(ctx,
+    #             preamble=f"Error encountered while retrieving clan {tag}",
+    #             err=e)
 
-        title, text, summary = await resc.clan_description(ctx,c)
+    #     title, text, summary = await resc.clan_description(ctx,c)
 
-        th_str = "Recruiting: "
-        for th in c.recruitment_level:
-            th_str += f"{emotes_townhall[th]} "
+    #     th_str = "Recruiting: "
+    #     for th in c.recruitment_level:
+    #         th_str += f"{emotes_townhall[th]} "
 
-        clan_str = ""
-        clan_str += f"{text}"
-        if len(c.recruitment_level) > 0:
-            clan_str += f"\n\n{th_str}"
-        clan_str += f"\n\n{c.description}"
+    #     clan_str = ""
+    #     clan_str += f"{text}"
+    #     if len(c.recruitment_level) > 0:
+    #         clan_str += f"\n\n{th_str}"
+    #     clan_str += f"\n\n{c.description}"
 
-        rEmbed = await clash_embed(ctx=ctx,
-            title=f"{c.emoji} {title}",
-            message=clan_str,
-            thumbnail=c.c.badge.medium,
-            show_author=False)
+    #     rEmbed = await clash_embed(ctx=ctx,
+    #         title=f"{c.emoji} {title}",
+    #         message=clan_str,
+    #         thumbnail=c.c.badge.medium,
+    #         show_author=False)
 
-        await ctx.send(embed=rEmbed)
+    #     await ctx.send(embed=rEmbed)
 
     @commands.command(name="profile")
     async def arix_profile(self,ctx,user:discord.User=None):
@@ -476,6 +478,190 @@ class AriXMemberCommands(commands.Cog):
             await paginator.run()
         elif len(output_embed)==1:
             await ctx.send(embed=output_embed[0])
+
+    @commands.group(name="eclipse")
+    async def eclipse_group(self,ctx):
+        """
+        Access E.C.L.I.P.S.E.
+
+        An **E**xtraordinarily **C**ool **L**ooking **I**nteractive & **P**rofessional **S**earch **E**ngine.
+        Your Clash of Clans database of attack strategies, guides and war bases.
+        """
+
+        if not ctx.invoked_subcommand:
+            pass
+
+    @eclipse_group.command(name="addbase")
+    async def eclipse_add_base(self,ctx):
+        """
+        Add a base to Eclipse.
+        """
+
+        def baselink_check(m):
+            msg_check = False
+            if m.author.id == ctx.author.id:
+                if m.channel.id == ctx.channel.id:
+                    msg_check = True
+                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+                    msg_check = True
+            if msg_check:
+                return m.content.startswith("https://link.clashofclans.com") and m.content.startswith("action=OpenLayout",33)
+
+        def armylink_check(m):
+            msg_check = False
+            if m.author.id == ctx.author.id:
+                if m.channel.id == ctx.channel.id:
+                    msg_check = True
+                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+                    msg_check = True
+            if msg_check:
+                return m.content.startswith("https://link.clashofclans.com") and m.content.startswith("action=CopyArmy",33)
+
+        def response_check(m):
+            if m.author.id == ctx.author.id:
+                if m.channel.id == ctx.channel.id:
+                    return True
+                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+                    return True
+                else:
+                    return False
+
+        #BASE LINK & TOWNHALL LEVEL
+
+        base_link_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 1",
+            message=f"Please provide the Base Link.\n\nI will get the Base Townhall level from the link provided.")
+
+        base_link_msg = await ctx.send(embed=base_link_embed)
+        try:
+            base_link_response = await ctx.bot.wait_for("message",timeout=60,check=baselink_check)
+        except asyncio.TimeoutError:
+            timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
+            await base_link_msg.edit(embed=timeout_embed)
+            return
+        else:
+            base_link = base_link_response.content
+            base_townhall = int(base_link.split('id=TH',1)[1][:2])
+            base_id = base_link.split('id=',1)[1]
+            await base_link_msg.delete()
+            await base_link_response.delete()
+
+
+        # SOURCE
+        base_supplier_list = [
+            {
+                'id': 'rh',
+                'emoji': "<:RHBB:1041627382018211900>",
+                'title': "RH Base Building"
+                },
+            {
+                'id': 'other',
+                'emoji': "<a:aa_AriX:1031773589231374407>",
+                'title': "Others"
+                }
+            ]
+        base_source_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 2",
+            message=f"Where is this Base from?")
+
+        select_source = await multiple_choice_select(
+            ctx=ctx,
+            sEmbed=base_source_embed,
+            selection_list=base_supplier_list)
+        if not select_source:
+            return
+        base_source = f"{select_source['emoji']} {select_source['title']}"
+
+
+        # BASE BUILDER
+        base_builder_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 3",
+            message=f"Provide the Name of the Builder. If no Builder is specified, please respond with an asterisk [`*`].")
+        base_builder_msg = await ctx.send(embed=base_link_embed)
+
+        try:
+            builder_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+        except asyncio.TimeoutError:
+            timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
+            await base_builder_msg.edit(embed=timeout_embed)
+            return
+        else:
+            base_builder = builder_response.content
+            await base_builder_msg.delete()
+            await builder_response.delete()
+
+
+        #BASE TYPE
+        base_type_list = [
+            {
+                'id': 'home',
+                'title': 'Trophy/Farm Base'
+                },
+            {
+                'id': 'legends',
+                'title': 'Legends Base'
+                },
+            {
+                'id': 'anti2',
+                'title': 'War Base: Anti-2 Star'
+                },
+            {   
+                'id': 'anti3',
+                'title': 'War Base: Anti-3 Star'
+                }
+            ]
+        base_type_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 4",
+            message=f"Select the type of base this is.")
+
+        select_type = await multiple_choice_select(
+            ctx=ctx,
+            sEmbed=base_type_embed,
+            selection_list=base_type_list)
+
+        if not select_type:
+            return
+        base_type = f"{select_type['title']}"
+
+
+
+        #DEFENSIVE CC
+        defensive_cc_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 5",
+            message=f"Provide the Army Link for the Defensive Clan Castle.")
+        defensive_cc_msg = await ctx.send(embed=base_type_embed)
+        try:
+            army_link_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
+        except asyncio.TimeoutError:
+            timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
+            await defensive_cc_msg.edit(embed=timeout_embed)
+            return
+        else:
+            defensive_cc = army_link_response.content
+            await defensive_cc_msg.delete()
+            await army_link_response.delete()
+
+
+        #BASE IMAGE
+        base_image_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 6",
+            message=f"Upload the Base Image.")
+
+        base_image_msg = await ctx.send(embed=base_image_embed)
+        try:
+            base_image_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
+        except asyncio.TimeoutError:
+            timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
+            await base_image_msg.edit(embed=timeout_embed)
+            return
+        else:
+            base_image = base_image_response.attachments[0]
+
+
+
+
+
+
 
 
 

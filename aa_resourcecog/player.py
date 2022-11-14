@@ -493,7 +493,7 @@ class aPlayer():
 
         if home_clan:
             coleader_role = ctx.bot.alliance_server.get_role(int(home_clan.coleader_role))
-            elder_role = cctx.bot.alliance_server.get_role(int(home_clan.elder_role))
+            elder_role = ctx.bot.alliance_server.get_role(int(home_clan.elder_role))
             member_role = ctx.bot.alliance_server.get_role(int(home_clan.member_role))
             
             self.home_clan = home_clan

@@ -177,3 +177,37 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
     except KeyError:
         response_json = {}
     return response_json
+
+async def eclipse_base_handler(ctx,town_hall,base_json=None):
+    with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
+        file_json = json.load(file)
+
+        if town_hall not in list(file_json.keys()):
+            file_json[town_hall] = []
+
+        th_bases = file_json[town_hall]
+
+        if base_json:
+            existing_base = [b for b in th_bases if b['base_link']==base_json['base_link']]
+
+            if existing_base:
+                existing_index = th_bases.index(existing_base)
+                del th_bases[existing_index]
+
+            file_json[town_hall].append(base_json)
+            file.seek(0)
+            json.dump(file_json,file,indent=2)
+            file.truncate()
+
+    return th_bases
+
+
+
+
+
+
+
+
+
+
+

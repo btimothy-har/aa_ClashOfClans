@@ -419,7 +419,7 @@ class AriXClashDataMgr(commands.Cog):
                             value=f"{c.current_raid_weekend.defense_raids_completed}",
                             inline=True)
 
-                        test_embed.add_field(
+                        raid_end_embed.add_field(
                             name='**Raid Leaderboard**',
                             value=f"{box(tabulate(rank_table,headers='keys',tablefmt='pretty'))}",
                             inline=False)
