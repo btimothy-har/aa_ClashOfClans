@@ -662,6 +662,7 @@ class AriXMemberCommands(commands.Cog):
             return
         else:
             base_image = base_image_response.attachments[0]
+            await base_image_msg.delete()
             await base_image_response.delete()
 
 
@@ -675,8 +676,9 @@ class AriXMemberCommands(commands.Cog):
 
         await new_base.save_to_json()
 
-        return await ctx.send("hello")
+        embed = await new_base.base_embed()
 
+        return await ctx.send(content="Base Added!",embed=embed)
 
 
 

@@ -2,6 +2,7 @@ import coc
 import discord
 import time
 
+from .discordutils import eclipse_embed
 from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
@@ -18,7 +19,7 @@ class eWarBase():
 		parsed_cc = ctx.bot.coc_client.parse_army_link(self.defensive_cc_link)
 		self.defensive_cc_str = ""
 		for troop in parsed_cc[0]:
-			if parsed_cc[0].index(troop) != 0:
+			if self.defensive_cc_str != "":
 				self.defensive_cc_str += "\n"
 			self.defensive_cc_str += f"{emotes_army[troop[0].name]} x{troop[1]}"
 
@@ -61,7 +62,9 @@ class eWarBase():
 		self.base_type = base_type
 
 		image_filename = self.id + '.' + image_attachment.filename.split('.')[-1]
-		image_filepath = ctx.bot.eclipse_path + "/base_images/" + image_filename
+		image_filepath = self.ctx.bot.eclipse_path + "/base_images/" + image_filename
+
+
 
 		await image_attachment.save(image_filepath)
 		self.base_image = image_filename
@@ -85,6 +88,16 @@ class eWarBase():
 			town_hall=self.town_hall,
 			base_json=baseJson
 			)
+
+	async def base_embed(self):
+		embed = await eclipse_embed(ctx,
+			title=f"**TH{self.town_hall} {self.base_type}**",
+			message=f"From: {self.source} / Builder: {self.builder}"
+				+ f"\nDate Added: {datetime.fromtimestamp(st).strftime('%d %b %Y')}"
+				+ f"\n\nDefensive Clan Castle: {self.defensive_cc_str}",
+			image=f"{self.ctx.bot.eclipse_path}/base_images/{self.base_image}")
+
+		return embed
 
 		
 
