@@ -17,7 +17,7 @@ class eWarBase():
 		self.defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={self.defensive_cc_id}"
 		parsed_cc = ctx.bot.coc_client.parse_army_link(self.defensive_cc_link)
 		self.defensive_cc_str = ""
-		for troop in parsed_cc:
+		for troop in parsed_cc[0]:
 			if parsed_cc.index(troop) != 0:
 				self.defensive_cc_str += "\n"
 			self.defensive_cc_str += f"{emotes_army[troop[0].name]} x{troop[1]}"
