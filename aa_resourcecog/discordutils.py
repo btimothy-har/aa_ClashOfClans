@@ -35,7 +35,7 @@ async def clash_embed(ctx, title=None, message=None, url=None, show_author=True,
         embed.set_thumbnail(url=thumbnail)
     if image:
         embed.set_image(url=image)
-    embed.set_footer(text="AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
+    embed.set_footer(text="AriX Alliance | Clash of Clans")
     return embed
 
 async def eclipse_embed(ctx, title=None, message=None, url=None, show_author=True, color=None, thumbnail=None, image=None):
