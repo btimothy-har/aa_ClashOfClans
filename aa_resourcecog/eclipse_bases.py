@@ -1,6 +1,7 @@
 import coc
 import discord
 import time
+from datetime import datetime
 
 from .discordutils import eclipse_embed
 from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
