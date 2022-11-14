@@ -91,12 +91,15 @@ class eWarBase():
 			)
 
 	async def base_embed(self,ctx):
+		image_file_path = f"{self.ctx.bot.eclipse_path}/base_images/{self.base_image}"
+		image_file = discord.File(image_file_path,'image.png')
+
 		embed = await eclipse_embed(ctx,
 			title=f"**TH{self.town_hall} {self.base_type}**",
 			message=f"From: {self.source} / Builder: {self.builder}"
 				+ f"\nDate Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
 				+ f"\n\nDefensive Clan Castle: {self.defensive_cc_str}",
-			image=f"{self.ctx.bot.eclipse_path}/base_images/{self.base_image}")
+			image="attachment://image.png")
 
 		return embed
 
