@@ -179,6 +179,7 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
     return response_json
 
 async def eclipse_base_handler(ctx,town_hall,base_json=None):
+    town_hall = int(town_hall)
     with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
         file_json = json.load(file)
 
