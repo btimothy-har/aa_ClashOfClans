@@ -123,3 +123,32 @@ async def eclipse_main_menu(ctx):
         return main_menu, selection['id']
     else:
         return main_menu, None
+
+
+async def eclipse_base_vault(ctx,session,user=None):
+    townhall_range = range(9,16)
+    
+    menu_options = []
+    for n in townhall_range:
+        n_dict = {
+            'id':n,
+            'emoji': f"{emotes_townhall[n]}",
+            'title':f"Townhall {n}",
+            }
+        menu_options.append(n_dict)
+
+    base_menu_embed = await eclipse_embed(ctx,
+        title="**E.C.L.I.P.S.E. Base Vault**",
+        message=f"Please select a Townhall level to browse bases for.")
+
+    await session.edit(content=ctx.author.mention,embed=base_menu_embed)
+
+    selection = await eclipse_menu_select(ctx,session,menu_options)
+
+    if selection:
+        return selection['id']
+    else:
+        return None
+
+
+

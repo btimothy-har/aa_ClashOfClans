@@ -31,7 +31,7 @@ from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, 
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
-from aa_resourcecog.eclipse import eclipse_embed, eclipse_main_menu
+from aa_resourcecog.eclipse import eclipse_embed, eclipse_main_menu, eclipse_base_vault
 from aa_resourcecog.eclipse_bases import eWarBase
 
 class AriXMemberCommands(commands.Cog):
@@ -495,13 +495,15 @@ class AriXMemberCommands(commands.Cog):
             eclipse_session = None
 
             while session_state:
-                eclipse_session, menu_response = await eclipse_main_menu(ctx)
+                if not eclipse_session:
+                    eclipse_session, response = await eclipse_main_menu(ctx)
 
-                if not menu_response:
+                if response == 'basevault':
+                    response = await eclipse_base_vault(ctx,eclipse_session)
+
+                if not response:
                     await eclipse_session.delete()
                     session_state = False
-
-            await ctx.send("cancelled")
 
 
 
