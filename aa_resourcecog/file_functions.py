@@ -178,8 +178,8 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
         response_json = {}
     return response_json
 
-async def eclipse_base_handler(ctx,town_hall,base_json=None):
-    town_hall = int(town_hall)
+async def eclipse_base_handler(ctx,base_town_hall,base_json=None):
+    town_hall = str(base_town_hall)
     with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
         file_json = json.load(file)
 
@@ -189,7 +189,7 @@ async def eclipse_base_handler(ctx,town_hall,base_json=None):
         th_bases = file_json[town_hall]
 
         if base_json:
-            existing_base = [b for b in th_bases if b['base_link']==base_json['base_link']]
+            existing_base = [b for b in th_bases if b['base_id']==base_json['base_id']]
 
             if existing_base:
                 existing_index = th_bases.index(existing_base)

@@ -21,7 +21,7 @@ from tabulate import tabulate
 from numerize import numerize
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
+from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_select
 from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
@@ -31,7 +31,7 @@ from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, 
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
-from aa_resourcecog.eclipse import EclipseSession, eclipse_embed, eclipse_main_menu, eclipse_base_vault, get_eclipse_bases
+from aa_resourcecog.eclipse import EclipseSession , eclipse_main_menu, eclipse_base_vault, get_eclipse_bases
 from aa_resourcecog.eclipse_bases import eWarBase
 
 class AriXMemberCommands(commands.Cog):

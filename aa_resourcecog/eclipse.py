@@ -4,6 +4,8 @@ import asyncio
 
 from string import ascii_letters, digits
 
+from .discordutils import eclipse_embed
+from .eclipse_bases import eWarBase
 from .file_functions import eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
@@ -13,29 +15,6 @@ class EclipseSession():
         self.user = ctx.author
         self.channel = ctx.channel
         self.message = None
-
-async def eclipse_embed(ctx, title=None, message=None, url=None, color=None, thumbnail=None, image=None):
-    if not title:
-        title = ""
-    if not message:
-        message = ""
-    if color == "success":
-        color = 0x00FF00
-    elif color == "fail":
-        color = 0xFF0000
-    else:
-        color = 0xFFFFFF
-    if url:
-        embed = discord.Embed(title=title,url=url,description=message,color=color)
-    else:
-        embed = discord.Embed(title=title,description=message,color=color)
-    embed.set_author(name=f"E.C.L.I.P.S.E.",icon_url="https://i.imgur.com/TZF5r54.png")
-    if thumbnail:
-        embed.set_thumbnail(url=thumbnail)
-    if image:
-        embed.set_image(url=image)
-    embed.set_footer(text="AriX Alliance | Clash of Clans")
-    return embed
 
 async def eclipse_menu_emoji(ctx,options):
     sel_list = []
@@ -119,14 +98,14 @@ async def eclipse_main_menu(ctx,session):
 
     menu_embed.add_field(
         name="To get started, select an option below.",
-        value=f"\u200b\n{select_str}\n\u200b",
+        value=f"\u200b\n{select_str}\n\n*You may close your E.C.L.I.P.S.E. Session at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
         inline=False
         )
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=menu_embed)
     else:
-        session.message = await ctx.send(content=ctx.author.mention,embed=menu_embed)
+        session.message = await ctx.send(content=session.user.mention,embed=menu_embed)
 
     await session.message.clear_reactions()
     selection = await eclipse_menu_select(ctx,session,menu_options)
@@ -166,7 +145,7 @@ async def eclipse_base_vault(ctx,session):
         message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
 
     await session.message.clear_reactions()
-    await session.message.edit(content=ctx.author.mention,embed=base_menu_embed)
+    await session.message.edit(content=session.user.mention,embed=base_menu_embed)
 
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
@@ -179,6 +158,67 @@ async def eclipse_base_vault(ctx,session):
 async def get_eclipse_bases(ctx,session,townhall_level):
     bases = await eclipse_base_handler(ctx,townhall_level)
 
-    await ctx.send(len(bases))
+    bases = [eWarBase.from_json(ctx,b) for b in bases]
+
+    categories = {}
+    for b in bases:
+        if b.base_type not in list(categories.keys()):
+            categories[b.base_type] = 0
+        categories[b.base_type] += 1
+
+    if len(bases) < 5:
+        show_bases = bases
+        response = await show_eclipse_bases(ctx,session,show_bases)
+
+        return response
 
     return None
+
+
+async def show_eclipse_bases(ctx,session,bases):
+    browse_bases = True
+
+    base_navigation = [
+        {
+            'id': 'next',
+            'emoji': '<:to_next:1041988114308137010>'
+            },
+        {
+            'id': 'previous',
+            'emoji': '<:to_previous:1041988094943035422>'
+            },
+        {
+            'id': 'back',
+            'emoji': '<:backwards:1041976602420060240>'
+            },
+        ]
+
+    i = 0
+    
+    while browse_bases:
+        base_embed, image = await bases[i].base_embed(ctx)
+
+        base_embed.add_field(
+            name="Navigation",
+            value="<:to_previous:1041988094943035422> for the previous base in the list."
+                + "\n<:to_next:1041988114308137010> for the next base in the list."
+                + "\n<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu).")
+        
+        await session.message.clear_reactions()
+        await session.message.edit(content=session.user.mention,embed=base_embed,file=image)
+        selection = await eclipse_menu_select(ctx,session,base_navigation)
+
+        if selection:
+            if selection['id'] == 'next':
+                i += 1
+            else:
+                i -= 1
+        
+        else:
+            browse_bases = False
+            return 'basevault'
+
+
+
+        
+

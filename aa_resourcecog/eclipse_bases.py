@@ -3,7 +3,7 @@ import discord
 import time
 from datetime import datetime
 
-from .eclipse import eclipse_embed
+from .discordutils import eclipse_embed
 from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
@@ -87,7 +87,7 @@ class eWarBase():
 
 		await eclipse_base_handler(
 			ctx=self.ctx,
-			town_hall=self.town_hall,
+			base_town_hall=self.town_hall,
 			base_json=baseJson
 			)
 
