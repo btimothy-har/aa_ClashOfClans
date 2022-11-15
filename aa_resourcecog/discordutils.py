@@ -38,30 +38,6 @@ async def clash_embed(ctx, title=None, message=None, url=None, show_author=True,
     embed.set_footer(text="AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
     return embed
 
-async def eclipse_embed(ctx, title=None, message=None, url=None, show_author=True, color=None, thumbnail=None, image=None):
-    if not title:
-        title = ""
-    if not message:
-        message = ""
-    if color == "success":
-        color = 0x00FF00
-    elif color == "fail":
-        color = 0xFF0000
-    else:
-        color = await ctx.embed_color()
-    if url:
-        embed = discord.Embed(title=title,url=url,description=message,color=color)
-    else:
-        embed = discord.Embed(title=title,description=message,color=color)
-    if show_author:
-        embed.set_author(name=f"E.C.L.I.P.S.E",icon_url="https://i.imgur.com/TZF5r54.png")
-    if thumbnail:
-        embed.set_thumbnail(url=thumbnail)
-    if image:
-        embed.set_image(url=image)
-    embed.set_footer(text="AriX Alliance | Clash of Clans")
-    return embed
-
 async def user_confirmation(ctx, cMsg, confirm_method=None) -> bool:
     def response_check(m):
         if m.author.id == ctx.author.id:

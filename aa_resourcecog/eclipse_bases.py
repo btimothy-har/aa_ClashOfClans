@@ -98,8 +98,7 @@ class eWarBase():
 		embed = await eclipse_embed(ctx,
 			title=f"**TH{self.town_hall} {self.base_type}**",
 			message=f"Date Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
-				+ f"\n\nFrom: {self.source}"
-				+ f"\nBuilder: {self.builder}"
+				+ f"\n\nFrom: **{self.source}** (Builder: **{self.builder}**)"
 				+ f"\n\n**Defensive Clan Castle:**\n{self.defensive_cc_str}")
 
 		embed.set_image(url="attachment://image.png")

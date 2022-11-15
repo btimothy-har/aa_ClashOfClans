@@ -36,6 +36,9 @@ async def setup(bot:Red):
     bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")
 
+    bot.async_eclipse_lock = asyncio.Lock()
+    bot.clash_eclipse_lock = fasteners.InterProcessReaderWriterLock(os.getenv('ECLIPSEPATH') + "/eclipse.lock")
+
     if not os.path.exists(bot.clash_dir_path+'/seasons.json'):
         with bot.clash_file_lock.write_lock():
             with open(bot.clash_dir_path+'/seasons.json','w') as file:
