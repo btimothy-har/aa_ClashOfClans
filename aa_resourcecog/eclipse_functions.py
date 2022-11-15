@@ -295,8 +295,7 @@ async def show_eclipse_bases(ctx,session,bases):
                 value="<:backwards:1041976602420060240> back to the previous menu"
                     + "\n<:download:1040800550373044304> to save this base to your personal vault")
         
-        await session.message.edit(content=session.user.mention,embed=base_embed,file=None)
-        await session.message.edit(content=session.user.mention,embed=base_embed,file=image)
+        await session.message.edit(content=session.user.mention,embed=base_embed)
 
         #await session.message.clear_reactions()
         selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
