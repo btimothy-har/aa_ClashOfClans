@@ -498,8 +498,30 @@ class AriXMemberCommands(commands.Cog):
                 if not session.message or response=='menu':
                     response = await eclipse_main_menu(ctx,session)
 
+
+                if response == 'personalvault':
+                    await ctx.send("This bit doesn't exist yet.")
+                    response = None
+
                 if response == 'basevault':
                     response = await eclipse_base_vault(ctx,session)
+
+                    if not response or response == 'menu':
+                        pass
+                    else:
+                        await ctx.send(response)
+                        response = None
+
+
+                if response == 'armyguides':
+                    await ctx.send("This bit doesn't exist yet.")
+                    response = None
+
+
+                if response == 'strategy':
+                    await ctx.send("This bit doesn't exist yet.")
+                    response = None
+
 
                 if not response:
                     session.state = False

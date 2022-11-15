@@ -72,7 +72,7 @@ async def eclipse_menu_select(ctx, session, sel_list):
         if str(reaction.emoji) == '<:red_cross:838461484312428575>':
             return None
         else:
-            ms = [i for i in sel_list if i['emoji'] == reaction.emoji]
+            ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]
             return ms[0]
 
 async def eclipse_main_menu(ctx,session):
@@ -127,6 +127,7 @@ async def eclipse_main_menu(ctx,session):
     else:
         session.message = await ctx.send(content=ctx.author.mention,embed=menu_embed)
 
+    await session.message.clear_reactions()
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if selection:
@@ -154,14 +155,14 @@ async def eclipse_base_vault(ctx,session):
 
     back_dict = {
         'id': 'menu',
-        'emoji': "<a:aa_AriX:1031773589231374407>",
+        'emoji': "<:backwards:1041976602420060240>",
         'title': "",
         }
     menu_options.append(back_dict)
 
     base_menu_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Base Vault**",
-        message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n<a:aa_AriX:1031773589231374407> Back to the Main Menu.\n\n\u200b")
+        message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
 
     await session.message.clear_reactions()
     await session.message.edit(content=ctx.author.mention,embed=base_menu_embed)
