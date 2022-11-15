@@ -144,9 +144,12 @@ async def eclipse_base_vault(ctx,session):
         title="**E.C.L.I.P.S.E. Base Vault**",
         message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
 
-    await session.message.clear_reactions()
-    await session.message.edit(content=session.user.mention,embed=base_menu_embed)
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=base_menu_embed)
+    else:
+        session.message = await ctx.send(content=session.user.mention,embed=base_menu_embed)
 
+    await session.message.clear_reactions()
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if selection:
@@ -170,13 +173,17 @@ async def get_eclipse_bases(ctx,session,townhall_level):
         show_bases = bases
         response = await show_eclipse_bases(ctx,session,show_bases)
 
-        return response
+        if response:
+            return 'basevault'
+        else:
+            return None
 
     return None
 
 
 async def show_eclipse_bases(ctx,session,bases):
     browse_bases = True
+    response = None
 
     base_navigation = [
         {
@@ -198,25 +205,39 @@ async def show_eclipse_bases(ctx,session,bases):
     while browse_bases:
         base_embed, image = await bases[i].base_embed(ctx)
 
+        base_embed.set_image(url="attachment://image.png")
+
         base_embed.add_field(
             name="Navigation",
             value="<:to_previous:1041988094943035422> for the previous base in the list."
                 + "\n<:to_next:1041988114308137010> for the next base in the list."
                 + "\n<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu).")
         
-        await session.message.clear_reactions()
-        await session.message.edit(content=session.user.mention,embed=base_embed,file=image)
+        #await session.message.clear_reactions()
+
+        await session.message.delete()
+        new_message = await session.channel.send(content=session.user.mention,embed=base_embed,file=image)
+        session.message = new_message
+
         selection = await eclipse_menu_select(ctx,session,base_navigation)
 
         if selection:
             if selection['id'] == 'next':
                 i += 1
-            else:
+            elif selection['id'] == 'previous':
                 i -= 1
-        
+            else:
+                browse_bases = False
         else:
             browse_bases = False
-            return 'basevault'
+    
+    await session.message.delete()
+    session.message = None
+    
+    if selection:
+        response = True
+    
+    return response
 
 
 

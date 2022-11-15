@@ -491,13 +491,13 @@ class AriXMemberCommands(commands.Cog):
 
         if not ctx.invoked_subcommand:
 
+            response = None
             session = EclipseSession(ctx)
 
             while session.state:
                 #Open an eclipse session
-                if not session.message or response=='menu':
+                if not response or response=='menu':
                     response = await eclipse_main_menu(ctx,session)
-
 
                 if response == 'personalvault':
                     await ctx.send("This bit doesn't exist yet.")
