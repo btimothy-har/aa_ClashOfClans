@@ -6,6 +6,13 @@ from string import ascii_letters, digits
 
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
+class EclipseSession():
+    def __init__(self,ctx):
+        self.state = True
+        self.user = ctx.author
+        self.channel = ctx.channel
+        self.message = None
+
 async def eclipse_embed(ctx, title=None, message=None, url=None, color=None, thumbnail=None, image=None):
     if not title:
         title = ""
@@ -44,7 +51,7 @@ async def eclipse_menu_emoji(ctx,options):
 
     return sel_list
 
-async def eclipse_menu_select(ctx, message, sel_list):
+async def eclipse_menu_select(ctx, session, sel_list):
     def chk_select(r,u):
         if str(r.emoji) in sel_emojis and r.message.id == message.id and u.id == ctx.author.id:
             return True
@@ -55,7 +62,7 @@ async def eclipse_menu_select(ctx, message, sel_list):
     sel_emojis.append('<:red_cross:838461484312428575>')
 
     for e in sel_emojis:
-        await message.add_reaction(e)
+        await session.message.add_reaction(e)
 
     try:
         reaction, user = await ctx.bot.wait_for("reaction_add",timeout=60,check=chk_select)
@@ -68,27 +75,27 @@ async def eclipse_menu_select(ctx, message, sel_list):
             ms = [i for i in sel_list if i['emoji'] == reaction.emoji]
             return ms[0]
 
-async def eclipse_main_menu(ctx):
+async def eclipse_main_menu(ctx,session):
     menu_options = [
         {
-            'id': 'personalbase',
-            'title': f"{ctx.author.mention}'s Base Vault",
-            'description': "Your personal base vault. The menu will continue in DMs."
-            },
-        {
-            'id': 'personalarmy',
-            'title': f"{ctx.author.mention}'s War Armies",
-            'description': "Your personal army link archive."
+            'id': 'personalvault',
+            'title': f"{ctx.author.mention}'s E.C.L.I.P.S.E.",
+            'description': "Your personal vault of Army and Base Links. Your E.C.L.I.P.S.E. session will be transferred to your DMs."
             },
         {
             'id': 'basevault',
-            'title': "E.C.L.I.P.S.E. Base Vault",
-            'description': f"AriX's Members-only exclusive Base Vault. Covers TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+            'title': "Browse the Base Vault",
+            'description': f"We have bases covering TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
             },
         {
             'id': 'armyguides',
-            'title': "E.C.L.I.P.S.E. Army Guides",
-            'description': f"AriX's Members-only archive of War Bases. Covers TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+            'title': "Browse the War Army Guide",
+            'description': f"We have a compilation of war armies and variations from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+            },
+        {
+            'id': 'strategy',
+            'title': "Browse the Strategy Guide",
+            'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
             },
         ]
 
@@ -115,14 +122,17 @@ async def eclipse_main_menu(ctx):
         inline=False
         )
 
-    main_menu = await ctx.send(content=ctx.author.mention,embed=menu_embed)
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=menu_embed)
+    else:
+        session.message = await ctx.send(content=ctx.author.mention,embed=menu_embed)
 
-    selection = await eclipse_menu_select(ctx,main_menu,menu_options)
+    selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if selection:
-        return main_menu, selection['id']
+        return selection['id']
     else:
-        return main_menu, None
+        return None
 
 
 async def eclipse_base_vault(ctx,session,user=None):
@@ -134,20 +144,20 @@ async def eclipse_base_vault(ctx,session,user=None):
         n_dict = {
             'id':n,
             'emoji': f"{emotes_townhall[n]}",
-            'title':f"Townhall {n}",
+            'title':f"TH {n}",
             }
         menu_options.append(n_dict)
 
-        th_str =+ f"**{n_dict['emoji']} {n_dict['title']}**"
+        th_str += f"{n_dict['emoji']} {n_dict['title']}"
         if n < max(townhall_range):
             th_str += f"\n\n"
 
     base_menu_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Base Vault**",
-        message=f"Please select a Townhall level to browse bases for.\u200b\n{th_str}\n\u200b")
+        message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\u200b")
 
-    await session.clear_reactions()
-    await session.edit(content=ctx.author.mention,embed=base_menu_embed)
+    await session.message.clear_reactions()
+    await session.message.edit(content=ctx.author.mention,embed=base_menu_embed)
 
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
