@@ -274,7 +274,12 @@ async def show_eclipse_bases(ctx,session,bases):
             i = 0
 
         base_embed, image = await bases[i].base_embed(ctx)
-        base_embed.set_image(url="attachment://image.png")
+
+        dump_channel = ctx.bot.get_channel(1042064532480217130)
+        dump_message = await dump_channel.send(file=image)
+        image_attachment = dump_message.attachments[0]
+        
+        base_embed.set_image(url=image_attachment.url)
         base_embed.set_footer(text=f"(Displaying base {i+1} of {len(bases)}) -- AriX Alliance | Clash of Clans")
 
         if len(bases) > 1:

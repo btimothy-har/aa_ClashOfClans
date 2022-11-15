@@ -136,3 +136,4 @@ class eWarBase():
 
 class eWarArmy():
     def __init__(self,ctx,army_links,cc_links):
+        pass
