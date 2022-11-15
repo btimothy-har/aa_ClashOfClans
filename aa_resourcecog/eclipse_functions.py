@@ -299,6 +299,8 @@ async def show_eclipse_bases(ctx,session,bases):
         await session.message.clear_reactions()
         selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
 
+        await dump_message.delete()
+
         if selection:
             if selection['id'] == 'next':
                 i += 1
