@@ -4,7 +4,6 @@ import asyncio
 
 from string import ascii_letters, digits
 
-from .discordutils import eclipse_embed
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
 async def eclipse_embed(ctx, title=None, message=None, url=None, color=None, thumbnail=None, image=None):
@@ -41,6 +40,7 @@ async def eclipse_menu_emoji(ctx,options):
 
             i['emoji'] = emoji
         sel_list.append(i)
+        num += 1
 
     return sel_list
 
@@ -52,22 +52,10 @@ async def eclipse_menu_select(ctx, message, sel_list):
             return False
     
     sel_emojis = [i['emoji'] for i in sel_list]
-
-    num = 0
-    for i in selection_list:
-        if 'emoji' not in list(i.keys()):
-            hex_str = hex(224 + (6 + num))[2:]
-            emoji = b"\\U0001f1a".replace(b"a", bytes(hex_str, "utf-8"))
-            emoji = emoji.decode("unicode-escape")
-
-            i['emoji'] = emoji
-
-        sel_list.append(i)
-        sel_emojis.append(i['emoji'])
-        num += 1
-
     sel_emojis.append('<:red_cross:838461484312428575>')
-    await message.add_reaction('<:red_cross:838461484312428575>')
+
+    for e in sel_emojis:
+        await message.add_reaction(e)
 
     try:
         reaction, user = await ctx.bot.wait_for("reaction_add",timeout=60,check=chk_select)
@@ -84,12 +72,12 @@ async def eclipse_main_menu(ctx):
     menu_options = [
         {
             'id': 'personalbase',
-            'title': f"{ctx.author.menion}'s Base Vault",
+            'title': f"{ctx.author.mention}'s Base Vault",
             'description': "Your personal base vault. The menu will continue in DMs."
-            }
+            },
         {
             'id': 'personalarmy',
-            'title': f"{ctx.author.menion}'s War Armies",
+            'title': f"{ctx.author.mention}'s War Armies",
             'description': "Your personal army link archive."
             },
         {
@@ -109,19 +97,21 @@ async def eclipse_main_menu(ctx):
     menu_embed = await eclipse_embed(ctx,
         title="**Welcome to E.C.L.I.P.S.E.!**",
         message=f"\nAriX's ***E**xtraordinarily **C**ool **L**ooking **I**nteractive & **P**rofessional **S**earch **E**ngine*."
-            + f"With E.C.L.I.P.S.E., you'll find an infinite source of Clash data, ranging from War Bases to Army Compositions and Strategies."
-            + f"In addition, curate your own personal vault of information for your personal reference.")
+            + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, ranging from War Bases to Army Compositions and Strategies."
+            + f"In addition, curate your own personal vault of information for your personal reference.\n\u200b")
 
     select_str = ""
 
     for i in menu_options:
-        select_str += f"\n"
         select_str += f"{i['emoji']} **{i['title']}**"
-        select_str += f"{i['description']}"
+        select_str += f"\n{i['description']}"
+
+        if menu_options.index(i) < (len(menu_options)-1):
+            select_str += f"\n\n"
 
     menu_embed.add_field(
         name="To get started, select an option below.",
-        value=select_str,
+        value=f"\u200b\n{select_str}\n\u200b",
         inline=False
         )
 
@@ -129,4 +119,7 @@ async def eclipse_main_menu(ctx):
 
     selection = await eclipse_menu_select(ctx,main_menu,menu_options)
 
-    return selection['id']
+    if selection:
+        return main_menu, selection['id']
+    else:
+        return main_menu, None

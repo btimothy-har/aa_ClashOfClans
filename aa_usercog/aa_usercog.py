@@ -491,9 +491,18 @@ class AriXMemberCommands(commands.Cog):
 
         if not ctx.invoked_subcommand:
 
-            r = await eclipse_main_menu(ctx)
+            session_state = True
+            eclipse_session = None
 
-            await ctx.send(r)
+            while session_state:
+                eclipse_session, menu_response = await eclipse_main_menu(ctx)
+
+                if not menu_response:
+                    await eclipse_session.delete()
+                    session_state = False
+
+            await ctx.send("cancelled")
+
 
 
     @eclipse_group.command(name="addbase")
