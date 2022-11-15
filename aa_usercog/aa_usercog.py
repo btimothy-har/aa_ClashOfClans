@@ -495,11 +495,11 @@ class AriXMemberCommands(commands.Cog):
 
             while session.state:
                 #Open an eclipse session
-                if not session.message:
+                if not session.message or response=='menu':
                     response = await eclipse_main_menu(ctx,session)
 
                 if response == 'basevault':
-                    response = await eclipse_base_vault(ctx,eclipse_session)
+                    response = await eclipse_base_vault(ctx,session)
 
                 if not response:
                     session.state = False
