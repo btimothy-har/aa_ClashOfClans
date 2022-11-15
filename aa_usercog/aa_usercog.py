@@ -31,7 +31,7 @@ from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, 
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
-from aa_resourcecog.eclipse import EclipseSession, eclipse_embed, eclipse_main_menu, eclipse_base_vault
+from aa_resourcecog.eclipse import EclipseSession, eclipse_embed, eclipse_main_menu, eclipse_base_vault, get_eclipse_bases
 from aa_resourcecog.eclipse_bases import eWarBase
 
 class AriXMemberCommands(commands.Cog):
@@ -509,9 +509,7 @@ class AriXMemberCommands(commands.Cog):
                     if not response or response == 'menu':
                         pass
                     else:
-                        await ctx.send(response)
-                        response = None
-
+                        response = await get_eclipse_bases(ctx,session,response)
 
                 if response == 'armyguides':
                     await ctx.send("This bit doesn't exist yet.")

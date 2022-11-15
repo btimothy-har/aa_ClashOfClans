@@ -4,6 +4,7 @@ import asyncio
 
 from string import ascii_letters, digits
 
+from .file_functions import eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
 class EclipseSession():
@@ -175,4 +176,9 @@ async def eclipse_base_vault(ctx,session):
         return None
 
 
+async def get_eclipse_bases(ctx,session,townhall_level):
+    bases = await eclipse_base_handler(ctx,townhall_level)
 
+    await ctx.send(len(bases))
+
+    return None
