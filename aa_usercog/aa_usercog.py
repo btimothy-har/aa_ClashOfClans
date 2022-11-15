@@ -31,8 +31,8 @@ from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, 
 from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
-from aa_resourcecog.eclipse import EclipseSession , eclipse_main_menu, eclipse_base_vault, get_eclipse_bases
-from aa_resourcecog.eclipse_bases import eWarBase
+from aa_resourcecog.eclipse_functions import eclipse_main_menu, eclipse_base_vault, get_eclipse_bases
+from aa_resourcecog.eclipse_classes import EclipseSession, eWarBase
 
 class AriXMemberCommands(commands.Cog):
     """AriX Clash of Clans Members' Module."""
@@ -491,18 +491,19 @@ class AriXMemberCommands(commands.Cog):
 
         if not ctx.invoked_subcommand:
 
-            response = None
+            response = "start"
             session = EclipseSession(ctx)
 
             while session.state:
-                #Open an eclipse session
-                if not response or response=='menu':
+                session.add_to_path(response)
+                if response in ['start','menu']:
                     response = await eclipse_main_menu(ctx,session)
 
                 if response == 'personalvault':
                     await ctx.send("This bit doesn't exist yet.")
-                    response = None
+                    response = "menu"
 
+                #Base Vault: Townhall Selection
                 if response in ['basevault','basevaultnone']:
                     if response == 'basevaultnone':
                         response = await eclipse_base_vault(ctx,session,base_th_select)
@@ -515,17 +516,18 @@ class AriXMemberCommands(commands.Cog):
                         base_th_select = response
                         response = 'basevaultselect'
 
+                #Base Vault: View Bases / Category Selection
                 if response in ['basevaultselect']:
                     response = await get_eclipse_bases(ctx,session,base_th_select)
 
                 if response == 'armyguides':
                     await ctx.send("This bit doesn't exist yet.")
-                    response = None
+                    response = "menu"
 
 
                 if response == 'strategy':
                     await ctx.send("This bit doesn't exist yet.")
-                    response = None
+                    response = "menu"
 
 
                 if not response:
@@ -538,8 +540,6 @@ class AriXMemberCommands(commands.Cog):
                         await session.message.edit(content=ctx.author.mention,embed=session_closed,delete_after=60)
                     else:
                         await ctx.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
-                
-
 
 
     @eclipse_group.command(name="addbase")
@@ -580,7 +580,7 @@ class AriXMemberCommands(commands.Cog):
         #BASE LINK & TOWNHALL LEVEL
 
         base_link_embed = await eclipse_embed(ctx,
-            title="Add Base -- Step 1",
+            title="Add Base -- Step 1/7",
             message=f"Please provide the Base Link.\n\nI will get the Base Townhall level from the link provided.")
 
         base_link_msg = await ctx.send(embed=base_link_embed)
@@ -614,7 +614,7 @@ class AriXMemberCommands(commands.Cog):
                 }
             ]
         base_source_embed = await eclipse_embed(ctx,
-            title="Add Base -- Step 2",
+            title="Add Base -- Step 2/7",
             message=f"Where is this Base from?")
 
         select_source = await multiple_choice_select(
@@ -628,7 +628,7 @@ class AriXMemberCommands(commands.Cog):
 
         # BASE BUILDER
         base_builder_embed = await eclipse_embed(ctx,
-            title="Add Base -- Step 3",
+            title="Add Base -- Step 3/7",
             message=f"Provide the Name of the Builder. If no Builder is specified, please respond with an asterisk [`*`].")
         base_builder_msg = await ctx.send(embed=base_builder_embed)
 
@@ -668,7 +668,7 @@ class AriXMemberCommands(commands.Cog):
                 }
             ]
         base_type_embed = await eclipse_embed(ctx,
-            title="Add Base -- Step 4",
+            title="Add Base -- Step 4/7",
             message=f"Select the type of base this is.")
 
         select_type = await multiple_choice_select(
@@ -684,7 +684,7 @@ class AriXMemberCommands(commands.Cog):
 
         #DEFENSIVE CC
         defensive_cc_embed = await eclipse_embed(ctx,
-            title="Add Base -- Step 5",
+            title="Add Base -- Step 5/7",
             message=f"Provide the Army Link for the Defensive Clan Castle.")
         defensive_cc_msg = await ctx.send(embed=defensive_cc_embed)
         try:
@@ -699,9 +699,27 @@ class AriXMemberCommands(commands.Cog):
             await army_link_response.delete()
 
 
+        #BUIDLER NOTES
+        builder_notes_embed = await eclipse_embed(ctx,
+            title="Add Base -- Step 7/7",
+            message=f"Add any Notes from the Builder, if any. If there are no notes, please respond with an asterisk [`*`].")
+
+        builder_notes_msg = await ctx.send(embed=builder_notes_embed)
+        try:
+            builder_notes_response = await ctx.bot.wait_for("message",timeout=120,check=response_check)
+        except asyncio.TimeoutError:
+            timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
+            await builder_notes_msg.edit(embed=timeout_embed)
+            return
+        else:
+            builder_notes = builder_notes_response.content
+            await builder_notes_msg.delete()
+            await builder_notes_response.delete()
+
+
         #BASE IMAGE
         base_image_embed = await eclipse_embed(ctx,
-            title="Add Base -- Step 6",
+            title="Add Base -- Step 7/7",
             message=f"Upload the Base Image.")
 
         base_image_msg = await ctx.send(embed=base_image_embed)
@@ -717,15 +735,18 @@ class AriXMemberCommands(commands.Cog):
             await base_image_response.delete()
 
 
-        new_base = await eWarBase.new_base(ctx=ctx,
-            base_link=base_link,
-            source=base_source,
-            base_builder=base_builder,
-            base_type=base_type,
-            defensive_cc=defensive_cc,
-            image_attachment=base_image)
+        async with ctx.bot.async_eclipse_lock:
+            with ctx.bot.clash_eclipse_lock:
+                new_base = await eWarBase.new_base(ctx=ctx,
+                    base_link=base_link,
+                    source=base_source,
+                    base_builder=base_builder,
+                    base_type=base_type,
+                    defensive_cc=defensive_cc,
+                    notes=builder_notes,
+                    image_attachment=base_image)
 
-        await new_base.save_to_json()
+                await new_base.save_to_json()
 
         embed,image = await new_base.base_embed(ctx)
 
