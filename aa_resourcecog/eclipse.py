@@ -127,6 +127,7 @@ async def eclipse_main_menu(ctx):
 
 async def eclipse_base_vault(ctx,session,user=None):
     townhall_range = range(9,16)
+    th_str = ""
     
     menu_options = []
     for n in townhall_range:
@@ -137,10 +138,15 @@ async def eclipse_base_vault(ctx,session,user=None):
             }
         menu_options.append(n_dict)
 
+        th_str =+ f"**{n_dict['emoji']} {n_dict['title']}**"
+        if n < max(townhall_range):
+            th_str += f"\n\n"
+
     base_menu_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Base Vault**",
-        message=f"Please select a Townhall level to browse bases for.")
+        message=f"Please select a Townhall level to browse bases for.\u200b\n{th_str}\n\u200b")
 
+    await session.clear_reactions()
     await session.edit(content=ctx.author.mention,embed=base_menu_embed)
 
     selection = await eclipse_menu_select(ctx,session,menu_options)
