@@ -491,8 +491,21 @@ class AriXMemberCommands(commands.Cog):
 
         if not ctx.invoked_subcommand:
 
+            if ctx.author.id in [s.user.id for s in ctx.bot.clash_eclipse_sessions]:
+                embed = await eclipse_embed(ctx,
+                    message="You already have a E.C.L.I.P.S.E. session open. Please end that session before starting a new one.")
+
+                try:
+                    await ctx.author.send(content=ctx.author.mention,embed=embed)
+                except:
+                    await ctx.send(content=ctx.author.mention,embed=embed)
+
+                return
+
             response = "start"
             session = EclipseSession(ctx)
+
+            ctx.bot.clash_eclipse_sessions.append(session)
 
             while session.state:
                 session.add_to_path(response)
@@ -540,6 +553,8 @@ class AriXMemberCommands(commands.Cog):
                         await session.message.edit(content=ctx.author.mention,embed=session_closed,delete_after=60)
                     else:
                         await ctx.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
+
+            ctx.bot.clash_eclipse_sessions.remove(session)
 
 
     @eclipse_group.command(name="addbase")
