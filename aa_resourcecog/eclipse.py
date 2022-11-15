@@ -31,7 +31,7 @@ async def eclipse_menu_emoji(ctx,options):
 
     return sel_list
 
-async def eclipse_menu_select(ctx, session, sel_list):
+async def eclipse_menu_select(ctx, session, sel_list, timeout=60):
     def chk_select(r,u):
         if str(r.emoji) in sel_emojis and r.message.id == session.message.id and u.id == session.user.id:
             return True
@@ -45,7 +45,7 @@ async def eclipse_menu_select(ctx, session, sel_list):
         await session.message.add_reaction(e)
 
     try:
-        reaction, user = await ctx.bot.wait_for("reaction_add",timeout=60,check=chk_select)
+        reaction, user = await ctx.bot.wait_for("reaction_add",timeout=timeout,check=chk_select)
     except asyncio.TimeoutError:
         return None
     else:
@@ -164,7 +164,8 @@ async def eclipse_base_vault(ctx,session,no_base=None):
 
 
 async def get_eclipse_bases(ctx,session,townhall_level):
-    bases = await eclipse_base_handler(ctx,townhall_level)
+    base_th = townhall_level
+    bases = await eclipse_base_handler(ctx,base_th)
 
     bases = [eWarBase.from_json(ctx,b) for b in bases]
 
@@ -177,12 +178,52 @@ async def get_eclipse_bases(ctx,session,townhall_level):
     if len(bases) == 0:
         return 'basevaultnone'
 
-    if len(bases) < 5:
+    if len(list(categories.keys())) == 1:
         show_bases = bases
         response = await show_eclipse_bases(ctx,session,show_bases)
 
         if response:
             return 'basevault'
+        else:
+            return None
+
+    else:
+        category_options = []
+        category_str = ""
+        for category, qty in categories.items():
+            category_dict = {
+                'id': category,
+                'title': f"**{category}**: {qty} bases found."
+                }
+            category_options.append(category_dict)
+
+        category_options = await eclipse_menu_emoji(ctx,category_options)
+        
+        for i in category_options:
+            category_str += f"{i['emoji']} {i['title']}"
+            if category_options.index(i) < (len(category_options)-1):
+            category_str += f"\n\n"
+
+        base_category_embed = await eclipse_embed(ctx,
+            title="**E.C.L.I.P.S.E. Base Vault**",
+            message=f"I found the following base types for {emotes_townhall[base_th]}Townhall {base_th}. Select a category to view."
+                + f"\n\n{category_str}\n\u200b")
+
+        if session.message:
+            await session.message.edit(content=session.user.mention,embed=base_category_embed)
+        else:
+            session.message = await ctx.send(content=session.user.mention,embed=base_category_embed)
+
+        await session.message.clear_reactions()
+        
+        selection = await eclipse_menu_select(ctx,session,category_options)
+
+        show_bases = [b for b in bases if b.base_type==selection['id']]
+
+        response = await show_eclipse_bases(ctx,session,show_bases)
+
+        if response:
+            return 'basevaultselect'
         else:
             return None
 
@@ -226,7 +267,8 @@ async def show_eclipse_bases(ctx,session,bases):
             name="Navigation",
             value="<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu)."
                 + "\n<:to_previous:1041988094943035422> for the previous base in the list."
-                + "\n<:to_next:1041988114308137010> for the next base in the list.")
+                + "\n<:to_next:1041988114308137010> for the next base in the list."
+                + "\n<:download:1040800550373044304> to save this base to your personal vault.")
         
         #await session.message.clear_reactions()
 
@@ -234,7 +276,7 @@ async def show_eclipse_bases(ctx,session,bases):
         new_message = await session.channel.send(content=session.user.mention,embed=base_embed,file=image)
         session.message = new_message
 
-        selection = await eclipse_menu_select(ctx,session,base_navigation)
+        selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
 
         if selection:
             if selection['id'] == 'next':

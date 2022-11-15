@@ -503,18 +503,19 @@ class AriXMemberCommands(commands.Cog):
                     await ctx.send("This bit doesn't exist yet.")
                     response = None
 
-                if response in ['basevault','basevaultnone']:
+                if response in ['basevault','basevaultnone','basevaultselect']:
                     if response == 'basevaultnone':
                         response = await eclipse_base_vault(ctx,session,base_th_select)
                     else:
                         response = await eclipse_base_vault(ctx,session)
-                    
-                    base_th_select = response
 
                     if not response or response == 'menu':
                         pass
                     else:
-                        response = await get_eclipse_bases(ctx,session,response)
+                        base_th_select = response
+
+                if response in ['basevaultselect']:
+                    response = await get_eclipse_bases(ctx,session,base_th_select)
 
                 if response == 'armyguides':
                     await ctx.send("This bit doesn't exist yet.")
@@ -533,9 +534,9 @@ class AriXMemberCommands(commands.Cog):
 
                     if session.message:
                         await session.message.clear_reactions()
-                        await session.message.edit(content=ctx.author.mention,embed=session_closed)
+                        await session.message.edit(content=ctx.author.mention,embed=session_closed,delete_after=60)
                     else:
-                        await ctx.send(content=ctx.author.mention,embed=session_closed)
+                        await ctx.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
                 
 
 
