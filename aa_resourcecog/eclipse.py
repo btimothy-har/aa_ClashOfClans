@@ -53,7 +53,7 @@ async def eclipse_menu_emoji(ctx,options):
 
 async def eclipse_menu_select(ctx, session, sel_list):
     def chk_select(r,u):
-        if str(r.emoji) in sel_emojis and r.message.id == message.id and u.id == ctx.author.id:
+        if str(r.emoji) in sel_emojis and r.message.id == session.message.id and u.id == session.user.id:
             return True
         else:
             return False
