@@ -121,6 +121,13 @@ async def eclipse_base_vault(ctx,session,no_base=None):
     th_str = ""
     
     menu_options = []
+    back_dict = {
+        'id': 'menu',
+        'emoji': "<:backwards:1041976602420060240>",
+        'title': "",
+        }
+    menu_options.append(back_dict)
+
     for n in townhall_range:
         n_dict = {
             'id':n,
@@ -132,13 +139,6 @@ async def eclipse_base_vault(ctx,session,no_base=None):
         th_str += f"{n_dict['emoji']} {n_dict['title']}"
         if n < max(townhall_range):
             th_str += f"\n\n"
-
-    back_dict = {
-        'id': 'menu',
-        'emoji': "<:backwards:1041976602420060240>",
-        'title': "",
-        }
-    menu_options.append(back_dict)
 
     if no_base:
         base_menu_embed = await eclipse_embed(ctx,
@@ -178,35 +178,41 @@ async def get_eclipse_bases(ctx,session,townhall_level):
     if len(bases) == 0:
         return 'basevaultnone'
 
-    if len(list(categories.keys())) == 1:
-        show_bases = bases
-        response = await show_eclipse_bases(ctx,session,show_bases)
+    #if len(list(categories.keys())) == 1:
+    #    show_bases = bases
+    #    response = await show_eclipse_bases(ctx,session,show_bases)
 
-        if response:
-            return 'basevault'
-        else:
-            return None
+    #    if response:
+    #       return 'basevault'
+    #    else:
+    #        return None
 
-    else:
+    if True:
         category_options = []
         category_str = ""
+        back_dict = {
+            'id': 'back',
+            'emoji': '<:backwards:1041976602420060240>',
+            'title': 'Back to Townhall selection.'
+            }
+        category_options.append(back_dict)
+
         for category, qty in categories.items():
             category_dict = {
                 'id': category,
-                'title': f"**{category}**: {qty} bases found."
+                'title': f"**{category}**: {qty} base(s) found."
                 }
             category_options.append(category_dict)
-
         category_options = await eclipse_menu_emoji(ctx,category_options)
         
         for i in category_options:
             category_str += f"{i['emoji']} {i['title']}"
             if category_options.index(i) < (len(category_options)-1):
-            category_str += f"\n\n"
+                category_str += f"\n\n"
 
         base_category_embed = await eclipse_embed(ctx,
             title="**E.C.L.I.P.S.E. Base Vault**",
-            message=f"I found the following base types for {emotes_townhall[base_th]}Townhall {base_th}. Select a category to view."
+            message=f"I found the following base types for **{emotes_townhall[base_th]} Townhall {base_th}**. Select a category to view."
                 + f"\n\n{category_str}\n\u200b")
 
         if session.message:
@@ -218,6 +224,12 @@ async def get_eclipse_bases(ctx,session,townhall_level):
         
         selection = await eclipse_menu_select(ctx,session,category_options)
 
+        if not selection:
+            return None
+
+        if selection['id'] == 'back':
+            return 'basevault'
+        
         show_bases = [b for b in bases if b.base_type==selection['id']]
 
         response = await show_eclipse_bases(ctx,session,show_bases)
@@ -240,18 +252,22 @@ async def show_eclipse_bases(ctx,session,bases):
             'emoji': '<:backwards:1041976602420060240>'
             },
         {
-            'id': 'previous',
-            'emoji': '<:to_previous:1041988094943035422>'
-            },
-        {
-            'id': 'next',
-            'emoji': '<:to_next:1041988114308137010>'
-            },
-        {
             'save': 'save',
             'emoji': '<:download:1040800550373044304>'
             }
         ]
+
+    if len(bases) > 1:
+        prev_dict = {
+            'id': 'previous',
+            'emoji': '<:to_previous:1041988094943035422>'
+            }
+        base_navigation.append(prev_dict)
+        next_dict = {
+            'id': 'next',
+            'emoji': '<:to_next:1041988114308137010>'
+            }
+        base_navigation.append(next_dict)
 
     i = 0
     while browse_bases:
@@ -263,12 +279,18 @@ async def show_eclipse_bases(ctx,session,bases):
         base_embed, image = await bases[i].base_embed(ctx)
         base_embed.set_image(url="attachment://image.png")
 
-        base_embed.add_field(
-            name="Navigation",
-            value="<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu)."
-                + "\n<:to_previous:1041988094943035422> for the previous base in the list."
-                + "\n<:to_next:1041988114308137010> for the next base in the list."
-                + "\n<:download:1040800550373044304> to save this base to your personal vault.")
+        if len(bases) > 1:
+            base_embed.add_field(
+                name="Navigation",
+                value="<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu)."
+                    + "\n<:download:1040800550373044304> to save this base to your personal vault."
+                    + "\n<:to_previous:1041988094943035422> for the previous base in the list."
+                    + "\n<:to_next:1041988114308137010> for the next base in the list.")
+        else:
+            base_embed.add_field(
+                name="Navigation",
+                value="<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu)."
+                    + "\n<:download:1040800550373044304> to save this base to your personal vault.")
         
         #await session.message.clear_reactions()
 

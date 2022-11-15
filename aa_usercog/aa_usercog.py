@@ -503,7 +503,7 @@ class AriXMemberCommands(commands.Cog):
                     await ctx.send("This bit doesn't exist yet.")
                     response = None
 
-                if response in ['basevault','basevaultnone','basevaultselect']:
+                if response in ['basevault','basevaultnone']:
                     if response == 'basevaultnone':
                         response = await eclipse_base_vault(ctx,session,base_th_select)
                     else:
@@ -513,6 +513,7 @@ class AriXMemberCommands(commands.Cog):
                         pass
                     else:
                         base_th_select = response
+                        response = 'basevaultselect'
 
                 if response in ['basevaultselect']:
                     response = await get_eclipse_bases(ctx,session,base_th_select)
