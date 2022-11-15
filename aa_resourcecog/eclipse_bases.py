@@ -99,7 +99,7 @@ class eWarBase():
 			title=f"**TH{self.town_hall} {self.base_type}**",
 			message=f"Date Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
 				+ f"\n\nFrom: **{self.source}** (Builder: **{self.builder}**)"
-				+ f"\n\n**Defensive Clan Castle:**\n{self.defensive_cc_str}")
+				+ f"\n\n**Defensive Clan Castle:**\n{self.defensive_cc_str}\n\u200b")
 
 		embed.set_image(url="attachment://image.png")
 

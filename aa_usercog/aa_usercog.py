@@ -525,10 +525,13 @@ class AriXMemberCommands(commands.Cog):
                     session.state = False
                     session_closed = await eclipse_embed(ctx,
                         message=f"Your **E.C.L.I.P.S.E.** session is closed. We hope to see you again!")
-                    await session.message.clear_reactions()
-                    await session.message.edit(content=ctx.author.mention,embed=session_closed)
 
-                    
+                    if session.message:
+                        await session.message.clear_reactions()
+                        await session.message.edit(content=ctx.author.mention,embed=session_closed)
+                    else:
+                        await ctx.send(content=ctx.author.mention,embed=session_closed)
+                
 
 
 
