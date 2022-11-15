@@ -313,9 +313,6 @@ async def show_eclipse_bases(ctx,session,bases):
                 browse_bases = False
         else:
             browse_bases = False
-    
-    await session.message.delete()
-    session.message = None
 
     if selection:
         response = True
