@@ -97,7 +97,7 @@ async def eclipse_main_menu(ctx,session):
             select_str += f"\n\n"
 
     menu_embed.add_field(
-        name="To get started, select an option below.",
+        name="**```To get started, select an option below.```**",
         value=f"\u200b\n{select_str}\n\n*You may close your E.C.L.I.P.S.E. Session at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
         inline=False
         )
@@ -116,7 +116,7 @@ async def eclipse_main_menu(ctx,session):
         return None
 
 
-async def eclipse_base_vault(ctx,session):
+async def eclipse_base_vault(ctx,session,no_base=None):
     townhall_range = range(9,16)
     th_str = ""
     
@@ -140,9 +140,14 @@ async def eclipse_base_vault(ctx,session):
         }
     menu_options.append(back_dict)
 
-    base_menu_embed = await eclipse_embed(ctx,
-        title="**E.C.L.I.P.S.E. Base Vault**",
-        message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
+    if no_base:
+        base_menu_embed = await eclipse_embed(ctx,
+            title="**E.C.L.I.P.S.E. Base Vault**",
+            message=f"**We don't have any bases currently for Townhall {no_base}.**\n\nPlease select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
+    else:
+        base_menu_embed = await eclipse_embed(ctx,
+            title="**E.C.L.I.P.S.E. Base Vault**",
+            message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=base_menu_embed)
@@ -169,6 +174,9 @@ async def get_eclipse_bases(ctx,session,townhall_level):
             categories[b.base_type] = 0
         categories[b.base_type] += 1
 
+    if len(bases) == 0:
+        return 'basevaultnone'
+
     if len(bases) < 5:
         show_bases = bases
         response = await show_eclipse_bases(ctx,session,show_bases)
@@ -187,31 +195,38 @@ async def show_eclipse_bases(ctx,session,bases):
 
     base_navigation = [
         {
-            'id': 'next',
-            'emoji': '<:to_next:1041988114308137010>'
+            'id': 'back',
+            'emoji': '<:backwards:1041976602420060240>'
             },
         {
             'id': 'previous',
             'emoji': '<:to_previous:1041988094943035422>'
             },
         {
-            'id': 'back',
-            'emoji': '<:backwards:1041976602420060240>'
+            'id': 'next',
+            'emoji': '<:to_next:1041988114308137010>'
             },
+        {
+            'save': 'save',
+            'emoji': '<:download:1040800550373044304>'
+            }
         ]
 
     i = 0
-    
     while browse_bases:
-        base_embed, image = await bases[i].base_embed(ctx)
+        if i < 0:
+            i = (len(bases) - 1)
+        if i > (len(bases) - 1):
+            i = 0
 
+        base_embed, image = await bases[i].base_embed(ctx)
         base_embed.set_image(url="attachment://image.png")
 
         base_embed.add_field(
             name="Navigation",
-            value="<:to_previous:1041988094943035422> for the previous base in the list."
-                + "\n<:to_next:1041988114308137010> for the next base in the list."
-                + "\n<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu).")
+            value="<:backwards:1041976602420060240> to stop looking at bases (you will return to your previous menu)."
+                + "\n<:to_previous:1041988094943035422> for the previous base in the list."
+                + "\n<:to_next:1041988114308137010> for the next base in the list.")
         
         #await session.message.clear_reactions()
 
@@ -226,6 +241,9 @@ async def show_eclipse_bases(ctx,session,bases):
                 i += 1
             elif selection['id'] == 'previous':
                 i -= 1
+            elif selection['id'] == 'save':
+                i = i
+                #add save code here
             else:
                 browse_bases = False
         else:
@@ -233,7 +251,7 @@ async def show_eclipse_bases(ctx,session,bases):
     
     await session.message.delete()
     session.message = None
-    
+
     if selection:
         response = True
     
