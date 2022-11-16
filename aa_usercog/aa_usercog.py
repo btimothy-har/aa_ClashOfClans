@@ -33,7 +33,7 @@ from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, 
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 from aa_resourcecog.eclipse_functions import eclipse_main_menu, eclipse_base_vault, get_eclipse_bases
-from aa_resourcecog.eclipse_classes import EclipseSession, eWarBase, eWarArmy
+from aa_resourcecog.eclipse_classes import EclipseSession, eWarBase
 
 class AriXMemberCommands(commands.Cog):
     """AriX Clash of Clans Members' Module."""
