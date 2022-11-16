@@ -260,13 +260,6 @@ async def show_eclipse_bases(ctx,session,bases):
             }
         ]
 
-    if session.user.id not in display_bases[i].claims:
-        save_navigation = {
-            'id': 'save',
-            'emoji': '<:download:1040800550373044304>'
-            }
-        base_navigation.append(save_navigation)
-
     if len(bases) > 1:
         prev_dict = {
             'id': 'previous',
@@ -288,6 +281,8 @@ async def show_eclipse_bases(ctx,session,bases):
             i = 0
 
         base_embed, image = await display_bases[i].base_embed(ctx)
+
+        save_base_embed = base_embed
 
         dump_channel = ctx.bot.get_channel(1042064532480217130)
         dump_message = await dump_channel.send(content=f"{session.user.name}@{session.channel.name}",file=image)
@@ -312,6 +307,11 @@ async def show_eclipse_bases(ctx,session,bases):
                 value="Get the link to this base by clicking on <:download:1040800550373044304>."
                     + f"\n\n*You will always be able to access your saved bases from your personal vault.*",
                 inline=False)
+            save_navigation = {
+                'id': 'save',
+                'emoji': '<:download:1040800550373044304>'
+                }
+            base_navigation.append(save_navigation)
 
         if len(bases) > 1:
             base_embed.add_field(
@@ -344,9 +344,17 @@ async def show_eclipse_bases(ctx,session,bases):
                 i -= 1
             elif selection['id'] == 'save':
                 display_bases[i].claims.append(session.user.id)
+
+                link_embed = save_base_embed
+                link_embed.add_field(
+                    name="Base Link",
+                    value=f"[Click here to open in-game.]({display_bases[i].base_link})",
+                    inline=False)
+
                 async with ctx.bot.async_eclipse_lock:
                     with ctx.bot.clash_eclipse_lock.write_lock():
                         await bases[i].save_to_json()
+                await session.user.send(embed=link_embed)
                 i = i
             else:
                 browse_bases = False
