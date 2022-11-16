@@ -510,15 +510,19 @@ class AriXMemberCommands(commands.Cog):
             ctx.bot.clash_eclipse_sessions.append(session)
 
             while session.state:
-
                 try:
                     session.add_to_path(response)
                     if response in ['start','menu']:
                         response = await eclipse_main_menu(ctx,session)
 
                     if response == 'personalvault':
-                        await ctx.send("This bit doesn't exist yet.")
-                        response = "menu"
+                        response = await eclipse_personal_vault(ctx,session)
+
+                    if response == 'mybases':
+                        response = await eclipse_personal_bases(ctx,session)
+
+                    if response == 'myarmies':
+                        response = 'menu'
 
                     #Base Vault: Townhall Selection
                     if response in ['basevault','basevaultnone']:
@@ -808,246 +812,248 @@ class AriXMemberCommands(commands.Cog):
         return await ctx.send(content="Base Added!",embed=embed,file=image)
 
 
-    @eclipse_group.command(name="addarmy")
-    async def eclipse_add_army(self,ctx):
-        """
-        Add an army to Eclipse.
-        """
+    # @eclipse_group.command(name="addarmy", hidden=True)
+    # async def eclipse_add_army(self,ctx):
+    #     """
+    #     Add an army to Eclipse.
+    #     """
 
-        timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
+    #     timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
 
-        def difficulty_check(m):
-            msg_check = False
-            if m.author.id == ctx.author.id:
-                if m.channel.id == ctx.channel.id:
-                    msg_check = True
-                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
-                    msg_check = True
-            if msg_check:
-                try:
-                    d_int = int(m.content)
-                except:
-                    return False
-                else:
-                    return 0 < d_int < 6
+    #     def difficulty_check(m):
+    #         msg_check = False
+    #         if m.author.id == ctx.author.id:
+    #             if m.channel.id == ctx.channel.id:
+    #                 msg_check = True
+    #             elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+    #                 msg_check = True
+    #         if msg_check:
+    #             try:
+    #                 d_int = int(m.content)
+    #             except:
+    #                 return False
+    #             else:
+    #                 return 0 < d_int < 6
 
-        def armylink_check(m):
-            msg_check = False
-            if m.author.id == ctx.author.id:
-                if m.channel.id == ctx.channel.id:
-                    msg_check = True
-                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
-                    msg_check = True
-            if msg_check:
-                check_url = False
-                try:
-                    link_parse = urllib.parse.urlparse(m.content)
-                    link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
+    #     def armylink_check(m):
+    #         msg_check = False
+    #         if m.author.id == ctx.author.id:
+    #             if m.channel.id == ctx.channel.id:
+    #                 msg_check = True
+    #             elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+    #                 msg_check = True
+    #         if msg_check:
+    #             check_url = False
+    #             try:
+    #                 link_parse = urllib.parse.urlparse(m.content)
+    #                 link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
 
-                    if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
-                        check_url = True
-                except:
-                    pass
-                return check_url
+    #                 if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
+    #                     check_url = True
+    #             except:
+    #                 pass
+    #             return check_url
 
-        def response_check(m):
-            if m.author.id == ctx.author.id:
-                if m.channel.id == ctx.channel.id:
-                    return True
-                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
-                    return True
-                else:
-                    return False
+    #     def response_check(m):
+    #         if m.author.id == ctx.author.id:
+    #             if m.channel.id == ctx.channel.id:
+    #                 return True
+    #             elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+    #                 return True
+    #             else:
+    #                 return False
 
-        #ARMY NAME
-        army_name_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 1/8",
-            message=f"What is the name of this Army composition?")
+    #     #ARMY NAME
+    #     army_name_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 1/8",
+    #         message=f"**What is the name of this strategy?**")
 
-        army_name_msg = await ctx.send(embed=army_name_embed)
-        try:
-            army_name_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-        except asyncio.TimeoutError:
-            await army_name_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_name = army_name_response.content
-            await army_name_msg.delete()
-            await army_name_response.delete()
-
-
-        # TOWNHALL
-        th_range = range(9,16)
-        th_select = []
-
-        for i in th_range:
-            th_dict = {
-                'id': i,
-                'title': f'Townhall {i}',
-                'emoji': emotes_townhall[i],
-                'description': None
-                }
-            th_select.append(th_dict)
-
-        townhall_level_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 2/8",
-            message=f"What Townhall level is this Army designed for?")
-
-        select_townhall = await multiple_choice_select(
-            ctx=ctx,
-            sEmbed=townhall_level_embed,
-            selection_list=th_select)
-
-        if not select_townhall:
-            return
-        army_townhall = select_townhall['id']
+    #     army_name_msg = await ctx.send(embed=army_name_embed)
+    #     try:
+    #         army_name_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+    #     except asyncio.TimeoutError:
+    #         await army_name_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_name = army_name_response.content
+    #         await army_name_msg.delete()
+    #         await army_name_response.delete()
 
 
-        #3 ARMY LINK
-        army_link_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 3/8",
-            message=f"Provide the Army Link for this Army.")
-        army_link_msg = await ctx.send(embed=army_link_embed)
+    #     # TOWNHALL
+    #     th_range = range(9,16)
+    #     th_select = []
 
-        try:
-            army_link_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
-        except asyncio.TimeoutError:
-            await army_author_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_link = army_link_response.content
-            await army_link_msg.delete()
-            await army_link_response.delete()
+    #     for i in th_range:
+    #         th_dict = {
+    #             'id': i,
+    #             'title': f'Townhall {i}',
+    #             'emoji': emotes_townhall[i],
+    #             'description': None
+    #             }
+    #         th_select.append(th_dict)
 
+    #     townhall_level_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 2/8",
+    #         message=f"**What Townhall level is this Strategy designed for?**"
+    #             + f"\n\n*Only 1 Townhall can be selected. Strategies at different Townhall Levels are considered separate strategies.*")
 
-        #4 CLAN CASTLE
-        army_cc_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 4/8",
-            message=f"Provide the Army Link for the Clan Castle composition in this Army.")
-        army_cc_msg = await ctx.send(embed=army_cc_embed)
+    #     select_townhall = await multiple_choice_select(
+    #         ctx=ctx,
+    #         sEmbed=townhall_level_embed,
+    #         selection_list=th_select)
 
-        try:
-            army_cc_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
-        except asyncio.TimeoutError:
-            await army_cc_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_cc = army_cc_response.content
-
-            parsed_cc = ctx.bot.coc_client.parse_army_link(army_cc)
-            cc_troop_space = 0
-            cc_siege_space = 0
-            cc_spell_space = 0
-            for troop in parsed_cc[0]:
-                if troop[0].name in coc.HOME_TROOP_ORDER:
-                    cc_troop_space += (army_campsize[troop[0].name] * troop[1])
-                if troop[0].name in coc.SIEGE_MACHINE_ORDER:
-                    cc_siege_space += (army_campsize[troop[0].name] * troop[1])
-            for spell in parsed_cc[1]:
-                if spell[0].name in coc.SPELL_ORDER:
-                    cc_spell_space += (army_campsize[spell[0].name] * spell[1])
-
-            if cc_troop_space > clan_castle_size[army_townhall][0] or cc_siege_space > clan_castle_size[army_townhall][2] or cc_spell_space > clan_castle_size[army_townhall][1]:
-                invalid_cc = await eclipse_embed(ctx,message=f"This Clan Castle composition has more troops than available for this Townhall level.")
-                await ctx.send(embed=invalid_cc)
-                return
-
-            await army_cc_msg.delete()
-            await army_cc_response.delete()
+    #     if not select_townhall:
+    #         return
+    #     army_townhall = select_townhall['id']
 
 
-        #5 DIFFICULTY
-        army_difficulty_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 5/8",
-            message=f"From a range of `1` to `5`, rank the difficulty of this Army."
-                + f"\n\n1 -- Not Difficult to Use, 5 -- Very Difficult to Use")
-        army_difficulty_msg = await ctx.send(embed=army_difficulty_embed)
+    #     #3 ARMY LINK
+    #     army_link_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 3/8",
+    #         message=f"**Provide the Army Link(s) for this Strategy.**"
+    #             + f"\n\nYou may separate variations ")
+    #     army_link_msg = await ctx.send(embed=army_link_embed)
 
-        try:
-            army_difficulty_response = await ctx.bot.wait_for("message",timeout=60,check=difficulty_check)
-        except asyncio.TimeoutError:
-            await army_difficulty_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_difficulty = army_difficulty_response.content
-
-            await army_difficulty_msg.delete()
-            await army_difficulty_response.delete()
-
-        #6 VIDEO
-        army_videos_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 6/8",
-            message=f"Provide up to 5 reference videos for this Army. Separate multiple videos with a space."
-                +f"\n\nNote: Video links must start with `https://www.youtube.com/watch?` or `https://youtu.be/`. ")
-        army_videos_msg = await ctx.send(embed=army_videos_embed)
-
-        try:
-            army_videos_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-        except asyncio.TimeoutError:
-            await army_videos_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_videos = []
-            for v in army_videos_response.content.split():
-                if urllib.parse.urlparse(v).netloc == "www.youtube.com":
-                    b = f"https://youtu.be/{urllib.parse.parse_qs(urllib.parse.urlparse(v).query)['v'][0]}"
-                elif urllib.parse.urlparse(v).netloc == "youtu.be":
-                    b = f"https://youtu.be/{urllib.parse.urlparse(v).path.split('/')[1]}"
-                    army_videos.append(v)
-
-            await army_videos_msg.delete()
-            await army_videos_response.delete()
+    #     try:
+    #         army_link_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
+    #     except asyncio.TimeoutError:
+    #         await army_author_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_link = army_link_response.content
+    #         await army_link_msg.delete()
+    #         await army_link_response.delete()
 
 
-        #7 DESCRIPTION
-        army_description_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 7/8",
-            message=f"Provide a brief description for this Army. Use this space to include any tips/steps/etc.")
-        army_description_msg = await ctx.send(embed=army_description_embed)
+    #     #4 CLAN CASTLE
+    #     army_cc_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 4/8",
+    #         message=f"Provide the Army Link for the Clan Castle composition in this Army.")
+    #     army_cc_msg = await ctx.send(embed=army_cc_embed)
 
-        try:
-            army_description_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-        except asyncio.TimeoutError:
-            await army_description_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_description = army_description_response.content
-            await army_description_msg.delete()
-            await army_description_response.delete()
+    #     try:
+    #         army_cc_response = await ctx.bot.wait_for("message",timeout=60,check=armylink_check)
+    #     except asyncio.TimeoutError:
+    #         await army_cc_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_cc = army_cc_response.content
+
+    #         parsed_cc = ctx.bot.coc_client.parse_army_link(army_cc)
+    #         cc_troop_space = 0
+    #         cc_siege_space = 0
+    #         cc_spell_space = 0
+    #         for troop in parsed_cc[0]:
+    #             if troop[0].name in coc.HOME_TROOP_ORDER:
+    #                 cc_troop_space += (army_campsize[troop[0].name] * troop[1])
+    #             if troop[0].name in coc.SIEGE_MACHINE_ORDER:
+    #                 cc_siege_space += (army_campsize[troop[0].name] * troop[1])
+    #         for spell in parsed_cc[1]:
+    #             if spell[0].name in coc.SPELL_ORDER:
+    #                 cc_spell_space += (army_campsize[spell[0].name] * spell[1])
+
+    #         if cc_troop_space > clan_castle_size[army_townhall][0] or cc_siege_space > clan_castle_size[army_townhall][2] or cc_spell_space > clan_castle_size[army_townhall][1]:
+    #             invalid_cc = await eclipse_embed(ctx,message=f"This Clan Castle composition has more troops than available for this Townhall level.")
+    #             await ctx.send(embed=invalid_cc)
+    #             return
+
+    #         await army_cc_msg.delete()
+    #         await army_cc_response.delete()
 
 
-        #8 AUTHOR
-        army_author_embed = await eclipse_embed(ctx,
-            title="Add Army -- Step 7/8",
-            message=f"Provide the Author of this Army.")
-        army_author_msg = await ctx.send(embed=army_author_embed)
+    #     #5 DIFFICULTY
+    #     army_difficulty_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 5/8",
+    #         message=f"From a range of `1` to `5`, rank the difficulty of this Army."
+    #             + f"\n\n1 -- Not Difficult to Use, 5 -- Very Difficult to Use")
+    #     army_difficulty_msg = await ctx.send(embed=army_difficulty_embed)
 
-        try:
-            army_author_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-        except asyncio.TimeoutError:
-            await army_author_msg.edit(embed=timeout_embed)
-            return
-        else:
-            army_author = army_author_response.content
-            await army_author_msg.delete()
-            await army_author_response.delete()
+    #     try:
+    #         army_difficulty_response = await ctx.bot.wait_for("message",timeout=60,check=difficulty_check)
+    #     except asyncio.TimeoutError:
+    #         await army_difficulty_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_difficulty = army_difficulty_response.content
+
+    #         await army_difficulty_msg.delete()
+    #         await army_difficulty_response.delete()
+
+    #     #6 VIDEO
+    #     army_videos_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 6/8",
+    #         message=f"Provide up to 5 reference videos for this Army. Separate multiple videos with a space."
+    #             +f"\n\nNote: Video links must start with `https://www.youtube.com/watch?` or `https://youtu.be/`. ")
+    #     army_videos_msg = await ctx.send(embed=army_videos_embed)
+
+    #     try:
+    #         army_videos_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+    #     except asyncio.TimeoutError:
+    #         await army_videos_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_videos = []
+    #         for v in army_videos_response.content.split():
+    #             if urllib.parse.urlparse(v).netloc == "www.youtube.com":
+    #                 b = f"https://youtu.be/{urllib.parse.parse_qs(urllib.parse.urlparse(v).query)['v'][0]}"
+    #             elif urllib.parse.urlparse(v).netloc == "youtu.be":
+    #                 b = f"https://youtu.be/{urllib.parse.urlparse(v).path.split('/')[1]}"
+    #                 army_videos.append(v)
+
+    #         await army_videos_msg.delete()
+    #         await army_videos_response.delete()
 
 
-        async with ctx.bot.async_eclipse_lock:
-            with ctx.bot.clash_eclipse_lock.write_lock():
-                new_army = await eWarArmy.new_army(ctx=ctx,
-                    name=army_name,
-                    town_hall=army_townhall,
-                    author=army_author,
-                    difficulty=army_difficulty,
-                    video=army_videos,
-                    army_link=army_link,
-                    cc_link=army_cc,
-                    description=army_description,
-                    )
+    #     #7 DESCRIPTION
+    #     army_description_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 7/8",
+    #         message=f"Provide a brief description for this Army. Use this space to include any tips/steps/etc.")
+    #     army_description_msg = await ctx.send(embed=army_description_embed)
 
-                await new_army.save_to_json()
+    #     try:
+    #         army_description_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+    #     except asyncio.TimeoutError:
+    #         await army_description_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_description = army_description_response.content
+    #         await army_description_msg.delete()
+    #         await army_description_response.delete()
 
-        embed = await new_army.army_embed(ctx)
 
-        return await ctx.send(content="Army Added!",embed=embed)
+    #     #8 AUTHOR
+    #     army_author_embed = await eclipse_embed(ctx,
+    #         title="Add Army -- Step 7/8",
+    #         message=f"Provide the Author of this Army.")
+    #     army_author_msg = await ctx.send(embed=army_author_embed)
+
+    #     try:
+    #         army_author_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+    #     except asyncio.TimeoutError:
+    #         await army_author_msg.edit(embed=timeout_embed)
+    #         return
+    #     else:
+    #         army_author = army_author_response.content
+    #         await army_author_msg.delete()
+    #         await army_author_response.delete()
+
+
+    #     async with ctx.bot.async_eclipse_lock:
+    #         with ctx.bot.clash_eclipse_lock.write_lock():
+    #             new_army = await eWarArmy.new_army(ctx=ctx,
+    #                 name=army_name,
+    #                 town_hall=army_townhall,
+    #                 author=army_author,
+    #                 difficulty=army_difficulty,
+    #                 video=army_videos,
+    #                 army_link=army_link,
+    #                 cc_link=army_cc,
+    #                 description=army_description,
+    #                 )
+
+    #             await new_army.save_to_json()
+
+    #     embed = await new_army.army_embed(ctx)
+
+    #     return await ctx.send(content="Army Added!",embed=embed)

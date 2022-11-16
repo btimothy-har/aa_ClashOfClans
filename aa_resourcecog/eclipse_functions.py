@@ -83,7 +83,7 @@ async def eclipse_main_menu(ctx,session):
     menu_embed = await eclipse_embed(ctx,
         title="**Welcome to E.C.L.I.P.S.E.!**",
         message=f"\nAriX's ***E**xtraordinarily **C**ool **L**ooking **I**nteractive & **P**rofessional **S**earch **E**ngine*."
-            + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, ranging from War Bases to Army Compositions and Strategies."
+            + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, ranging from War Bases to Army Compositions and Strategies. "
             + f"In addition, curate your own personal vault of information for your personal reference.\n\u200b")
 
     select_str = ""
@@ -113,7 +113,6 @@ async def eclipse_main_menu(ctx,session):
         return selection['id']
     else:
         return None
-
 
 async def eclipse_base_vault(ctx,session,no_base=None):
     townhall_range = range(9,16)
@@ -222,9 +221,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
             await session.message.edit(content=session.user.mention,embed=base_category_embed)
         else:
             session.message = await ctx.send(content=session.user.mention,embed=base_category_embed)
-
         await session.message.clear_reactions()
-        
         selection = await eclipse_menu_select(ctx,session,category_select)
 
         if not selection:
@@ -247,6 +244,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
 
 async def show_eclipse_bases(ctx,session,bases):
     browse_bases = True
+    display_bases = bases
     response = None
 
     base_navigation = [
@@ -274,32 +272,50 @@ async def show_eclipse_bases(ctx,session,bases):
 
     i = 0
     while browse_bases:
+        display_bases = [b or b in bases if len(b.claims) < 6 or session.user.id in b.claims]
         if i < 0:
-            i = (len(bases) - 1)
-        if i > (len(bases) - 1):
+            i = (len(display_bases) - 1)
+        if i > (len(display_bases) - 1):
             i = 0
 
-        base_embed, image = await bases[i].base_embed(ctx)
+        base_embed, image = await display_bases[i].base_embed(ctx)
 
         dump_channel = ctx.bot.get_channel(1042064532480217130)
         dump_message = await dump_channel.send(content=f"{session.user.name}@{session.channel.name}",file=image)
         image_attachment = dump_message.attachments[0]
         
         base_embed.set_image(url=image_attachment.url)
-        base_embed.set_footer(text=f"(Displaying base {i+1} of {len(bases)}) -- AriX Alliance | Clash of Clans")
+        base_embed.set_footer(text=f"(Displaying base {i+1} of {len(display_bases)}) -- AriX Alliance | Clash of Clans")
+
+        if session.user.id in display_bases[i].claims and session.guild:
+            base_embed.add_field(
+                name="Base Link",
+                value="You have added this base to your Vault. To get the Base Link, visit your Personal Vault from the main menu.",
+                inline=False)
+        elif session.user.id in display_bases[i].claims and not session.guild:
+            base_embed.add_field(
+                name="Base Link",
+                value=f"[Click here to open in-game.]({display_bases[i].base_link})",
+                inline=False)
+        else:
+            base_embed.add_field(
+                name="Using this Base",
+                value="To get the Base Link for this base, add it to your personal vault by clicking on <:download:1040800550373044304>."
+                    + f"\n\nTo ensure bases don't get burnt too quickly, each base can only be claimed by up to 5 members at any one time.",
+                inline=False)
 
         if len(bases) > 1:
             base_embed.add_field(
                 name="Navigation",
                 value="<:backwards:1041976602420060240> back to the previous menu"
-                    + "\n<:download:1040800550373044304> to save this base to your personal vault"
                     + "\n<:to_previous:1041988094943035422> for the previous base"
-                    + "\n<:to_next:1041988114308137010> for the next base")
+                    + "\n<:to_next:1041988114308137010> for the next base",
+                inline=False)
         else:
             base_embed.add_field(
                 name="Navigation",
-                value="<:backwards:1041976602420060240> back to the previous menu"
-                    + "\n<:download:1040800550373044304> to save this base to your personal vault")
+                value="<:backwards:1041976602420060240> back to the previous menu",
+            inline=False)
         
         await session.message.edit(content=session.user.mention,embed=base_embed)
         await session.message.clear_reactions()
@@ -313,8 +329,11 @@ async def show_eclipse_bases(ctx,session,bases):
             elif selection['id'] == 'previous':
                 i -= 1
             elif selection['id'] == 'save':
+                display_bases[i].claims.append(session.user.id)
+                async with ctx.bot.async_eclipse_lock:
+                    with ctx.bot.clash_eclipse_lock.write_lock():
+                        await bases[i].save_to_json()
                 i = i
-                #add save code here
             else:
                 browse_bases = False
         else:
@@ -326,6 +345,128 @@ async def show_eclipse_bases(ctx,session,bases):
     return response
 
 
+async def eclipse_personal_vault(ctx,session):
+    session.channel = ctx.author
+    session.guild = None
+    await session.message.delete()
+    session.message = None
 
+    menu_options = []
+
+    war_base_option = {
+        'id': 'mybases',
+        'title': f"My War Bases",
+        'description': "Bases saved from our Base Vault. You can save up to a maximum of **3** bases per Townhall level."
+        }
+    armies_option = {
+        'id': 'myarmies',
+        'title': f"My Army Compositions",
+        'description': "Your personal army compositions saved on E.C.L.I.P.S.E. ."
+        }
+
+    menu_options.append(war_base_option)
+    menu_options.append(armies_option)
+
+    menu_options = await eclipse_menu_emoji(ctx,menu_options)
+
+    menu_embed = await eclipse_embed(ctx,
+        title=f"{session.user.display_name}'s Personal Vault",
+        message=f"\nWelcome to your personal E.C.L.I.P.S.E. Vault."
+            + f"\n\nHere, you can access any of the War Bases that you've saved from the member's Vault. "
+            + f"In addition, E.C.L.I.P.S.E. also offers a personal Army Composition Database for your use."
+            + f"\n\n**All data saved in your E.C.L.I.P.S.E. Vault is only accessible by you.**\n\u200b")
+
+    select_str = ""
+    for i in menu_options:
+        select_str += f"{i['emoji']} **{i['title']}**"
+        select_str += f"\n{i['description']}"
+
+        if menu_options.index(i) < (len(menu_options)-1):
+            select_str += f"\n\n"
+
+    menu_embed.add_field(
+        name="**```To get started, select an option below.```**",
+        value=f"\u200b\n{select_str}\n\n**To go back to E.C.L.I.P.S.E. Home Screen, end this session and restart from the AriX Server.**\n\u200b",
+        inline=False
+        )
+
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=menu_embed)
+    else:
+        session.message = await session.user.send(content=session.user.mention,embed=menu_embed)
+
+    await session.message.clear_reactions()
+    selection = await eclipse_menu_select(ctx,session,menu_options)
+
+    if selection:
+        return selection['id']
+    else:
+        return None
+
+
+async def eclipse_personal_bases(ctx,session):
+    menu_options = []
+    back_dict = {
+        'id': 'back',
+        'emoji': '<:backwards:1041976602420060240>',
+        'title': 'Back to Personal Vault menu'
+        }
+    menu_options.append(back_dict)
+    
+    bases = await eclipse_base_handler(ctx)
+    bases = [eWarBase.from_json(ctx,b) for b in bases if session.user.id in b['claims']]
+
+    if len(bases) > 0:
+        base_count = {}
+        for b in bases:
+            if b.town_hall not in list(base_count.keys()):
+                base_count[b.town_hall] == 0
+            base_count[b.town_hall] += 1
+
+        townhall_levels = sorted(list(base_count.keys()),reverse=True)
+
+        for th in townhall_levels:
+            n_dict = {
+                'id':th,
+                'emoji': f"{emotes_townhall[th]}",
+                'title':f"**TH {th}** -- {base_count[th]} bases",
+                }
+            menu_options.append(n_dict)
+
+            th_str += f"{n_dict['emoji']} {n_dict['title']}"
+            if th < max(townhall_levels):
+                th_str += f"\n\n"
+
+        base_select_embed = await eclipse_embed(ctx,
+            title="**E.C.L.I.P.S.E. Personal Base Vault**",
+            message=f"I found a total of {len(bases)} in your personal vault. Select a Townhall level below to view your bases.\n\n{th_str}")
+
+    else:
+        base_select_embed = await eclipse_embed(ctx,
+            title="**E.C.L.I.P.S.E. Personal Base Vault**",
+            message=f"**You don't have any bases in your personal vault.** Start by saving some bases from our Members' Vault."
+                + f"\n\n<:backwards:1041976602420060240> to return to your Personal Vault."
+                + f"\n<:red_cross:838461484312428575> to close this E.C.L.I.P.S.E. session.")
+
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=base_select_embed)
+    else:
+        session.message = await ctx.send(content=session.user.mention,embed=base_category_embed)
+    await session.message.clear_reactions()
+    selection = await eclipse_menu_select(ctx,session,menu_options)
+
+    if not selection:
+        return None
+
+    if selection['id'] == 'back':
+        return 'personalvault'
         
+    show_bases = [b for b in bases if b.town_hall==selection['id']]
+    response = await show_eclipse_bases(ctx,session,show_bases)
+
+    if response:
+        return 'mybases'
+    else:
+        return None
+
 
