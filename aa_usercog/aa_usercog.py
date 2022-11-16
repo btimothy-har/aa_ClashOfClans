@@ -593,7 +593,7 @@ class AriXMemberCommands(commands.Cog):
                     link_parse = urllib.parse.urlparse(m.content)
                     link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
 
-                    if link_parse == "link.clashofclans.com" and link_action == "OpenLayout":
+                    if link_parse.netloc == "link.clashofclans.com" and link_action == "OpenLayout":
                         check_url = True
                 except:
                     pass
@@ -611,7 +611,7 @@ class AriXMemberCommands(commands.Cog):
                     link_parse = urllib.parse.urlparse(m.content)
                     link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
 
-                    if link_parse == "link.clashofclans.com" and link_action == "CopyArmy":
+                    if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
                         check_url = True
                 except:
                     pass
@@ -844,7 +844,7 @@ class AriXMemberCommands(commands.Cog):
                     link_parse = urllib.parse.urlparse(m.content)
                     link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
 
-                    if link_parse == "link.clashofclans.com" and link_action == "CopyArmy":
+                    if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
                         check_url = True
                 except:
                     pass
