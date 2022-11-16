@@ -398,7 +398,7 @@ async def eclipse_personal_vault(ctx,session):
     if session.message:
         await session.message.edit(content=session.user.mention,embed=menu_embed)
     else:
-        session.message = await session.user.send(content=session.user.mention,embed=menu_embed)
+        session.message = await session.channel.send(content=session.user.mention,embed=menu_embed)
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if selection:
@@ -457,7 +457,7 @@ async def eclipse_personal_bases(ctx,session):
     if session.message:
         await session.message.edit(content=session.user.mention,embed=base_select_embed)
     else:
-        session.message = await ctx.send(content=session.user.mention,embed=base_select_embed)
+        session.message = await session.channel.send(content=session.user.mention,embed=base_select_embed)
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if not selection:
