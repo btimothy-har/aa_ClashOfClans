@@ -182,22 +182,16 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
     with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
         file_json = json.load(file)
 
-        if base_json:
-            existing_base = [b for b in file_json if b['id']==base_json['id']][0]
-
-            if existing_base:
-                existing_index = file_json.index(existing_base)
-                del file_json[existing_index]
-
-            file_json.append(base_json)
+        if base_json and base_json['id'] in list(file_json.keys()):
+            file_json[base_json['id']] = base_json
             file.seek(0)
             json.dump(file_json,file,indent=2)
             file.truncate()
 
         if base_town_hall:
-            th_bases = [b for b in file_json if b['townhall'] == base_town_hall]
+            th_bases = [b for i,b in file_json.items() if b['townhall'] == base_town_hall]
         else:
-            th_bases = [b for b in file_json]
+            th_bases = [b for i,b in file_json.items()]
 
     return th_bases
 
