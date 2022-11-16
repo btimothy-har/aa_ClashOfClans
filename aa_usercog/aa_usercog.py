@@ -947,7 +947,7 @@ class AriXMemberCommands(commands.Cog):
                 if spell[0].name in coc.SPELL_ORDER:
                     cc_spell_space += (army_campsize[spell[0].name] * spell[1])
 
-            if cc_troop_space > clan_castle_size[base_townhall][0] or cc_siege_space > clan_castle_size[base_townhall][2] or cc_spell_space > clan_castle_size[base_townhall][1]:
+            if cc_troop_space > clan_castle_size[army_townhall][0] or cc_siege_space > clan_castle_size[army_townhall][2] or cc_spell_space > clan_castle_size[army_townhall][1]:
                 invalid_cc = await eclipse_embed(ctx,message=f"This Clan Castle composition has more troops than available for this Townhall level.")
                 await ctx.send(embed=invalid_cc)
                 return
