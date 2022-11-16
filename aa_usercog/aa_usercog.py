@@ -571,7 +571,7 @@ class AriXMemberCommands(commands.Cog):
                     else:
                         if session.message:
                             await session.message.delete()
-                        await ctx.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
+                        await session.message.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
 
             ctx.bot.clash_eclipse_sessions.remove(session)
 
