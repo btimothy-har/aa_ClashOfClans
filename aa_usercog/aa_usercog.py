@@ -989,10 +989,10 @@ class AriXMemberCommands(commands.Cog):
         else:
             army_videos = []
             for v in army_videos_response.content.split():
-                if urllib.parse.urlparse(i).netloc == "www.youtube.com":
-                    b = f"https://youtu.be/{urllib.parse.parse_qs(urllib.parse.urlparse(i).query)['v'][0]}"
-                elif urllib.parse.urlparse(i).netloc == "youtu.be":
-                    b = f"https://youtu.be/{urllib.parse.urlparse(i).path.split('/')[1]}"
+                if urllib.parse.urlparse(v).netloc == "www.youtube.com":
+                    b = f"https://youtu.be/{urllib.parse.parse_qs(urllib.parse.urlparse(v).query)['v'][0]}"
+                elif urllib.parse.urlparse(v).netloc == "youtu.be":
+                    b = f"https://youtu.be/{urllib.parse.urlparse(v).path.split('/')[1]}"
                     army_videos.append(v)
 
             await army_videos_msg.delete()
