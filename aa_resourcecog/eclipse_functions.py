@@ -49,28 +49,34 @@ async def eclipse_menu_select(ctx, session, sel_list, timeout=60):
             return ms[0]
 
 async def eclipse_main_menu(ctx,session):
-    menu_options = [
-        {
+
+    menu_options = []
+
+    personal_vault_option = {
             'id': 'personalvault',
             'title': f"{ctx.author.mention}'s E.C.L.I.P.S.E.",
             'description': "Your personal vault of Army and Base Links. Your E.C.L.I.P.S.E. session will be transferred to your DMs."
-            },
-        {
+            }
+    base_vault_option = {
             'id': 'basevault',
             'title': "Browse the Base Vault",
             'description': f"We have bases covering TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
-            },
-        {
+            }
+    base_army_guides = {
             'id': 'armyguides',
             'title': "Browse the War Army Guide",
             'description': f"We have a compilation of war armies and variations from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
-            },
-        #{
-        #    'id': 'strategy',
-        #    'title': "Browse the Strategy Guide",
-        #    'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
-        #    },
-        ]
+            }
+    strategy_guides = {
+            'id': 'strategy',
+            'title': "Browse the Strategy Guide",
+            'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
+            }
+
+    menu_options.append(personal_vault_option)
+    menu_options.append(base_vault_option)
+    menu_options.append(base_army_guides)
+    menu_options.append(strategy_guides)
 
     menu_options = await eclipse_menu_emoji(ctx,menu_options)
 
@@ -276,7 +282,7 @@ async def show_eclipse_bases(ctx,session,bases):
         base_embed, image = await bases[i].base_embed(ctx)
 
         dump_channel = ctx.bot.get_channel(1042064532480217130)
-        dump_message = await dump_channel.send(file=image)
+        dump_message = await dump_channel.send(content=f"{session.user.name}@{session.channel.name}",file=image)
         image_attachment = dump_message.attachments[0]
         
         base_embed.set_image(url=image_attachment.url)

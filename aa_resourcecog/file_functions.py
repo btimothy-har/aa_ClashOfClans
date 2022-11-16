@@ -179,28 +179,44 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
     return response_json
 
 async def eclipse_base_handler(ctx,base_town_hall,base_json=None):
-    town_hall = str(base_town_hall)
     with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
         file_json = json.load(file)
 
-        if town_hall not in list(file_json.keys()):
-            file_json[town_hall] = []
-
-        th_bases = file_json[town_hall]
-
         if base_json:
-            existing_base = [b for b in th_bases if b['base_id']==base_json['base_id']]
+            existing_base = [b for b in th_bases if b['id']==base_json['id']]
 
             if existing_base:
                 existing_index = th_bases.index(existing_base)
                 del th_bases[existing_index]
 
-            file_json[town_hall].append(base_json)
+            file_json['vault'].append(base_json)
             file.seek(0)
             json.dump(file_json,file,indent=2)
             file.truncate()
 
+        th_bases = [b for b in file_json['vault'] if b['town_hall'] == base_town_hall]
+
     return th_bases
+
+async def eclipse_army_handler(ctx,army_town_hall,army_json=None):
+    with open(ctx.bot.eclipse_path+'/wararmies.json','r+') as file:
+        file_json = json.load(file)
+
+        if army_json:
+            existing_army = [a for a in file_json if a['id']==army_json['id']]
+
+            if existing_army:
+                existing_index = file_json.index(existing_army)
+                del file_json[existing_index]
+
+            file_json.append(army_json)
+            file.seek(0)
+            json.dump(file_json,file,indent=2)
+            file.truncate()
+
+        war_armies = [a for a in file_json if a['town_hall'] == army_town_hall]     
+
+    return war_armies
 
 
 
