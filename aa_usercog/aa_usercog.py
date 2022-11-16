@@ -864,7 +864,7 @@ class AriXMemberCommands(commands.Cog):
             title="Add Army -- Step 1/8",
             message=f"What is the name of this Army composition?")
 
-        army_name_msg = await ctx.send(embed=base_link_embed)
+        army_name_msg = await ctx.send(embed=army_name_embed)
         try:
             army_name_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
         except asyncio.TimeoutError:
