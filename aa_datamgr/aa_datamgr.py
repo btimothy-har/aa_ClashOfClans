@@ -300,7 +300,7 @@ class AriXClashDataMgr(commands.Cog):
                     except TerminateProcessing as e:
                         eEmbed = await clash_embed(ctx,message=e,color='fail')
                         eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
-                        return await log_channel.send(eEmbed)
+                        return await log_channel.send(embed=eEmbed)
                     except Exception as e:
                         c = None
                         err_dict = {'tag':f'c{ctag}','reason':e}

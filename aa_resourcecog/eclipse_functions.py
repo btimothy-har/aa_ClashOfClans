@@ -272,7 +272,7 @@ async def show_eclipse_bases(ctx,session,bases):
 
     i = 0
     while browse_bases:
-        display_bases = [b or b in bases if len(b.claims) < 6 or session.user.id in b.claims]
+        display_bases = [b or b in bases if ((len(b.claims) < 6) or (session.user.id in b.claims))]
         if i < 0:
             i = (len(display_bases) - 1)
         if i > (len(display_bases) - 1):
