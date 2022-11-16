@@ -791,7 +791,7 @@ class AriXMemberCommands(commands.Cog):
 
 
         async with ctx.bot.async_eclipse_lock:
-            with ctx.bot.clash_eclipse_lock:
+            with ctx.bot.clash_eclipse_lock.write_lock():
                 new_base = await eWarBase.new_base(ctx=ctx,
                     base_link=base_link,
                     source=base_source,
@@ -1034,7 +1034,7 @@ class AriXMemberCommands(commands.Cog):
 
 
         async with ctx.bot.async_eclipse_lock:
-            with ctx.bot.clash_eclipse_lock:
+            with ctx.bot.clash_eclipse_lock.write_lock():
                 new_army = await eWarArmy.new_army(ctx=ctx,
                     name=army_name,
                     town_hall=army_townhall,
