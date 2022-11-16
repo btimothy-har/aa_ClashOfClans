@@ -195,7 +195,7 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
             file.truncate()
 
         if base_town_hall:
-            th_bases = [b for b in file_json if b['town_hall'] == base_town_hall]
+            th_bases = [b for b in file_json if b['townhall'] == base_town_hall]
         else:
             th_bases = [b for b in file_json]
 
