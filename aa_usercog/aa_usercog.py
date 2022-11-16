@@ -884,7 +884,7 @@ class AriXMemberCommands(commands.Cog):
             th_dict = {
                 'id': i,
                 'title': f'Townhall {i}',
-                'emoji': emotes_townhall[i]
+                'emoji': emotes_townhall[i],
                 'description': None
                 }
             th_select.append(th_dict)
