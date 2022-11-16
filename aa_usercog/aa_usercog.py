@@ -1020,7 +1020,7 @@ class AriXMemberCommands(commands.Cog):
         army_author_embed = await eclipse_embed(ctx,
             title="Add Army -- Step 7/8",
             message=f"Provide the Author of this Army.")
-        army_author_msg = await ctx.send(embed=base_builder_embed)
+        army_author_msg = await ctx.send(embed=army_author_embed)
 
         try:
             army_author_response = await ctx.bot.wait_for("message",timeout=60,check=response_check)
