@@ -58,7 +58,7 @@ class eWarBase():
 
     @classmethod
     def from_json(cls,ctx,json_data):
-        base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote(json_data['base_id'])}"
+        base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote(json_data['id'])}"
         defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote(json_data['defensive_cc'])}"
 
         self = eWarBase(ctx,base_link,defensive_cc_link)
