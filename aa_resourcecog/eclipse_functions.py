@@ -317,8 +317,13 @@ async def show_eclipse_bases(ctx,session,bases):
                 value="<:backwards:1041976602420060240> back to the previous menu",
             inline=False)
         
-        await session.message.edit(content=session.user.mention,embed=base_embed)
-        await session.message.clear_reactions()
+        if not session.guild:
+            await session.message.delete()
+            session.message = await session.channel.send(content=session.user.mention,embed=base_embed)
+        else:
+            await session.message.edit(content=session.user.mention,embed=base_embed)
+            await session.message.clear_reactions()
+
         selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
 
         await dump_message.delete()
@@ -394,8 +399,6 @@ async def eclipse_personal_vault(ctx,session):
         await session.message.edit(content=session.user.mention,embed=menu_embed)
     else:
         session.message = await session.user.send(content=session.user.mention,embed=menu_embed)
-
-    await session.message.clear_reactions()
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if selection:
@@ -405,6 +408,9 @@ async def eclipse_personal_vault(ctx,session):
 
 
 async def eclipse_personal_bases(ctx,session):
+    await session.message.delete()
+    session.message = None
+
     menu_options = []
     back_dict = {
         'id': 'back',
@@ -452,7 +458,6 @@ async def eclipse_personal_bases(ctx,session):
         await session.message.edit(content=session.user.mention,embed=base_select_embed)
     else:
         session.message = await ctx.send(content=session.user.mention,embed=base_category_embed)
-    await session.message.clear_reactions()
     selection = await eclipse_menu_select(ctx,session,menu_options)
 
     if not selection:
