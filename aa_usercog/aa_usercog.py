@@ -510,57 +510,57 @@ class AriXMemberCommands(commands.Cog):
             ctx.bot.clash_eclipse_sessions.append(session)
 
             while session.state:
-                try:
-                    session.add_to_path(response)
-                    if response in ['start','menu']:
-                        response = await eclipse_main_menu(ctx,session)
+                #try:
+                session.add_to_path(response)
+                if response in ['start','menu']:
+                    response = await eclipse_main_menu(ctx,session)
 
-                    if response == 'personalvault':
-                        response = await eclipse_personal_vault(ctx,session)
+                if response == 'personalvault':
+                    response = await eclipse_personal_vault(ctx,session)
 
-                    if response == 'mybases':
-                        response = await eclipse_personal_bases(ctx,session)
+                if response == 'mybases':
+                    response = await eclipse_personal_bases(ctx,session)
 
-                    if response == 'myarmies':
-                        response = 'menu'
+                if response == 'myarmies':
+                    response = 'menu'
 
-                    #Base Vault: Townhall Selection
-                    if response in ['basevault','basevaultnone']:
-                        if response == 'basevaultnone':
-                            response = await eclipse_base_vault(ctx,session,base_th_select)
-                        else:
-                            response = await eclipse_base_vault(ctx,session)
+                #Base Vault: Townhall Selection
+                if response in ['basevault','basevaultnone']:
+                    if response == 'basevaultnone':
+                        response = await eclipse_base_vault(ctx,session,base_th_select)
+                    else:
+                        response = await eclipse_base_vault(ctx,session)
 
-                        if not response or response == 'menu':
-                            pass
-                        else:
-                            base_th_select = response
-                            response = 'basevaultselect'
+                    if not response or response == 'menu':
+                        pass
+                    else:
+                        base_th_select = response
+                        response = 'basevaultselect'
 
-                    #Base Vault: View Bases / Category Selection
-                    if response in ['basevaultselect']:
-                        response = await get_eclipse_bases(ctx,session,base_th_select)
+                #Base Vault: View Bases / Category Selection
+                if response in ['basevaultselect']:
+                    response = await get_eclipse_bases(ctx,session,base_th_select)
 
-                    if response == 'armyguides':
-                        await ctx.send("This bit doesn't exist yet.")
-                        response = "menu"
+                if response == 'armyguides':
+                    await ctx.send("This bit doesn't exist yet.")
+                    response = "menu"
 
 
-                    if response == 'strategy':
-                        await ctx.send("This bit doesn't exist yet.")
-                        response = "menu"
+                if response == 'strategy':
+                    await ctx.send("This bit doesn't exist yet.")
+                    response = "menu"
                 
-                except Exception as e:
-                    err_embed = await eclipse_embed(ctx,
-                        message=f"**Error encountered during E.C.L.I.P.S.E. session.**"
-                            + f"\n\nError: {e}"
-                            + f"\n\nSession User: {session.user.mention}"
-                            + f"\nSession ID: {session.channel.id}"
-                            + f"\nResponse Path: {session.response_path}"
-                            + f"\nLast Response: {response}")
+                #except Exception as e:
+                #    err_embed = await eclipse_embed(ctx,
+                #        message=f"**Error encountered during E.C.L.I.P.S.E. session.**"
+                #            + f"\n\nError: {e}"
+                #            + f"\n\nSession User: {session.user.mention}"
+                #            + f"\nSession ID: {session.channel.id}"
+                #            + f"\nResponse Path: {session.response_path}"
+                #            + f"\nLast Response: {response}")
 
-                    await ctx.bot.send_to_owners(embed=err_embed)
-                    response = None
+                #    await ctx.bot.send_to_owners(embed=err_embed)
+                #    response = None
 
                 if not response:
                     session.state = False
