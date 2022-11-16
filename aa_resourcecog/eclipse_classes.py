@@ -125,6 +125,7 @@ class eWarBase():
         image_file = discord.File(image_file_path,'image.png')
 
         base_text = (f"Date Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
+                + f"\nClaimed By: {len(self.claims)} member(s)"
                 + f"\n\nFrom: **{self.source}** (Builder: **{self.builder}**)"
                 + f"\n\n**Defensive Clan Castle (Recommendation):**\n{self.defensive_cc_str}")
 

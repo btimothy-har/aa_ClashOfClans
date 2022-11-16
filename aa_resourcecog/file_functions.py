@@ -201,25 +201,27 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
 
     return th_bases
 
-async def eclipse_army_handler(ctx,army_town_hall,army_json=None):
-    with open(ctx.bot.eclipse_path+'/wararmies.json','r+') as file:
-        file_json = json.load(file)
+# async def eclipse_personal_army_handler(ctx,session,army_json=None):
+#     with open(ctx.bot.eclipse_path+'/personalarmies.json','r+') as file:
+#         file_json = json.load(file)
 
-        if army_json:
-            existing_army = [a for a in file_json if a['id']==army_json['id']]
+#         user_file_json = file_json[session.user.id]
 
-            if existing_army:
-                existing_index = file_json.index(existing_army[0])
-                del file_json[existing_index]
+#         if army_json:
+#             existing_army = [a for a in file_json if a['id']==army_json['id']]
 
-            file_json.append(army_json)
-            file.seek(0)
-            json.dump(file_json,file,indent=2)
-            file.truncate()
+#             if existing_army:
+#                 existing_index = file_json.index(existing_army[0])
+#                 del file_json[existing_index]
 
-        war_armies = [a for a in file_json if a['town_hall'] == army_town_hall]     
+#             file_json.append(army_json)
+#             file.seek(0)
+#             json.dump(file_json,file,indent=2)
+#             file.truncate()
 
-    return war_armies
+#         war_armies = [a for a in file_json if a['town_hall'] == army_town_hall]     
+
+#     return war_armies
 
 
 

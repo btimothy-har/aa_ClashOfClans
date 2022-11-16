@@ -516,13 +516,10 @@ class AriXMemberCommands(commands.Cog):
                     response = await eclipse_main_menu(ctx,session)
 
                 if response == 'personalvault':
-                    response = await eclipse_personal_vault(ctx,session)
+                    response = await eclipse_personal_bases(ctx,session)
 
                 if response == 'mybases':
                     response = await eclipse_personal_bases(ctx,session)
-
-                if response == 'myarmies':
-                    response = 'menu'
 
                 #Base Vault: Townhall Selection
                 if response in ['basevault','basevaultnone']:
@@ -541,14 +538,14 @@ class AriXMemberCommands(commands.Cog):
                 if response in ['basevaultselect']:
                     response = await get_eclipse_bases(ctx,session,base_th_select)
 
-                if response == 'armyguides':
-                    await ctx.send("This bit doesn't exist yet.")
-                    response = "menu"
+                #if response == 'armyguides':
+                #    await ctx.send("This bit doesn't exist yet.")
+                #    response = "menu"
 
 
-                if response == 'strategy':
-                    await ctx.send("This bit doesn't exist yet.")
-                    response = "menu"
+                #if response == 'strategy':
+                #    await ctx.send("This bit doesn't exist yet.")
+                #    response = "menu"
                 
                 #except Exception as e:
                 #    err_embed = await eclipse_embed(ctx,
@@ -567,10 +564,13 @@ class AriXMemberCommands(commands.Cog):
                     session_closed = await eclipse_embed(ctx,
                         message=f"Your **E.C.L.I.P.S.E.** session is closed. We hope to see you again!")
 
-                    if session.message:
+                    if session.guild and session.message:
                         await session.message.clear_reactions()
                         await session.message.edit(content=ctx.author.mention,embed=session_closed,delete_after=60)
+
                     else:
+                        if session.message:
+                            await session.message.delete()
                         await ctx.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
 
             ctx.bot.clash_eclipse_sessions.remove(session)
