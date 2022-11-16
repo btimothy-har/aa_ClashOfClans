@@ -900,7 +900,7 @@ class AriXMemberCommands(commands.Cog):
 
         if not select_townhall:
             return
-        army_townhall = f"{select_townhall['id']}"
+        army_townhall = select_townhall['id']
 
 
         #3 ARMY LINK
