@@ -282,8 +282,6 @@ async def show_eclipse_bases(ctx,session,bases):
 
         base_embed, image = await display_bases[i].base_embed(ctx)
 
-        save_base_embed = base_embed
-
         dump_channel = ctx.bot.get_channel(1042064532480217130)
         dump_message = await dump_channel.send(content=f"{session.user.name}@{session.channel.name}",file=image)
         image_attachment = dump_message.attachments[0]
@@ -305,7 +303,7 @@ async def show_eclipse_bases(ctx,session,bases):
             base_embed.add_field(
                 name="Get this Base",
                 value="Get the link to this base by clicking on <:download:1040800550373044304>."
-                    + f"\n\n*You will always be able to access your saved bases from your personal vault.*",
+                    + f"\n*You will always be able to access your saved bases from your personal vault.*",
                 inline=False)
             save_navigation = {
                 'id': 'save',
@@ -345,8 +343,9 @@ async def show_eclipse_bases(ctx,session,bases):
             elif selection['id'] == 'save':
                 display_bases[i].claims.append(session.user.id)
 
-                link_embed = save_base_embed
-                link_embed.add_field(
+                new_embed, image = await display_bases[i].base_embed(ctx)
+
+                new_embed.add_field(
                     name="Base Link",
                     value=f"[Click here to open in-game.]({display_bases[i].base_link})",
                     inline=False)
@@ -354,7 +353,7 @@ async def show_eclipse_bases(ctx,session,bases):
                 async with ctx.bot.async_eclipse_lock:
                     with ctx.bot.clash_eclipse_lock.write_lock():
                         await bases[i].save_to_json()
-                await session.user.send(embed=link_embed)
+                await session.user.send(embed=new_embed,file=image)
                 i = i
             else:
                 browse_bases = False
