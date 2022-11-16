@@ -259,7 +259,7 @@ async def show_eclipse_bases(ctx,session,bases):
             'emoji': '<:backwards:1041976602420060240>'
             },
         {
-            'save': 'save',
+            'id': 'save',
             'emoji': '<:download:1040800550373044304>'
             }
         ]
