@@ -130,7 +130,7 @@ class eWarBase():
                 + f"\n\n**Defensive Clan Castle (Recommendation):**\n{self.defensive_cc_str}")
 
         if self.notes:
-            base_text =+ f"\n\n**Builder Notes**:\n{self.notes}"
+            base_text += f"\n\n**Builder Notes**:\n{self.notes}"
         base_text += "\n\u200b"
 
         embed = await eclipse_embed(ctx,
