@@ -342,9 +342,7 @@ async def show_eclipse_bases(ctx,session,bases):
                 i -= 1
             elif selection['id'] == 'save':
                 display_bases[i].claims.append(session.user.id)
-
                 new_embed, image = await display_bases[i].base_embed(ctx)
-
                 new_embed.add_field(
                     name="Base Link",
                     value=f"[Click here to open in-game.]({display_bases[i].base_link})",
@@ -352,7 +350,8 @@ async def show_eclipse_bases(ctx,session,bases):
 
                 async with ctx.bot.async_eclipse_lock:
                     with ctx.bot.clash_eclipse_lock.write_lock():
-                        await bases[i].save_to_json()
+                        await display_bases[i].save_to_json()
+
                 await session.user.send(embed=new_embed,file=image)
                 i = i
             else:
