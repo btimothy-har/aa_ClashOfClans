@@ -571,7 +571,7 @@ class AriXMemberCommands(commands.Cog):
                     else:
                         if session.message:
                             await session.message.delete()
-                        await session.message.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
+                        await session.channel.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
 
             ctx.bot.clash_eclipse_sessions.remove(session)
 
@@ -646,7 +646,7 @@ class AriXMemberCommands(commands.Cog):
             base_link = base_link_response.content
             link_parse = urllib.parse.urlparse(base_link)
             base_id = urllib.parse.quote(urllib.parse.parse_qs(link_parse.query)['id'][0])
-            base_townhall = base_id.split('TH',1)[1][:2]
+            base_townhall = int(base_id.split('TH',1)[1][:2])
             await base_link_msg.delete()
             await base_link_response.delete()
 
