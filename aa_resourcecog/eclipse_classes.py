@@ -1,6 +1,8 @@
 import coc
 import discord
 import time
+import urllib
+
 from datetime import datetime
 
 from .discordutils import eclipse_embed
