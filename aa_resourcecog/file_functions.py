@@ -186,7 +186,7 @@ async def eclipse_base_handler(ctx,base_town_hall,base_json=None):
             existing_base = [b for b in th_bases if b['id']==base_json['id']]
 
             if existing_base:
-                existing_index = th_bases.index(existing_base)
+                existing_index = th_bases.index(existing_base[0])
                 del th_bases[existing_index]
 
             file_json['vault'].append(base_json)
@@ -206,7 +206,7 @@ async def eclipse_army_handler(ctx,army_town_hall,army_json=None):
             existing_army = [a for a in file_json if a['id']==army_json['id']]
 
             if existing_army:
-                existing_index = file_json.index(existing_army)
+                existing_index = file_json.index(existing_army[0])
                 del file_json[existing_index]
 
             file_json.append(army_json)
