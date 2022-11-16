@@ -450,6 +450,7 @@ async def eclipse_personal_bases(ctx,session):
 
         townhall_levels = sorted(list(base_count.keys()),reverse=True)
 
+        th_str = ""
         for th in townhall_levels:
             n_dict = {
                 'id':th,
