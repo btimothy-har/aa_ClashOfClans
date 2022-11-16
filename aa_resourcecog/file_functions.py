@@ -183,11 +183,11 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
         file_json = json.load(file)
 
         if base_json:
-            existing_base = [b for b in th_bases if b['id']==base_json['id']]
+            existing_base = [b for b in file_json if b['id']==base_json['id']]
 
             if existing_base:
-                existing_index = th_bases.index(existing_base[0])
-                del th_bases[existing_index]
+                existing_index = file_json.index(existing_base[0])
+                del file_json[existing_index]
 
             file_json.append(base_json)
             file.seek(0)
