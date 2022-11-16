@@ -274,11 +274,11 @@ class eWarArmy():
             title=f"**{emotes_townhall[int(self.town_hall)]} TH{self.town_hall} {self.name}**",
             message=army_text)
 
-        if self.description:
-            embed.add_field(
-                name=f"**__Description__**",
-                value=f"{self.description}\n\u200b",
-                inline=False)
+        #if self.description:
+        #    embed.add_field(
+        #        name=f"**__Description__**",
+        #        value=f"{self.description}\n\u200b",
+        #        inline=False)
 
         embed.add_field(
             name=f"**Troops**",
