@@ -257,12 +257,15 @@ async def show_eclipse_bases(ctx,session,bases):
         {
             'id': 'back',
             'emoji': '<:backwards:1041976602420060240>'
-            },
-        {
+            }
+        ]
+
+    if session.user.id not in display_bases[i].claims:
+        save_navigation = {
             'id': 'save',
             'emoji': '<:download:1040800550373044304>'
             }
-        ]
+        base_navigation.append(save_navigation)
 
     if len(bases) > 1:
         prev_dict = {
@@ -436,7 +439,7 @@ async def eclipse_personal_bases(ctx,session):
         base_count = {}
         for b in user_bases:
             if b.town_hall not in list(base_count.keys()):
-                base_count[b.town_hall] == 0
+                base_count[b.town_hall] = 0
             base_count[b.town_hall] += 1
 
         townhall_levels = sorted(list(base_count.keys()),reverse=True)
