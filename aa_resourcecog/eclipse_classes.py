@@ -63,6 +63,9 @@ class eWarBase():
 
         self = eWarBase(ctx,base_link,defensive_cc_link)
 
+        self.id = urllib.parse.quote(json_data['id'])
+        self.base_link = base_link
+
         self.source = json_data.get('source',"")
         self.builder = json_data.get('builder',"")
 

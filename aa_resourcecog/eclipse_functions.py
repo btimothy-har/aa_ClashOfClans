@@ -439,7 +439,7 @@ async def eclipse_personal_bases(ctx,session):
     bases = await eclipse_base_handler(ctx)
     user_bases = [eWarBase.from_json(ctx,b) for b in bases if session.user.id in b['claims']]
 
-    vault_intro = f"This is where your saved bases will be stored, with base links made available. You can save up to a maximum of **3** bases per Townhall level."
+    vault_intro = f"This is where your saved bases will be stored, with base links made available."
 
     if len(user_bases) > 0:
         base_count = {}
