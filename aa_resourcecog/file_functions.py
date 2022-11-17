@@ -182,7 +182,7 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
     with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
         file_json = json.load(file)
 
-        if base_json and base_json['id'] in list(file_json.keys()):
+        if base_json:
             file_json[base_json['id']] = base_json
             file.seek(0)
             json.dump(file_json,file,indent=2)

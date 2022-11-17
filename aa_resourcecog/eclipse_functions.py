@@ -254,7 +254,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     army_analysis_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
         message="Send up to **three (3)** army links in your next message. Separate links with a blank space."
-            + f"\n\n*If you are on a mobile device, the Army Analyzer works best with **2** armies.*"
+            + f"\n\n*Note: If you are on a mobile device, the Army Analyzer works best with **2** armies.*"
             + f"\n\nTo go back to the previous menu, send `back`."
             + f"\nTo close E.C.L.I.P.S.E., send `exit`.")
 
