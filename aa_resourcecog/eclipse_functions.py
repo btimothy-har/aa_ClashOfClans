@@ -306,7 +306,13 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     army_comparison_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=f"**Armies analyzed for: {emotes_townhall[town_hall]}**"
+        message=f"**Armies analyzed for: {emotes_townhall[town_hall]} TH {town_hall}**"
+            + f"\n*Note: Healers, (Super) Wall Breakers, Spells and Siege Machines are excluded from army statistics.*"
+            + box(tabulate(compare_table, headers="keys",tablefmt='simple')))
+
+    dm_embed = await eclipse_embed(ctx,
+        title="**E.C.L.I.P.S.E. Army Analyzer**",
+        message=f"**Armies analyzed for: {emotes_townhall[town_hall]} TH {town_hall}**"
             + f"\n*Note: Healers, (Super) Wall Breakers, Spells and Siege Machines are excluded from army statistics.*"
             + box(tabulate(compare_table, headers="keys",tablefmt='simple')))
 
@@ -318,13 +324,16 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
             value=f"[Open in-game]({army.army_link})"
                 + f"\n\n{army.army_str}\n\u200b",
             inline=True)
-
-    dm_embed = army_comparison_embed
+        dm_embed.add_field(
+            name=f"**Army {army_num}**",
+            value=f"[Open in-game]({army.army_link})"
+                + f"\n\n{army.army_str}\n\u200b",
+            inline=True)
 
     army_comparison_embed.add_field(
         name="Navigation",
-        value=f"<:backwards:1041976602420060240> to restart the Army Analyzer."
-            + f"\n<:download:1040800550373044304> to send this analysis to your DMs.",
+        value=f"<:backwards:1041976602420060240> to restart the Army Analyzer"
+            + f"\n<:download:1040800550373044304> to send this analysis to your DMs",
         inline=False)
 
     menu_options = []
@@ -353,6 +362,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
             await session.user.send(embed=dm_embed)
             await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
             await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
+            menu_options.remove(save_dict)
         else:
             break
 
