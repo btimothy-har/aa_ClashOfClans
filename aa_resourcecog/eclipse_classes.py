@@ -107,6 +107,10 @@ class eWarBase():
         if session.user.id not in self.claims:
             self.claims.append(session.user.id)
 
+    def remove_claim(self,ctx,session):
+        if session.user.id in self.claims:
+            self.claims.remove(session.user.id)
+
     async def save_to_json(self):
         baseJson = {
             'id': self.id,

@@ -543,7 +543,7 @@ async def show_eclipse_bases(ctx,session,bases):
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
-                    + "\n\n**You have claimed this base.** To get the Base Link, click on <:download:1040800550373044304>."
+                    + "\n\n**You have claimed this base.** To get the Base Link, click on <:download:1040800550373044304>. "
                     + f"The Base Link will be sent to your DMs.",
                 inline=False)
             base_navigation.append(save_navigation)
@@ -589,7 +589,7 @@ async def show_eclipse_bases(ctx,session,bases):
                     i -= 1
                     break
                 elif selection['id'] == 'save':
-                    display_bases[i].claims.add_claim(ctx,session)
+                    display_bases[i].add_claim(ctx,session)
                     async with ctx.bot.async_eclipse_lock:
                         with ctx.bot.clash_eclipse_lock.write_lock():
                             await display_bases[i].save_to_json()
@@ -609,6 +609,19 @@ async def show_eclipse_bases(ctx,session,bases):
                         base_navigation.remove(save_navigation)
                         await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
                     await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+
+                elif selection['id'] == 'unsave':
+                    display_bases[i].remove_claim(ctx,session)
+                    async with ctx.bot.async_eclipse_lock:
+                        with ctx.bot.clash_eclipse_lock.write_lock():
+                            await display_bases[i].save_to_json()
+                    delete_embed = await eclipse_embed(ctx,
+                        message="You have removed your claim from this base.")
+                    await session.channel.send(embed=delete_embed,delete_after=40)
+                    del display_bases[i]
+                    i = 0
+                    break
+                    
                 else:
                     browse_bases = False
                     break
