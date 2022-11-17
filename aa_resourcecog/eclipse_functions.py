@@ -268,13 +268,13 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     army_links_num = 0
     army_compare = []
 
-    while army_links_num <= 3:
+    while True:
         army_links_num += 1
         army_analysis_embed = await eclipse_embed(ctx,
             title="**E.C.L.I.P.S.E. Army Analyzer**",
             message=f"**Please provide Army Link __{army_links_num} of 3__ in your next message.**"
                 + f"\n\nIf you've sent all your Army Links, send `stop` to proceed with the analysis."
-                + f"\nTo go back to the previous menu, send `back`."
+                + f"\n\nTo go back to the previous menu, send `back`."
                 + f"\nTo close E.C.L.I.P.S.E., send `exit`.")
 
         if session.message:
@@ -306,12 +306,14 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         army_compare.append(army)
         await army_links.delete()
 
+        if army_links_num >= 3:
+            break
+
     wait_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
         message="<a:loading:1042769157248262154> Please wait... calculating.")
     await session.message.edit(content=session.user.mention,embed=wait_embed)
 
-    army_compare = []
     compare_table = {'\u200b':['# of Units','Trg Time (mins)','HP (total)','HP (avg)','DPS (min)','DPS (max)','DPS (avg)','Speed (min)','Speed (max)','Speed (avg)']}
 
     link_num = 0
