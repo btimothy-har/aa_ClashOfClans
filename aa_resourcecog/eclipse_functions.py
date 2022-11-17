@@ -754,7 +754,7 @@ async def eclipse_personal_bases(ctx,session):
             message=f"{vault_intro}"
                 + f"\n\n**You don't have any bases in your personal vault.** Start by saving some bases from our Members' Vault."
             #    + f"\n\n<:backwards:1041976602420060240> to return to your Personal Vault."
-                + f"\n<:red_cross:838461484312428575> to close this E.C.L.I.P.S.E. session.")
+                + f"\n\n<:red_cross:838461484312428575> to close this E.C.L.I.P.S.E. session.")
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=base_select_embed)

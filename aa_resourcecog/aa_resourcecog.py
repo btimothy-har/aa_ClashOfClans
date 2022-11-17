@@ -21,7 +21,7 @@ from string import ascii_letters, digits
 
 from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
-from .file_functions import get_current_season, get_current_alliance, get_user_accounts, season_file_handler, alliance_file_handler, data_file_handler
+from .file_functions import get_current_season, get_current_alliance, get_user_accounts, get_staff_position, season_file_handler, alliance_file_handler, data_file_handler
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from .clan import aClan
@@ -73,6 +73,31 @@ class AriXClashResources(commands.Cog):
                 + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                 inline=False)
         await ctx.send(embed=embed)
+
+    # @commands.command(name="meteor")
+    # async def help_meteor(self,ctx):
+    #     """
+    #     Custom help command for M.E.T.E.O.R.
+    #     """
+
+    #     coleader_clans = await get_staff_position(ctx,ctx.author.id,"Co-Leader")
+    #     elder_clans = await get_staff_position(ctx,ctx.author.id,"Elder")
+
+    #     meteor_embed = await clash_embed(ctx,
+    #         name="Hello, I am M.E.T.E.O.R. .",
+    #         message="**M**ain **E**xecutive **T**erminal and **E**xtra-**O**rdinary **R**obot."
+    #             + "\n\nI host several commands for AriX Members and Leaders, so that the alliance runs smoothly at all times."
+    #             + " Below are some commands you may have access to.\n\u200b")
+
+    #     meteor_embed.add_field(
+    #         name="**General Commands**",
+    #         value="These commands are usable by everyone."
+    #             + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
+    #             + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
+    #             + f"\n\n****")
+
+
+
 
     async def clan_description(ctx,c):
         #build title
