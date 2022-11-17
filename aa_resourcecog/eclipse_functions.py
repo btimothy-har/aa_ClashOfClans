@@ -326,6 +326,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         return selection['id']
     else:
         return None
+        
 async def get_eclipse_bases(ctx,session,townhall_level):
     base_th = townhall_level
     bases = await eclipse_base_handler(ctx,base_th)
