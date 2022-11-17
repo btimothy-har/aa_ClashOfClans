@@ -287,14 +287,14 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         army_compare.append(army)
 
         compare_table[army_key] = [
-            army.hitpoints_total,
-            army.hitpoints_average,
-            army.dps_min,
-            army.dps_max, 
-            army.dps_average, 
-            army.movement_min, 
-            army.movement_max, 
-            army.movement_average, 
+            int(army.hitpoints_total),
+            int(army.hitpoints_average),
+            int(army.dps_min),
+            int(army.dps_max), 
+            int(army.dps_average), 
+            int(army.movement_min), 
+            int(army.movement_max), 
+            int(army.movement_average), 
             int(army.training_time/60)]
 
     army_comparison_embed = await eclipse_embed(ctx,
