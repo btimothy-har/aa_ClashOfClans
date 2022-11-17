@@ -213,13 +213,15 @@ async def eclipse_army_analyzer(ctx,session):
     army_analyzer_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
         message=f"This unique analysis tool allows you to compare up to **three (3)** army compositions next to each other. "
-            + f"Troops & Spells are compared at the max level for the selected townhall. "
+            + f"Troops statistics are compared at the max level for the selected townhall. "
+            + f"\n\n*Note: If you are on a mobile device, the Army Analyzer works best with **2** armies.*"
             + f"\n\nThe following stats are compared by E.C.L.I.P.S.E.:"
             + f"\n > 1) Hitpoints (Total, Average)"
             + f"\n > 2) Damage per Second (Min, Max, Average)"
             + f"\n > 3) Movement Speed (Min, Max, Average)"
             + f"\n > 4) Training Time (Total)"
-            + f"\n\n**Healers, (Super) Wall Breakers, Spells and Siege Machines will always be excluded from statistics.**\n\u200b")
+            + f"\n\n**Healers, (Super) Wall Breakers, Spells and Siege Machines will always be excluded from statistics.**"
+            + "\n\u200b")
 
     army_analyzer_embed.add_field(
         name="**Select a Townhall level to get started.**",
@@ -249,66 +251,75 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
                 msg_check = True
             elif m.content.lower() == 'exit':
                 msg_check = True
+            elif m.content.lower() == 'stop':
+                msg_check = True
             else:
-                links = m.content.split()
-                link_chk = 0
-                for link in links:
-                    try:
-                        link_parse = urllib.parse.urlparse(link)
-                        link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
-                    except:
-                        pass
-                    else:
-                        if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
-                            link_chk += 1
-
-                if link_chk == len(links):
-                    msg_check = True
+                link = m.content
+                try:
+                    link_parse = urllib.parse.urlparse(link)
+                    link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
+                except:
+                    pass
+                else:
+                    if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
+                        msg_check = True
         return msg_check
 
-    army_analysis_embed = await eclipse_embed(ctx,
-        title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message="Send up to **three (3)** army links in your next message. Separate links with a blank space."
-            + f"\n\n*Note: If you are on a mobile device, the Army Analyzer works best with **2** armies.*"
-            + f"\n\nTo go back to the previous menu, send `back`."
-            + f"\nTo close E.C.L.I.P.S.E., send `exit`.")
+    army_links_num = 0
+    army_compare = []
 
-    if session.message:
-        await session.message.edit(content=session.user.mention,embed=army_analysis_embed)
-    else:
-        session.message = await ctx.send(content=session.user.mention,embed=army_analysis_embed)
-    await session.message.clear_reactions()
+    while True:
+        army_links_num += 1
+        army_analysis_embed = await eclipse_embed(ctx,
+            title="**E.C.L.I.P.S.E. Army Analyzer**",
+            message=f"**Please provide Army Link __{army_links_num} of 3__ in your next message.**"
+                + f"\n\nIf you've sent all your Army Links, send `stop` to proceed with the analysis."
+                + f"\n\nTo go back to the previous menu, send `back`."
+                + f"\nTo close E.C.L.I.P.S.E., send `exit`.")
 
-    try:
-        army_links = await ctx.bot.wait_for("message",timeout=300,check=armylink_check)
-    except asyncio.TimeoutError:
-        response = 'armyanalyze'
-        return response
+        if session.message:
+            await session.message.edit(content=session.user.mention,embed=army_analysis_embed)
+        else:
+            session.message = await ctx.send(content=session.user.mention,embed=army_analysis_embed)
+        await session.message.clear_reactions()
 
-    if army_links.content == 'back':
+        try:
+            army_links = await ctx.bot.wait_for("message",timeout=300,check=armylink_check)
+        except asyncio.TimeoutError:
+            response = 'armyanalyze'
+            return response
+
+        if army_links.content == 'back':
+            await army_links.delete()
+            response = 'armyanalyze'
+            return response
+
+        if army_links.content == 'exit':
+            await army_links.delete()
+            return None
+
+        if army_links.content == 'stop':
+            await army_links.delete()
+            break
+
+        army = eWarArmy(ctx,army_links.content,town_hall)
+        army_compare.append(army)
         await army_links.delete()
-        response = 'armyanalyze'
-        return response
 
-    if army_links.content == 'exit':
-        await army_links.delete()
-        return None
+        if army_links_num >= 3:
+            break
 
-    await army_links.delete()
     wait_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
         message="<a:loading:1042769157248262154> Please wait... calculating.")
     await session.message.edit(content=session.user.mention,embed=wait_embed)
 
-    army_compare = []
     compare_table = {'\u200b':['# of Units','Trg Time (mins)','HP (total)','HP (avg)','DPS (min)','DPS (max)','DPS (avg)','Speed (min)','Speed (max)','Speed (avg)']}
 
     link_num = 0
-    for link in army_links.content.split():
+    for army in army_compare:
         link_num += 1
         army_key = f"Army {link_num}"
-        army = eWarArmy(ctx,link,town_hall)
-        army_compare.append(army)
 
         compare_table[army_key] = [
             f"{int(army.troop_count):,}",
@@ -356,7 +367,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     menu_options = []
     back_dict = {
-        'id': 'armyanalyzerselect',
+        'id': 'armyanalyze',
         'emoji': "<:backwards:1041976602420060240>",
         'title': "",
         }
@@ -390,6 +401,8 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
                 await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
             else:
                 break
+        else:
+            break
 
     if selection:
         return selection['id']
