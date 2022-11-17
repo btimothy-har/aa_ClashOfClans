@@ -4,6 +4,7 @@ import asyncio
 import urllib
 
 from string import ascii_letters, digits
+from tabulate import tabulate
 
 from .discordutils import eclipse_embed
 from .eclipse_classes import EclipseSession, eWarBase, eWarArmy
