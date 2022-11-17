@@ -232,6 +232,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
                 msg_check = True
             else:
                 links = m.content.split()
+                link_chk = 0
                 for link in links:
                     try:
                         link_parse = urllib.parse.urlparse(link)
@@ -239,7 +240,6 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
                     except:
                         pass
                     else:
-                        link_chk = 0
                         if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
                             link_chk += 1
 
@@ -326,7 +326,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         return selection['id']
     else:
         return None
-        
+
 async def get_eclipse_bases(ctx,session,townhall_level):
     base_th = townhall_level
     bases = await eclipse_base_handler(ctx,base_th)
