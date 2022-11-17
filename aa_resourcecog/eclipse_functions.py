@@ -401,6 +401,8 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
                 await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
             else:
                 break
+        else:
+            break
 
     if selection:
         return selection['id']
