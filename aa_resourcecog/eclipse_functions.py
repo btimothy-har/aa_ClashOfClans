@@ -517,6 +517,9 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             display_bases = [b for b in bases if session.user.id in b.claims]
         else:
             display_bases = bases
+
+        if len(display_bases) == 0:
+            return 'personalvault'
         
         if i < 0:
             i = (len(display_bases) - 1)
