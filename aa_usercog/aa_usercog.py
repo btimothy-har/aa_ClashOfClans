@@ -538,7 +538,7 @@ class AriXMemberCommands(commands.Cog):
                 if response in ['basevaultselect']:
                     response = await get_eclipse_bases(ctx,session,base_th_select)
 
-                if response == 'armyanalyzer':
+                if response == 'armyanalyze':
                     response = await eclipse_army_analyzer(ctx,session)
 
                     if not response or response == 'menu':
