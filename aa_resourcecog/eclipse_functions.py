@@ -6,6 +6,8 @@ import urllib
 from string import ascii_letters, digits
 from tabulate import tabulate
 
+from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
+
 from .discordutils import eclipse_embed
 from .eclipse_classes import EclipseSession, eWarBase, eWarArmy
 from .file_functions import eclipse_base_handler
@@ -297,7 +299,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     army_comparison_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=```tabulate(compare_table, headers="keys")```)
+        message=box(tabulate(compare_table, headers="keys",tablefmt='pretty')))
 
     army_num = 0
     for army in army_compare:
