@@ -595,7 +595,7 @@ async def show_eclipse_bases(ctx,session,bases):
                             await display_bases[i].save_to_json()
 
                     dm_embed, image = await display_bases[i].base_embed(ctx)
-                    new_embed.add_field(
+                    dm_embed.add_field(
                         name="Base Link",
                         value=f"[Click here to open in-game.]({display_bases[i].base_link})",
                         inline=False)
