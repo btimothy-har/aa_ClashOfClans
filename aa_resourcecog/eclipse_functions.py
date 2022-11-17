@@ -1,6 +1,7 @@
 import discord
 import random
 import asyncio
+import urllib
 
 from string import ascii_letters, digits
 
@@ -260,17 +261,10 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     await session.message.clear_reactions()
 
     try:
-        army_links = await ctx.bot.wait_for("message",timeout=300) #check=armylink_check
+        army_links = await ctx.bot.wait_for("message",timeout=300,check=armylink_check)
     except asyncio.TimeoutError:
         response = 'armyanalyzer'
         return response
-
-    await ctx.send(army_links.content)
-    for i in army_links.content.split():
-        await ctx.send(i)
-        await ctx.send(urllib.parse.urlparse(i))
-
-    return 
 
     if army_links.content == 'back':
         response = 'armyanalyzer'
