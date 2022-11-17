@@ -477,7 +477,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
     return None
 
 
-async def show_eclipse_bases(ctx,session,bases):
+async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
     browse_bases = True
     display_bases = bases
     response = None
@@ -512,7 +512,12 @@ async def show_eclipse_bases(ctx,session,bases):
 
     i = 0
     while browse_bases:
-        display_bases = [b for b in bases if len(b.claims)< 6 or session.user.id in b.claims]
+
+        if vault_mode:
+            display_bases = [b for b in bases if session.user.id in b.claims]
+        else:
+            display_bases = bases
+        
         if i < 0:
             i = (len(display_bases) - 1)
         if i > (len(display_bases) - 1):
@@ -616,7 +621,6 @@ async def show_eclipse_bases(ctx,session,bases):
                     delete_embed = await eclipse_embed(ctx,
                         message="You have removed your claim from this base.")
                     await session.channel.send(embed=delete_embed,delete_after=40)
-                    del display_bases[i]
                     i = 0
                     break
 
@@ -762,7 +766,7 @@ async def eclipse_personal_bases(ctx,session):
         return 'personalvault'
         
     show_bases = [b for b in user_bases if b.town_hall==selection['id']]
-    response = await show_eclipse_bases(ctx,session,show_bases)
+    response = await show_eclipse_bases(ctx,session,show_bases,True)
 
     if response:
         return 'mybases'
