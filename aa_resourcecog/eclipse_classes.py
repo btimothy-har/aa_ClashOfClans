@@ -202,6 +202,7 @@ class eWarArmy():
             if troop[0].name not in ['Wall Breaker','Super Wall Breaker','Healer']:
                 troop_max_level = troop[0].get_max_level_for_townhall(int(town_hall))
                 for x in range(0,troop[1]):
+                    self.troop_count += 1
                     all_hitpoints.append(troop[0].hitpoints[troop_max_level])
                     all_dps.append(troop[0].dps[troop_max_level])
                     all_movement.append(troop[0].speed[troop_max_level])

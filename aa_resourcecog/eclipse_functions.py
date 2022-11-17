@@ -204,7 +204,7 @@ async def eclipse_army_analyzer(ctx,session):
             + f"\n > 2) Damage per Second (Min, Max, Average)"
             + f"\n > 3) Movement Speed (Min, Max, Average)"
             + f"\n > 4) Training Time (Total)"
-            + f"\n\n**Siege Machines, Healers, and (Super) Wall Breakers will always be excluded from statistics.**\n\u200b")
+            + f"\n\n**Healers, (Super) Wall Breakers, Spells and Siege Machines will always be excluded from statistics.**\n\u200b")
 
     army_analyzer_embed.add_field(
         name="**To get started, select a Townhall level to get started.**",
@@ -277,7 +277,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         return None
 
     army_compare = []
-    compare_table = {'\u200b':['Total HP','Avg HP','Min DPS','Max DPS','Avg DPS','Min Speed','Max Speed','Avg Speed','Trg Time (Min)']}
+    compare_table = {'\u200b':['# of Units','Trg Time (mins)','HP (total)','HP (avg)','DPS (min)','DPS (max)','DPS (avg)','Speed (min)','Speed (max)','Speed (avg)']}
 
     link_num = 0
     for link in army_links.content.split():
@@ -287,19 +287,24 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         army_compare.append(army)
 
         compare_table[army_key] = [
-            int(army.hitpoints_total),
-            int(army.hitpoints_average),
-            int(army.dps_min),
-            int(army.dps_max), 
-            int(army.dps_average), 
-            int(army.movement_min), 
-            int(army.movement_max), 
-            int(army.movement_average), 
-            int(army.training_time/60)]
+            f"{int(army.troop_count):,}",
+            f"{int(army.training_time/60):,}",
+            f"{int(army.hitpoints_total):,}",
+            f"{int(army.hitpoints_average):,}",
+            f"{int(army.dps_min):,}",
+            f"{int(army.dps_max):,}", 
+            f"{int(army.dps_average):,}", 
+            f"{int(army.movement_min):,}", 
+            f"{int(army.movement_max):,}", 
+            f"{int(army.movement_average):,}"]
 
     army_comparison_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=box(tabulate(compare_table, headers="keys",tablefmt='simple')))
+        message=f"*Healers, (Super) Wall Breakers, Spells and Siege Machines are excluded from army statistics.*"
+            + f"\n\n<:download:1040800550373044304> to send this analysis to your DMs."
+            + f"\n<:backwards:1041976602420060240> to restart the Army Analyzer."
+            + f"\n\n**Army analyzed for: {emotes_townhall[town_hall]}"
+            + box(tabulate(compare_table, headers="keys",tablefmt='simple')))
 
     army_num = 0
     for army in army_compare:
@@ -326,7 +331,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         session.message = await ctx.send(content=session.user.mention,embed=army_comparison_embed)
     
     await session.message.clear_reactions()
-    selection = await eclipse_menu_select(ctx,session,menu_options)
+    selection = await eclipse_menu_select(ctx,session,menu_options,timeout=300)
 
     if selection:
         return selection['id']
