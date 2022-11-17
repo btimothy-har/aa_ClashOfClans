@@ -148,9 +148,10 @@ async def eclipse_base_vault(ctx,session,no_base=None):
         if n < max(townhall_range):
             th_str += f"\n\n"
 
-    base_vault_intro = (f"Welcome to the **E.C.L.I.P.S.E. Base Vault**."
-        + f"\nHere in the Base Vault, we have a curated collection of bases ranging from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}. "
-        + f"These are bases exclusively reserved for AriX Members - to ensure they remain fresh, **PLEASE DO NOT SHARE ANY BASE LINKS WITH ANYONE, INCLUDING FELLOW MEMBERS**."
+    base_vault_intro = (f"Welcome to the **E.C.L.I.P.S.E. Base Vault**. "
+        + f"Here in the Base Vault, we have a curated collection of bases ranging from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}. "
+        + f"\n\nThese are bases exclusively reserved for AriX Members. To ensure they remain fresh, **DO NOT SHARE ANY BASE LINKS WITH ANYONE, INCLUDING FELLOW MEMBERS**."
+        + f"\n\n**It is your responsibility to ensure that no one else in Clan Wars are using the same base as you.**"
         + f"\n\n**__Base Claiming__**"
         + f"\n> - To get a Base Link, you must first claim a base. Claimed bases are added to your personal vault."
         + f"\n> - You may remove your claims from your vault."
@@ -170,7 +171,7 @@ async def eclipse_base_vault(ctx,session,no_base=None):
     base_menu_embed.add_field(
         name="Please select a Townhall level to browse bases.",
         value=f"\n\u200b{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu"
-            + f"\n\n*The Base Vault supported by our exclusive base building partner, <:RHBB:1041627382018211900> **RH Base Building***.\n\u200b")
+            + f"\n\n*The Base Vault is supported by our exclusive base building partner, <:RHBB:1041627382018211900> **RH Base Building***.\n\u200b")
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=base_menu_embed)
@@ -499,6 +500,10 @@ async def show_eclipse_bases(ctx,session,bases):
         'id': 'save',
         'emoji': '<:download:1040800550373044304>'
         }
+    remove_navigation = {
+        'id': 'unsave',
+        'emoji': '<:trashcan:1042829064345497742>'
+        }
 
     base_navigation.append(back_dict)
     if len(bases) > 1:
@@ -522,7 +527,19 @@ async def show_eclipse_bases(ctx,session,bases):
         base_embed.set_image(url=image_attachment.url)
         base_embed.set_footer(text=f"(Displaying base {i+1} of {len(display_bases)}) -- AriX Alliance | Clash of Clans")
 
-        if session.user.id in display_bases[i].claims and session.guild:
+        if session.user.id in display_bases[i].claims and not session.guild:
+            base_embed.add_field(
+                name="Base Link",
+                value=f"[Click here to open in-game.]({display_bases[i].base_link})\n\u200b",
+                inline=False)
+            base_embed.add_field(
+                name="Base Claim Status",
+                value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
+                    + f"\n\n**You have claimed this base.** To remove your claim, click on <:trashcan:1042829064345497742>.",
+                inline=False)
+            base_navigation.append(remove_navigation)
+
+        elif session.user.id in display_bases[i].claims and session.guild:
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
@@ -530,11 +547,7 @@ async def show_eclipse_bases(ctx,session,bases):
                     + f"The Base Link will be sent to your DMs.",
                 inline=False)
             base_navigation.append(save_navigation)
-        elif session.user.id in display_bases[i].claims and not session.guild:
-            base_embed.add_field(
-                name="Base Link",
-                value=f"[Click here to open in-game.]({display_bases[i].base_link})",
-                inline=False)
+            
         else:
             base_embed.add_field(
                 name="Base Claim Status",
