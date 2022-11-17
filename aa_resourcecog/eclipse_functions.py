@@ -579,8 +579,6 @@ async def show_eclipse_bases(ctx,session,bases):
 
         while True:
             selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
-            await dump_message.delete()
-            
             if selection:
                 if selection['id'] == 'next':
                     i += 1
@@ -621,13 +619,14 @@ async def show_eclipse_bases(ctx,session,bases):
                     del display_bases[i]
                     i = 0
                     break
-                    
+
                 else:
                     browse_bases = False
                     break
             else:
                 browse_bases = False
                 break
+        await dump_message.delete()
 
     if selection:
         response = True
