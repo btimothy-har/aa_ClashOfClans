@@ -170,8 +170,14 @@ class eWarArmy():
             self.spells.append(spell)
 
         self.army_str = "**Troops**"
+        troop_ct = 0
         for troop in self.troops:
-            self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
+            troop_ct += 1
+            if troop_ct % 2 == 0:
+                self.army_str += "\u3000"
+            else:
+                self.army_str += "\n"
+            self.army_str += f"`{troop[1]}x` {emotes_army[troop[0].name]}"
 
         if len(self.super_troops) > 0:
             self.army_str += "\n\n**Super Troops**"

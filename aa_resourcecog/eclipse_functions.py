@@ -266,15 +266,21 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     try:
         army_links = await ctx.bot.wait_for("message",timeout=300,check=armylink_check)
     except asyncio.TimeoutError:
-        response = 'armyanalyzer'
+        response = 'armyanalyze'
         return response
 
     if army_links.content == 'back':
-        response = 'armyanalyzer'
+        response = 'armyanalyze'
         return response
 
     if army_links.content == 'exit':
         return None
+
+    await army_links.delete()
+    wait_embed = await eclipse_embed(ctx,
+        title="**E.C.L.I.P.S.E. Army Analyzer**",
+        message="<a:loading:1042769157248262154> Please wait... calculating.")
+    await session.message.edit(content=session.user.mention,embed=wait_embed)
 
     army_compare = []
     compare_table = {'\u200b':['# of Units','Trg Time (mins)','HP (total)','HP (avg)','DPS (min)','DPS (max)','DPS (avg)','Speed (min)','Speed (max)','Speed (avg)']}
@@ -300,10 +306,8 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     army_comparison_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=f"*Healers, (Super) Wall Breakers, Spells and Siege Machines are excluded from army statistics.*"
-            + f"\n\n<:download:1040800550373044304> to send this analysis to your DMs."
-            + f"\n<:backwards:1041976602420060240> to restart the Army Analyzer."
-            + f"\n\n**Army analyzed for: {emotes_townhall[town_hall]}"
+        message=f"**Armies analyzed for: {emotes_townhall[town_hall]}**"
+            + f"\n*Note: Healers, (Super) Wall Breakers, Spells and Siege Machines are excluded from army statistics.*"
             + box(tabulate(compare_table, headers="keys",tablefmt='simple')))
 
     army_num = 0
@@ -312,8 +316,16 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         army_comparison_embed.add_field(
             name=f"**Army {army_num}**",
             value=f"[Open in-game]({army.army_link})"
-                + f"\n\n{army.army_str}",
+                + f"\n\n{army.army_str}\n\u200b",
             inline=True)
+
+    dm_embed = army_comparison_embed
+
+    army_comparison_embed.add_field(
+        name="Navigation",
+        value=f"<:backwards:1041976602420060240> to restart the Army Analyzer."
+            + f"\n<:download:1040800550373044304> to send this analysis to your DMs.",
+        inline=False)
 
     menu_options = []
     back_dict = {
@@ -321,17 +333,28 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         'emoji': "<:backwards:1041976602420060240>",
         'title': "",
         }
+    save_dict = {
+        'id': 'save',
+        'emoji': "<:download:1040800550373044304>",
+        'title': "",
+        }
     menu_options.append(back_dict)
-
-    await army_links.delete()
+    menu_options.append(save_dict)
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=army_comparison_embed)
     else:
         session.message = await ctx.send(content=session.user.mention,embed=army_comparison_embed)
     
-    await session.message.clear_reactions()
-    selection = await eclipse_menu_select(ctx,session,menu_options,timeout=300)
+    while True:
+        selection = await eclipse_menu_select(ctx,session,menu_options,timeout=300)
+
+        if selection['id'] == 'save':
+            await session.user.send(embed=dm_embed)
+            await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+            await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
+        else:
+            break
 
     if selection:
         return selection['id']
