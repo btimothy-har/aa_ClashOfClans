@@ -277,7 +277,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     compare_table = {'\u200b':['Total HP','Avg HP','Min DPS','Max DPS','Avg DPS','Min Speed','Max Speed','Avg Speed','Trg Time (Min)']}
 
     link_num = 0
-    for link in army_links.split():
+    for link in army_links.content.split():
         link_num += 1
         army_key = f"Army {link_num}"
         army = eWarArmy(ctx,link,town_hall)
