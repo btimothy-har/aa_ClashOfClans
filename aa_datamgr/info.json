@@ -1,0 +1,12 @@
+{
+    "author": ["AriX Alliance | Clash of Clans"],
+    "min_bot_version": "3.4.18",
+    "description": "The data management module that serves the AriX Clash system.",
+    "hidden": false,
+    "disabled": false,
+    "install_msg": "Welcome to AriX!",
+    "required_cogs": {},
+    "requirements": [],
+    "short": "AriX COC DataMgr",
+    "tags": ["arix"]
+}
