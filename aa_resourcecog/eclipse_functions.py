@@ -271,9 +271,11 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     if army_links.content == 'back':
         response = 'armyanalyze'
+        await army_links.delete()
         return response
 
     if army_links.content == 'exit':
+        await army_links.delete()
         return None
 
     await army_links.delete()
