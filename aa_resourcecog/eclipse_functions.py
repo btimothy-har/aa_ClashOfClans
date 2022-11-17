@@ -359,10 +359,17 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         selection = await eclipse_menu_select(ctx,session,menu_options,timeout=300)
 
         if selection['id'] == 'save':
-            await session.user.send(embed=dm_embed)
+            try:
+                await session.user.send(embed=dm_embed)
+            except:
+                no_dm_embed = await eclipse_embed(ctx,
+                    message="I couldn't send you a DM! Please ensure your DM's are open.")
+                await session.channel.send(content=session.user.mention,embed=no_dm_embed,delete_after=40)
+            else:
+                menu_options.remove(save_dict)
+                await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
+            
             await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
-            await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
-            menu_options.remove(save_dict)
         else:
             break
 

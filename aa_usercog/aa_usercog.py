@@ -541,7 +541,7 @@ class AriXMemberCommands(commands.Cog):
                 if response == 'armyanalyze':
                     response = await eclipse_army_analyzer(ctx,session)
 
-                    if not response or response == 'menu':
+                    if not response or response in ['menu','armyanalyze']:
                         pass
                     else:
                         army_analyze_th_select = response
