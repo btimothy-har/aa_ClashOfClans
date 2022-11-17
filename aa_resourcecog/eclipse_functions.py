@@ -260,16 +260,23 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     await session.message.clear_reactions()
 
     try:
-        army_links = await ctx.bot.wait_for("message",timeout=300,check=armylink_check)
+        army_links = await ctx.bot.wait_for("message",timeout=300) #check=armylink_check
     except asyncio.TimeoutError:
         response = 'armyanalyzer'
         return response
 
-    if army_links.response == 'back':
+    await ctx.send(army_links.content)
+    for i in army_links.content.split():
+        await ctx.send(i)
+        await ctx.send(urllib.parse.urlparse(i))
+
+    return 
+
+    if army_links.content == 'back':
         response = 'armyanalyzer'
         return response
 
-    if army_links.response == 'exit':
+    if army_links.content == 'exit':
         return None
 
     army_compare = []
@@ -313,6 +320,8 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         'title': "",
         }
     menu_options.append(back_dict)
+
+    await army_links.delete()
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=army_comparison_embed)
