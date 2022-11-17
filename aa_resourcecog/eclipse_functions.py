@@ -197,7 +197,7 @@ async def eclipse_army_analyzer(ctx,session):
 
     army_analyzer_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=f"This unique analysis tool allows you to compare up to **three** army compositions next to each other. "
+        message=f"This unique analysis tool allows you to compare up to **three (3)** army compositions next to each other. "
             + f"Troops & Spells are compared at the max level for the selected townhall. "
             + f"\n\nThe following stats are compared by E.C.L.I.P.S.E.:"
             + f"\n > 1) Hitpoints (Total, Average)"
@@ -207,8 +207,8 @@ async def eclipse_army_analyzer(ctx,session):
             + f"\n\n**Healers, (Super) Wall Breakers, Spells and Siege Machines will always be excluded from statistics.**\n\u200b")
 
     army_analyzer_embed.add_field(
-        name="**To get started, select a Townhall level to get started.**",
-        value=f"\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu",
+        name="**Select a Townhall level to get started.**",
+        value=f"\n\u200b{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu",
         inline=False)
 
     if session.message:
@@ -254,6 +254,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     army_analysis_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
         message="Send up to **three (3)** army links in your next message. Separate links with a blank space."
+            + f"\n\n*If you are on a mobile device, the Army Analyzer works best with **2** armies.*"
             + f"\n\nTo go back to the previous menu, send `back`."
             + f"\nTo close E.C.L.I.P.S.E., send `exit`.")
 
@@ -270,8 +271,8 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         return response
 
     if army_links.content == 'back':
-        response = 'armyanalyze'
         await army_links.delete()
+        response = 'armyanalyze'
         return response
 
     if army_links.content == 'exit':
