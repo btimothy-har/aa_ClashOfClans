@@ -129,15 +129,15 @@ class eWarBase():
 
         base_text = (f"Date Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
                 + f"\nClaimed By: {len(self.claims)} member(s)"
-                + f"\n\nFrom: **{self.source}** (Builder: **{self.builder}**)"
-                + f"\n\n**Defensive Clan Castle (Recommendation):**\n{self.defensive_cc_str}")
+                + f"\n\nFrom: **{self.source}**\nBuilder: **{self.builder}**"
+                + f"\n\n**Recommended Clan Castle:**\n{self.defensive_cc_str}")
 
         if self.notes:
             base_text += f"\n\n**Builder Notes**:\n{self.notes}"
         base_text += "\n\u200b"
 
         embed = await eclipse_embed(ctx,
-            title=f"**{emotes_townhall[int(self.town_hall)]} TH{self.town_hall} {self.base_type}**",
+            title=f"**TH{self.town_hall} {emotes_townhall[int(self.town_hall)]} {self.base_type}**",
             message=base_text)
 
         embed.set_image(url="attachment://image.png")
@@ -145,178 +145,69 @@ class eWarBase():
         return embed,image_file
 
 
-# class eWarArmy():
-#     def __init__(self,ctx,army_link,cc_link):
-#         self.ctx = ctx
+class eWarArmy():
+    def __init__(self,ctx,army_link,town_hall):
+        self.ctx = ctx
 
-#         army_parse = urllib.parse.urlparse(army_link)
-#         cc_parse = urllib.parse.urlparse(cc_link)
+        self.army_link = army_link
+
+        parsed_army = ctx.bot.coc_client.parse_army_link(self.army_link)
+
+        self.troops = []
+        self.super_troops = []
+        self.siege_machines = []
+        self.spells = []
+
+        for troop in parsed_army[0]:
+            if troop[0].name in coc.HOME_TROOP_ORDER:
+                self.troops.append(troop)
+            if troop[0].name in coc.SUPER_TROOP_ORDER:
+                self.super_troops.append(troop)
+            if troop[0].name in coc.SIEGE_MACHINE_ORDER:
+                self.siege_machines.append(troop)
+
+        for spell in parsed_army[1]:
+            self.spells.append(spell)
+
+        self.army_str = "**Troops**"
+        for troop in self.troops:
+            self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
+        self.army_str = "\n\n**Super Troops**"
+        for troop in self.super_troops:
+            self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
+        self.army_str = "\n\n**Spells**"
+        for spell in self.spells:
+            self.army_str += f"\n`{spell[1]}x` {emotes_army[spell[0].name]}"
+        self.army_str = "\n\n**Siege Machines**"
+        for siege in self.siege_machines:
+            self.army_str += f"\n`{siege[1]}x` {emotes_army[siege[0].name]}"
+
+        self.all_troops = self.troops + self.super_troops
+
+        self.troop_count = 0
+
+        all_hitpoints = []
+        all_dps = []
+        all_movement = []
+        all_training_time = []
         
-#         self.army_id = urllib.parse.quote(urllib.parse.parse_qs(army_parse.query)['army'][0])
-#         self.army_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={self.army_id}"
+        #troop here is a tuple of (troop, qty)
+        for troop in self.all_troops:
+            if troop[0].name not in ['Wall Breaker','Super Wall Breaker']:
+                troop_max_level = troop[0].get_max_level_for_townhall(int(town_hall))
+                for x in range(0,troop[1]):
+                    all_hitpoints.append(troop[0].hitpoints[troop_max_level])
+                    all_dps.append(troop[0].dps[troop_max_level])
+                    all_movement.append(troop[0].speed[troop_max_level])
+                    all_training_time.append(troop[0].training_time[troop_max_level])
 
-#         parsed_army = ctx.bot.coc_client.parse_army_link(self.army_link)
-#         self.troop_count = 0
-#         self.spell_count = 0
+        self.hitpoints_total = sum(all_hitpoints)
+        self.hitpoints_average = self.hitpoints_total / len(all_hitpoints)
+        self.dps_min = min(all_dps)
+        self.dps_max = max(all_dps)
+        self.dps_average = sum(all_dps) / len(all_dps)
+        self.movement_min = min(all_movement)
+        self.movement_max = max(all_movement)
+        self.movement_average = sum(all_movement) / len(all_movement)
+        self.training_time = sum(all_training_time)
 
-#         self.troop_comp_str = ""
-#         self.supertroop_comp_str = ""
-#         self.siege_comp_str = ""
-#         self.spell_comp_str = ""
-        
-#         for troop in parsed_army[0]:
-#             if troop[0].name in coc.HOME_TROOP_ORDER:
-#                 self.troop_comp_str += f"`{troop[1]}x` {emotes_army[troop[0].name]} {troop[0].name}\n"
-#                 self.troop_count += army_campsize[troop[0].name]
-#             if troop[0].name in coc.SUPER_TROOP_ORDER:
-#                 self.supertroop_comp_str += f"`{troop[1]}x` {emotes_army[troop[0].name]} {troop[0].name}\n"
-#                 self.troop_count += army_campsize[troop[0].name]
-#             if troop[0].name in coc.SIEGE_MACHINE_ORDER:
-#                 self.siege_comp_str += f"`{troop[1]}x` {emotes_army[troop[0].name]} {troop[0].name}\n"
-
-#         for spell in parsed_army[1]:
-#             if spell[0].name in coc.SPELL_ORDER:
-#                 self.spell_comp_str += f"`{spell[1]}x` {emotes_army[spell[0].name]} {spell[0].name}\n"
-#                 self.spell_count += army_campsize[spell[0].name]
-
-#         self.cc_troops = urllib.parse.quote(urllib.parse.parse_qs(cc_parse.query)['army'][0])
-#         self.cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={self.cc_troops}"
-
-#         parsed_cc = ctx.bot.coc_client.parse_army_link(self.cc_link)
-#         self.cc_troops_str = ""
-#         self.cc_siege_str = ""
-#         self.cc_spell_str = ""
-#         for troop in parsed_cc[0]:
-#             if troop[0].name in (coc.HOME_TROOP_ORDER + coc.SUPER_TROOP_ORDER):
-#                 self.cc_troops_str += f"`{troop[1]}x` {emotes_army[troop[0].name]} {troop[0].name}\n"
-#             if troop[0].name in coc.SIEGE_MACHINE_ORDER:
-#                 self.cc_siege_str += f"`{troop[1]}x` {emotes_army[troop[0].name]} {troop[0].name}\n"
-
-#         for spell in parsed_cc[1]:
-#             if spell[0].name in coc.SPELL_ORDER:
-#                 self.cc_spell_str += f"`{spell[1]}x` {emotes_army[spell[0].name]} {spell[0].name}\n"
-
-#         self.name = ""
-#         self.author = ""
-#         self.town_hall = 0
-
-#         self.difficulty = 0
-#         self.video = []
-
-#         self.description = ""
-#         self.status = ""
-#         self.votes = (0,0)
-
-#     @classmethod
-#     async def new_army(cls,ctx,name,town_hall,author,difficulty,video,army_link,cc_link,description):
-#         self = eWarArmy(ctx,army_link,cc_link)
-
-#         self.name = name
-#         self.author = author
-#         self.town_hall = town_hall
-
-#         self.difficulty = int(difficulty)
-#         self.video = video
-
-#         self.description = description
-
-#         return self
-
-#     @classmethod
-#     def from_json(cls,ctx,json_data):
-#         army_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote(json_data['army_id'])}"
-#         cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote(json_data['army_cc'])}"
-
-#         self = eWarArmy(ctx,army_link,cc_link)
-
-#         self.name = json_data['name']
-#         self.author = json_data['author']
-#         self.town_hall = json_data['town_hall']
-
-#         self.difficulty = json_data['difficulty']
-#         self.video = json_data['video']
-
-#         self.description = json_data['description']
-
-#         return self
-
-#     async def save_to_json(self):
-#         armyJson = {
-#             'id': self.army_id,
-#             'army_cc': self.cc_troops,
-#             'town_hall': self.town_hall,
-#             'name': self.name,
-#             'author': self.author,
-#             'difficulty': self.difficulty,
-#             'video': self.video,
-#             'description': self.description,
-#             'status': self.status,
-#             'votes': self.votes,
-#             }
-
-#         await eclipse_army_handler(
-#             ctx=self.ctx,
-#             army_town_hall=self.town_hall,
-#             army_json=armyJson
-#             )
-
-#     async def army_embed(self,ctx):
-#         army_text = f"*Contributed by: {self.author}*"
-
-#         army_text += f"\n\n**Difficulty:**\n"
-#         for n in range(1,6):
-#             if n <= self.difficulty:
-#                 army_text += ":star:\u200b"
-#             else:
-#                 army_text += "<:star_empty:1042337290904670270>\u200b"
-
-#         army_text += "\n\n**Video Links**"
-#         for v in self.videos:
-#             army_text += "> " + v +"\n"
-
-#         army_text += f"\n\n**<:barracks:1042336340072738847> {self.troop_count}\u3000<:spellfactory:1042336364789768273> {self.spell_count}**"
-
-#         embed = await eclipse_embed(ctx,
-#             title=f"**{self.name} [{emotes_townhall[int(self.town_hall)]} TH {self.town_hall}]**",
-#             message=army_text)
-
-#         #if self.description:
-#         #    embed.add_field(
-#         #        name=f"**__Description__**",
-#         #        value=f"{self.description}\n\u200b",
-#         #        inline=False)
-
-#         embed.add_field(
-#             name=f"**Troops**",
-#             value=self.troop_comp_str + "\n\u200b",
-#             inline=False
-#             )
-
-#         if self.supertroop_comp_str:
-#             embed.add_field(
-#                 name=f"**Super Troops**",
-#                 value=self.supertroop_comp_str + "\n\u200b",
-#                 inline=False
-#                 )
-
-#         if self.siege_comp_str:
-#             embed.add_field(
-#                 name=f"**Siege Machines**",
-#                 value=self.siege_comp_str + "\n\u200b",
-#                 inline=False
-#                 )
-
-#         if self.siege_comp_str:
-#             embed.add_field(
-#                 name=f"**Spells**",
-#                 value=self.spell_comp_str + "\n\u200b",
-#                 inline=False
-#                 )
-
-#         embed.add_field(
-#             name=f"**Clan Castle**",
-#             value=self.cc_troops_str + self.cc_spell_str + self.cc_siege_str,
-#             inline=False
-#             )
-
-#         return embed

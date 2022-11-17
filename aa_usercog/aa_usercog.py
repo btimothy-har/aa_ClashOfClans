@@ -538,9 +538,17 @@ class AriXMemberCommands(commands.Cog):
                 if response in ['basevaultselect']:
                     response = await get_eclipse_bases(ctx,session,base_th_select)
 
-                #if response == 'armyguides':
-                #    await ctx.send("This bit doesn't exist yet.")
-                #    response = "menu"
+                if response == 'armyanalyzer':
+                    response = await eclipse_army_analyzer(ctx,session)
+
+                    if not response or response == 'menu':
+                        pass
+                    else:
+                        army_analyze_th_select = response
+                        response = 'armyanalyzerselect'
+
+                if response in ['armyanalyzerselect']:
+                    response = await eclipse_army_analyzer_main(ctx,session,army_analyze_th_select)
 
 
                 #if response == 'strategy':

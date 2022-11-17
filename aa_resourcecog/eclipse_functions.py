@@ -5,7 +5,7 @@ import asyncio
 from string import ascii_letters, digits
 
 from .discordutils import eclipse_embed
-from .eclipse_classes import EclipseSession, eWarBase
+from .eclipse_classes import EclipseSession, eWarBase, eWarArmy
 from .file_functions import eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
@@ -74,7 +74,7 @@ async def eclipse_main_menu(ctx,session):
     army_analyzer = {
             'id': 'armyanalyze',
             'title': "Army Analysis",
-            'description': f"Compare up to 2 army compositions side-by-side."
+            'description': f"Compare up to 3 army compositions side-by-side."
             }
 
     menu_options.append(personal_vault_option)
@@ -166,7 +166,166 @@ async def eclipse_base_vault(ctx,session,no_base=None):
     else:
         return None
 
+async def eclipse_army_analyzer(ctx,session):
 
+    townhall_range = range(9,16)
+    th_str = ""
+    
+    menu_options = []
+    back_dict = {
+        'id': 'menu',
+        'emoji': "<:backwards:1041976602420060240>",
+        'title': "",
+        }
+    menu_options.append(back_dict)
+
+    for n in townhall_range:
+        n_dict = {
+            'id':n,
+            'emoji': f"{emotes_townhall[n]}",
+            'title':f"TH {n}",
+            }
+        menu_options.append(n_dict)
+
+        th_str += f"{n_dict['emoji']} {n_dict['title']}"
+        if n < max(townhall_range):
+            th_str += f"\n\n"
+
+    army_analyzer_embed = await eclipse_embed(ctx,
+        title="**E.C.L.I.P.S.E. Army Analyzer**",
+        message=f"This unique analysis tool allows you to compare up to **three** army compositions next to each other. "
+            + f"Troops & Spells are compared at the max level for the selected townhall. "
+            + f"\n\nThe following stats are compared by E.C.L.I.P.S.E.:"
+            + f"\n > 1) Hitpoints (Total, Average)"
+            + f"\n > 2) Damage per Second (Min, Max, Average)"
+            + f"\n > 3) Movement Speed (Min, Max, Average)"
+            + f"\n > 4) Training Time (Total)"
+            + f"\n\n**Siege Machines, Healers, and (Super) Wall Breakers will always be excluded from statistics.**\n\u200b")
+
+    army_analyzer_embed.add_field(
+        name="**To get started, select a Townhall level to get started.**",
+        value=f"\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu",
+        inline=False)
+
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=army_analyzer_embed)
+    else:
+        session.message = await ctx.send(content=session.user.mention,embed=army_analyzer_embed)
+
+    await session.message.clear_reactions()
+    selection = await eclipse_menu_select(ctx,session,menu_options)
+
+    if selection:
+        return selection['id']
+    else:
+        return None
+
+
+async def eclipse_army_analyzer_main(ctx,session,town_hall):
+
+    def armylink_check(m):
+        msg_check = False
+        if m.author.id == session.user.id and m.channel.id == session.channel.id:
+            if m.content.lower() == 'back':
+                msg_check = True
+            elif m.content.lower() == 'exit':
+                msg_check = True
+            else:
+                links = m.content.split()
+                for link in links:
+                    try:
+                        link_parse = urllib.parse.urlparse(link)
+                        link_action = urllib.parse.parse_qs(link_parse.query)['action'][0]
+                    except:
+                        pass
+                    else:
+                        link_chk = 0
+                        if link_parse.netloc == "link.clashofclans.com" and link_action == "CopyArmy":
+                            link_chk += 1
+
+                if link_chk == len(links):
+                    msg_check = True
+        return msg_check
+
+    army_analysis_embed = await eclipse_embed(ctx,
+        title="**E.C.L.I.P.S.E. Army Analyzer**",
+        message="Send up to **three (3)** army links in your next message. Separate links with a blank space."
+            + f"\n\nTo go back to the previous menu, send `back`."
+            + f"\nTo close E.C.L.I.P.S.E., send `exit`.")
+
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=army_analysis_embed)
+    else:
+        session.message = await ctx.send(content=session.user.mention,embed=army_analysis_embed)
+    await session.message.clear_reactions()
+
+    try:
+        army_links = await ctx.bot.wait_for("message",timeout=300,check=armylink_check)
+    except asyncio.TimeoutError:
+        response = 'armyanalyzer'
+        return response
+
+    if army_links.response == 'back':
+        response = 'armyanalyzer'
+        return response
+
+    if army_links.response == 'exit':
+        return None
+
+    army_compare = []
+    compare_table = {'\u200b':['Total HP','Avg HP','Min DPS','Max DPS','Avg DPS','Min Speed','Max Speed','Avg Speed','Trg Time (Min)']}
+
+    link_num = 0
+    for link in army_links.split():
+        link_num += 1
+        army_key = f"Army {link_num}"
+        army = eWarArmy(ctx,link,town_hall)
+        army_compare.append(army)
+
+        compare_table[army_key] = [
+            army.hitpoints_total,
+            army.hitpoints_average,
+            army.dps_min,
+            army.dps_max, 
+            army.dps_average, 
+            army.movement_min, 
+            army.movement_max, 
+            army.movement_average, 
+            int(army.training_time/60)]
+
+    army_comparison_embed = await eclipse_embed(ctx,
+        title="**E.C.L.I.P.S.E. Army Analyzer**",
+        message=tabulate(compare_table, headers="keys"))
+
+    army_num = 0
+    for army in army_compare:
+        army_num += 1
+        army_comparison_embed.add_field(
+            name=f"**Army {army_num}**",
+            value=f"[Open in-game]({army.army_link})"
+                + f"\n\n{army.army_str}",
+            inline=True)
+
+    menu_options = []
+    back_dict = {
+        'id': 'armyanalyzerselect',
+        'emoji': ":repeat:",
+        'title': "",
+        }
+    menu_options.append(back_dict)
+
+    if session.message:
+        await session.message.edit(content=session.user.mention,embed=army_comparison_embed)
+    else:
+        session.message = await ctx.send(content=session.user.mention,embed=army_comparison_embed)
+    
+    await session.message.clear_reactions()
+    selection = await eclipse_menu_select(ctx,session,menu_options)
+
+    if selection:
+        return selection['id']
+    else:
+        return None
 async def get_eclipse_bases(ctx,session,townhall_level):
     base_th = townhall_level
     bases = await eclipse_base_handler(ctx,base_th)
@@ -466,11 +625,11 @@ async def eclipse_personal_bases(ctx,session):
         base_select_embed = await eclipse_embed(ctx,
             title="**Welcome to your Personal Base Vault**",
             message=f"{vault_intro}"
-                + f"\n\nI found a total of {len(user_bases)} in your personal vault.\n\u200b")
+                + f"\n\nI found a total of {len(user_bases)} base(s) in your personal vault.\n\u200b")
 
         base_select_embed.add_field(
             name="Select a Townhall level below to view your bases.",
-            value=f"\n{th_str}",
+            value=f"\n\n{th_str}",
             inline=False)
 
     else:
@@ -500,3 +659,15 @@ async def eclipse_personal_bases(ctx,session):
         return 'mybases'
     else:
         return None
+
+
+
+
+
+
+
+
+
+
+
+
