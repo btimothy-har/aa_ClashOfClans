@@ -251,6 +251,8 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
                 msg_check = True
             elif m.content.lower() == 'exit':
                 msg_check = True
+            elif m.content.lower() == 'stop':
+                msg_check = True
             else:
                 link = m.content
                 try:
@@ -295,6 +297,10 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         if army_links.content == 'exit':
             await army_links.delete()
             return None
+
+        if army_links.content == 'stop':
+            await army_links.delete()
+            break
 
         army = eWarArmy(ctx,army_links.content,town_hall)
         army_compare.append(army)
