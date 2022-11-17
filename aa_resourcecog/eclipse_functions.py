@@ -297,7 +297,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     army_comparison_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=tabulate(compare_table, headers="keys"))
+        message=```tabulate(compare_table, headers="keys")```)
 
     army_num = 0
     for army in army_compare:
@@ -311,7 +311,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     menu_options = []
     back_dict = {
         'id': 'armyanalyzerselect',
-        'emoji': ":repeat:",
+        'emoji': "<:backwards:1041976602420060240>",
         'title': "",
         }
     menu_options.append(back_dict)

@@ -172,13 +172,13 @@ class eWarArmy():
         self.army_str = "**Troops**"
         for troop in self.troops:
             self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
-        self.army_str = "\n\n**Super Troops**"
+        self.army_str += "\n\n**Super Troops**"
         for troop in self.super_troops:
             self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
-        self.army_str = "\n\n**Spells**"
+        self.army_str += "\n\n**Spells**"
         for spell in self.spells:
             self.army_str += f"\n`{spell[1]}x` {emotes_army[spell[0].name]}"
-        self.army_str = "\n\n**Siege Machines**"
+        self.army_str += "\n\n**Siege Machines**"
         for siege in self.siege_machines:
             self.army_str += f"\n`{siege[1]}x` {emotes_army[siege[0].name]}"
 
