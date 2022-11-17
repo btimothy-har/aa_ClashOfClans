@@ -190,8 +190,8 @@ class eWarArmy():
                     self.army_str += "\n"
                 self.army_str += f"`{troop[1]}x` {emotes_army[troop[0].name]}"
 
-        troop_ct = 0
         if len(self.spells) > 0:
+            troop_ct = 0
             self.army_str += "\n\n**Spells**"
             for spell in self.spells:
                 troop_ct += 1
@@ -199,7 +199,7 @@ class eWarArmy():
                     self.army_str += "\u3000"
                 else:
                     self.army_str += "\n"
-                self.army_str += f"\n`{spell[1]}x` {emotes_army[spell[0].name]}"
+                self.army_str += f"`{spell[1]}x` {emotes_army[spell[0].name]}"
         
         if len(self.siege_machines) > 0:
             self.army_str += "\n\n**Siege Machines**"
