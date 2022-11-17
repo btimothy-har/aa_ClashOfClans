@@ -300,7 +300,7 @@ class AriXClashDataMgr(commands.Cog):
                     except TerminateProcessing as e:
                         eEmbed = await clash_embed(ctx,message=e,color='fail')
                         eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
-                        return await log_channel.send(embed=eEmbed)
+                        return await log_channel.send(eEmbed)
                     except Exception as e:
                         c = None
                         err_dict = {'tag':f'c{ctag}','reason':e}
@@ -316,7 +316,7 @@ class AriXClashDataMgr(commands.Cog):
             if c.war_state_change:
                 detected_war_change = True
 
-            if c.current_war and (c.war_state_change or c.war_state == "inWar"):
+            if c.war_state_change or c.war_state == "inWar":
                 str_war_update += f"__{c.tag} {c.name}__"
                 if c.war_state_change and c.war_state == 'inWar':
                     str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"

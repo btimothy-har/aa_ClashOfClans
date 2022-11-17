@@ -206,7 +206,6 @@ class aClan():
             return None
 
         if current_war.state == 'notInWar':
-            self.war_state = current_war.state
             return None
         
         self.current_war = aClanWar.from_game(self.ctx,current_war)
