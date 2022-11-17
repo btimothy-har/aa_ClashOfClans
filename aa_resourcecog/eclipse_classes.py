@@ -103,6 +103,10 @@ class eWarBase():
 
         return self
 
+    def add_claim(self,ctx,session):
+        if session.user.id not in self.claims:
+            self.claims.append(session.user.id)
+
     async def save_to_json(self):
         baseJson = {
             'id': self.id,
@@ -128,7 +132,6 @@ class eWarBase():
         image_file = discord.File(image_file_path,'image.png')
 
         base_text = (f"Date Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
-                + f"\nClaimed By: {len(self.claims)} member(s)"
                 + f"\n\nFrom: **{self.source}**\nBuilder: **{self.builder}**"
                 + f"\n\n**Recommended Clan Castle:**\n{self.defensive_cc_str}")
 

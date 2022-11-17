@@ -148,14 +148,29 @@ async def eclipse_base_vault(ctx,session,no_base=None):
         if n < max(townhall_range):
             th_str += f"\n\n"
 
+    base_vault_intro = (f"Welcome to the **E.C.L.I.P.S.E. Base Vault**."
+        + f"\nHere in the Base Vault, we have a curated collection of bases ranging from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}. "
+        + f"These are bases exclusively reserved for AriX Members - to ensure they remain fresh, **PLEASE DO NOT SHARE ANY BASE LINKS WITH ANYONE, INCLUDING FELLOW MEMBERS**."
+        + f"\n\n**__Base Claiming__**"
+        + f"\n> - To get a Base Link, you must first claim a base. Claimed bases are added to your personal vault."
+        + f"\n> - You may remove your claims from your vault."
+        + f"\n> - Base Claims are public and other members will be able to see who has claimed a base."
+        + f"\n> - There are no limits to claims."
+        )
+
     if no_base:
         base_menu_embed = await eclipse_embed(ctx,
             title="**E.C.L.I.P.S.E. Base Vault**",
-            message=f"**We don't have any bases currently for Townhall {no_base}.**\n\nPlease select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu.\n\u200b")
+            message=f"**We don't have any bases currently for Townhall {no_base}.**\n\n{base_vault_intro}\n\u200b")
     else:
         base_menu_embed = await eclipse_embed(ctx,
             title="**E.C.L.I.P.S.E. Base Vault**",
-            message=f"Please select a Townhall level to browse bases for.\n\n{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu\n\u200b")
+            message=f"{base_vault_intro}\n\u200b")
+    
+    base_menu_embed.add_field(
+        name="Please select a Townhall level to browse bases.",
+        value=f"\n\u200b{th_str}\n\n<:backwards:1041976602420060240> Back to the Main Menu"
+            + f"\n\n*The Base Vault supported by our exclusive base building partner, <:RHBB:1041627382018211900> **RH Base Building***.\n\u200b")
 
     if session.message:
         await session.message.edit(content=session.user.mention,embed=base_menu_embed)
@@ -171,7 +186,6 @@ async def eclipse_base_vault(ctx,session,no_base=None):
         return None
 
 async def eclipse_army_analyzer(ctx,session):
-
     townhall_range = range(9,16)
     th_str = ""
     
@@ -467,23 +481,28 @@ async def show_eclipse_bases(ctx,session,bases):
     display_bases = bases
     response = None
 
-    base_navigation = [
-        {
-            'id': 'back',
-            'emoji': '<:backwards:1041976602420060240>'
-            }
-        ]
+    base_navigation = []
 
+    back_dict = {
+        'id': 'back',
+        'emoji': '<:backwards:1041976602420060240>'
+        }
+    prev_dict = {
+        'id': 'previous',
+        'emoji': '<:to_previous:1041988094943035422>'
+        }
+    next_dict = {
+        'id': 'next',
+        'emoji': '<:to_next:1041988114308137010>'
+        }
+    save_navigation = {
+        'id': 'save',
+        'emoji': '<:download:1040800550373044304>'
+        }
+
+    base_navigation.append(back_dict)
     if len(bases) > 1:
-        prev_dict = {
-            'id': 'previous',
-            'emoji': '<:to_previous:1041988094943035422>'
-            }
         base_navigation.append(prev_dict)
-        next_dict = {
-            'id': 'next',
-            'emoji': '<:to_next:1041988114308137010>'
-            }
         base_navigation.append(next_dict)
 
     i = 0
@@ -505,9 +524,12 @@ async def show_eclipse_bases(ctx,session,bases):
 
         if session.user.id in display_bases[i].claims and session.guild:
             base_embed.add_field(
-                name="Base Link",
-                value="You have added this base to your Vault. To get the Base Link, visit your Personal Vault from the main menu.",
+                name="Base Claim Status",
+                value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
+                    + "\n\n**You have claimed this base.** To get the Base Link, click on <:download:1040800550373044304>."
+                    + f"The Base Link will be sent to your DMs.",
                 inline=False)
+            base_navigation.append(save_navigation)
         elif session.user.id in display_bases[i].claims and not session.guild:
             base_embed.add_field(
                 name="Base Link",
@@ -515,14 +537,11 @@ async def show_eclipse_bases(ctx,session,bases):
                 inline=False)
         else:
             base_embed.add_field(
-                name="Get this Base",
-                value="Get the link to this base by clicking on <:download:1040800550373044304>."
-                    + f"\n*You will always be able to access your saved bases from your personal vault.*",
+                name="Base Claim Status",
+                value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
+                    + f"\n\nTo get the Base Link, first claim this base by clicking on <:download:1040800550373044304>. You will receive the Base Link in your DMs."
+                    + f"\n*Your claimed bases will be accessible from your personal vault.*",
                 inline=False)
-            save_navigation = {
-                'id': 'save',
-                'emoji': '<:download:1040800550373044304>'
-                }
             base_navigation.append(save_navigation)
 
         if len(bases) > 1:
@@ -545,37 +564,47 @@ async def show_eclipse_bases(ctx,session,bases):
             await session.message.edit(content=session.user.mention,embed=base_embed)
             await session.message.clear_reactions()
 
-        selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
+        while True:
+            selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
+            await dump_message.delete()
+            
+            if selection:
+                if selection['id'] == 'next':
+                    i += 1
+                    break
+                elif selection['id'] == 'previous':
+                    i -= 1
+                    break
+                elif selection['id'] == 'save':
+                    display_bases[i].claims.add_claim(ctx,session)
+                    async with ctx.bot.async_eclipse_lock:
+                        with ctx.bot.clash_eclipse_lock.write_lock():
+                            await display_bases[i].save_to_json()
 
-        await dump_message.delete()
-
-        if selection:
-            if selection['id'] == 'next':
-                i += 1
-            elif selection['id'] == 'previous':
-                i -= 1
-            elif selection['id'] == 'save':
-                display_bases[i].claims.append(session.user.id)
-                new_embed, image = await display_bases[i].base_embed(ctx)
-                new_embed.add_field(
-                    name="Base Link",
-                    value=f"[Click here to open in-game.]({display_bases[i].base_link})",
-                    inline=False)
-
-                async with ctx.bot.async_eclipse_lock:
-                    with ctx.bot.clash_eclipse_lock.write_lock():
-                        await display_bases[i].save_to_json()
-
-                await session.user.send(embed=new_embed,file=image)
-                i = i
+                    dm_embed, image = await display_bases[i].base_embed(ctx)
+                    new_embed.add_field(
+                        name="Base Link",
+                        value=f"[Click here to open in-game.]({display_bases[i].base_link})",
+                        inline=False)
+                    try:
+                        await session.user.send(embed=dm_embed,file=image)
+                    except:
+                        no_dm_embed = await eclipse_embed(ctx,
+                            message="I couldn't send you a DM! Please ensure your DM's are open.")
+                        await session.channel.send(content=session.user.mention,embed=no_dm_embed,delete_after=40)
+                    else:
+                        base_navigation.remove(save_navigation)
+                        await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
+                    await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+                else:
+                    browse_bases = False
+                    break
             else:
                 browse_bases = False
-        else:
-            browse_bases = False
+                break
 
     if selection:
         response = True
-    
     return response
 
 
