@@ -172,15 +172,21 @@ class eWarArmy():
         self.army_str = "**Troops**"
         for troop in self.troops:
             self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
-        self.army_str += "\n\n**Super Troops**"
-        for troop in self.super_troops:
-            self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
-        self.army_str += "\n\n**Spells**"
-        for spell in self.spells:
-            self.army_str += f"\n`{spell[1]}x` {emotes_army[spell[0].name]}"
-        self.army_str += "\n\n**Siege Machines**"
-        for siege in self.siege_machines:
-            self.army_str += f"\n`{siege[1]}x` {emotes_army[siege[0].name]}"
+
+        if len(self.super_troops) > 0:
+            self.army_str += "\n\n**Super Troops**"
+            for troop in self.super_troops:
+                self.army_str += f"\n`{troop[1]}x` {emotes_army[troop[0].name]}"
+
+        if len(self.spells) > 0:
+            self.army_str += "\n\n**Spells**"
+            for spell in self.spells:
+                self.army_str += f"\n`{spell[1]}x` {emotes_army[spell[0].name]}"
+        
+        if len(self.siege_machines) > 0:
+            self.army_str += "\n\n**Siege Machines**"
+            for siege in self.siege_machines:
+                self.army_str += f"\n`{siege[1]}x` {emotes_army[siege[0].name]}"
 
         self.all_troops = self.troops + self.super_troops
 
@@ -193,7 +199,7 @@ class eWarArmy():
         
         #troop here is a tuple of (troop, qty)
         for troop in self.all_troops:
-            if troop[0].name not in ['Wall Breaker','Super Wall Breaker']:
+            if troop[0].name not in ['Wall Breaker','Super Wall Breaker','Healer']:
                 troop_max_level = troop[0].get_max_level_for_townhall(int(town_hall))
                 for x in range(0,troop[1]):
                     all_hitpoints.append(troop[0].hitpoints[troop_max_level])

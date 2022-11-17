@@ -299,7 +299,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
 
     army_comparison_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
-        message=box(tabulate(compare_table, headers="keys",tablefmt='pretty')))
+        message=box(tabulate(compare_table, headers="keys",tablefmt='simple')))
 
     army_num = 0
     for army in army_compare:
