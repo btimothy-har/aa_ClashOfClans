@@ -95,6 +95,7 @@ class AriXClashResources(commands.Cog):
     #             + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
     #             + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
     #             + f"\n\n****")
+    #eclipse
 
 
 
