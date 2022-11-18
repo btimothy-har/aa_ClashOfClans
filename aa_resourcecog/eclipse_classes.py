@@ -31,7 +31,7 @@ class eWarBase():
         link_parse = urllib.parse.urlparse(base_link)
         cc_parse = urllib.parse.urlparse(defensive_cc_link)
         
-        self.id = urllib.parse.quote(urllib.parse.parse_qs(link_parse.query)['id'][0])
+        self.id = urllib.parse.quote_plus(urllib.parse.parse_qs(link_parse.query)['id'][0])
         self.town_hall = int(self.id.split('TH',1)[1][:2])
         self.base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote(self.id)}"
 
@@ -58,8 +58,8 @@ class eWarBase():
 
     @classmethod
     def from_json(cls,ctx,json_data):
-        base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote(json_data['id'])}"
-        defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote(json_data['defensive_cc'])}"
+        base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote_plus(json_data['id'])}"
+        defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote_plus(json_data['defensive_cc'])}"
 
         self = eWarBase(ctx,base_link,defensive_cc_link)
 
