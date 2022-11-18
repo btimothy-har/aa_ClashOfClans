@@ -548,8 +548,6 @@ class AriXClashDataMgr(commands.Cog):
                             if coleader_role not in discord_member.roles:
                                 await discord_member.add_roles(coleader_role)
                                 role_change = True
-                            except:
-                                pass
 
                         elif rank_info['rank'] in ['Elder']:
                             if member_role not in discord_member.roles:
