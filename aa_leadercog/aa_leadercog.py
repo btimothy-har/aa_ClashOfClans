@@ -845,6 +845,8 @@ class AriXLeaderCommands(commands.Cog):
             return
 
         player_tags = player_tags_reply.content.split()
+        await ask_player_tags.delete()
+        await player_tags_reply.delete()
 
         for tag in player_tags:
             clan_selection = []
