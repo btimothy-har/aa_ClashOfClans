@@ -705,26 +705,30 @@ class AriXMemberCommands(commands.Cog):
 
         #BASE TYPE
         base_type_list = [
-            {
-                'id': 'home',
-                'title': 'Trophy/Farm Base',
-                'description': None
-                },
-            {
-                'id': 'legends',
-                'title': 'Legends Base',
-                'description': None
+            {   
+                'id': 'anti3',
+                'title': 'War Base: Anti-3 Star',
+                'description': None,
+                'emoji': '<:3_Star:1043063806378651720>',
                 },
             {
                 'id': 'anti2',
                 'title': 'War Base: Anti-2 Star',
-                'description': None
+                'description': None,
+                'emoji': '<:Attack_Star:1043063829430542386>'
                 },
-            {   
-                'id': 'anti3',
-                'title': 'War Base: Anti-3 Star',
-                'description': None
-                }
+            {
+                'id': 'legends',
+                'title': 'Legends Base',
+                'description': None,
+                'emoji': '<:legend_league_star:1043062895652655125>',
+                },
+            {
+                'id': 'home',
+                'title': 'Trophy/Farm Base',
+                'description': None,
+                'emoji': '<:HomeTrophies:825589905651400704>'
+                },
             ]
         base_type_embed = await eclipse_embed(ctx,
             title="Add Base -- Step 4/7",
