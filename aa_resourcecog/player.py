@@ -396,7 +396,7 @@ class aPlayer():
         if self.p:
             if self.clan.tag not in self.other_clans:
                 self.other_clans.append(self.clan.tag)
-
+                
             self.attack_wins.set_baseline(self.p.attack_wins)
             self.defense_wins.set_baseline(self.p.defense_wins)
 
