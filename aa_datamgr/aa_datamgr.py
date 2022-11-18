@@ -345,14 +345,17 @@ class AriXClashDataMgr(commands.Cog):
                     str_raid_update += f"\n**Raid Weekend has begun!**"
                     if c.announcement_channel:
                         channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
-                        announcement_str = "Raid Weekend has begun!"
+
+                        raid_weekend_start_embed = await clash_embed(ctx,
+                            message="**Raid Weekend has begun!**")
                         
                         if c.member_role:
                             role = ctx.bot.alliance_server.get_role(c.member_role)
-                            announcement_str += f"\n\n{role.mention}"
-
-                        rm = discord.AllowedMentions(roles=True)
-                        await channel.send(content=announcement_str,allowed_mentions=rm)
+                            
+                            rm = discord.AllowedMentions(roles=True)
+                            await channel.send(content={role.mention},embed=raid_weekend_start_embed,allowed_mentions=rm)
+                        else:
+                            await channel.send(embed=raid_weekend_start_embed,allowed_mentions=rm)
 
                 if c.current_raid_weekend.state == 'ended':
                     str_raid_update += f"\n**Raid Weekend is now over.**"
@@ -464,18 +467,18 @@ class AriXClashDataMgr(commands.Cog):
             #lock separately for each member
             async with ctx.bot.async_file_lock:
                 with ctx.bot.clash_file_lock.write_lock():
-                    #try:
-                    p = await aPlayer.create(ctx,mtag)
-                    await p.retrieve_data()
-                    #except TerminateProcessing as e:
-                    #    eEmbed = await clash_embed(ctx,message=e,color='fail')
-                    #    eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
-                    #    return await log_channel.send(eEmbed)
-                    #except Exception as e:
-                    #    p = None
-                    #    err_dict = {'tag':f'm{mtag}','reason':e}
-                    #    err_log.append(err_dict)
-                    #    continue
+                    try:
+                        p = await aPlayer.create(ctx,mtag)
+                        await p.retrieve_data()
+                    except TerminateProcessing as e:
+                        eEmbed = await clash_embed(ctx,message=e,color='fail')
+                        eEmbed.set_footer(text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",icon_url="https://i.imgur.com/TZF5r54.png")
+                        return await log_channel.send(eEmbed)
+                    except Exception as e:
+                        p = None
+                        err_dict = {'tag':f'm{mtag}','reason':e}
+                        err_log.append(err_dict)
+                        continue
 
                     if is_new_season:
                         await p.set_baselines()
@@ -519,62 +522,23 @@ class AriXClashDataMgr(commands.Cog):
         for user, rank_info in role_sync.items():
             role_clan_tags = [c.tag for c in alliance_clans]
             discord_member = ctx.bot.alliance_server.get_member(int(user))
+            alliance_ranks = []
 
             if discord_member:
                 role_change = False
-                for clan_tag, rank_info in rank_info.items():
-                    
-                    if clan_tag in role_clan_tags:
-                        role_clan_tags.remove(clan_tag)
-
-                    member_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].member_role))
-                    elder_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].elder_role))
-                    coleader_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].coleader_role))
-
-                    if rank_info['rank'] == 'Guest' or rank_info['rank'] == 'Non-Member':
-                        try:
-                            if member_role in discord_member.roles:
-                                await discord_member.remove_roles(member_role)
-                                role_change = True
-                            if elder_role in discord_member.roles:
-                                await discord_member.remove_roles(elder_role)
-                                role_change = True
-                            if coleader_role in discord_member.roles:
-                                await discord_member.remove_roles(coleader_role)
-                                role_change = True
-                        except:
-                            pass
-
-                    if rank_info['rank'] == 'Member':
-                        try:
-                            if member_role not in discord_member.roles:
-                                await discord_member.add_roles(member_role)
-                                role_change = True
-                            if elder_role in discord_member.roles:
-                                await discord_member.remove_roles(elder_role)
-                                role_change = True
-                            if coleader_role in discord_member.roles:
-                                await discord_member.remove_roles(coleader_role)
-                                role_change = True
-                        except:
-                            pass
+                try:
+                    for clan_tag, rank_info in rank_info.items():
                         
-                    if rank_info['rank'] == 'Elder':
-                        try:
-                            if member_role not in discord_member.roles:
-                                await discord_member.add_roles(member_role)
-                                role_change = True
-                            if elder_role not in discord_member.roles:
-                                await discord_member.add_roles(elder_role)
-                                role_change = True
-                            if coleader_role in discord_member.roles:
-                                await discord_member.remove_roles(coleader_role)
-                                role_change = True
-                        except:
-                            pass
-                        
-                    if rank_info['rank'] == 'Leader':
-                        try:    
+                        if clan_tag in role_clan_tags:
+                            role_clan_tags.remove(clan_tag)
+
+                        member_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].member_role))
+                        elder_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].elder_role))
+                        coleader_role = ctx.bot.alliance_server.get_role(int(rank_info['clan'].coleader_role))
+
+                        alliance_ranks.append(rank_info['rank'])
+
+                        if rank_info['rank'] in ['Leader','Co-Leader']:
                             if member_role not in discord_member.roles:
                                 await discord_member.add_roles(member_role)
                                 role_change = True
@@ -584,16 +548,30 @@ class AriXClashDataMgr(commands.Cog):
                             if coleader_role not in discord_member.roles:
                                 await discord_member.add_roles(coleader_role)
                                 role_change = True
-                        except:
-                            pass
 
-                if len(role_clan_tags) > 0:
-                    for c in [c for c in alliance_clans if c.tag in role_clan_tags]:
-                        member_role = ctx.bot.alliance_server.get_role(int(c.member_role))
-                        elder_role = ctx.bot.alliance_server.get_role(int(c.elder_role))
-                        coleader_role = ctx.bot.alliance_server.get_role(int(c.coleader_role))
+                        elif rank_info['rank'] in ['Elder']:
+                            if member_role not in discord_member.roles:
+                                await discord_member.add_roles(member_role)
+                                role_change = True
+                            if elder_role not in discord_member.roles:
+                                await discord_member.add_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
 
-                        try:
+                        elif rank_info['rank'] in ['Member']:
+                            if member_role not in discord_member.roles:
+                                await discord_member.add_roles(member_role)
+                                role_change = True
+                            if elder_role in discord_member.roles:
+                                await discord_member.remove_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
+
+                        else:
                             if member_role in discord_member.roles:
                                 await discord_member.remove_roles(member_role)
                                 role_change = True
@@ -603,8 +581,73 @@ class AriXClashDataMgr(commands.Cog):
                             if coleader_role in discord_member.roles:
                                 await discord_member.remove_roles(coleader_role)
                                 role_change = True
-                        except:
-                            pass
+
+                    if len(role_clan_tags) > 0:
+                        for c in [c for c in alliance_clans if c.tag in role_clan_tags]:
+                            member_role = ctx.bot.alliance_server.get_role(int(c.member_role))
+                            elder_role = ctx.bot.alliance_server.get_role(int(c.elder_role))
+                            coleader_role = ctx.bot.alliance_server.get_role(int(c.coleader_role))
+
+                            if member_role in discord_member.roles:
+                                await discord_member.remove_roles(member_role)
+                                role_change = True
+                            if elder_role in discord_member.roles:
+                                await discord_member.remove_roles(elder_role)
+                                role_change = True
+                            if coleader_role in discord_member.roles:
+                                await discord_member.remove_roles(coleader_role)
+                                role_change = True
+
+                    if 'Leader' in alliance_ranks or 'Co-Leader' in alliance_ranks:
+                        if ctx.bot.member_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.member_role)
+                            role_change = True
+                        if ctx.bot.elder_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.elder_role)
+                            role_change = True
+                        if ctx.bot.coleader_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.coleader_role)
+                            role_change = True
+
+                    elif 'Elder' in alliance_ranks:
+                        if ctx.bot.member_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.member_role)
+                            role_change = True
+                        if ctx.bot.elder_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.elder_role)
+                            role_change = True
+                        if ctx.bot.coleader_role in discord_member.roles:
+                            await discord_member.remove_roles(ctx.bot.coleader_role)
+                            role_change = True
+
+                    elif 'Member' in alliance_ranks:
+                        if ctx.bot.member_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.member_role)
+                            role_change = True
+                        if ctx.bot.elder_role in discord_member.roles:
+                            await discord_member.remove_roles(ctx.bot.elder_role)
+                            role_change = True
+                        if ctx.bot.coleader_role in discord_member.roles:
+                            await discord_member.remove_roles(ctx.bot.coleader_role)
+                            role_change = True
+
+                    else:
+                        if ctx.bot.member_role in discord_member.roles:
+                            await discord_member.remove_roles(ctx.bot.member_role)
+                            role_change = True
+
+                        if ctx.bot.elder_role in discord_member.roles:
+                            await discord_member.remove_roles(ctx.bot.elder_role)
+                            role_change = True
+
+                        if ctx.bot.coleader_role in discord_member.roles:
+                            await discord_member.remove_roles(ctx.bot.coleader_role)
+                            role_change = True
+
+                except Exception as e:
+                    err_dict = {'tag':f'u{int(user)}','reason':f"Error syncing roles: {e}"}
+                    err_log.append(err_dict)
+                    continue
 
                 if role_change:
                     role_count += 1
