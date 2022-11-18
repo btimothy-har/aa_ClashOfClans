@@ -783,14 +783,23 @@ class AriXLeaderCommands(commands.Cog):
             pass
 
     @member_manage.command(name="add")
-    async def member_manage_add(self,ctx,user:discord.User, *player_tags):
+    async def member_manage_add(self,ctx,user:discord.User, silent_mode=None):
         """
         Add members to the Alliance. 
 
-        Multiple tags can be separated by a blank space. You will be prompted to select a home clan for each account
+        You will be prompted for the Player Tags after the command is executed.
 
-        To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `member add @user S [tags]`).
+        To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `member add @user S`).
         """
+
+        def response_check(m):
+            if m.author.id == ctx.author.id:
+                if m.channel.id == ctx.channel.id:
+                    return True
+                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+                    return True
+                else:
+                    return False
 
         silent_mode = False
         alliance_clan_tags, alliance_member_tags = await get_current_alliance(ctx)
@@ -798,18 +807,17 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if player_tags[0] == "S":
+        if silent_mode == "S":
             silent_mode = True
-            player_tags = player_tags[1:len(player_tags)]
 
 
         if not len(alliance_clan_tags) >= 1:
             return await no_clans_registered(ctx)
-        if len(player_tags) == 0:
-            eEmbed = await clash_embed(ctx=ctx,
-                message=f"Please provide Player Tags to be added. Separate multiple tags with a space.",
-                color="fail")
-            return await ctx.send(embed=eEmbed)
+        #if len(player_tags) == 0:
+        #    eEmbed = await clash_embed(ctx=ctx,
+        #        message=f"Please provide Player Tags to be added. Separate multiple tags with a space.",
+        #        color="fail")
+        #    return await ctx.send(embed=eEmbed)
 
         for clan_tag in alliance_clan_tags:
             try:
@@ -819,6 +827,24 @@ class AriXLeaderCommands(commands.Cog):
                     preamble=f"Error encountered while retrieving clan {clan_tag}",
                     err=e)
             alliance_clans.append(c)
+
+
+        ask_player_tags = await clash_embed(ctx,
+            message=f"**Please send the Clash Player Tags for {user.mention}.**"
+                + f"\n\nSeparate multiple tags with a space in between.")
+
+        ask_tags_msg = await ctx.send(content=ctx.author.mention,embed=ask_player_tags)
+
+        try:
+            player_tags_reply = await ctx.bot.wait_for("message",timeout=120,check=response_check)
+        except asyncio.TimeoutError:
+            timeout_embed = await clash_embed(ctx,
+                message="Sorry, the sequence timed out! Please try again.",
+                color='fail')
+            await ask_tags_msg.edit(embed=timeout_embed)
+            return
+
+        player_tags = player_tags_reply.split()
 
         for tag in player_tags:
             clan_selection = []
