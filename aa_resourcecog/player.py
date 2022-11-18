@@ -396,7 +396,7 @@ class aPlayer():
         if self.p:
             if self.clan.tag not in self.other_clans:
                 self.other_clans.append(self.clan.tag)
-                
+
             self.attack_wins.set_baseline(self.p.attack_wins)
             self.defense_wins.set_baseline(self.p.defense_wins)
 
@@ -501,35 +501,38 @@ class aPlayer():
             self.home_clan = home_clan
             self.is_member = True
 
-            if discord_member and member_role:
-                await discord_member.add_roles(member_role)
-
             if discord_user.id == home_clan.leader:
                 self.arix_rank = 'Leader'
-                if discord_member and coleader_role:
-                    await discord_member.add_roles(coleader_role)
-                if discord_member and elder_role:
-                    await discord_member.add_roles(elder_role)
-
             elif discord_user.id in home_clan.co_leaders:
                 self.arix_rank = 'Co-Leader'
-                if discord_member and coleader_role:
-                    await discord_member.add_roles(coleader_role)
-                if discord_member and elder_role:
-                    await discord_member.add_roles(elder_role)
-
             elif discord_user.id in home_clan.elders:
                 self.arix_rank = 'Elder'
-                if discord_member and elder_role:
-                    await discord_member.add_roles(elder_role)
-            
             else:
                 self.arix_rank = 'Member'
 
+            if discord_member:
+                if member_role not in discord_member.roles:
+                    await discord_member.add_roles(member_role)
+                if ctx.bot.member_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.member_role)
+
+                if self.arix_rank in ['Leader','Co-Leader']:
+                    if coleader_role not in discord_member.roles:
+                        await discord_member.add_roles(coleader_role)
+
+                    if ctx.bot.coleader_role not in discord_member.roles:
+                        await discord_member.add_roles(ctx.bot.coleader_role)
+
+                if self.arix_rank in ['Leader','Co-Leader','Elder']:
+                    if elder_role not in discord_member.roles:
+                        await discord_member.add_roles(elder_role)
+
+                    if ctx.bot.elder_role not in discord_member.roles:
+                        await discord_member.add_roles(ctx.bot.elder_role)
         else:
             self.home_clan = await aClan.create(ctx,None)
             self.is_member = False
-            self.arix_rank = 'Guest'
+            self.arix_rank = 'Non-Member'
 
     async def remove_member(self):
         self.arix_rank = 'Non-Member'

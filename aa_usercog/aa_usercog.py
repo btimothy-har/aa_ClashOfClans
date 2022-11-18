@@ -295,8 +295,8 @@ class AriXMemberCommands(commands.Cog):
 
         user_accounts = sorted(user_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
 
-        main_accounts = [a for a in user_accounts if a.arix_rank not in ['Guest']]
-        alt_accounts = [a for a in user_accounts if a.arix_rank in ['Guest']]
+        main_accounts = [a for a in user_accounts if a.arix_rank not in ['Guest','Non-Member']]
+        alt_accounts = [a for a in user_accounts if a.arix_rank in ['Guest','Non-Member']]
 
         if len(main_accounts) == 0:
             eEmbed = await clash_embed(ctx,message=f"{user.mention} is not an AriX Member.")
@@ -328,7 +328,7 @@ class AriXMemberCommands(commands.Cog):
         Get Player Stats for yourself or for a Clash of Clans account.
 
         You can provide multiple tags in a single command.
-        If no tags are provided, will return all of your active accounts with AriX.
+        If no tags are provided, will return all of your accounts registered with AriX.
         """
 
         output_embed = []
@@ -359,9 +359,8 @@ class AriXMemberCommands(commands.Cog):
             member_status = ""
             if a.is_member:
                 member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
-            if a.arix_rank == 'Guest':
+            else:
                 member_status = f"***AriX Guest Account***\n"
-                
 
             discord_msg = ""
             if a.discord_user:

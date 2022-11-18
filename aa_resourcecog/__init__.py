@@ -33,6 +33,11 @@ async def setup(bot:Red):
 
     bot.alliance_server = bot.get_guild(int(os.getenv('ALLIANCESERVER')))
 
+    bot.leader_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCELEADER')))
+    bot.coleader_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCECOLEADER')))
+    bot.elder_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCEELDER')))
+    bot.member_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCEMEMBER')))
+
     bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")
 

@@ -189,7 +189,7 @@ class AriXClashResources(commands.Cog):
                 eEmbed = await clash_embed(ctx,message=e,color='fail')
                 return await ctx.send(eEmbed)
 
-            if p.arix_rank != 'Guest':
+            if p.is_member:
                 if p.home_clan.tag not in [c.tag for c in home_clans]:
                     home_clans.append(p.home_clan)
                 accounts.append(p)

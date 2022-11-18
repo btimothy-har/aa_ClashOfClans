@@ -1054,7 +1054,9 @@ class AriXLeaderCommands(commands.Cog):
             if p.home_clan.tag not in user_clan_tags:
                 user_clan_tags.append(p.home_clan.tag)
                 user_clans.append(p.home_clan)
-            user_accounts.append(p)
+
+            if p.is_member:
+                user_accounts.append(p)
 
         user_accounts = sorted(user_accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
