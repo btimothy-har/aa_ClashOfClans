@@ -353,7 +353,6 @@ class AriXClashDataMgr(commands.Cog):
                             role = ctx.bot.alliance_server.get_role(c.member_role)
                             rm = discord.AllowedMentions(roles=True)
                             await channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
-                            
                         else:
                             await channel.send(embed=raid_weekend_start_embed)
 
