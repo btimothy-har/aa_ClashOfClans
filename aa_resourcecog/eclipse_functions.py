@@ -268,10 +268,11 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
     army_links_num = 0
     army_compare = []
 
-    while True:
+    get_army = True
+    while get_army:
         army_links_num += 1
         army_analysis_embed = await eclipse_embed(ctx,
-            title="**E.C.L.I.P.S.E. Army Analyzer**",
+            title=f"**E.C.L.I.P.S.E. Army Analyzer**: Army {army_links_num}/3",
             message=f"**Please provide Army Link __{army_links_num} of 3__ in your next message.**"
                 + f"\n\nIf you've sent all your Army Links, send `stop` to proceed with the analysis."
                 + f"\n\nTo go back to the previous menu, send `back`."
@@ -289,25 +290,26 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
             response = 'armyanalyze'
             return response
 
-        if army_links.content == 'back':
+        if army_links.content.lower() == 'back':
             await army_links.delete()
             response = 'armyanalyze'
             return response
 
-        if army_links.content == 'exit':
+        elif army_links.content.lower() == 'exit':
             await army_links.delete()
             return None
 
-        if army_links.content == 'stop':
+        elif army_links.content.lower() == 'stop':
             await army_links.delete()
-            break
+            get_army = False
 
-        army = eWarArmy(ctx,army_links.content,town_hall)
-        army_compare.append(army)
-        await army_links.delete()
+        else:
+            army = eWarArmy(ctx,army_links.content,town_hall)
+            army_compare.append(army)
+            await army_links.delete()
 
         if army_links_num >= 3:
-            break
+            get_army = False
 
     wait_embed = await eclipse_embed(ctx,
         title="**E.C.L.I.P.S.E. Army Analyzer**",
@@ -530,6 +532,8 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             display_bases = [b for b in bases if session.user.id in b.claims]
         else:
             display_bases = bases
+
+        display_bases.shuffle()
 
         if len(display_bases) == 0:
             return 'personalvault'

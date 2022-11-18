@@ -253,7 +253,7 @@ class aClan():
         elder_role = ctx.bot.alliance_server.get_role(int(self.elder_role))
         member_role = ctx.bot.alliance_server.get_role(int(self.member_role))
 
-        discord_member = ctx.bot.alliance_server.get_member(user.id)
+        discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
 
         if rank == 'Member':
             if user.id in self.elders:
