@@ -1526,16 +1526,16 @@ class AriXLeaderCommands(commands.Cog):
                 'title': 'Unrecognized Accounts',
                 'description': f"Gets a list of unregistered accounts in the in-game clan."
                 },
-            {
-                'id': 'activity',
-                'title': 'Member Activity *(season-applicable)*',
-                'description': f"Donations, Loot, Clan Capital, War, Clan Games"
-                },
-            {
-                'id': 'clan',
-                'title': 'Clan Performance Summary',
-                'description': f"War Trends, Raid Trends"
-                },
+            #{
+            #    'id': 'activity',
+            #    'title': 'Member Activity *(season-applicable)*',
+            #    'description': f"Donations, Loot, Clan Capital, War, Clan Games"
+            #    },
+            #{
+            #    'id': 'clan',
+            #    'title': 'Clan Performance Summary',
+            #    'description': f"War Trends, Raid Trends"
+            #    },
             {
                 'emoji': '<:download:1040800550373044304>',
                 'id': 'excel',

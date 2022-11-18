@@ -110,9 +110,9 @@ class aClan():
             self.is_alliance_clan = True
             self.abbreviation = clanInfo.get('abbr','')
             self.emoji = clanInfo.get('emoji','')
-            self.description = clanInfo.get('description',None)
-            if not self.description:
-                self.description = self.c.description
+            #self.description = clanInfo.get('description',None)
+            #if not self.description:
+            self.description = self.c.description
 
             self.leader = clanInfo.get('leader',0)
             self.co_leaders = clanInfo.get('co_leaders',[])
