@@ -293,19 +293,18 @@ class AriXMemberCommands(commands.Cog):
             title=f"{discord_member.display_name}",
             thumbnail=user.avatar_url)
 
+        if len(user_accounts) == 0:
+            no_account_embed = await clash_embed(ctx,message="You have no accounts registered with AriX!")
+            return await ctx.send(embed=no_account_embed)
+
         user_accounts = sorted(user_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
 
-        main_accounts = [a for a in user_accounts if a.arix_rank not in ['Guest','Non-Member']]
-        alt_accounts = [a for a in user_accounts if a.arix_rank in ['Guest','Non-Member']]
-
-        if len(main_accounts) == 0:
-            eEmbed = await clash_embed(ctx,message=f"{user.mention} is not an AriX Member.")
-            return await ctx.send(embed=eEmbed)
+        main_accounts = [a for a in user_accounts if a.is_member]
+        alt_accounts = [a for a in user_accounts if not a.is_member]
 
         if len(main_accounts) > 0:
             for p in main_accounts:
                 title, text, summary = await resc.player_description(ctx,p)
-
                 profile_embed.add_field(
                     name=f"**{title}**",
                     value=f"{text}\n\u200b",
@@ -314,7 +313,7 @@ class AriXMemberCommands(commands.Cog):
         if len(alt_accounts) > 0:
             alt_str = ""
             for p in alt_accounts:
-
+                title, text, summary = await resc.player_description(ctx,p)
                 profile_embed.add_field(
                     name=f"**{title}**",
                     value=f"{text}\n\u200b",

@@ -154,3 +154,6 @@ cython_debug/
 
 #DS_Store
 .DS_Store
+
+#test_files
+/test_files
