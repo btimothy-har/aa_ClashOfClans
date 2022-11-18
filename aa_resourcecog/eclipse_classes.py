@@ -33,10 +33,10 @@ class eWarBase():
         
         self.id = urllib.parse.quote_plus(urllib.parse.parse_qs(link_parse.query)['id'][0])
         self.town_hall = int(self.id.split('TH',1)[1][:2])
-        self.base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote(self.id)}"
+        self.base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote_plus(self.id)}"
 
         self.defensive_cc_id = urllib.parse.quote(urllib.parse.parse_qs(cc_parse.query)['army'][0])
-        self.defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote(self.defensive_cc_id)}"
+        self.defensive_cc_link = f"https://link.clashofclans.com/en?action=CopyArmy&army={urllib.parse.quote_plus(self.defensive_cc_id)}"
 
         parsed_cc = ctx.bot.coc_client.parse_army_link(self.defensive_cc_link)
         self.defensive_cc_str = ""
