@@ -124,8 +124,21 @@ class aPlayer():
             hcTag = None
         self.home_clan = await aClan.create(ctx,hcTag)
         self.is_member = memberInfo.get('is_member',False)
-        self.arix_rank = memberInfo.get('rank','Non-Member')
+
         self.discord_user = memberInfo.get('discord_user',0)
+
+        if self.is_member and self.discord_user:
+            if self.discord_user == self.home_clan.leader:
+                self.arix_rank = 'Leader'
+            if self.discord_user in self.home_clan.co_leaders:
+                self.arix_rank = 'Co-Leader'
+            if self.discord_user in self.home_clan.elders:
+                self.arix_rank = 'Elder'
+            else:
+                self.arix_rank = 'Member'
+        else:
+            self.arix_rank = 'Non-Member'
+
         notes = [aNote.from_json(self.ctx,n) for n in memberInfo.get('notes',[])]
         self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
