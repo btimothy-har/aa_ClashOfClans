@@ -254,6 +254,8 @@ class AriXClashDataMgr(commands.Cog):
         clans, members = await get_current_alliance(ctx)
         alliance_clans = []
 
+        await ctx.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(clans)} clans, {len(members)} members in AriX"))
+
         sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)

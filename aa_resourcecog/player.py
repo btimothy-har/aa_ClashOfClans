@@ -366,10 +366,14 @@ class aPlayer():
 
         self.overall_rushed_pct = round(((rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength))*100,1)
 
-
     async def update_stats(self):
         #cannot update if data not retrieved
         if self.p:
+            if self.clan.tag == self.home_clan.tag:
+                self.time_in_home_clan += (self.timestamp - self.last_update)
+            elif self.clan.tag not in self.other_clans:
+                self.other_clans.append(self.clan.tag)
+
             self.attack_wins.update_stat(self.p.attack_wins)
             self.defense_wins.update_stat(self.p.defense_wins)
 
@@ -390,11 +394,9 @@ class aPlayer():
 
     async def set_baselines(self):
         if self.p:
-            if self.clan.tag == self.home_clan.tag:
-                self.time_in_home_clan += (self.timestamp - self.last_update)
-            elif self.clan.tag not in self.other_clans:
+            if self.clan.tag not in self.other_clans:
                 self.other_clans.append(self.clan.tag)
-
+                
             self.attack_wins.set_baseline(self.p.attack_wins)
             self.defense_wins.set_baseline(self.p.defense_wins)
 
