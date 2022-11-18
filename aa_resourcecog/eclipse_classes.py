@@ -36,7 +36,7 @@ class eWarBase():
             self.town_hall = int(self.id.split('TH',1)[1][:2])
         except:
             self.town_hall = int(self.id.split('TH',1)[1][:1])
-            
+
         self.base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote_plus(self.id)}"
 
         self.defensive_cc_id = urllib.parse.quote(urllib.parse.parse_qs(cc_parse.query)['army'][0])
@@ -238,12 +238,26 @@ class eWarArmy():
                     all_training_time.append(troop[0].training_time[troop_max_level])
 
         self.hitpoints_total = sum(all_hitpoints)
-        self.hitpoints_average = self.hitpoints_total / len(all_hitpoints)
+        
+        try:
+            self.hitpoints_average = self.hitpoints_total / len(all_hitpoints)
+        except:
+            self.hitpoints_average = 0
+
         self.dps_min = min(all_dps)
         self.dps_max = max(all_dps)
-        self.dps_average = sum(all_dps) / len(all_dps)
+        try:
+            self.dps_average = sum(all_dps) / len(all_dps)
+        except:
+            self.dps_average = 0
+
         self.movement_min = min(all_movement)
         self.movement_max = max(all_movement)
-        self.movement_average = sum(all_movement) / len(all_movement)
+        
+        try:
+            self.movement_average = sum(all_movement) / len(all_movement)
+        except:
+            self.movement_average = 0
+
         self.training_time = sum(all_training_time)
 

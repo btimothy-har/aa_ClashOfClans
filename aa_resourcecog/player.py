@@ -490,7 +490,7 @@ class aPlayer():
 
     async def new_member(self,ctx,discord_user,home_clan=None):
 
-        discord_member = ctx.bot.alliance_server.get_member(discord_user.id)
+        discord_member = await ctx.bot.alliance_server.fetch_member(discord_user.id)
         self.discord_user = discord_user.id
 
         if home_clan:
@@ -540,6 +540,28 @@ class aPlayer():
 
     async def update_rank(self,new_rank):
         self.arix_rank = new_rank
+
+        discord_member = await ctx.bot.alliance_server.fetch_member(self.discord_user)
+
+        if discord_member:
+            if new_rank in ['Leader','Co-Leader']:
+                if ctx.bot.member_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.member_role)
+                if ctx.bot.elder_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.elder_role)
+                if ctx.bot.coleader_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.coleader_role)
+
+            elif new_rank in ['Elder']:
+                if ctx.bot.elder_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.elder_role)
+                if ctx.bot.coleader_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.coleader_role)
+
+            elif new_rank in ['Member']:
+                if ctx.bot.member_role not in discord_member.roles:
+                    await discord_member.add_roles(ctx.bot.member_role)
+
 
     async def add_note(self,ctx,message):
         new_note = aNote.create_new(ctx,message)
