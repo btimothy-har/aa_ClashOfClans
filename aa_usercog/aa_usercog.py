@@ -653,7 +653,11 @@ class AriXMemberCommands(commands.Cog):
             base_link = base_link_response.content
             link_parse = urllib.parse.urlparse(base_link)
             base_id = urllib.parse.quote_plus(urllib.parse.parse_qs(link_parse.query)['id'][0])
-            base_townhall = int(base_id.split('TH',1)[1][:2])
+            try:
+                base_townhall = int(base_id.split('TH',1)[1][:2])
+            except:
+                base_townhall = int(base_id.split('TH',1)[1][:1])
+
             await base_link_msg.delete()
             await base_link_response.delete()
 

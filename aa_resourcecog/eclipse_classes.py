@@ -32,7 +32,11 @@ class eWarBase():
         cc_parse = urllib.parse.urlparse(defensive_cc_link)
         
         self.id = urllib.parse.quote_plus(urllib.parse.parse_qs(link_parse.query)['id'][0])
-        self.town_hall = int(self.id.split('TH',1)[1][:2])
+        try:
+            self.town_hall = int(self.id.split('TH',1)[1][:2])
+        except:
+            self.town_hall = int(self.id.split('TH',1)[1][:1])
+            
         self.base_link = f"https://link.clashofclans.com/en?action=OpenLayout&id={urllib.parse.quote_plus(self.id)}"
 
         self.defensive_cc_id = urllib.parse.quote(urllib.parse.parse_qs(cc_parse.query)['army'][0])
