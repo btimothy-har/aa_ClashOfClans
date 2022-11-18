@@ -538,7 +538,7 @@ class aPlayer():
         self.arix_rank = 'Non-Member'
         self.is_member = False
 
-    async def update_rank(self,new_rank):
+    async def update_rank(self,ctx,new_rank):
         self.arix_rank = new_rank
 
         discord_member = await ctx.bot.alliance_server.fetch_member(self.discord_user)

@@ -1332,7 +1332,7 @@ class AriXLeaderCommands(commands.Cog):
                 with ctx.bot.clash_file_lock.write_lock():
                     try:
                         p = await aPlayer.create(ctx,account)
-                        await p.update_rank(new_rank)
+                        await p.update_rank(ctx,new_rank)
                         await p.save_to_json()
                         operation_log.append(p)
                     except Exception as e:
@@ -1348,7 +1348,7 @@ class AriXLeaderCommands(commands.Cog):
                     with ctx.bot.clash_file_lock.write_lock():
                         try:
                             p = await aPlayer.create(ctx,tag)
-                            await p.update_rank('Co-Leader')
+                            await p.update_rank(ctx,'Co-Leader')
                             await p.save_to_json()
                             operation_log.append(p)
                         except Exception as e:
