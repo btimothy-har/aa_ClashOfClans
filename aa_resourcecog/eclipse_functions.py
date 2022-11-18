@@ -533,8 +533,6 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
         else:
             display_bases = bases
 
-        display_bases.shuffle()
-
         if len(display_bases) == 0:
             return 'personalvault'
         
