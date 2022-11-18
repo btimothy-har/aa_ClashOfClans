@@ -526,8 +526,8 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
         base_navigation.append(next_dict)
 
     i = 0
+    random.shuffle(bases)
     while browse_bases:
-
         if vault_mode:
             display_bases = [b for b in bases if session.user.id in b.claims]
         else:
