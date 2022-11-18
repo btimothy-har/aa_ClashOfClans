@@ -844,7 +844,7 @@ class AriXLeaderCommands(commands.Cog):
             await ask_tags_msg.edit(embed=timeout_embed)
             return
 
-        player_tags = player_tags_reply.split()
+        player_tags = player_tags_reply.content.split()
 
         for tag in player_tags:
             clan_selection = []
