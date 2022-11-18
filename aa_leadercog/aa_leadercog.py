@@ -901,7 +901,7 @@ class AriXLeaderCommands(commands.Cog):
             title, text, summary = await resc.player_description(ctx,p)
 
             player_embed = await clash_embed(ctx,
-                title=f"Add Member: {title}",
+                title=f"Add Member: {title} (p.tag)",
                 message=f"<:Discord:1040423151760314448> {user.mention}\n"
                     + f"{text}"
                     + f"{p_notes}\n\u200b",
