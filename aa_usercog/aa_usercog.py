@@ -580,7 +580,10 @@ class AriXMemberCommands(commands.Cog):
                             await session.message.delete()
                         await session.channel.send(content=ctx.author.mention,embed=session_closed,delete_after=60)
 
-            ctx.bot.clash_eclipse_sessions.remove(session)
+            try:
+                ctx.bot.clash_eclipse_sessions.remove(session)
+            except:
+                pass
 
 
     @eclipse_group.command(name="addbase")
