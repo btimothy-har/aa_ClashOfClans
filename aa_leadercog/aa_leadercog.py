@@ -831,7 +831,8 @@ class AriXLeaderCommands(commands.Cog):
 
         ask_player_tags = await clash_embed(ctx,
             message=f"**Please send the Clash Player Tags for {user.mention}.**"
-                + f"\n\nSeparate multiple tags with a space in between.")
+                + f"\n\nSeparate multiple tags with a space in between."
+                + f"\n\nTo cancel, send `cancel`.")
 
         ask_tags_msg = await ctx.send(content=ctx.author.mention,embed=ask_player_tags)
 
@@ -842,6 +843,14 @@ class AriXLeaderCommands(commands.Cog):
                 message="Sorry, the sequence timed out! Please try again.",
                 color='fail')
             await ask_tags_msg.edit(embed=timeout_embed)
+            return
+
+        if player_tags_reply.content.lower() == 'cancel':
+            cancel_embed = await clash_embed(ctx,
+                message="Member add cancelled.",
+                color='fail')
+            await player_tags_reply.delete()
+            await ask_tags_msg.edit(embed=cancel_embed)
             return
 
         player_tags = player_tags_reply.content.split()
@@ -901,7 +910,7 @@ class AriXLeaderCommands(commands.Cog):
             title, text, summary = await resc.player_description(ctx,p)
 
             player_embed = await clash_embed(ctx,
-                title=f"Add Member: {title} (p.tag)",
+                title=f"Add Member: {title} ({p.tag})",
                 message=f"<:Discord:1040423151760314448> {user.mention}\n"
                     + f"{text}"
                     + f"{p_notes}\n\u200b",
