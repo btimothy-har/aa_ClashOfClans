@@ -170,7 +170,7 @@ class eWarArmy():
         self.spells = []
 
         for troop in parsed_army[0]:
-            if troop[0].name in coc.HOME_TROOP_ORDER:
+            if troop[0].name in [t for t in coc.HOME_TROOP_ORDER if t not in coc.SIEGE_MACHINE_ORDER]:
                 self.troops.append(troop)
             if troop[0].name in coc.SUPER_TROOP_ORDER:
                 self.super_troops.append(troop)
