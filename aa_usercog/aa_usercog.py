@@ -667,6 +667,12 @@ class AriXMemberCommands(commands.Cog):
                 'description': None
                 },
             {
+                'id': 'bp',
+                'emoji': '<:BPBB:1043081040090107968>',
+                'title': 'Blueprint Base Building',
+                'description': None
+                },
+            {
                 'id': 'other',
                 'emoji': "<a:aa_AriX:1031773589231374407>",
                 'title': "Others",
