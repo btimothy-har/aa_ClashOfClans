@@ -764,7 +764,7 @@ class AriXLeaderCommands(commands.Cog):
         if silent_mode:
             await ctx.send("on silent")
         else:
-            await ctx.send('na')
+            await ctx.send("na")
         return
 
         def response_check(m):
