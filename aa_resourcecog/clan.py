@@ -66,6 +66,10 @@ class aClan():
         self.current_war = None
         self.current_raid_weekend = None
 
+        self.desc_title = ""
+        self.desc_full_text = ""
+        self.desc_summary_text = ""
+
     def __repr__(self):
         return f"Clan {self.tag} {self.name} generated on {datetime.fromtimestamp(self.timestamp).strftime('%m%d%Y%H%M%S')}"
 
@@ -158,14 +162,15 @@ class aClan():
             self.war_log = {wid:aClanWar.from_json(ctx,wid,data) for (wid,data) in warLog.items()}
             self.raid_log = {rid:aRaidWeekend.from_json(ctx,self,rid,data) for (rid,data) in raidLog.items()}
 
-            self.desc_title = f"**{self.name} ({self.tag})**"
+            if self.tag:
+                self.desc_title = f"**{self.name} ({self.tag})**"
 
-            self.desc_full_text = (
-                    f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {self.member_count}"
-                +   f"\n{emotes_league[self.c.war_league.name]} {self.c.war_league.name}\n<:ClanWars:825753092230086708> W{self.c.war_wins}/D{self.c.war_ties}/L{self.c.war_losses} (Streak: {self.c.war_win_streak})"
-                +   f"\n[Clan Link: {self.tag}]({self.c.share_link})")
+                self.desc_full_text = (
+                        f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {self.member_count}"
+                    +   f"\n{emotes_league[self.c.war_league.name]} {self.c.war_league.name}\n<:ClanWars:825753092230086708> W{self.c.war_wins}/D{self.c.war_ties}/L{self.c.war_losses} (Streak: {self.c.war_win_streak})"
+                    +   f"\n[Clan Link: {self.tag}]({self.c.share_link})")
 
-            self.desc_summary_text = f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000{emotes_league[self.c.war_league.name]} {self.c.war_league.name}"
+                self.desc_summary_text = f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000{emotes_league[self.c.war_league.name]} {self.c.war_league.name}"
 
             return self
 
