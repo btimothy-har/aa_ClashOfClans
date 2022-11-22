@@ -137,7 +137,7 @@ class aClan():
                 self.member_count = clanInfo.get('member_count',0)
                 self.recruitment_level = clanInfo.get('recruitment',[])
 
-                notes = [aNote.from_json(self.ctx,n) for n in clanInfo.get('notes',[])]
+                notes = [aNote.from_json(ctx,n) for n in clanInfo.get('notes',[])]
                 self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
                 self.member_role = clanInfo.get('member_role',0)
@@ -155,8 +155,8 @@ class aClan():
                 self.war_state = clanInfo.get('war_state','')
                 self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
 
-            self.war_log = {wid:aClanWar.from_json(self.ctx,wid,data) for (wid,data) in warLog.items()}
-            self.raid_log = {rid:aRaidWeekend.from_json(self.ctx,self,rid,data) for (rid,data) in raidLog.items()}
+            self.war_log = {wid:aClanWar.from_json(ctx,wid,data) for (wid,data) in warLog.items()}
+            self.raid_log = {rid:aRaidWeekend.from_json(ctx,self,rid,data) for (rid,data) in raidLog.items()}
 
             self.desc_title = f"**{self.name} ({self.tag})**"
 
