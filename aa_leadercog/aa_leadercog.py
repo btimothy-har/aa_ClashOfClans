@@ -1009,7 +1009,8 @@ class AriXLeaderCommands(commands.Cog):
         success_str = "\u200b"
         error_str = "\u200b"
         for p in remove_accounts:
-            success_str += f"**{p.tag} {p.name}** removed from {p.home_clan.emoji} {p.home_clan.name}.\n"
+            home_clan = p.home_clan
+            success_str += f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
 
         for error in error_log:
             error_str += f"{error['tag']}: {error['reason']}\n"

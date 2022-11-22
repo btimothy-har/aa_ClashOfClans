@@ -15,12 +15,12 @@ async def get_user_profile(ctx,user_id):
 
     member_accounts = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id]
 
-    if len(select_account) == 0:
+    if len(member_accounts) == 0:
         return None
     else:
         user_home_clans = []
         user_accounts = []
-        for tag in select_account:
+        for tag in member_accounts:
             try:
                 p = await aPlayer.create(ctx,tag)
             except Exception as e:
