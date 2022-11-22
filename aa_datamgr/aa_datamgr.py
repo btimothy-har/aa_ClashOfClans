@@ -276,7 +276,7 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.bot.change_presence(
             activity=discord.Activity(type=discord.ActivityType.watching,
-            name=f"{len(clans)} clans, {len(members)} members in AriX"))
+            name=f"{len(clan_keys)} clans, {len(member_keys)} members in AriX"))
 
         is_cwl = False
         if datetime.now(helsinkiTz).day <= 9:
