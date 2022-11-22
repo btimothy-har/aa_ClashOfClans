@@ -899,6 +899,7 @@ class AriXLeaderCommands(commands.Cog):
             target_clan = [c for c in alliance_clans if c.tag == selected_clan['id']][0]
 
             if target_clan.tag == p.home_clan.tag and p.is_member:
+                await homeclan_msg.delete()
                 c_embed = await clash_embed(ctx,
                     message=f"**{p.tag} {p.name}** is already a **{p.arix_rank}** in **{p.home_clan.emoji} {p.home_clan.name}**.",
                     color='success')
@@ -912,6 +913,7 @@ class AriXLeaderCommands(commands.Cog):
                     err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
                     error_log.append(err_dict)
 
+                await homeclan_msg.delete()
                 c_embed = await clash_embed(ctx,
                     message=f"**{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.",
                     color='success')
