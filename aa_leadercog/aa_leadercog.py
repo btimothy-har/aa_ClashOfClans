@@ -509,7 +509,6 @@ class AriXLeaderCommands(commands.Cog):
 
         while task_state:
             try:
-
                 if response in ['start','menu']:
 
                     th_str = ''
@@ -538,7 +537,7 @@ class AriXLeaderCommands(commands.Cog):
                         message = await ctx.send(content=ctx.author.mention,embed=announcement_embed)
 
                     await message.clear_reactions()
-                    select = await multiple_choice_menu_select(ctx,message,menu_dict,timeout=60)
+                    selection = await multiple_choice_menu_select(ctx,message,menu_dict,timeout=60)
 
                     if selection:
                         response = selection['id']
@@ -646,7 +645,7 @@ class AriXLeaderCommands(commands.Cog):
 
             except Exception as e:
                 err_embed = await clash_embed(ctx,
-                    message=f"Error encountered while setting up Announcements: {e}.",
+                    message=f"Error encountered while changing settings: {e}.",
                     color="fail")
                 if message:
                     await message.edit(embed=err_embed)
