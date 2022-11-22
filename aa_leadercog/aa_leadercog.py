@@ -782,8 +782,9 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if silent_mode_param.lower() == "s":
-            silent_mode = True
+        if silent_mode_param:
+            if silent_mode_param.lower() == "s":
+                silent_mode = True
 
         alliance_clans = await get_alliance_clan(ctx)
 
@@ -997,7 +998,7 @@ class AriXLeaderCommands(commands.Cog):
 
             for p in remove_accounts:
                 try:
-                    await p.remove_member()
+                    await p.remove_member(ctx)
                 except Exception as e:
                     err_dict = {'tag':p.tag,'reason':f"Error while removing: {e}"}
                     error_log.append(err_dict)
