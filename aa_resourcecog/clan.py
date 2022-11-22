@@ -163,7 +163,7 @@ class aClan():
             self.raid_log = {rid:aRaidWeekend.from_json(ctx,self,rid,data) for (rid,data) in raidLog.items()}
 
             if self.tag:
-                self.desc_title = f"**{self.name} ({self.tag})**"
+                self.desc_title = f"{self.name} ({self.tag})"
 
                 self.desc_full_text = (
                         f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {self.member_count}"

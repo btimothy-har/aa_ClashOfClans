@@ -281,7 +281,7 @@ class AriXLeaderCommands(commands.Cog):
         final_embed = await clash_embed(ctx=ctx,
             title=f"Clan Sucessfully Added: **{c.emoji} {c.desc_title}**",
             message=f"Leader: {leader.mention}\u3000Abbreviation: `{c.abbreviation}`"
-                + f"\n\n{c_text}"
+                + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url,
             color='success')
