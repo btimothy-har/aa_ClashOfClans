@@ -782,7 +782,7 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if silent_mode == "S":
+        if silent_mode:
             silent_mode = True
 
         alliance_clans = await get_alliance_clan(ctx)
