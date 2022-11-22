@@ -633,7 +633,7 @@ class AriXLeaderCommands(commands.Cog):
                         err=e)
                 else:
                     await response_msg.delete()
-                    state_text = f"**The Reminder Channel for {c.emoji} {c.name} is now <#{reminder_channel_id.id}>.**"
+                    state_text = f"**The Reminder Channel for {c.emoji} {c.name} is now <#{reminder_channel.id}>.**"
                     response = 'menu'
 
 
