@@ -264,7 +264,7 @@ class aClan():
             self.raid_state_change = True
 
         self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
-        await self.save_to_json()
+        await self.save_to_json(ctx)
 
 
     async def add_to_alliance(self,ctx,leader:discord.User,abbreviation,emoji,coleader_role,elder_role,member_role):
