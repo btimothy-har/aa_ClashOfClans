@@ -487,7 +487,7 @@ class AriXClashDataMgr(commands.Cog):
                             else:
                                 not_in_raid_str = f"There are **{round((c.current_raid_weekend.end_time - st)/3600,1)} hour(s)** left in Raid Weekend and you have **NOT** participated."
 
-                            not_in_raid_str += f"{humanize_list([f"<@{m.discord_user}>" for m in members_not_in_raid])}"
+                            not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
 
                             if (c.current_raid_weekend.end_time - st) < 3600:
                                 unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **DID NOT** use all your Raid Attacks."
