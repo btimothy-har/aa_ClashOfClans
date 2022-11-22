@@ -432,7 +432,7 @@ class AriXClashDataMgr(commands.Cog):
                     else:
                         ping_str = f"There are **{round((c.current_war.end_time - st)/3600,1)} hour(s)** left in Clan Wars and you have **NOT** used all your attacks."
 
-                    ping_str += f"{humanize_list([f"<@{mid}>" for mid in war_reminder_ping])}"
+                    ping_str += f"{humanize_list([f'<@{mid}>' for mid in war_reminder_ping])}"
 
                     await clan_reminder_channel.send(ping_str)
 
@@ -494,7 +494,7 @@ class AriXClashDataMgr(commands.Cog):
                             else:
                                 unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. There are **{round((c.current_raid_weekend.end_time - st)/3600,1)} hour(s)** left."
 
-                            unfinished_raid_str += f"{humanize_list([f"<@{m.discord_user}>" for m in members_unfinished_raid])}"
+                            unfinished_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_unfinished_raid])}"
 
                             await clan_reminder_channel.send(not_in_raid_str)
                             await clan_reminder_channel.send(unfinished_raid_str)
