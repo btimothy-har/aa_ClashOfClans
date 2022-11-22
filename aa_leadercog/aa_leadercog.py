@@ -1098,15 +1098,15 @@ class AriXLeaderCommands(commands.Cog):
                 for a in user_accounts:
                     await a.add_note(ctx,new_note)
 
-                elif selected_account['id'] in [c.tag for c in home_clans]:
-                    for a in user_accounts:
-                        if a.home_clan.tag == selected_account['id']:
-                            await a.add_note(ctx,new_note)
+            elif selected_account['id'] in [c.tag for c in home_clans]:
+                for a in user_accounts:
+                    if a.home_clan.tag == selected_account['id']:
+                        await a.add_note(ctx,new_note)
 
-                else:
-                    for a in user_accounts:
-                        if a.tag == selected_account['id']:
-                            await a.add_note(ctx,new_note)
+            else:
+                for a in user_accounts:
+                    if a.tag == selected_account['id']:
+                        await a.add_note(ctx,new_note)
 
         except Exception as e:
             eEmbed = await clash_embed(ctx,message=f"Error encountered while saving note: {e}")
