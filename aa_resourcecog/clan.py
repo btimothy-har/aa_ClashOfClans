@@ -233,6 +233,19 @@ class aClan():
             new_data=raidweekendJson)
 
 
+    async def update_member_count(self,ctx):
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+                file_json = json.load(file)
+
+        members = file_json['members']
+
+        clan_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==clan.tag]
+        self.member_count = len(clan_members)
+
+        await self.save_to_json(ctx)
+
+
     async def update_clan_war(self,ctx):
         try:
             current_war = await ctx.bot.coc_client.get_clan_war(self.tag)

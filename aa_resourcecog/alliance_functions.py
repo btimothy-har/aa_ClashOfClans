@@ -73,4 +73,3 @@ async def get_alliance_clan(ctx,abbreviation=None):
 
         ret_clans = sorted(ret_clans, key=lambda x:(x.level,x.capital_hall),reverse=True)
         return ret_clans
-

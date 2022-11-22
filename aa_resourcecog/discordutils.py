@@ -119,6 +119,7 @@ async def user_confirmation(ctx, cMsg, confirm_method=None) -> bool:
                 await cMsg.remove_reaction('<:red_cross:838461484312428575>',ctx.bot.user)
                 return False
 
+
 async def multiple_choice_menu_generate_emoji(ctx,options):
     sel_list = []
     num = 0

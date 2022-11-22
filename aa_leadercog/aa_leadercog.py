@@ -779,12 +779,13 @@ class AriXLeaderCommands(commands.Cog):
             return tag_check
 
         silent_mode = False
-        alliance_clans = await get_alliance_clan(ctx)
         error_log = []
         added_count = 0
 
         if silent_mode == "S":
             silent_mode = True
+
+        alliance_clans = await get_alliance_clan(ctx)
 
         if not len(alliance_clans) >= 1:
             return await no_clans_registered(ctx)
@@ -821,6 +822,8 @@ class AriXLeaderCommands(commands.Cog):
             clan_selection = []
             clan_selection_str = ""
             for c in alliance_clans:
+                await c.update_member_count(ctx)
+
                 th_str = ""
                 for th in c.recruitment_level:
                     th_str += f"{emotes_townhall[th]} "
@@ -905,11 +908,6 @@ class AriXLeaderCommands(commands.Cog):
                     previous_home_clan = p.home_clan
                     await p.new_member(ctx,user,target_clan)
 
-                    if previous_home_clan:
-                        previous_home_clan.member_count -= 1
-
-                    target_clan.member_count += 1
-
                 except Exception as e:
                     err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
                     error_log.append(err_dict)
@@ -936,6 +934,7 @@ class AriXLeaderCommands(commands.Cog):
             except:
                 await ctx.send(content=f"{user.mention}",embed=intro_embed)
                 await ctx.send(content="https://discord.gg/tYBh3Gk")
+
 
     @member_manage.command(name="remove")
     async def member_manage_remove(self,ctx,*player_tags):
