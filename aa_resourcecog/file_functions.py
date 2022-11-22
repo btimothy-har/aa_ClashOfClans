@@ -4,7 +4,6 @@ import pytz
 from datetime import datetime
 
 from .constants import clanRanks
-from .clan import aClan
 
 async def get_current_season():
     helsinkiTz = pytz.timezone("Europe/Helsinki")
