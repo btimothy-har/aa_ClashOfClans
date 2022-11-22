@@ -21,10 +21,11 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
+from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
 from aa_resourcecog.notes import aNote
-from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
+from aa_resourcecog.member_data_functions import get_alliance,members, get_user_profile
+from aa_resourcecog.clan_data_functions import get_alliance_clan
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -61,12 +62,13 @@ class AriXLeaderCommands(commands.Cog):
     ####################################################################################################
 
 
-    @commands.command(name="recruiting")
+    @commands.command(name="recruitment",aliases=["recruiting"])
     async def recruitment_information(self,ctx):
         """
-        Recruiting hub.
+        The Recruiting Hub.
 
-        This returns the number of registered members, the (suggested) townhall levels, and the last 5 Leader's notes on file.
+        Provides an overview of all Clan's Recruitment Statuses.
+        This includes the number of registered members, the (suggested) townhall levels, and the last 5 Leader's notes on file.
         """
 
         clans, members = await get_current_alliance(ctx)
@@ -105,12 +107,16 @@ class AriXLeaderCommands(commands.Cog):
         elif len(output_embed)==1:
             return await ctx.send(embed=output_embed[0])
 
+
     @commands.group(name="clan")
     async def clan_manage(self,ctx):
-        """Command group to manage Alliance clans."""
+        """
+        Manage Alliance clans.
+        """
             
         if not ctx.invoked_subcommand:
             pass
+
 
     @clan_manage.command(name="add")
     @commands.admin_or_permissions(administrator=True)
@@ -146,11 +152,9 @@ class AriXLeaderCommands(commands.Cog):
                     thumbnail=c.clan.badge.url)
                 return await ctx.send(embed=embed)
 
-        c_title, c_text, c_summary = await resc.clan_description(ctx,c)
-
         info_embed = await clash_embed(ctx=ctx,
-            title=f"**You are adding: {c_title}**",
-            message=f"{c_text}"
+            title=f"**You are adding: {c.desc_title}**",
+            message=f"{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url)
         add_msg = await ctx.send(embed=info_embed)
@@ -170,6 +174,7 @@ class AriXLeaderCommands(commands.Cog):
             await leader_msg.delete()
             await leader_response.delete()
 
+
         abbr_embed = await clash_embed(ctx,
             message=f"Please specify the abbreviation for **{c.tag} {c.name}**?\n\nThis will be used to identify the clan within the Alliance.")
         abbr_msg = await ctx.send(content=f"{ctx.author.mention}", embed=abbr_embed)
@@ -188,6 +193,7 @@ class AriXLeaderCommands(commands.Cog):
             await abbr_msg.delete()
             await abbr_response.delete()
 
+
         emoji_embed = await clash_embed(ctx,
             message=f"Please provide the emoji for **{c.tag} {c.name}**.\n\nNote: The emoji must be from a server that the bot is invited to.")
         emoji_msg = await ctx.send(content=f"{ctx.author.mention}", embed=emoji_embed)
@@ -201,6 +207,7 @@ class AriXLeaderCommands(commands.Cog):
             emoji = emoji_response.content
             await emoji_msg.delete()
             await emoji_response.delete()
+
 
         coleader_role_embed = await clash_embed(ctx,
             message=f"Please mention the **Co-Leader** role for **{c.tag} {c.name}**.")
@@ -217,6 +224,7 @@ class AriXLeaderCommands(commands.Cog):
             await coleader_role_msg.delete()
             await coleader_role_response.delete()
 
+
         elder_role_embed = await clash_embed(ctx,
             message=f"Please mention the **Elder** role for **{c.tag} {c.name}**.")
         elder_role_msg = await ctx.send(content=f"{ctx.author.mention}", embed=elder_role_embed)
@@ -231,6 +239,7 @@ class AriXLeaderCommands(commands.Cog):
             elder_role = ctx.guild.get_role(int(elder_role_id))
             await elder_role_msg.delete()
             await elder_role_response.delete()
+
 
         member_role_embed = await clash_embed(ctx,
             message=f"Please mention the **Member** role for **{c.tag} {c.name}**.")
@@ -247,10 +256,11 @@ class AriXLeaderCommands(commands.Cog):
             await member_role_msg.delete()
             await member_role_response.delete()
 
+
         confirm_embed = await clash_embed(ctx=ctx,
-            title=f"**New Clan: {c_title}**",
+            title=f"**New Clan: {c.desc_title}**",
             message=f"Leader: {leader.mention}\nAbbreviation: `{clan_abbreviation}`\u3000Emoji: {emoji}"
-                + f"\n\n{c_text}"
+                + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url)
 
@@ -260,18 +270,14 @@ class AriXLeaderCommands(commands.Cog):
         if not await user_confirmation(ctx,add_msg):
             return
 
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                await c.add_to_alliance(
-                    leader=leader,
-                    abbreviation=clan_abbreviation,
-                    emoji=emoji,
-                    coleader_role=coleader_role,
-                    elder_role=elder_role,
-                    member_role=member_role)
-                await c.save_to_json()
-
-        c_title, c_text, c_summary = await resc.clan_description(ctx,c)
+        await c.add_to_alliance(
+            ctx=ctx,
+            leader=leader,
+            abbreviation=clan_abbreviation,
+            emoji=emoji,
+            coleader_role=coleader_role,
+            elder_role=elder_role,
+            member_role=member_role)
 
         final_embed = await clash_embed(ctx=ctx,
             title=f"Clan Sucessfully Added: **{c.emoji} {c_title}**",
@@ -293,24 +299,16 @@ class AriXLeaderCommands(commands.Cog):
         Use the Clan Abbreviation to specify a clan.
         """
 
-        clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
-        if not clan_from_abbreviation:
+        c = await get_alliance_clan(ctx,clan_abbreviation)
+        if not c:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-
-        try:
-            c = await aClan.create(ctx,clan_from_abbreviation)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-                err=e)
-
-        c_title, c_text, c_summary = await resc.clan_description(ctx,c)
+        c = c[0]
 
         confirm_embed = await clash_embed(ctx=ctx,
-            title=f"Remove Clan: **{c.emoji} {c_title}**",
+            title=f"Remove Clan: **{c.emoji} {c.desc_title}**",
             message=f"Leader: <@{c.leader}>\u3000Abbreviation: `{c.abbreviation}`"
-                + f"\n\n{c_text}"
-                + f"\n\n>>> {c.description}",
+                + f"\n\n{c.desc_full_text}"
+                + f"\n\n>>> {c.description}",,
             thumbnail=c.c.badge.url,
             url=c.c.share_link)
 
@@ -330,9 +328,9 @@ class AriXLeaderCommands(commands.Cog):
                     file.truncate()
 
         final_embed = await clash_embed(ctx=ctx,
-            title=f"Clan Sucessfully Removed: **{c.emoji} {c_title}**",
+            title=f"Clan Sucessfully Removed: **{c.emoji} {c.desc_title}**",
             message=f"Leader: <@{c.leader}>\u3000Abbreviation: `{c.abbreviation}`"
-                + f"\n\n{c_text}"
+                + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url,
             url=c.c.share_link,
@@ -341,57 +339,46 @@ class AriXLeaderCommands(commands.Cog):
         await confirm_remove.delete()
         await ctx.send(embed=final_embed)
 
+
     @clan_manage.command(name="setleader")
     @commands.admin_or_permissions(administrator=True)
     async def clan_manage_setleader(self, ctx, clan_abbreviation, new_leader:discord.User):
         """
-        Admin-only command to override a Leader for a given clan.
+        [Admin-only] Overrides the set Leader for a clan.
 
         """
 
-        clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
-        if not clan_from_abbreviation:
+        c = await get_alliance_clan(ctx,clan_abbreviation)
+        if not c:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-
-        try:
-            c = await aClan.create(ctx,clan_from_abbreviation)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-                err=e)
-
-        c_title, c_text, c_summary = await resc.clan_description(ctx,c)
+        c = c[0]
 
         confirm_embed = await clash_embed(ctx=ctx,
-            title=f"Leader Override: **{c.emoji} {c_title}**",
+            title=f"Leader Override: **{c.emoji} {c.desc_title}**",
             message=f"**New Leader: {new_leader.mention}**"
-                + f"\n\n{c_text}"
+                + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url)
 
         confirm_remove = await ctx.send(
             content=f"{ctx.author.mention}, please confirm you would like to assign {new_leader.mention} as the Leader of the above clan.",
             embed=confirm_embed)
-
         if not await user_confirmation(ctx,confirm_remove):
             return
 
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                try:
-                    await c.add_staff(ctx,new_leader,"Leader")
-                    await c.save_to_json()
-                except Exception as e:
-                    err_embed = await clash_embed(ctx,
-                        message=f"Error encountered while updating clan: {e}.",
-                        color="fail")
-                    return await ctx.send(embed=err_embed)
+        try:
+            await c.add_staff(ctx,new_leader,"Leader")
+        except Exception as e:
+            err_embed = await clash_embed(ctx,
+                message=f"Error encountered while updating clan: {e}.",
+                color="fail")
+            return await ctx.send(embed=err_embed)
 
         final_embed = await clash_embed(ctx=ctx,
-            title=f"Leader Assigned: **{c.emoji} {c_title}**",
+            title=f"Leader Assigned: **{c.emoji} {c.desc_title}**",
             message=f"\n*Note: It may take up to 10 minutes for player accounts to reflect the updated Rank.*"
                 + f"\n\n**New Leader: <@{c.leader}>**"
-                + f"\n\n{c_text}"
+                + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url,
             url=c.c.share_link,
@@ -401,12 +388,19 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=final_embed)
 
 
-    @clan_manage.command(name="announcements")
+    @clan_manage.command(name="settings")
     @commands.admin_or_permissions(administrator=True)
-    async def clan_manage_announcements(self, ctx, clan_abbreviation):
+    async def clan_manage_settings(self, ctx, clan_abbreviation):
         """
-        Set up War / Raid Reminders for the given clan.
+        Change various settings for the provided clan.
+
+        Select a Clan by specifying the Clan Abbreviation.
         """
+
+        toggle_state = {
+            True: "On",
+            False: "Off"
+            }
 
         def response_check(m):
             if m.author.id == ctx.author.id:
@@ -417,286 +411,262 @@ class AriXLeaderCommands(commands.Cog):
                 else:
                     return False
 
-        clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
+        def townhall_check(m):
+            msg_check = False
+            all_check = False
+            if m.author.id == ctx.author.id:
+                if m.channel.id == ctx.channel.id:
+                    msg_check = True
+                elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
+                    msg_check = True
 
-        if not clan_from_abbreviation:
+            if msg_check:
+                townhall_out_of_range = [th for th in m.content.split() if th not in range(1,16)]
+                if len(townhall_out_of_range) == 0:
+                    all_check = True
+            return all_check
+
+
+        c = await get_alliance_clan(ctx,clan_abbreviation)
+        if not c:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
+        c = c[0]
 
-        try:
-            c = await aClan.create(ctx,clan_from_abbreviation)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-                err=e)
+        menu_dict = []
 
-        selection_dict = [
-            {
-                'id': 'announcement_channel',
-                'title': 'Set the Announcement channel.',
-                'description': 'Automated announcements will be sent in this channel.'
-            },
-            {
-                'id': 'reminder_channel',
-                'title': 'Set the Reminder channel.',
-                'description': 'Reminders will be sent in this channel.'
-            },
-            {
-                'id': 'war_reminder',
-                'title': 'Toggle War Reminders.',
-                'description': 'War reminders are sent at the 12 hour, 4 hour, and 1 hour (remaining time) mark of a War.'
-            },
-            {
-                'id': 'raid_reminder',
-                'title': 'Toggle Raid Reminders.',
-                'description': 'Raid reminders are sent at the 24 hour, 12 hour, and 4 hour (remaining time) mark of the Raid Weekend.'
+        emoji_option =  {
+            'id': 'emoji',
+            'title': 'Change the Clan Emoji',
+            'description': 'The Clan Emoji is used to identify the clan within the Alliance.',
             }
-        ]
 
-        selection_embed = await clash_embed(ctx,
-            title=f"Announcement Set Up: {c.name} ({c.tag})")
+        recruit_option = {
+            'id': 'recruit',
+            'title': 'Change the Recruiting Townhalls',
+            'description': 'Change the Townhall Levels the clan is currently recruiting for.',
+            }
 
-        selected_option = await multiple_choice_select(
-            ctx=ctx,
-            sEmbed=selection_embed,
-            selection_list=selection_dict,
-            selection_text="Select an option below.")
+        description_option = {
+            'id': 'description',
+            'title': 'Change the custom Description.',
+            'description': 'Change the custom Description used for this clan.'
+            }
 
-        if not selected_option:
-            return
+        announcement_option = {
+            'id': 'announcement_channel',
+            'title': 'Set the Announcement channel.',
+            'description': 'Automated announcements will be sent in this channel.'
+            }
 
-        if selected_option['id'] == 'announcement_channel':
-            r_embed = await clash_embed(ctx,message=f"Please specify the Announcement Channel for **{c.emoji} {c.name}**.")
-            request_msg = await ctx.send(content=f"{ctx.author.mention}",embed=r_embed)
-            try:
-                response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-            except asyncio.TimeoutError:
-                end_embed = await clash_embed(ctx,message=f"Operation timed out.")
-                await request_msg.edit(embed=end_embed)
-                return
-            else:
-                try:
-                    announcement_channel_id = re.search('#(.*)>',response_msg.content).group(1)
-                    announcement_channel = ctx.guild.get_channel(int(announcement_channel_id))
-                    async with ctx.bot.async_file_lock:
-                        with ctx.bot.clash_file_lock.write_lock():
-                            await c.set_announcement_channel(announcement_channel.id)
-                            await c.save_to_json()
-                except Exception as e:
-                    return await error_end_processing(ctx,
-                        preamble=f"Error encountered when setting Announcement channel",
-                        err=e)
-                else:
-                    await request_msg.delete()
-                    await response_msg.delete()
-                    cEmbed = await clash_embed(ctx,
-                        message=f"The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>.",
-                        color='success')
-                    return await ctx.send(embed=cEmbed)
+        reminder_ch_option = {
+            'id': 'reminder_channel',
+            'title': 'Set the Reminder channel.',
+            'description': 'Reminders will be sent in this channel.'
+            }
 
-        if selected_option['id'] == 'reminder_channel':
-            r_embed = await clash_embed(ctx,message=f"Please specify the Reminder Channel for **{c.emoji} {c.name}**.")
-            request_msg = await ctx.send(content=f"{ctx.author.mention}",embed=r_embed)
-            try:
-                response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-            except asyncio.TimeoutError:
-                end_embed = clash_embed(ctx,message=f"Operation timed out.")
-                await request_msg.edit(embed=end_embed)
-                return
-            else:
-                try:
-                    reminder_channel_id = re.search('#(.*)>',response_msg.content).group(1)
-                    reminder_channel = ctx.guild.get_channel(int(reminder_channel_id))
-                    async with ctx.bot.async_file_lock:
-                        with ctx.bot.clash_file_lock.write_lock():
-                            await c.set_reminder_channel(reminder_channel.id)
-                            await c.save_to_json()
-                except Exception as e:
-                    return await error_end_processing(ctx,
-                        preamble=f"Error encountered when setting Reminder channel",
-                        err=e)
-                else:
-                    await request_msg.delete()
-                    await response_msg.delete()
-                    cEmbed = await clash_embed(ctx,
-                        message=f"The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel.id}>.",
-                        color='success')
-                    return await ctx.send(embed=cEmbed)
+        war_reminder_toggle = {
+            'id': 'war_reminder',
+            'title': 'Toggle War Reminders.',
+            'description': 'War reminders are sent at the 12 hour, 4 hour, and 1 hour (remaining time) mark of a War.'
+            }
 
-        if selected_option['id'] == 'war_reminder':
-            async with ctx.bot.async_file_lock:
-                with ctx.bot.clash_file_lock.write_lock():
-                    await c.toggle_war_reminders()
-                    await c.save_to_json()
+        raid_reminder_toggle = {
+            'id': 'raid_reminder',
+            'title': 'Toggle Raid Reminders.',
+            'description': 'Raid reminders are sent at the 36 hour, 24 hour, 12 hour, and 4 hour (remaining time) mark of the Raid Weekend.'
+            }
 
-            cEmbed = await clash_embed(ctx,
-                message=f"War Reminders for {c.emoji} **{c.name}** set to: {c.send_war_reminder}.",
-                color='success')
-            return await ctx.send(embed=cEmbed)
+        if (ctx.author.id == c.leader or ctx.author.id in c.co_leaders) or ctx.author.id in ctx.bot.owner_ids:
+            menu_dict.append(emoji_option)
+            menu_dict.append(recruit_option)
+            menu_dict.append(war_reminder_toggle)
+            menu_dict.append(raid_reminder_toggle)
 
-        if selected_option['id'] == 'raid_reminder':
-            async with ctx.bot.async_file_lock:
-                with ctx.bot.clash_file_lock.write_lock():
-                    await c.toggle_raid_reminders()
-                    await c.save_to_json()
+        if ctx.author.id in ctx.bot.owner_ids:
+            menu_dict.append(announcement_option)
+            menu_dict.append(reminder_ch_option)
 
-            cEmbed = await clash_embed(ctx,
-                message=f"War Reminders for {c.emoji} **{c.name}** set to: {c.send_war_reminder}.",
-                color='success')
-            return await ctx.send(embed=cEmbed)
-
-    @clan_manage.command(name="setemoji")
-    @commands.admin_or_permissions(administrator=True)
-    async def clan_manage_emoji(self, ctx, clan_abbreviation, emoji_str:str):
-        """
-        Set the custom emoji for an Alliance clan.
-
-        Reminder: emojis must be from a server that the bot is added to.
-        """
-
-        clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
-
-        if not clan_from_abbreviation:
-            return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-
-        try:
-            c = await aClan.create(ctx,clan_from_abbreviation)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-                err=e)
-
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                await c.set_emoji(emoji_str)
-                await c.save_to_json()
-
-        cEmbed = await clash_embed(ctx,
-            message=f"The emoji for **{c.name}** is now {emoji_str}.",
-            color='success')
-        return await ctx.send(embed=cEmbed)
-
-    @clan_manage.command(name="setrecruit")
-    async def clan_manage_townhall(self, ctx, clan_abbreviation, *th_levels:int):
-        """
-        Set the Townhall levels for recruiting.
-
-        You must be a Co-Leader of a clan to use this command. Separate multiple townhall levels with a blank space.
-
-        """
-
-        authorized = False
-
-        townhall_out_of_range = [th for th in th_levels if th not in range(1,16)]
-        if len(townhall_out_of_range) > 0:
-            eEmbed = await clash_embed(ctx,
-                message=f"The following TH levels are invalid: {humanize_list(townhall_out_of_range)}.",
+        if len(menu_dict) == 0:
+            no_permission_embed = await clash_embed(ctx,
+                message=f"You don't have the necessary permissions to make changes to {c.emoji} **{c.name}**.\n\nYou need to be a Co-Leader or Leader to change a Clan's settings.",
                 color='fail')
-            return await ctx.send(embed=eEmbed)
 
-        clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
-        if not clan_from_abbreviation:
-            return await error_not_valid_abbreviation(ctx,clan_abbreviation)
+            return await ctx.send(content=ctx.author.mention,embed=no_permission_embed)
 
-        try:
-            c = await aClan.create(ctx,clan_from_abbreviation)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-                err=e)
+        menu_dict = await multiple_choice_menu_generate_emoji(ctx,menu_dict)
 
-        #Must be Co-Leader or Leader to use.
-        if ctx.author.id == c.leader or ctx.author.id in c.co_leaders:
-            authorized = True
+        select_str = ""
+        for i in menu_dict:
+            select_str += f"{i['emoji']} **{i['title']}**"
+            select_str += f"\n{i['description']}"
 
-        if not authorized:
-            eEmbed = await clash_embed(ctx,
-                message=f"You need to be a Leader or Co-Leader of **{c.emoji} {c.name}** to use this command.",
-                color='fail')
-            return await ctx.send(embed=eEmbed)
+            if menu_dict.index(i) < (len(menu_dict)-1):
+                select_str += f"\n\n"
 
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                await c.set_recruitment_level(ctx,th_levels)
-                await c.save_to_json()
+        message = None
+        response = 'start'
+        task_state = True
+        state_text = ""
 
-        th_str = ""
-        c.recruitment_level.sort()
-        for th in c.recruitment_level:
-            th_str += f"> {emotes_townhall[th]} TH{th}\n"
+        while task_state:
+            try:
 
-        cEmbed = await clash_embed(ctx,
-            message=f"**{c.emoji} {c.name}** is now recruiting for:\n {th_str}",
-            color='success')
+                if response in ['start','menu']:
 
-        return await ctx.send(embed=cEmbed)
+                    th_str = ''
+                    for th in c.recruitment_level:
+                        th_str += emotes_townhall[th]
 
-    # @clan_manage.command(name="setdescription")
-    # async def clan_manage_description(self, ctx, clan_abbreviation):
-    #     """
-    #     Set the custom description for an Alliance clan.
+                    announcement_embed = await clash_embed(ctx,
+                        title=f"Clan Settings: {c.emoji} {c.desc_title}",
+                        message=f"\n**{state_text}**"
+                            + f"\n\n**Emoji:** {c.emoji}"
+                            + f"\n**Recruiting:** {th_str}"
+                            + f"\n\n**Announcement Channel:** <#{c.announcement_channel}>"
+                            + f"\n**Reminder Channel:** <#{c.reminder_channel}>"
+                            + f"\n\n**War Reminders:** {state_text[c.send_war_reminder]}"
+                            + f"\n**Raid Reminders:** {state_text[c.send_raid_reminder]}")
 
-    #     You must be a Co-Leader of a clan to use this command. Separate multiple townhall levels with a blank space.
+                    announcement_embed.add_field(
+                        name="**What would you like to do today?**",
+                        value=f"\u200b\n{select_str}\n\n*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
+                        inline=False
+                        )
 
-    #     This description overrides any in-game description, and is only applicable to the AriX Bot. 
-    #     If using emojis in the description, ensure that they are in a server shared by the bot.
-    #     """
+                    if message:
+                        await message.edit(content=ctx.author.mention,embed=announcement_embed)
+                    else:
+                        message = await ctx.send(content=ctx.author.mention,embed=announcement_embed)
 
-    #     authorized = False
+                    await message.clear_reactions()
+                    select = await multiple_choice_menu_select(ctx,message,menu_dict,timeout=60)
 
-    #     def response_check(m):
-    #         if m.author.id == ctx.author.id:
-    #             if m.channel.id == ctx.channel.id:
-    #                 return True
-    #             elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
-    #                 return True
-    #             else:
-    #                 return False
+                    if selection:
+                        response = selection['id']
+                    else:
+                        response = None
 
-    #     clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
-    #     if not clan_from_abbreviation:
-    #         return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-        
-    #     try:
-    #         c = await aClan.create(ctx,clan_from_abbreviation)
-    #     except Exception as e:
-    #         return await error_end_processing(ctx,
-    #             preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-    #             err=e)
+                if response in ['emoji']:
+                    emoji_embed = await clash_embed(ctx,message=f"Please provide the new Emoji for **{c.name}**.")
+                    await message.edit(content=ctx.author.mention,embed=emoji_embed)
 
-    #     #Must be Co-Leader or Leader to use.
-    #     if ctx.author.id == c.leader or ctx.author.id in c.co_leaders:
-    #         authorized = True
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
 
-    #     if not authorized:
-    #         eEmbed = await clash_embed(ctx,
-    #             message=f"You need to be a Leader or Co-Leader of **{c.emoji} {c.name}** to use this command.",
-    #             color='fail')
-    #         return await ctx.send(embed=eEmbed)
+                    await c.set_emoji(ctx,response_msg.content)
+                    state_text = f"The emoji for **{c.name}** is now {c.emoji}."
+                    response = 'menu'
 
-    #     dEmbed = await clash_embed(ctx,message=f"Send the new description for {c.emoji} **{c.name}** in your next message. You have 3 minutes.")
 
-    #     description_msg = await ctx.send(content=f"{ctx.author.mention}",embed=dEmbed)
-    #     try:
-    #         description_response = await ctx.bot.wait_for("message",timeout=180,check=response_check)
-    #     except asyncio.TimeoutError:
-    #         dEmbed = await clash_embed(ctx,message=f"Operation timed out.",color='fail')
-    #         return await description_msg.edit(embed=dEmbed)
+                if response in ['recruit']:
+                    rectownhall_embed = await clash_embed(ctx,
+                        message=f"Please provide the Townhall Levels that {c.emoji} **{c.name}** will be recruiting for."
+                            + "\n\nYou can separate multiple Townhall Levels with spaces.")
+                    await message.edit(content=ctx.author.mention,embed=rectownhall_embed)
 
-    #     new_description = description_response.content
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=townhall_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
 
-    #     async with ctx.bot.async_file_lock:
-    #         with ctx.bot.clash_file_lock.write_lock():
-    #             await c.set_description(new_description)
-    #             await c.save_to_json()
+                    townhalls = response_msg.content.split()
+                    await c.set_recruitment_level(ctx,townhalls)
+                    th_str = ""
+                    for th in c.recruitment_level:
+                        th_str += emotes_townhall[th]
+                    state_text = f"{c.emoji} **{c.name}** is now recruiting for {th_str}."
+                    response = 'menu'
 
-    #     cEmbed = await clash_embed(ctx,
-    #         title=f"Description set for {c.emoji} {c.name}",
-    #         message=f"{c.description}",
-    #         color='success')
 
-    #     await ctx.send(embed=cEmbed)
-    #     await description_msg.delete()
-    #     await description_response.delete()
+                if response in ['announcement_channel']:
+                    announcement_ch_embed = await clash_embed(ctx,message=f"Please specify the Announcement Channel for **{c.emoji} {c.name}**.")
+                    await message.edit(content=ctx.author.mention,embed=announcement_ch_embed)
+
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
+
+                    try:
+                        announcement_channel_id = re.search('#(.*)>',response_msg.content).group(1)
+                        announcement_channel = ctx.guild.get_channel(int(announcement_channel_id))
+                        await c.set_announcement_channel(ctx,announcement_channel.id)
+                    except Exception as e:
+                        return await error_end_processing(ctx,
+                            preamble=f"Error encountered when setting Announcement channel",
+                            err=e)
+                    else:
+                        await response_msg.delete()
+                        state_text = f"The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>."
+                        response = 'menu'
+
+
+                if response in ['reminder_channel']:
+                    reminder_ch_embed = await clash_embed(ctx,message=f"Please specify the Reminder Channel for **{c.emoji} {c.name}**.")
+                    await message.edit(content=ctx.author.mention,embed=reminder_ch_embed)
+
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
+
+                    try:
+                        reminder_channel_id = re.search('#(.*)>',response_msg.content).group(1)
+                        reminder_channel = ctx.guild.get_channel(int(announcement_channel_id))
+                        await c.set_reminder_channel(ctx,reminder_channel_id.id)
+                    except Exception as e:
+                        return await error_end_processing(ctx,
+                            preamble=f"Error encountered when setting Reminder channel",
+                            err=e)
+                    else:
+                        await response_msg.delete()
+                        state_text = f"The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel_id.id}>."
+                        response = 'menu'
+
+
+                if response in ['war_reminder']:
+                    await c.toggle_war_reminders(ctx)
+                    state_text = f"War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
+                    response = 'menu'
+
+                if response in ['raid_reminder']:
+                    await c.toggle_raid_reminders(ctx)
+                    state_text = f"Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
+                    response = 'menu'
+
+
+            except Exception as e:
+                err_embed = await clash_embed(ctx,
+                    message=f"Error encountered while setting up Announcements: {e}.",
+                    color="fail")
+                if message:
+                    await message.edit(embed=err_embed)
+                else:
+                    await ctx.send(embed=err_embed)
+                response = None
+
+            if not response:
+                task_state = False
+
+        ended_embed = await clash_embed(ctx,
+            message="Menu closed.",
+            color="fail")
+
+        if message:
+            await message.edit(embed=ended_embed)
+        else:
+            await ctx.send(embed=ended_embed)
+
 
     @clan_manage.command(name="addnote")
     async def clan_manage_addnote(self,ctx,clan_abbreviation):
@@ -713,16 +683,10 @@ class AriXLeaderCommands(commands.Cog):
             else:
                 return False
 
-        clan_from_abbreviation = await get_alliance_clan(ctx,clan_abbreviation)
-        if not clan_from_abbreviation:
+        c = await get_alliance_clan(ctx,clan_abbreviation)
+        if not c:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-        
-        try:
-            c = await aClan.create(ctx,clan_from_abbreviation)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
-                err=e)
+        c = c[0]
 
         cEmbed = await clash_embed(ctx,message=f"You may create your note for {c.emoji} **{c.name}** via DMs. You have 3 minutes to respond in DMs.")
         dEmbed = await clash_embed(ctx,message=f"You have 3 minutes to create your new note for {c.emoji} **{c.name}**.")
@@ -740,14 +704,11 @@ class AriXLeaderCommands(commands.Cog):
         
         new_note = response_note.content
 
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                try:
-                    await c.add_note(ctx,new_note)
-                    await c.save_to_json()
-                except Exception as e:
-                    eEmbed = await clash_embed(ctx,message=f"Error encountered while saving note: {e}")
-                    return await ctx.send(embed=eEmbed)
+        try:
+            await c.add_note(ctx,new_note)
+        except Exception as e:
+            eEmbed = await clash_embed(ctx,message=f"Error encountered while saving note: {e}")
+            return await ctx.send(embed=eEmbed)
 
         await response_note.add_reaction('<:green_check:838461472324583465>')
 
@@ -776,7 +737,7 @@ class AriXLeaderCommands(commands.Cog):
     @commands.group(name="member")
     async def member_manage(self,ctx):
         """
-        Add/remove members.
+        Manage Alliance Members.
         """
         
         if not ctx.invoked_subcommand:
@@ -785,7 +746,7 @@ class AriXLeaderCommands(commands.Cog):
     @member_manage.command(name="add")
     async def member_manage_add(self,ctx,user:discord.User, silent_mode=None):
         """
-        Add members to the Alliance. 
+        Add a member to the Alliance.
 
         You will be prompted for the Player Tags after the command is executed.
 
@@ -793,41 +754,34 @@ class AriXLeaderCommands(commands.Cog):
         """
 
         def response_check(m):
+            msg_check = False
+            tag_check = False
             if m.author.id == ctx.author.id:
                 if m.channel.id == ctx.channel.id:
-                    return True
+                    msg_check = True
                 elif m.channel.type == ctx.channel.type == discord.ChannelType.private:
-                    return True
+                    msg_check = True
+
+            if msg_check:
+                tag_check = True
+                if m.content.lower() == 'cancel':
+                    pass
                 else:
-                    return False
+                    for tag in m.content.split():
+                        if not coc.utils.is_valid_tag(tag):
+                            tag_check = False
+            return tag_check
 
         silent_mode = False
-        alliance_clan_tags, alliance_member_tags = await get_current_alliance(ctx)
-        alliance_clans = []
+        alliance_clans = await get_alliance_clan(ctx)
         error_log = []
         added_count = 0
 
         if silent_mode == "S":
             silent_mode = True
 
-
-        if not len(alliance_clan_tags) >= 1:
+        if not len(alliance_clans) >= 1:
             return await no_clans_registered(ctx)
-        #if len(player_tags) == 0:
-        #    eEmbed = await clash_embed(ctx=ctx,
-        #        message=f"Please provide Player Tags to be added. Separate multiple tags with a space.",
-        #        color="fail")
-        #    return await ctx.send(embed=eEmbed)
-
-        for clan_tag in alliance_clan_tags:
-            try:
-                c = await aClan.create(ctx,clan_tag)
-            except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving clan {clan_tag}",
-                    err=e)
-            alliance_clans.append(c)
-
 
         ask_player_tags = await clash_embed(ctx,
             message=f"**Please send the Clash Player Tags for {user.mention}.**"
@@ -859,24 +813,26 @@ class AriXLeaderCommands(commands.Cog):
 
         for tag in player_tags:
             clan_selection = []
-            alliance_clans_sorted = sorted(alliance_clans, key=lambda x: (x.level,x.capital_hall),reverse=True)
-            for c in alliance_clans_sorted:
+            clan_selection_str = ""
+            for c in alliance_clans:
                 await c.update_member_count()
-                text_title, text_full, text_summary = await resc.clan_description(ctx,c)
-
                 th_str = ""
                 for th in c.recruitment_level:
                     th_str += f"{emotes_townhall[th]} "
                 c_dict = {
                     'id': c.tag,
                     'emoji': c.emoji,
-                    'title': f"**{c.name} ({c.abbreviation})**",
+                    'title': f"**{c.abbreviation} {c.name} ({c.tag})**",
                     'description': f"\u200b\u3000Members: {c.member_count}\u3000Recruiting: {th_str}"
                     }
                 clan_selection.append(c_dict)
+                clan_selection_str += f"{c_dict['emoji']} {c_dict['title']}\n{c_dict['description']}"
+
+                if alliance_clans.index(c) < (len(alliance_clans)-1):
+                    clan_selection_str += "\n\n"
+
             try:
-                p = await aPlayer.create(ctx,tag)
-                await p.retrieve_data()
+                p = await aPlayer.create(ctx,tag,fetch=True)
             except TerminateProcessing as e:
                 return await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for {tag}",
@@ -907,23 +863,28 @@ class AriXLeaderCommands(commands.Cog):
             else:
                 p_notes = ""
 
-            title, text, summary = await resc.player_description(ctx,p)
-
             player_embed = await clash_embed(ctx,
-                title=f"Add Member: {title} ({p.tag})",
+                title=f"Add Member: {p.desc_title}",
                 message=f"<:Discord:1040423151760314448> {user.mention}\n"
-                    + f"{text}"
+                    + f"{p.desc_full_text}"
                     + f"{p_notes}\n\u200b",
                 thumbnail=user.avatar_url)
 
-            selected_clan = await multiple_choice_select(
+            player_embed.add_field(
+                name="__**Select a Home Clan for this account.**__",
+                value=clan_selection_str,
+                inline=False)
+
+            homeclan_msg = await ctx.send(content=ctx.author.mention,embed=player_embed)
+
+            selected_clan = await multiple_choice_menu_select(
                 ctx=ctx,
-                sEmbed=player_embed,
-                selection_list=clan_selection,
-                selection_text="Select a home clan for this account.",
-                cancel_message=f"Did not add **{p.tag} {p.name}**. Skipping...")
+                smsg = homeclan_msg,
+                sel_list=clan_selection)
 
             if not selected_clan:
+                not_added_embed = await clash_embed(ctx,message=f"{p.desc_title} was not added to AriX. Skipping...")
+                homeclan_msg.edit(embed=not_added_embed)
                 continue
 
             added_count += 1
@@ -935,15 +896,11 @@ class AriXLeaderCommands(commands.Cog):
                     color='success')
                 await ctx.send(embed=c_embed)
             else:
-                async with ctx.bot.async_file_lock:
-                    with ctx.bot.clash_file_lock.write_lock():
-                        try:
-                            await p.new_member(ctx,user,target_clan)
-                            await p.set_baselines()
-                            await p.save_to_json()
-                        except Exception as e:
-                            err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
-                            error_log.append(err_dict)
+                try:
+                    await p.new_member(ctx,user,target_clan)
+                except Exception as e:
+                    err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
+                    error_log.append(err_dict)
 
                 c_embed = await clash_embed(ctx,
                     message=f"**{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.",
@@ -976,13 +933,8 @@ class AriXLeaderCommands(commands.Cog):
         Multiple tags can be separated by a blank space.
         """
 
-        alliance_clan_tags, alliance_member_tags = await get_current_alliance(ctx)
-
         remove_accounts = []
         error_log = []
-
-        if not len(alliance_clan_tags) >= 1:
-            return await no_clans_registered(ctx)
 
         if len(player_tags) == 0:
             eEmbed = await clash_embed(ctx=ctx,
@@ -1027,16 +979,13 @@ class AriXLeaderCommands(commands.Cog):
             if not await user_confirmation(ctx,confirm_remove):
                 return
 
-            async with ctx.bot.async_file_lock:
-                with ctx.bot.clash_file_lock.write_lock():
-                    for p in remove_accounts:
-                        try:
-                            await p.remove_member()
-                            await p.save_to_json()
-                        except Exception as e:
-                            err_dict = {'tag':p.tag,'reason':f"Error while removing: {e}"}
-                            error_log.append(err_dict)
-                            remove_accounts.remove(p)
+            for p in remove_accounts:
+                try:
+                    await p.remove_member()
+                except Exception as e:
+                    err_dict = {'tag':p.tag,'reason':f"Error while removing: {e}"}
+                    error_log.append(err_dict)
+                    remove_accounts.remove(p)
 
             await confirm_remove.delete()
 
@@ -1061,6 +1010,7 @@ class AriXLeaderCommands(commands.Cog):
                 inline=False)
         await ctx.send(embed=aEmbed)
 
+
     @member_manage.command(name="addnote")
     async def member_manage_addnote(self,ctx,user:discord.User):
         """
@@ -1075,26 +1025,9 @@ class AriXLeaderCommands(commands.Cog):
             else:
                 return False
 
-        user_accounts_tags = await get_user_accounts(ctx,user.id)
-        user_accounts = []
-        user_clan_tags = []
-        user_clans = []
+        home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
-        for tag in user_accounts_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-            except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving data for {tag}",
-                    err=e)
-
-            if p.home_clan.tag not in user_clan_tags:
-                user_clan_tags.append(p.home_clan.tag)
-                user_clans.append(p.home_clan)
-
-            if p.is_member:
-                user_accounts.append(p)
-
+        user_accounts = [a for a in user_accounts if a.is_member]
         user_accounts = sorted(user_accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
         account_selection = []
@@ -1105,8 +1038,8 @@ class AriXLeaderCommands(commands.Cog):
             }
         account_selection.append(s_dict)
 
-        if len(user_clans) > 1:
-            for clan in user_clans:
+        if len(home_clans) > 1:
+            for clan in home_clans:
                 s_dict = {
                     'id': clan.tag,
                     'title': f'Only {clan.emoji} {clan.name}',
@@ -1115,23 +1048,34 @@ class AriXLeaderCommands(commands.Cog):
                 account_selection.append(s_dict)
 
         for p in user_accounts:
-            title, text, summary = await resc.player_description(ctx,p)
             s_dict = {
                 'id': p.tag,
-                'title': f"{title}",
-                'description': f"{summary}"
+                'title': f"{p.desc_title}",
+                'description': f"{p.desc_summary_text}"
                 }
             account_selection.append(s_dict)
 
+        account_selection = await multiple_choice_menu_generate_emoji(ctx,account_selection)
+
+        selection_str = ""
+        for i in account_selection:
+            selection_str += f"{i['emoji']} **{i['title']}**\n{i['description']}"
+            if account_selection.index(i) < (len(account_selection)-1):
+                selection_str += "\n\n"
+
         select_embed = await clash_embed(ctx,
-            message=f"Where would you like to add this note to?")
+            title=f"Add Note: {user.name}#{user.discriminator}",
+            message=f"**Where would you like to add this note to?**"
+                + f"\n\n{selection_str}")
 
-        selected_account = await multiple_choice_select(
-            ctx=ctx,
-            sEmbed=select_embed,
-            selection_list=account_selection)
+        select_msg = await ctx.send(content=ctx.author.mention,embed=select_embed)
 
+        selected_account = await multiple_choice_menu_select(ctx,select_msg,account_selection)
         if not selected_account:
+            cancel_embed = await clash_embed(ctx,
+                message="Operation cancelled.",
+                color="fail")
+            await select_msg.edit(embed=cancel_embed)
             return
 
         cEmbed = await clash_embed(ctx,message=f"You may create your note for {user.mention} via DMs. You have 3 minutes to respond in DMs.")
@@ -1149,29 +1093,27 @@ class AriXLeaderCommands(commands.Cog):
 
         new_note = response_note.content
     
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                try:
-                    if selected_account['id'] == 'all_accounts':
-                        for a in user_accounts:
+        try:
+            if selected_account['id'] == 'all_accounts':
+                for a in user_accounts:
+                    await a.add_note(ctx,new_note)
+
+                elif selected_account['id'] in [c.tag for c in home_clans]:
+                    for a in user_accounts:
+                        if a.home_clan.tag == selected_account['id']:
                             await a.add_note(ctx,new_note)
-                            await a.save_to_json()
-                    elif selected_account['id'] in user_clan_tags:
-                        for a in user_accounts:
-                            if a.home_clan.tag == selected_account['id']:
-                                await a.add_note(ctx,new_note)
-                                await a.save_to_json()
-                    else: 
-                        for a in user_accounts:
-                            if a.tag == selected_account['id']:
-                                await a.add_note(ctx,new_note)
-                                await a.save_to_json()
-                except Exception as e:
-                    eEmbed = await clash_embed(ctx,message=f"Error encountered while saving note: {e}")
-                    return await ctx.send(embed=eEmbed)
+
+                else:
+                    for a in user_accounts:
+                        if a.tag == selected_account['id']:
+                            await a.add_note(ctx,new_note)
+
+        except Exception as e:
+            eEmbed = await clash_embed(ctx,message=f"Error encountered while saving note: {e}")
+            return await ctx.send(embed=eEmbed)
 
         await response_note.add_reaction('<:green_check:838461472324583465>')
-        final_embed = await clash_embed(ctx,message=f"{ctx.author.mention} just added a note to **{user.display_name}**.")
+        final_embed = await clash_embed(ctx,message=f"{ctx.author.mention} just added a note to **{user.mention}**.")
 
         await ctx.send(embed=final_embed)
 
@@ -1192,12 +1134,12 @@ class AriXLeaderCommands(commands.Cog):
             discord_member = ctx.guild.get_member(user.id)
             await discord_member.edit(nick=new_nickname)
             success_embed = await clash_embed(ctx,
-                message=f"{discord_member.mention}'s nickname has been set to {new_nickname}.",
+                message=f"{user.name}#{user.discriminator}'s nickname has been set to {new_nickname}.",
                 color='success')
             return await ctx.send(embed=success_embed)
         except Exception as e:
             end_embed = await clash_embed(ctx,
-                message=f"I don't have permissions to change {user.mention}'s nickname. Proposed nickname: {e}.",
+                message=f"I don't have permissions to change {user.mention}'s nickname. Error: {e}.\n\nProposed nickname: {new_nickname}.",
                 color='fail')
             return await ctx.send(embed=end_embed)
 
@@ -1207,119 +1149,112 @@ class AriXLeaderCommands(commands.Cog):
     ####################################################################################################
     
     async def rank_handler(self, ctx, action, user:discord.User):
-        membership_clans = []
-        current_leader = []
+
+        eligible_ranks = []
         operation_log = []
         error_log = []
 
-        clans,members = await get_current_alliance(ctx)
+        leader_ct = 0
+        member_ct = 0
 
-        for clan_tag in clans:
-            try:
-                c = await aClan.create(ctx,clan_tag)
-            except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while getting clan {tag_tag}",
-                    err=e)
+        user_home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
-            if ctx.author.id == c.leader or ctx.author.id in c.co_leaders:
-                clan_accounts = await get_user_accounts(ctx,user.id,c.tag)
-                if user.id == c.leader:
-                    d = {
-                        'clan': c,
-                        'rank': 'Leader',
-                        'accounts': clan_accounts,
-                        }
-                    membership_clans.append(d)
-                elif user.id in c.co_leaders:
-                    d = {
-                        'clan': c,
-                        'rank': 'Co-Leader',
-                        'accounts': clan_accounts,
-                        }
-                    membership_clans.append(d)
-                elif user.id in c.elders:
-                    d = {
-                        'clan': c,
-                        'rank': 'Elder',
-                        'accounts': clan_accounts,
-                        }
-                    membership_clans.append(d)
-                elif len(clan_accounts) > 0:
-                    d = {
-                        'clan': c,
-                        'rank': 'Member',
-                        'accounts': clan_accounts,
-                        }
-                    membership_clans.append(d)
-                else:
-                    pass
+        for c in user_home_clans:
+            clan_accounts = [a for a in user_accounts if a.home_clan.tag == c.tag]
 
-        if len(membership_clans) < 1:
-            eEmbed = await clash_embed(ctx,message=f"Your powers are inadequate and you cannot perform this action.",color='fail')
-            return await ctx.send(embed=eEmbed)
+            #do nothing to Leaders
+            if clan_accounts[0].arix_rank == 'Leader':
+                leader_ct += 1
+                pass
 
-        rank_selection = []
-        for m in membership_clans:
-            if m['rank']=='Leader':
-                continue
-            elif action=='demote' and m['rank']=='Member':
-                continue
-            else:
-                s_dict = {
-                    'id': m['clan'].tag,
-                    'emoji': m['clan'].emoji,
-                    'title': m['clan'].name,
-                    'description': f"Current Rank: {m['rank']}\nAccounts: {len(m['accounts'])}"
+            #Only Leaders can promote/demote Co-Leaders
+            elif clan_accounts[0].arix_rank == 'Co-Leader' and ctx.author.id == c.leader:
+                d = {
+                    'clan': c,
+                    'emoji': c.emoji,
+                    'rank': 'Co-Leader',
+                    'accounts': clan_accounts
                     }
-                rank_selection.append(s_dict)
+                eligible_ranks.append(d)
 
-        if len(rank_selection) == 0:
-            if action == 'promote':
-                eEmbed = await clash_embed(ctx,message=f"{user.mention} has already achieved god-status and cannot be touched by mere mortals.",color='fail')
-                return await ctx.send(embed=eEmbed)
-            if action == 'demote':
-                eEmbed = await clash_embed(ctx,message=f"I cannot allow you to banish {user.mention} to uranus.",color='fail')
-                return await ctx.send(embed=eEmbed)
+            #Leaders or Co-Leaders can promote/demote Members/Elders
+            elif ctx.author.id == c.leader or ctx.author.id in c.co_leaders:
+                if action == 'demote' and clan_accounts[0].arix_rank == 'Member':
+                    member_ct += 1
+                    pass
+                else:
+                    d = {
+                        'clan': c,
+                        'emoji': c.emoji,
+                        'rank': clan_accounts[0].arix_rank,
+                        'accounts': clan_accounts
+                        }
+                    eligible_ranks.append(d)
 
-        elif len(rank_selection) == 1:
-            for m in membership_clans:
-                if m['clan'].tag == rank_selection[0]['id']:
-                    handle_rank = m
-                    continue
-
-            if handle_rank:
-                confirm_embed = await clash_embed(ctx,
-                    title=f"{action.capitalize()} {user.name}#{user.discriminator}",
-                    message=f"**{handle_rank['clan'].emoji} {handle_rank['clan'].name}**"
-                        + f"\nCurrent Rank: {handle_rank['rank']}\nAccounts: {len(handle_rank['accounts'])}"
-                        + f"\n\n**Please confirm the above action.**")
-
-                confirm_rank = await ctx.send(embed=confirm_embed)
-                if not await user_confirmation(ctx,confirm_rank):
-                    return
-
+        if len(eligible_ranks) == 0:
+            if leader_ct > 0:
+                ineligible_embed = await clash_embed(ctx,
+                    message=f"{user.mention} has already achieved god-status and cannot be touched by mere mortals.",
+                    color='fail')
+            elif action=='demote' and member_ct > 0:
+                ineligible_embed = await clash_embed(ctx,
+                    message=f"I cannot allow you to banish {user.mention} to uranus.",
+                    color='fail')
             else:
-                eEmbed = await clash_embed(ctx,message=f"I couldn't find a clan to {action} this user.",color="fail")
-                return await ctx.send(embed=eEmbed)
+                ineligible_embed = await clash_embed(ctx,
+                    message=f"Your powers are inadequate and you cannot perform this action.",
+                    color='fail')
 
-        else:
-            select_embed = await clash_embed(ctx,
+            return await ctx.send(content=ctx.author.mention,embed=ineligible_embed)
+
+
+        if len(eligible_ranks) == 1:
+            handle_rank = eligible_ranks[0]
+
+            confirm_embed = await clash_embed(ctx,
                 title=f"{action.capitalize()} {user.name}#{user.discriminator}",
-                message="*Reminder: You cannot promote or demote a Leader of a clan. To change the leader of a clan, promote a Co-Leader.*")
+                message=f"**Please confirm this action.**"
+                    + f"\n\n**{handle_rank['clan'].emoji} {handle_rank['clan'].name}**"
+                    + f"\nCurrent Rank: {handle_rank['rank']}"
+                    + f"\nNew Rank: *{clanRanks[clanRanks.index(handle_rank['rank'])+1]}*"
+                    + f"\nAccounts: {len(handle_rank['accounts'])}")
 
-            selection = await multiple_choice_select(
-                ctx=ctx,
-                sEmbed=select_embed,
-                selection_list=rank_selection,
-                selection_text=f"Select a clan to promote {user.mention}.")
-
-            if not selection:
+            confirm = await ctx.send(content=ctx.author.mention,embed=confirm_embed)
+            if not await user_confirmation(ctx,confirm):
                 return
 
-            for m in membership_clans:
-                if m['clan'].tag == selection['id']:
-                    handle_rank = m
+        if len(eligible_ranks) > 1:
+            selection_list = ""
+            selection_str = ""
+            for i in eligible_ranks:
+                d = {
+                    'id': i['clan'].tag,
+                    'title': i['clan'].desc_title,
+                    'emoji': i['emoji'],
+                    'description': f"Current Rank: {i['rank']}\u3000New Rank: {clanRanks[clanRanks.index(i['rank'])+1]}\nAccounts: {len(i['accounts'])}"
+                    }
+                selection_list.append(d)
+                selection_str += f"{d['emoji']} **{d['title']}**\n{d['description']}"
+
+                if eligible_ranks.index(i) < (len(eligible_ranks)-1):
+                    selection_str += "\n\n"
+
+            select_embed = await clash_embed(ctx,
+                title=f"{action.capitalize()} {user.name}#{user.discriminator}",
+                message="*Reminder: You cannot promote or demote a Leader of a clan. To change the leader of a clan, promote a Co-Leader.*"
+                    + f"\n\n**Select a Clan to {action} {user.mention} in.**"
+                    + f"\n\n{selection_str}")
+
+            select = await ctx.send(content=ctx.author.mention,embed=select_embed)
+
+            selected_clan = await multiple_choice_menu_select(ctx,select,selection_list)
+
+            if not selected_clan:
+                return None
+
+            handle_rank = [i for i in eligible_ranks if i['clan'].tag == selected_clan['id']][0]
+
+        rank_clan = handle_rank['clan']
 
         current_rank_index = clanRanks.index(handle_rank['rank'])
         if action == 'promote':
@@ -1327,68 +1262,23 @@ class AriXLeaderCommands(commands.Cog):
         if action == 'demote':
             new_rank = clanRanks[current_rank_index-1]
 
-        for account in handle_rank['accounts']:
-            async with ctx.bot.async_file_lock:
-                with ctx.bot.clash_file_lock.write_lock():
-                    try:
-                        p = await aPlayer.create(ctx,account)
-                        await p.update_rank(ctx,new_rank)
-                        await p.save_to_json()
-                        operation_log.append(p)
-                    except Exception as e:
-                        err_dict = {'tag':account,'reason':f"Error while updating rank: {e}"}
-                        error_log.append(err_dict)
-                        continue
+        try:
+            await rank_clan.update_member_rank(ctx,user,new_rank)
+        except:
+            err_embed = await clash_embed(ctx,
+                message=f"I ran into an error while updating Ranks: {rank_clan.tag} {e}.",
+                color='fail')
+            return await ctx.send(embed=err_embed)
 
-        #demote current leader to Co
-        if action=='promote' and new_rank == 'Leader':
-            current_leader = await get_user_accounts(ctx,handle_rank['clan'].leader,handle_rank['clan'].tag)
-            for tag in current_leader:
-                async with ctx.bot.async_file_lock:
-                    with ctx.bot.clash_file_lock.write_lock():
-                        try:
-                            p = await aPlayer.create(ctx,tag)
-                            await p.update_rank(ctx,'Co-Leader')
-                            await p.save_to_json()
-                            operation_log.append(p)
-                        except Exception as e:
-                            p = None
-                            err_dict = {'tag':tag,'reason':f'Error while demoting leader: {e}.'}
-                            error_log.append(err_dict)
-                            continue
-            
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                try: 
-                    await handle_rank['clan'].add_staff(ctx,user,new_rank)
-                    await handle_rank['clan'].save_to_json()
-                except Exception as e:
-                    err_dict = {'tag':handle_rank['clan'].tag,'reason':f"Error while updating clan: {e}"}
-                    error_log.append(err_dict)
+        for a in handle_rank['accounts']:
+            await aPlayer.create(ctx,a.tag,fetch=True)
 
-        success_str = "\u200b"
-        error_str = "\u200b"
-        for p in operation_log:
-            if p.tag in current_leader:
-                success_str += f"**{p.tag} {p.name}** is now Co-Leader of {handle_rank['clan'].name}.\n"
-            else:
-                success_str += f"**{p.tag} {p.name}** is now {new_rank} of {handle_rank['clan'].name}.\n"
+        result_embed = await clash_embed(ctx,
+            message=f"{user.mention} is now a **{new_rank}** in {rank_clan.emoji} **{rank_clan.desc_title}**.",
+            color='success')
 
-        for error in error_log:
-            error_str += f"{error['tag']}: {error['reason']}\n"
+        return await ctx.send(embed=result_embed)
 
-        aEmbed = await clash_embed(ctx=ctx,title=f"Operation Report: {action.capitalize()} {user.name}#{user.discriminator}",color='success')
-
-        if len(operation_log) > 0:
-            aEmbed.add_field(name=f"**__Success__**",
-                value=success_str,
-                inline=False)
-        if len(error_log) > 0:
-            aEmbed.add_field(name=f"**__Failed__**",
-                value=error_str,
-                inline=False)
-
-        return await ctx.send(embed=aEmbed)
 
     @commands.command(name="promote")
     async def member_promote(self,ctx,user:discord.User):
@@ -1414,7 +1304,8 @@ class AriXLeaderCommands(commands.Cog):
         await self.rank_handler(
             ctx=ctx,
             action='demote',
-            user=user,)
+            user=user)
+
 
     @commands.command(name="whois")
     async def member_whois(self,ctx,user:discord.User):

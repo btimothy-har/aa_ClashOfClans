@@ -19,9 +19,10 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 
-from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
+from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
-from .file_functions import get_current_season, get_current_alliance, get_user_accounts, get_staff_position, season_file_handler, alliance_file_handler, data_file_handler
+from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .alliance_functions import get_user_profile, get_alliance_clan
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from .clan import aClan
@@ -41,6 +42,7 @@ class AriXClashResources(commands.Cog):
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
+
 
     @commands.command(name="status")
     @commands.is_owner()
@@ -96,25 +98,6 @@ class AriXClashResources(commands.Cog):
     #             + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
     #             + f"\n\n****")
     #eclipse
-
-
-
-
-    async def clan_description(ctx,c):
-        #build title
-        title = ""
-        text_full = ""
-        text_summary = ""
-        title += f"{c.name}"
-
-        text_full += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000<:Members:1040672942524215337> {c.member_count}"
-        text_full += f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\n<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
-        text_full += f"\n[Clan Link: {c.tag}]({c.c.share_link})"
-
-        text_summary += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000{emotes_league[c.c.war_league.name]} {c.c.war_league.name}"
-
-        return title, text_full, text_summary
-
 
     async def player_description(ctx,p):
         #build title
@@ -174,41 +157,31 @@ class AriXClashResources(commands.Cog):
 
         return intro_embed
 
+
     async def user_nickname_handler(ctx,user):
-        accounts = []
         leader_clans = []
-        home_clans = []
-        player_tags = await get_user_accounts(ctx,user.id)
+        home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
-        for tag in player_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                if not p.is_member:
-                    await p.retrieve_data()
-            except Exception as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
+        user_accounts = [a for a in user_accounts if a.is_member]
 
-            if p.is_member:
-                if p.home_clan.tag not in [c.tag for c in home_clans]:
-                    home_clans.append(p.home_clan)
-                accounts.append(p)
+        for a in user_accounts:
+            if a.arix_rank == 'Leader' and a.home_clan.tag not in [c.tag for c in leader_clans]:
+                leader_clans.append(a.home_clan)
 
-            if p.arix_rank == 'Leader' and p.home_clan.tag not in [c.tag for c in leader_clans]:
-                leader_clans.append(p.home_clan)
-
-        accounts = sorted(accounts,key=lambda p:(p.exp_level,p.town_hall.level),reverse=True)
-        home_clans = sorted(home_clans,key=lambda c:(c.level,c.capital_hall),reverse=True)
-
-        if len(accounts) < 1:
-            end_embed = await clash_embed(ctx=c,
-                message=f"{user.mention} is not an AriX Member.",
-                color='fail')
+        if len(user_accounts) < 1:
+            if ctx.author.id == user.id:
+                end_embed = await clash_embed(ctx,
+                    message="You must be an AriX Member to use this command.",
+                    color="fail")
+            else:
+                end_embed = await clash_embed(ctx,
+                    message=f"{user.mention} is not an AriX Member.",
+                    color='fail')
             await ctx.send(embed=end_embed)
             return None
 
-        elif len(accounts) == 1:
-            a = accounts[0]
+        elif len(user_accounts) == 1:
+            a = user_accounts[0]
             selected_account = {
                 'id': f"{a.tag}",
                 'title': f"{a.name} {a.tag}",
@@ -217,7 +190,8 @@ class AriXClashResources(commands.Cog):
         
         else:
             selection_list = []
-            for a in accounts:
+            selection_str = ""
+            for a in user_accounts:
                 a_dict = {
                     'id': f"{a.tag}",
                     'title': f"{a.name} ({a.tag})",
@@ -225,19 +199,31 @@ class AriXClashResources(commands.Cog):
                     }
                 selection_list.append(a_dict)
 
+            selection_list = await multiple_choice_menu_generate_emoji(ctx,selection_list)
+
+            for i in selection_list:
+                selection_str += f"\n{i['emoji']} **{i['title']}**\n{i['description']}"
+
+                if selection_list.index(i) < (len(selection_list)-1):
+                    selection_str += "\n\n"
+
             nick_embed = await clash_embed(ctx,
                 title=f"Nickname Change: {user.name}#{user.discriminator}",
                 thumbnail=f"{user.avatar_url}")
 
-            selected_account = await multiple_choice_select(ctx,
-                sEmbed=nick_embed,
-                selection_list=selection_list,
-                selection_text="Select an account from the list below to be the new nickname.\n")
+            nick_embed.add_field(
+                name="Select an account from the list below to be the new server nickname.",
+                value=selection_str,
+                inline=False)
 
-        if not selected_account:
-            return None
+            select_msg = await ctx.send(content=ctx.author.mention,embed=nick_embed)
+
+            selected_account = await multiple_choice_menu_select(ctx,select_msg,selection_list)
+
+            if not selected_account:
+                return None
         
-        new_nickname = [a.name for a in accounts if a.tag == selected_account['id']][0]
+        new_nickname = [a.name for a in user_accounts if a.tag == selected_account['id']][0]
 
         new_nickname = new_nickname.replace('[AriX]','')
         new_nickname = new_nickname.strip()

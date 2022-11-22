@@ -25,7 +25,8 @@ from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_select
 from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize
 from aa_resourcecog.notes import aNote
-from aa_resourcecog.file_functions import get_current_season, get_current_alliance, get_alliance_clan, get_alliance_members, get_user_accounts, get_staff_position
+from aa_resourcecog.member_data_functions import get_alliance,members, get_user_profile
+from aa_resourcecog.clan_data_functions import get_alliance_clan
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from aa_resourcecog.clan import aClan
 from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -83,18 +84,27 @@ class AriXMemberCommands(commands.Cog):
         This lets our Leaders know who you are should you visit our clans.
         """
 
-        user_account_tags = await get_user_accounts(ctx,ctx.author.id)
-
-
-        embed = await clash_embed(ctx,message="I will DM you to continue the linking process. Please ensure your DMs are open!")
-        await ctx.send(content=ctx.author.mention,embed=embed)
-
-        embed = await clash_embed(ctx,message="Let's link your non-Member Clash accounts to AriX as Guest accounts. This will let you bring these accounts into our clans.\n\n**Please send any message to continue.**")
-        await ctx.author.send(f"Hello, {ctx.author.mention}!",embed=embed)
-
         def dm_check(m):
             return m.author == ctx.author and m.guild is None
+
+        embed = await clash_embed(ctx,message="I will DM you to continue the linking process. Please ensure your DMs are open!")
+        init_msg = await ctx.send(content=ctx.author.mention,embed=embed)
+
+        try:
+            embed = await clash_embed(ctx,
+                message="Let's link your non-Member Clash accounts to AriX as Guest accounts."
+                    + "This will let you bring these accounts into our clans.\n\n"
+                    + "**Please send any message to continue.**")
+            await ctx.author.send(f"Hello, {ctx.author.mention}!",embed=embed)
+        except Exception as e:
+            embed = await clash_embed(ctx,
+                message="I couldn't DM you to start the linking process. Please ensure your DMs are open.",
+                color='fail')
+
+            await init_msg.edit(content=ctx.author.mention,embed=embed)
+            return
         
+
         try:
             startmsg = await ctx.bot.wait_for("message",timeout=60,check=dm_check)
         except asyncio.TimeoutError:
@@ -102,6 +112,7 @@ class AriXMemberCommands(commands.Cog):
                 message="Sorry, you timed out. Please restart the process by re-using the `register` command from the AriX server.",
                 color='fail')
             return await ctx.author.send(embed=timeout_embed)
+
 
         embed = await clash_embed(ctx,
             message="What is the **Player Tag** of the account you'd like to link?")
@@ -120,9 +131,17 @@ class AriXMemberCommands(commands.Cog):
                 color="fail")
             return await ctx.author.send(embed=embed)
 
-        if new_tag in user_account_tags:
+        try:
+            new_account = aPlayer.create(ctx,new_tag,fetch=True)
+        except Exception as e:
+            return await error_end_processing(ctx,
+                preamble=f"Error encountered while fetching this account.",
+                err=e)
+
+        if new_account.is_member:
             embed = await clash_embed(ctx,
-                message="This account is already registered with AriX!",
+                message="I couldn't register this account as it is already a valid Member Account with AriX!"
+                    + f"\n\nYou tried to register: **{new_account.tag} {new_account.name}**",
                 color="fail")
             return await ctx.author.send(embed=embed)
 
@@ -130,6 +149,7 @@ class AriXMemberCommands(commands.Cog):
             message="Please provide your **in-game API Token.**\n\nTo locate your token, please follow the instructions in the image below.")
         embed.set_image(url='https://i.imgur.com/Q1JwMzK.png')
         await ctx.author.send(embed=embed)
+
         try:
             msg_api_token = await ctx.bot.wait_for("message",timeout=120,check=dm_check)
         except asyncio.TimeoutError:
@@ -138,7 +158,6 @@ class AriXMemberCommands(commands.Cog):
                 color='fail')
             return await ctx.author.send(embed=timeout_embed)
 
-        player_tag = str(msg_player_tag.content)
         api_token = str(msg_api_token.content)
 
         embed = await clash_embed(ctx,
@@ -146,7 +165,7 @@ class AriXMemberCommands(commands.Cog):
         waitmsg = await ctx.author.send(embed=embed)
 
         try:
-            verify = await ctx.bot.coc_client.verify_player_token(player_tag=player_tag,token=api_token)
+            verify = await ctx.bot.coc_client.verify_player_token(player_tag=new_account.tag,token=api_token)
         except Exception as e:
             await waitmsg.delete()
             err_embed = await clash_embed(ctx,message=f"An error occurred while verifying: {e}.",color='fail')
@@ -160,52 +179,25 @@ class AriXMemberCommands(commands.Cog):
             return await ctx.author.send(embed=embed)
         else:
             try:
-                p = await aPlayer.create(ctx,new_tag)
-                await p.retrieve_data()
+                await new_account.new_member(ctx,ctx.author)
             except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while fetching this account.",
-                    err=e)
+                err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
+                await ctx.author.send(embed=err_embed)
+                return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
 
-            if p.is_member:
-                err_embed = await clash_embed(ctx,message=f"The account {p.tag} {p.name} is already an AriX Member!",color='fail')
-                return await ctx.author.send(embed=err_embed)
-            else:
-                async with ctx.bot.async_file_lock:
-                    with ctx.bot.clash_file_lock.write_lock():
-                        try:
-                            await p.new_member(ctx,ctx.author)
-                            await p.set_baselines()
-                            await p.save_to_json()
-                        except Exception as e:
-                            err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
-                            await ctx.author.send(embed=err_embed)
-                            return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
+            player_embed = await clash_embed(ctx,
+                message=f"You've successfully linked the account **{new_account.tag} {new_account.name}** to AriX!",
+                color='success')
 
-                title, text, summary = await resc.player_description(ctx,p)
-
-                player_embed = await clash_embed(ctx,
-                    message=f"The account {p.tag} {p.name} was successfully added as a Guest account!",
-                    color='success')
-
-                return await ctx.send(embed=player_embed)
+            return await ctx.author.send(embed=player_embed)
 
     @commands.command(name="arix")
     async def arix_information(self,ctx):
         """
         Lists all clans in the Alliance.
         """
-        clans, members = await get_current_alliance(ctx)
-        alliance_clans = []
 
-        for tag in clans:
-            try:    
-                c = await aClan.create(ctx,tag)
-            except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving clan {tag}",
-                    err=e)
-            alliance_clans.append(c)
+        alliance_clans = await get_alliance_clan(ctx)
 
         if len(alliance_clans) == 0:
             eEmbed = await clash_embed(ctx=ctx,message=f"There are no clans registered.",color="fail")
@@ -231,7 +223,7 @@ class AriXMemberCommands(commands.Cog):
                     + f"\n\n{c.description}\n\u200b",
                 inline=False)
 
-        await ctx.send(embed=rEmbed)
+        return await ctx.send(embed=rEmbed)
 
     # @commands.command(name="getclan")
     # async def clan_information(self,ctx,tag):
@@ -273,53 +265,70 @@ class AriXMemberCommands(commands.Cog):
         Returns only AriX-registered accounts.
         """
 
+        output_embed = []
+
         if not user:
             user = ctx.author
 
-        user_account_tags = await get_user_accounts(ctx,user.id)
+        discord_member = ctx.bot.alliance_server.get_member(user.id)
 
-        user_accounts = []
-        for tag in user_account_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-            except Exception as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(embed=eEmbed)
-            user_accounts.append(p)
+        if not discord_member:
+            discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
 
-        discord_member = ctx.guild.get_member(user.id)
+        home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
 
-        profile_embed = await clash_embed(ctx,
-            title=f"{discord_member.display_name}",
-            thumbnail=user.avatar_url)
+        profile_msg = ""
 
-        if len(user_accounts) == 0:
-            no_account_embed = await clash_embed(ctx,message="You have no accounts registered with AriX!")
-            return await ctx.send(embed=no_account_embed)
+        for c in home_clans:
+            profile_msg += f"{c.emoji} "
 
-        user_accounts = sorted(user_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
+        profile_msg += "\n\n**Joined AriX (Server)**"
+        profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
-        main_accounts = [a for a in user_accounts if a.is_member]
-        alt_accounts = [a for a in user_accounts if not a.is_member]
+        if discord_member.premium_since:
+            profile_msg += "\n\n**Server Boosting Since**"
+            profile_msg += f"\n<:nitro:1044199686451515523> {discord_member.premium_since.strftime('%d %b %Y')}"
 
-        if len(main_accounts) > 0:
-            for p in main_accounts:
-                title, text, summary = await resc.player_description(ctx,p)
-                profile_embed.add_field(
-                    name=f"**{title}**",
-                    value=f"{text}\n\u200b",
-                    inline=False)
+        member_accounts_embed = await clash_embed(ctx,
+            title=f"AriX Profile: {discord_member.display_name}",
+            message=f"{profile_msg}\n\u200b",
+            thumbnail=discord_member.avatar_url)
 
-        if len(alt_accounts) > 0:
-            alt_str = ""
-            for p in alt_accounts:
-                title, text, summary = await resc.player_description(ctx,p)
-                profile_embed.add_field(
-                    name=f"**{title}**",
-                    value=f"{text}\n\u200b",
-                    inline=False)
 
-        return await ctx.send(embed=profile_embed)
+        other_accounts_embed = await clash_embed(ctx,
+            title=f"AriX Profile: {discord_member.display_name}",
+            message=f"{profile_msg}\n\u200b",
+            thumbnail=discord_member.avatar_url)
+
+
+        for a in [a for a in user_accounts if a.is_member]:
+            member_accounts_embed.add_field(
+                name=f"{a.desc_title}",
+                value=f"{a.desc_full_text}",
+                inline=False)
+
+        for a in [a for a in user_accounts if not a.is_member]:
+            other_accounts_embed.add_field(
+                name=f"{a.desc_title}",
+                value=f"{a.desc_full_text}",
+                inline=False)
+
+        if len([a for a in user_accounts if a.is_member]) > 0:
+            output_embed.append(member_accounts_embed)
+
+        if len([a for a in user_accounts if not a.is_member]) > 0:
+            output_embed.append(other_accounts_embed)
+
+
+        if len(output_embed) > 1:
+            paginator = BotEmbedPaginator(ctx,output_embed)
+            return await paginator.run()
+        elif len(output_embed) == 1:
+            return await ctx.send(embed=output_embed[0])
+        else:
+            return await ctx.send(embed=member_accounts_embed)
+
+
 
     @commands.command(name="player")
     async def arix_player(self,ctx,*player_tags:str):
@@ -331,41 +340,35 @@ class AriXMemberCommands(commands.Cog):
         """
 
         output_embed = []
-
-        if not player_tags:
-            player_tags = await get_user_accounts(ctx,ctx.author.id)
-
         accounts = []
-        error_log = []
-        for tag in player_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                if not p.is_member:
-                    await p.retrieve_data()
-            except TerminateProcessing as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
-            except Exception as e:
-                p = None
-                err_dict = {'tag':tag,'reason':f"Error retrieving data: {e}"}
-                error_log.append(err_dict)
-                continue
-            accounts.append(p)
 
-        accounts = sorted(accounts,key=lambda p:(p.exp_level,p.town_hall.level),reverse=True)
+        if player_tags:
+            for tag in player_tags:
+                try:
+                    p = await aPlayer.create(ctx,tag)
+                except TerminateProcessing as e:
+                    eEmbed = await clash_embed(ctx,message=e,color='fail')
+                    return await ctx.send(eEmbed)
+                except Exception as e:
+                    p = None
+                    err_dict = {'tag':tag,'reason':f"Error retrieving data: {e}"}
+                    error_log.append(err_dict)
+                    continue
+                accounts.append(p)
+
+        else:
+            home_clans, accounts = await get_user_profile(ctx,ctx.author.id)
 
         for a in accounts:
             member_status = ""
             if a.is_member:
                 member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
-            else:
+            elif not player_tags:
                 member_status = f"***AriX Guest Account***\n"
 
             discord_msg = ""
             if a.discord_user:
                 discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_user}>"
-            elif a.discord_link:
-                discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_link}>"
 
             if a.league.name == 'Unranked':
                 league_img = "https://i.imgur.com/TZF5r54.png"
@@ -374,7 +377,7 @@ class AriXMemberCommands(commands.Cog):
 
             pEmbed = await clash_embed(
                 ctx=ctx,
-                title=f"{a.name} ({a.tag})",
+                title=f"**{a.name}** ({a.tag})",
                 message=f"{member_status}"
                     + f"<:Exp:825654249475932170>{a.exp_level}\u3000<:Clan:825654825509322752> {a.clan_description}"
                     + f"{discord_msg}",
@@ -478,6 +481,12 @@ class AriXMemberCommands(commands.Cog):
             await paginator.run()
         elif len(output_embed)==1:
             await ctx.send(embed=output_embed[0])
+        else:
+            no_accounts = await clash_embed(ctx,
+                message="I could not find any Accounts.",
+                color="fail")
+            return await ctx.send(embed=no_accounts)
+
 
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):
@@ -816,19 +825,16 @@ class AriXMemberCommands(commands.Cog):
             await base_image_msg.delete()
             await base_image_response.delete()
 
+        new_base = await eWarBase.new_base(ctx=ctx,
+            base_link=base_link,
+            source=base_source,
+            base_builder=base_builder,
+            base_type=base_type,
+            defensive_cc=defensive_cc,
+            notes=builder_notes,
+            image_attachment=base_image)
 
-        async with ctx.bot.async_eclipse_lock:
-            with ctx.bot.clash_eclipse_lock.write_lock():
-                new_base = await eWarBase.new_base(ctx=ctx,
-                    base_link=base_link,
-                    source=base_source,
-                    base_builder=base_builder,
-                    base_type=base_type,
-                    defensive_cc=defensive_cc,
-                    notes=builder_notes,
-                    image_attachment=base_image)
-
-                await new_base.save_to_json()
+        await new_base.save_to_json()
 
         embed,image = await new_base.base_embed(ctx)
 
