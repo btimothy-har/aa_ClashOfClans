@@ -240,7 +240,7 @@ class aClan():
 
         members = file_json['members']
 
-        clan_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==clan.tag]
+        clan_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==self.tag]
         self.member_count = len(clan_members)
 
         await self.save_to_json(ctx)
