@@ -44,6 +44,7 @@ emotes_builderhall = {
     }
 
 emotes_capitalhall = {
+    0:"<:Capital_Hall1:1038113658145886229>",
     1:"<:Capital_Hall1:1038113658145886229>",
     2:"<:Capital_Hall2:1038113660041711626>",
     3:"<:Capital_Hall3:1038113661811695708>",
