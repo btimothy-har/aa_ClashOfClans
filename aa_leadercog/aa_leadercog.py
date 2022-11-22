@@ -624,7 +624,7 @@ class AriXLeaderCommands(commands.Cog):
 
                 try:
                     reminder_channel_id = re.search('#(.*)>',response_msg.content).group(1)
-                    reminder_channel = ctx.guild.get_channel(int(announcement_channel_id))
+                    reminder_channel = ctx.guild.get_channel(int(reminder_channel_id))
                     await c.set_reminder_channel(ctx,reminder_channel_id.id)
                 except Exception as e:
                     return await error_end_processing(ctx,
