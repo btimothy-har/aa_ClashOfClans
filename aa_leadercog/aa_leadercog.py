@@ -522,8 +522,8 @@ class AriXLeaderCommands(commands.Cog):
                         + f"\nRecruiting: {th_str}"
                         + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
                         + f"\nReminder Channel: <#{c.reminder_channel}>"
-                        + f"\n\nWar Reminders: {toggle_state[c.send_war_reminder]}"
-                        + f"\nRaid Reminders: {toggle_state[c.send_raid_reminder]}\n\u200b")
+                        + f"\n\nWar Reminders: `{toggle_state[c.send_war_reminder]}`"
+                        + f"\nRaid Reminders: `{toggle_state[c.send_raid_reminder]}`\n\u200b")
 
                 announcement_embed.add_field(
                     name="```**What would you like to do today?**```",
@@ -903,7 +903,14 @@ class AriXLeaderCommands(commands.Cog):
                 await ctx.send(embed=c_embed)
             else:
                 try:
+                    previous_home_clan = p.home_clan
                     await p.new_member(ctx,user,target_clan)
+
+                    if previous_home_clan:
+                        previous_home_clan.member_count -= 1
+
+                    target_clan.member_count += 1
+
                 except Exception as e:
                     err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
                     error_log.append(err_dict)
