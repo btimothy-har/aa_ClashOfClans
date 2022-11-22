@@ -1229,27 +1229,40 @@ class AriXLeaderCommands(commands.Cog):
         if len(eligible_ranks) == 1:
             handle_rank = eligible_ranks[0]
 
+            new_rank = handle_rank['rank']
+            if action == 'demote':
+                new_rank = clanRanks[clanRanks.index(handle_rank['rank'])-1]
+            if action == 'promote':
+                new_rank = clanRanks[clanRanks.index(handle_rank['rank'])+1]
+
             confirm_embed = await clash_embed(ctx,
                 title=f"{action.capitalize()} {user.name}#{user.discriminator}",
                 message=f"**Please confirm this action.**"
                     + f"\n\n**{handle_rank['clan'].emoji} {handle_rank['clan'].name}**"
                     + f"\nCurrent Rank: {handle_rank['rank']}"
-                    + f"\nNew Rank: *{clanRanks[clanRanks.index(handle_rank['rank'])+1]}*"
+                    + f"\nNew Rank: *{new_rank}*"
                     + f"\nAccounts: {len(handle_rank['accounts'])}")
 
             confirm = await ctx.send(content=ctx.author.mention,embed=confirm_embed)
             if not await user_confirmation(ctx,confirm):
+                await confirm.delete()
                 return
+            await confirm.delete()
 
         if len(eligible_ranks) > 1:
             selection_list = ""
             selection_str = ""
             for i in eligible_ranks:
+                new_rank = handle_rank['rank']
+                if action == 'demote':
+                    new_rank = clanRanks[clanRanks.index(handle_rank['rank'])-1]
+                if action == 'promote':
+                    new_rank = clanRanks[clanRanks.index(handle_rank['rank'])+1]
                 d = {
                     'id': i['clan'].tag,
                     'title': i['clan'].desc_title,
                     'emoji': i['emoji'],
-                    'description': f"Current Rank: {i['rank']}\u3000New Rank: {clanRanks[clanRanks.index(i['rank'])+1]}\nAccounts: {len(i['accounts'])}"
+                    'description': f"Current Rank: {i['rank']}\u3000New Rank: {new_rank}\nAccounts: {len(i['accounts'])}"
                     }
                 selection_list.append(d)
                 selection_str += f"{d['emoji']} **{d['title']}**\n{d['description']}"
@@ -1268,9 +1281,14 @@ class AriXLeaderCommands(commands.Cog):
             selected_clan = await multiple_choice_menu_select(ctx,select,selection_list)
 
             if not selected_clan:
+                end_embed = await clash_embed(ctx,
+                    message="Task cancelled.",color='fail')
+                await select.edit(embed=end_embed)
                 return None
 
             handle_rank = [i for i in eligible_ranks if i['clan'].tag == selected_clan['id']][0]
+
+            await select.delete()
 
         rank_clan = handle_rank['clan']
 
@@ -1294,6 +1312,7 @@ class AriXLeaderCommands(commands.Cog):
         result_embed = await clash_embed(ctx,
             message=f"{user.mention} is now a **{new_rank}** in {rank_clan.emoji} **{rank_clan.desc_title}**.",
             color='success')
+
 
         return await ctx.send(embed=result_embed)
 
