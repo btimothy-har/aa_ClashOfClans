@@ -7,7 +7,7 @@ from itertools import chain
 
 from coc.ext import discordlinks
 
-from .constants import emotes_townhall, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
+from .constants import emotes_townhall, emotes_builderhall, emotes_capitalhall, emotes_league, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
 from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
 
 from .notes import aNote
