@@ -384,7 +384,7 @@ class AriXClashDataMgr(commands.Cog):
             if c.reminder_channel:
                 clan_reminder_channel = ctx.bot.alliance_server.get_channel(c.reminder_channel)
 
-            await c.update_clan_war()
+            await c.update_clan_war(ctx)
 
             if c.war_state_change:
                 detected_war_change = True
@@ -437,7 +437,7 @@ class AriXClashDataMgr(commands.Cog):
                     await clan_reminder_channel.send(ping_str)
 
 
-            await c.update_raid_weekend()
+            await c.update_raid_weekend(ctx)
 
             if c.raid_state_change:
                 detected_raid_change = True
