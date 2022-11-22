@@ -84,7 +84,7 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None):
     if new_data:
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
-                with open(alliancefile,'r+') as file:
+                with open(alliance_file,'r+') as file:
                     file_json = json.load(file)
                     file_json[entry_type][tag] = new_data
                     file.seek(0)
@@ -92,7 +92,7 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None):
                     file.truncate()
     else:
         with ctx.bot.clash_file_lock.read_lock():
-            with open(alliancefile,'r') as file:
+            with open(alliance_file,'r') as file:
                 file_json = json.load(file)
     try:
         rJson = file_json[entry_type][tag]
@@ -141,7 +141,7 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
     if base_json:
         async with ctx.bot.async_eclipse_lock:
             with ctx.bot.clash_eclipse_lock.write_lock():
-                with open(ctx.bot.eclipse_path+'/warbases.json','r+') as file:
+                with open(eclipse_base_file,'r+') as file:
                     file_json = json.load(file)
                     file_json[base_json['id']] = base_json
                     file.seek(0)
@@ -149,7 +149,7 @@ async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
                     file.truncate()
     else:
         with ctx.bot.clash_eclipse_lock.read_lock():
-            with open(ctx.bot.eclipse_path+'/warbases.json','r') as file:
+            with open(eclipse_base_file,'r') as file:
                 file_json = json.load(file)
 
     if base_town_hall:
