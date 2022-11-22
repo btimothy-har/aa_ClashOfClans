@@ -759,6 +759,8 @@ class AriXLeaderCommands(commands.Cog):
         To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `member add @user S`).
         """
 
+        return await ctx.send(silent_mode)
+
         def response_check(m):
             msg_check = False
             tag_check = False
@@ -927,7 +929,7 @@ class AriXLeaderCommands(commands.Cog):
             error_embed = await clash_embed(ctx=ctx,title=f"Errors Encountered",message=error_str)
             await ctx.send(embed=error_embed)
 
-        if added_count >0 and not silent_mode:
+        if not silent_mode and added_count >0:
             intro_embed = await resc.get_welcome_embed(ctx,user)
 
             try:
