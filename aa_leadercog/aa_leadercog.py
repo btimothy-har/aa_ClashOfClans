@@ -578,8 +578,8 @@ class AriXLeaderCommands(commands.Cog):
                 townhalls = response_msg.content.split()
                 await c.set_recruitment_level(ctx,townhalls)
                 th_str = ""
-                for int(th) in c.recruitment_level:
-                    th_str += emotes_townhall[th]
+                for th in c.recruitment_level:
+                    th_str += emotes_townhall[int(th)]
                 state_text = f"**{c.emoji} **{c.name}** is now recruiting for {th_str}.**"
                 response = 'menu'
 
