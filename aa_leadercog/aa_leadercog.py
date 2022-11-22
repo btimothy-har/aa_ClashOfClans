@@ -782,7 +782,7 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if silent_mode_param:
+        if silent_mode_param.lower() == "s":
             silent_mode = True
 
         alliance_clans = await get_alliance_clan(ctx)
@@ -814,7 +814,10 @@ class AriXLeaderCommands(commands.Cog):
             await ask_tags_msg.edit(embed=cancel_embed)
             return
 
-        player_tags = player_tags_reply.content.split()
+        input_tags = player_tags_reply.content.split()
+        player_tags = []
+        [player_tags.append(x) for x in input_tags if x not in player_tags]
+
         await ask_tags_msg.delete()
         await player_tags_reply.delete()
 
