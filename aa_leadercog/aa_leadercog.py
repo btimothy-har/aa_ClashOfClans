@@ -518,12 +518,12 @@ class AriXLeaderCommands(commands.Cog):
                 announcement_embed = await clash_embed(ctx,
                     title=f"Clan Settings: {c.emoji} {c.desc_title}",
                     message=f"\n**{state_text}**"
-                        + f"\n\n**Emoji:** {c.emoji}"
-                        + f"\n**Recruiting:** {th_str}"
-                        + f"\n\n**Announcement Channel:** <#{c.announcement_channel}>"
-                        + f"\n**Reminder Channel:** <#{c.reminder_channel}>"
-                        + f"\n\n**War Reminders:** {toggle_state[c.send_war_reminder]}"
-                        + f"\n**Raid Reminders:** {toggle_state[c.send_raid_reminder]}")
+                        + f"\n\nEmoji: {c.emoji}"
+                        + f"\nRecruiting: {th_str}"
+                        + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
+                        + f"\nReminder Channel: <#{c.reminder_channel}>"
+                        + f"\n\nWar Reminders: {toggle_state[c.send_war_reminder]}"
+                        + f"\nRaid Reminders: {toggle_state[c.send_raid_reminder]}")
 
                 announcement_embed.add_field(
                     name="**What would you like to do today?**",
@@ -545,6 +545,7 @@ class AriXLeaderCommands(commands.Cog):
                     response = None
 
             if response in ['emoji']:
+                await message.clear_reactions()
                 emoji_embed = await clash_embed(ctx,message=f"Please provide the new Emoji for **{c.name}**.")
                 await message.edit(content=ctx.author.mention,embed=emoji_embed)
 
@@ -561,6 +562,7 @@ class AriXLeaderCommands(commands.Cog):
 
 
             if response in ['recruit']:
+                await message.clear_reactions()
                 rectownhall_embed = await clash_embed(ctx,
                     message=f"Please provide the Townhall Levels that {c.emoji} **{c.name}** will be recruiting for."
                         + "\n\nYou can separate multiple Townhall Levels with spaces.")
@@ -583,6 +585,7 @@ class AriXLeaderCommands(commands.Cog):
 
 
             if response in ['announcement_channel']:
+                await message.clear_reactions()
                 announcement_ch_embed = await clash_embed(ctx,message=f"Please specify the Announcement Channel for **{c.emoji} {c.name}**.")
                 await message.edit(content=ctx.author.mention,embed=announcement_ch_embed)
 
@@ -608,6 +611,7 @@ class AriXLeaderCommands(commands.Cog):
 
 
             if response in ['reminder_channel']:
+                await message.clear_reactions()
                 reminder_ch_embed = await clash_embed(ctx,message=f"Please specify the Reminder Channel for **{c.emoji} {c.name}**.")
                 await message.edit(content=ctx.author.mention,embed=reminder_ch_embed)
 
@@ -633,11 +637,13 @@ class AriXLeaderCommands(commands.Cog):
 
 
             if response in ['war_reminder']:
+                await message.clear_reactions()
                 await c.toggle_war_reminders(ctx)
                 state_text = f"War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
                 response = 'menu'
 
             if response in ['raid_reminder']:
+                await message.clear_reactions()
                 await c.toggle_raid_reminders(ctx)
                 state_text = f"Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
                 response = 'menu'
@@ -662,6 +668,7 @@ class AriXLeaderCommands(commands.Cog):
 
         if message:
             await message.edit(embed=ended_embed)
+            await message.clear_reactions()
         else:
             await ctx.send(embed=ended_embed)
 
