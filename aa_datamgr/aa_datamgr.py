@@ -305,19 +305,18 @@ class AriXClashDataMgr(commands.Cog):
 
         ## MEMBER UPDATE
         for mtag in member_keys:
-            try:
-                p = await aPlayer.create(ctx,mtag,fetch=True)
-            except TerminateProcessing as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                eEmbed.set_footer(
-                    text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-                    icon_url="https://i.imgur.com/TZF5r54.png")
-                return await log_channel.send(eEmbed)
-            except Exception as e:
-                p = None
-                err_dict = {'tag':f'm{mtag}','reason':e}
-                err_log.append(err_dict)
-                continue
+            p = await aPlayer.create(ctx,mtag,fetch=True)
+            # except TerminateProcessing as e:
+            #     eEmbed = await clash_embed(ctx,message=e,color='fail')
+            #     eEmbed.set_footer(
+            #         text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
+            #         icon_url="https://i.imgur.com/TZF5r54.png")
+            #     return await log_channel.send(eEmbed)
+            # except Exception as e:
+            #     p = None
+            #     err_dict = {'tag':f'm{mtag}','reason':e}
+            #     err_log.append(err_dict)
+            #     continue
 
             if p.is_member:
                 alliance_members.append(p)
