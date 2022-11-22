@@ -821,7 +821,6 @@ class AriXLeaderCommands(commands.Cog):
             clan_selection = []
             clan_selection_str = ""
             for c in alliance_clans:
-                await c.update_member_count()
                 th_str = ""
                 for th in c.recruitment_level:
                     th_str += f"{emotes_townhall[th]} "
