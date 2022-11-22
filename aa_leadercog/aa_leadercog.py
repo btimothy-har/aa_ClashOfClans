@@ -517,7 +517,7 @@ class AriXLeaderCommands(commands.Cog):
 
                 announcement_embed = await clash_embed(ctx,
                     title=f"Clan Settings: {c.emoji} {c.desc_title}",
-                    message=f"\n**{state_text}**"
+                    message=f"\n{state_text}"
                         + f"\n\nEmoji: {c.emoji}"
                         + f"\nRecruiting: {th_str}"
                         + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
@@ -557,7 +557,7 @@ class AriXLeaderCommands(commands.Cog):
                     return
 
                 await c.set_emoji(ctx,response_msg.content)
-                state_text = f"The emoji for **{c.name}** is now {c.emoji}."
+                state_text = f"**The emoji for **{c.name}** is now {c.emoji}.**"
                 response = 'menu'
 
 
@@ -580,7 +580,7 @@ class AriXLeaderCommands(commands.Cog):
                 th_str = ""
                 for th in c.recruitment_level:
                     th_str += emotes_townhall[th]
-                state_text = f"{c.emoji} **{c.name}** is now recruiting for {th_str}."
+                state_text = f"**{c.emoji} **{c.name}** is now recruiting for {th_str}.**"
                 response = 'menu'
 
 
@@ -606,7 +606,7 @@ class AriXLeaderCommands(commands.Cog):
                         err=e)
                 else:
                     await response_msg.delete()
-                    state_text = f"The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>."
+                    state_text = f"**The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>.**"
                     response = 'menu'
 
 
@@ -632,20 +632,20 @@ class AriXLeaderCommands(commands.Cog):
                         err=e)
                 else:
                     await response_msg.delete()
-                    state_text = f"The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel_id.id}>."
+                    state_text = f"**The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel_id.id}>.**"
                     response = 'menu'
 
 
             if response in ['war_reminder']:
                 await message.clear_reactions()
                 await c.toggle_war_reminders(ctx)
-                state_text = f"War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
+                state_text = f"**War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}.**"
                 response = 'menu'
 
             if response in ['raid_reminder']:
                 await message.clear_reactions()
                 await c.toggle_raid_reminders(ctx)
-                state_text = f"Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
+                state_text = f"**Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}.**"
                 response = 'menu'
 
 
