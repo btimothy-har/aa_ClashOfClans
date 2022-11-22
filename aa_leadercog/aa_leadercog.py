@@ -523,10 +523,10 @@ class AriXLeaderCommands(commands.Cog):
                         + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
                         + f"\nReminder Channel: <#{c.reminder_channel}>"
                         + f"\n\nWar Reminders: {toggle_state[c.send_war_reminder]}"
-                        + f"\nRaid Reminders: {toggle_state[c.send_raid_reminder]}")
+                        + f"\nRaid Reminders: {toggle_state[c.send_raid_reminder]}\n\u200b")
 
                 announcement_embed.add_field(
-                    name="**What would you like to do today?**",
+                    name="```**What would you like to do today?**```",
                     value=f"\u200b\n{select_str}\n\n*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
                     inline=False
                     )
