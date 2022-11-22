@@ -315,7 +315,7 @@ class aPlayer():
                 self.desc_full_text += "\n"
 
             self.desc_full_text += (
-                + f"<:Exp:825654249475932170> {self.exp_level}\u3000<:Clan:825654825509322752> {self.clan_description}"
+                f"<:Exp:825654249475932170> {self.exp_level}\u3000<:Clan:825654825509322752> {self.clan_description}"
                 + f"\n{self.town_hall.emote} {self.town_hall.description}\u3000{emotes_league[self.league.name]} {self.trophies} (best: {self.best_trophies})"
                 + f"\n{self.hero_description}"
                 + f"\n[Player Link: {self.tag}]({self.share_link})")
