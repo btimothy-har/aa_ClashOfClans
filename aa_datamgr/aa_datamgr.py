@@ -356,7 +356,7 @@ class AriXClashDataMgr(commands.Cog):
                         }
 
 
-        for ctag in clans:
+        for ctag in clan_keys:
             war_reminder = False
             war_member_count = 0
             raid_member_count = 0
