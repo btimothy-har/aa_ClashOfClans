@@ -36,7 +36,13 @@ class AriXClashResources(commands.Cog):
 
     def __init__(self):
         self.config = Config.get_conf(self,identifier=4654586202897940,force_registration=True)
-        default_global = {}
+        default_global = {
+            "alliance_server": 0,
+            "alliance_leader_role": 0,
+            "alliance_coleader_role": 0,
+            "alliance_elder_role": 0,
+            "alliance_member_role": 0,
+            }
         default_guild = {}
         defaults_user = {}
         self.config.register_global(**default_global)
