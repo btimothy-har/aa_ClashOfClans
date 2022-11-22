@@ -750,7 +750,7 @@ class AriXLeaderCommands(commands.Cog):
             pass
 
     @member_manage.command(name="add")
-    async def member_manage_add(self,ctx,user:discord.User, silent_mode=None):
+    async def member_manage_add(self,ctx,user:discord.User, silent_mode_param=None):
         """
         Add a member to the Alliance.
 
@@ -758,14 +758,6 @@ class AriXLeaderCommands(commands.Cog):
 
         To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `member add @user S`).
         """
-
-        await ctx.send(silent_mode)
-
-        if silent_mode:
-            await ctx.send("on silent")
-        else:
-            await ctx.send("na")
-        return
 
         def response_check(m):
             msg_check = False
@@ -790,7 +782,7 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if silent_mode:
+        if silent_mode_param:
             silent_mode = True
 
         alliance_clans = await get_alliance_clan(ctx)
