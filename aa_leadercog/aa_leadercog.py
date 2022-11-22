@@ -308,7 +308,7 @@ class AriXLeaderCommands(commands.Cog):
             title=f"Remove Clan: **{c.emoji} {c.desc_title}**",
             message=f"Leader: <@{c.leader}>\u3000Abbreviation: `{c.abbreviation}`"
                 + f"\n\n{c.desc_full_text}"
-                + f"\n\n>>> {c.description}",,
+                + f"\n\n>>> {c.description}",
             thumbnail=c.c.badge.url,
             url=c.c.share_link)
 
