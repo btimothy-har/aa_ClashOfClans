@@ -522,8 +522,8 @@ class AriXLeaderCommands(commands.Cog):
                         + f"\n**Recruiting:** {th_str}"
                         + f"\n\n**Announcement Channel:** <#{c.announcement_channel}>"
                         + f"\n**Reminder Channel:** <#{c.reminder_channel}>"
-                        + f"\n\n**War Reminders:** {state_text[c.send_war_reminder]}"
-                        + f"\n**Raid Reminders:** {state_text[c.send_raid_reminder]}")
+                        + f"\n\n**War Reminders:** {toggle_state[c.send_war_reminder]}"
+                        + f"\n**Raid Reminders:** {toggle_state[c.send_raid_reminder]}")
 
                 announcement_embed.add_field(
                     name="**What would you like to do today?**",
