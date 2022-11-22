@@ -279,7 +279,7 @@ class AriXLeaderCommands(commands.Cog):
             member_role=member_role)
 
         final_embed = await clash_embed(ctx=ctx,
-            title=f"Clan Sucessfully Added: **{c.emoji} {c_title}**",
+            title=f"Clan Sucessfully Added: **{c.emoji} {c.desc_title}**",
             message=f"Leader: {leader.mention}\u3000Abbreviation: `{c.abbreviation}`"
                 + f"\n\n{c_text}"
                 + f"\n\n>>> {c.description}",
