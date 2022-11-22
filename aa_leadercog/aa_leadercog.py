@@ -759,7 +759,13 @@ class AriXLeaderCommands(commands.Cog):
         To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `member add @user S`).
         """
 
-        return await ctx.send(silent_mode)
+        await ctx.send(silent_mode)
+
+        if silent_mode:
+            await ctx.send("on silent")
+        else:
+            await ctx.send('na')
+        return
 
         def response_check(m):
             msg_check = False
