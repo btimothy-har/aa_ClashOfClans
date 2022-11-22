@@ -508,150 +508,150 @@ class AriXLeaderCommands(commands.Cog):
         state_text = ""
 
         while task_state:
-            try:
-                if response in ['start','menu']:
+            #try:
+            if response in ['start','menu']:
 
-                    th_str = ''
-                    for th in c.recruitment_level:
-                        th_str += emotes_townhall[th]
+                th_str = ''
+                for th in c.recruitment_level:
+                    th_str += emotes_townhall[th]
 
-                    announcement_embed = await clash_embed(ctx,
-                        title=f"Clan Settings: {c.emoji} {c.desc_title}",
-                        message=f"\n**{state_text}**"
-                            + f"\n\n**Emoji:** {c.emoji}"
-                            + f"\n**Recruiting:** {th_str}"
-                            + f"\n\n**Announcement Channel:** <#{c.announcement_channel}>"
-                            + f"\n**Reminder Channel:** <#{c.reminder_channel}>"
-                            + f"\n\n**War Reminders:** {state_text[c.send_war_reminder]}"
-                            + f"\n**Raid Reminders:** {state_text[c.send_raid_reminder]}")
+                announcement_embed = await clash_embed(ctx,
+                    title=f"Clan Settings: {c.emoji} {c.desc_title}",
+                    message=f"\n**{state_text}**"
+                        + f"\n\n**Emoji:** {c.emoji}"
+                        + f"\n**Recruiting:** {th_str}"
+                        + f"\n\n**Announcement Channel:** <#{c.announcement_channel}>"
+                        + f"\n**Reminder Channel:** <#{c.reminder_channel}>"
+                        + f"\n\n**War Reminders:** {state_text[c.send_war_reminder]}"
+                        + f"\n**Raid Reminders:** {state_text[c.send_raid_reminder]}")
 
-                    announcement_embed.add_field(
-                        name="**What would you like to do today?**",
-                        value=f"\u200b\n{select_str}\n\n*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
-                        inline=False
-                        )
+                announcement_embed.add_field(
+                    name="**What would you like to do today?**",
+                    value=f"\u200b\n{select_str}\n\n*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
+                    inline=False
+                    )
 
-                    if message:
-                        await message.edit(content=ctx.author.mention,embed=announcement_embed)
-                    else:
-                        message = await ctx.send(content=ctx.author.mention,embed=announcement_embed)
-
-                    await message.clear_reactions()
-                    selection = await multiple_choice_menu_select(ctx,message,menu_dict,timeout=60)
-
-                    if selection:
-                        response = selection['id']
-                    else:
-                        response = None
-
-                if response in ['emoji']:
-                    emoji_embed = await clash_embed(ctx,message=f"Please provide the new Emoji for **{c.name}**.")
-                    await message.edit(content=ctx.author.mention,embed=emoji_embed)
-
-                    try:
-                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-                    except asyncio.TimeoutError:
-                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
-                        await message.edit(embed=end_embed)
-                        return
-
-                    await c.set_emoji(ctx,response_msg.content)
-                    state_text = f"The emoji for **{c.name}** is now {c.emoji}."
-                    response = 'menu'
-
-
-                if response in ['recruit']:
-                    rectownhall_embed = await clash_embed(ctx,
-                        message=f"Please provide the Townhall Levels that {c.emoji} **{c.name}** will be recruiting for."
-                            + "\n\nYou can separate multiple Townhall Levels with spaces.")
-                    await message.edit(content=ctx.author.mention,embed=rectownhall_embed)
-
-                    try:
-                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=townhall_check)
-                    except asyncio.TimeoutError:
-                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
-                        await message.edit(embed=end_embed)
-                        return
-
-                    townhalls = response_msg.content.split()
-                    await c.set_recruitment_level(ctx,townhalls)
-                    th_str = ""
-                    for th in c.recruitment_level:
-                        th_str += emotes_townhall[th]
-                    state_text = f"{c.emoji} **{c.name}** is now recruiting for {th_str}."
-                    response = 'menu'
-
-
-                if response in ['announcement_channel']:
-                    announcement_ch_embed = await clash_embed(ctx,message=f"Please specify the Announcement Channel for **{c.emoji} {c.name}**.")
-                    await message.edit(content=ctx.author.mention,embed=announcement_ch_embed)
-
-                    try:
-                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-                    except asyncio.TimeoutError:
-                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
-                        await message.edit(embed=end_embed)
-                        return
-
-                    try:
-                        announcement_channel_id = re.search('#(.*)>',response_msg.content).group(1)
-                        announcement_channel = ctx.guild.get_channel(int(announcement_channel_id))
-                        await c.set_announcement_channel(ctx,announcement_channel.id)
-                    except Exception as e:
-                        return await error_end_processing(ctx,
-                            preamble=f"Error encountered when setting Announcement channel",
-                            err=e)
-                    else:
-                        await response_msg.delete()
-                        state_text = f"The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>."
-                        response = 'menu'
-
-
-                if response in ['reminder_channel']:
-                    reminder_ch_embed = await clash_embed(ctx,message=f"Please specify the Reminder Channel for **{c.emoji} {c.name}**.")
-                    await message.edit(content=ctx.author.mention,embed=reminder_ch_embed)
-
-                    try:
-                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
-                    except asyncio.TimeoutError:
-                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
-                        await message.edit(embed=end_embed)
-                        return
-
-                    try:
-                        reminder_channel_id = re.search('#(.*)>',response_msg.content).group(1)
-                        reminder_channel = ctx.guild.get_channel(int(announcement_channel_id))
-                        await c.set_reminder_channel(ctx,reminder_channel_id.id)
-                    except Exception as e:
-                        return await error_end_processing(ctx,
-                            preamble=f"Error encountered when setting Reminder channel",
-                            err=e)
-                    else:
-                        await response_msg.delete()
-                        state_text = f"The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel_id.id}>."
-                        response = 'menu'
-
-
-                if response in ['war_reminder']:
-                    await c.toggle_war_reminders(ctx)
-                    state_text = f"War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
-                    response = 'menu'
-
-                if response in ['raid_reminder']:
-                    await c.toggle_raid_reminders(ctx)
-                    state_text = f"Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
-                    response = 'menu'
-
-
-            except Exception as e:
-                err_embed = await clash_embed(ctx,
-                    message=f"Error encountered while changing settings: {e}.",
-                    color="fail")
                 if message:
-                    await message.edit(embed=err_embed)
+                    await message.edit(content=ctx.author.mention,embed=announcement_embed)
                 else:
-                    await ctx.send(embed=err_embed)
-                response = None
+                    message = await ctx.send(content=ctx.author.mention,embed=announcement_embed)
+
+                await message.clear_reactions()
+                selection = await multiple_choice_menu_select(ctx,message,menu_dict,timeout=60)
+
+                if selection:
+                    response = selection['id']
+                else:
+                    response = None
+
+            if response in ['emoji']:
+                emoji_embed = await clash_embed(ctx,message=f"Please provide the new Emoji for **{c.name}**.")
+                await message.edit(content=ctx.author.mention,embed=emoji_embed)
+
+                try:
+                    response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                except asyncio.TimeoutError:
+                    end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                    await message.edit(embed=end_embed)
+                    return
+
+                await c.set_emoji(ctx,response_msg.content)
+                state_text = f"The emoji for **{c.name}** is now {c.emoji}."
+                response = 'menu'
+
+
+            if response in ['recruit']:
+                rectownhall_embed = await clash_embed(ctx,
+                    message=f"Please provide the Townhall Levels that {c.emoji} **{c.name}** will be recruiting for."
+                        + "\n\nYou can separate multiple Townhall Levels with spaces.")
+                await message.edit(content=ctx.author.mention,embed=rectownhall_embed)
+
+                try:
+                    response_msg = await ctx.bot.wait_for("message",timeout=60,check=townhall_check)
+                except asyncio.TimeoutError:
+                    end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                    await message.edit(embed=end_embed)
+                    return
+
+                townhalls = response_msg.content.split()
+                await c.set_recruitment_level(ctx,townhalls)
+                th_str = ""
+                for th in c.recruitment_level:
+                    th_str += emotes_townhall[th]
+                state_text = f"{c.emoji} **{c.name}** is now recruiting for {th_str}."
+                response = 'menu'
+
+
+            if response in ['announcement_channel']:
+                announcement_ch_embed = await clash_embed(ctx,message=f"Please specify the Announcement Channel for **{c.emoji} {c.name}**.")
+                await message.edit(content=ctx.author.mention,embed=announcement_ch_embed)
+
+                try:
+                    response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                except asyncio.TimeoutError:
+                    end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                    await message.edit(embed=end_embed)
+                    return
+
+                try:
+                    announcement_channel_id = re.search('#(.*)>',response_msg.content).group(1)
+                    announcement_channel = ctx.guild.get_channel(int(announcement_channel_id))
+                    await c.set_announcement_channel(ctx,announcement_channel.id)
+                except Exception as e:
+                    return await error_end_processing(ctx,
+                        preamble=f"Error encountered when setting Announcement channel",
+                        err=e)
+                else:
+                    await response_msg.delete()
+                    state_text = f"The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>."
+                    response = 'menu'
+
+
+            if response in ['reminder_channel']:
+                reminder_ch_embed = await clash_embed(ctx,message=f"Please specify the Reminder Channel for **{c.emoji} {c.name}**.")
+                await message.edit(content=ctx.author.mention,embed=reminder_ch_embed)
+
+                try:
+                    response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                except asyncio.TimeoutError:
+                    end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                    await message.edit(embed=end_embed)
+                    return
+
+                try:
+                    reminder_channel_id = re.search('#(.*)>',response_msg.content).group(1)
+                    reminder_channel = ctx.guild.get_channel(int(announcement_channel_id))
+                    await c.set_reminder_channel(ctx,reminder_channel_id.id)
+                except Exception as e:
+                    return await error_end_processing(ctx,
+                        preamble=f"Error encountered when setting Reminder channel",
+                        err=e)
+                else:
+                    await response_msg.delete()
+                    state_text = f"The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel_id.id}>."
+                    response = 'menu'
+
+
+            if response in ['war_reminder']:
+                await c.toggle_war_reminders(ctx)
+                state_text = f"War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
+                response = 'menu'
+
+            if response in ['raid_reminder']:
+                await c.toggle_raid_reminders(ctx)
+                state_text = f"Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}."
+                response = 'menu'
+
+
+            # except Exception as e:
+            #     err_embed = await clash_embed(ctx,
+            #         message=f"Error encountered while changing settings: {e}.",
+            #         color="fail")
+            #     if message:
+            #         await message.edit(embed=err_embed)
+            #     else:
+            #         await ctx.send(embed=err_embed)
+            #     response = None
 
             if not response:
                 task_state = False
