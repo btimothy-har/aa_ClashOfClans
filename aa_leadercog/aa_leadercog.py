@@ -420,7 +420,7 @@ class AriXLeaderCommands(commands.Cog):
                     msg_check = True
 
             if msg_check:
-                townhall_out_of_range = [th for th in m.content.split() if th not in range(1,16)]
+                townhall_out_of_range = [int(th) for int(th) in m.content.split() if int(th) not in range(1,16)]
                 if len(townhall_out_of_range) == 0:
                     all_check = True
             return all_check
@@ -578,7 +578,7 @@ class AriXLeaderCommands(commands.Cog):
                 townhalls = response_msg.content.split()
                 await c.set_recruitment_level(ctx,townhalls)
                 th_str = ""
-                for th in c.recruitment_level:
+                for int(th) in c.recruitment_level:
                     th_str += emotes_townhall[th]
                 state_text = f"**{c.emoji} **{c.name}** is now recruiting for {th_str}.**"
                 response = 'menu'

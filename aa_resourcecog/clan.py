@@ -402,9 +402,9 @@ class aClan():
 
     async def set_recruitment_level(self,ctx,th_levels:list):
         self.recruitment_level = []
-        for th in th_levels:
-            if th not in self.recruitment_level:
-                self.recruitment_level.append(th)
+        for int(th) in th_levels:
+            if int(th) not in self.recruitment_level:
+                self.recruitment_level.append(int(th))
         await self.save_to_json(ctx)
 
     async def set_announcement_channel(self,ctx,channel_id):
