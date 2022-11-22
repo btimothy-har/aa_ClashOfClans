@@ -320,13 +320,13 @@ class aPlayer():
                 + f"\n{self.hero_description}"
                 + f"\n[Player Link: {self.tag}]({self.share_link})")
 
-            self.desc_summary_text = f"{p.town_hall.emote} {p.town_hall.description}\u3000"
+            self.desc_summary_text = f"{self.town_hall.emote} {self.town_hall.description}\u3000"
 
             if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
                 self.desc_summary_text += member_description
             else:
-                self.desc_summary_text += f"<:Clan:825654825509322752> {p.clan_description}"
-            self.desc_summary_text += f"\u3000{emotes_league[p.league.name]} {p.trophies}"
+                self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
+            self.desc_summary_text += f"\u3000{emotes_league[self.league.name]} {self.trophies}"
 
             return self
 
