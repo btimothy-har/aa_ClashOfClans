@@ -420,7 +420,7 @@ class AriXLeaderCommands(commands.Cog):
                     msg_check = True
 
             if msg_check:
-                townhall_out_of_range = [int(th) for int(th) in m.content.split() if int(th) not in range(1,16)]
+                townhall_out_of_range = [int(th) for th in m.content.split() if int(th) not in range(1,16)]
                 if len(townhall_out_of_range) == 0:
                     all_check = True
             return all_check

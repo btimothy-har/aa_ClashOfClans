@@ -402,7 +402,7 @@ class aClan():
 
     async def set_recruitment_level(self,ctx,th_levels:list):
         self.recruitment_level = []
-        for int(th) in th_levels:
+        for th in th_levels:
             if int(th) not in self.recruitment_level:
                 self.recruitment_level.append(int(th))
         await self.save_to_json(ctx)
