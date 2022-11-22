@@ -557,7 +557,7 @@ class AriXLeaderCommands(commands.Cog):
                     return
 
                 await c.set_emoji(ctx,response_msg.content)
-                state_text = f"**The emoji for **{c.name}** is now {c.emoji}.**"
+                state_text = f"**The emoji for {c.name} is now {c.emoji}.**"
                 response = 'menu'
 
 
@@ -577,10 +577,11 @@ class AriXLeaderCommands(commands.Cog):
 
                 townhalls = response_msg.content.split()
                 await c.set_recruitment_level(ctx,townhalls)
+                await response_msg.delete()
                 th_str = ""
                 for th in c.recruitment_level:
                     th_str += emotes_townhall[int(th)]
-                state_text = f"**{c.emoji} **{c.name}** is now recruiting for {th_str}.**"
+                state_text = f"**{c.emoji} {c.name} is now recruiting for {th_str}.**"
                 response = 'menu'
 
 
@@ -606,7 +607,7 @@ class AriXLeaderCommands(commands.Cog):
                         err=e)
                 else:
                     await response_msg.delete()
-                    state_text = f"**The Announcement Channel for {c.emoji} **{c.name}** is now <#{announcement_channel.id}>.**"
+                    state_text = f"**The Announcement Channel for {c.emoji} {c.name} is now <#{announcement_channel.id}>.**"
                     response = 'menu'
 
 
@@ -625,27 +626,27 @@ class AriXLeaderCommands(commands.Cog):
                 try:
                     reminder_channel_id = re.search('#(.*)>',response_msg.content).group(1)
                     reminder_channel = ctx.guild.get_channel(int(reminder_channel_id))
-                    await c.set_reminder_channel(ctx,reminder_channel_id.id)
+                    await c.set_reminder_channel(ctx,reminder_channel.id)
                 except Exception as e:
                     return await error_end_processing(ctx,
                         preamble=f"Error encountered when setting Reminder channel",
                         err=e)
                 else:
                     await response_msg.delete()
-                    state_text = f"**The Reminder Channel for {c.emoji} **{c.name}** is now <#{reminder_channel_id.id}>.**"
+                    state_text = f"**The Reminder Channel for {c.emoji} {c.name} is now <#{reminder_channel_id.id}>.**"
                     response = 'menu'
 
 
             if response in ['war_reminder']:
                 await message.clear_reactions()
                 await c.toggle_war_reminders(ctx)
-                state_text = f"**War Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}.**"
+                state_text = f"**War Reminders for {c.emoji} {c.name} is now {toggle_state[c.send_war_reminder]}.**"
                 response = 'menu'
 
             if response in ['raid_reminder']:
                 await message.clear_reactions()
                 await c.toggle_raid_reminders(ctx)
-                state_text = f"**Raid Reminders for {c.emoji} **{c.name}** is now {toggle_state[c.send_war_reminder]}.**"
+                state_text = f"**Raid Reminders for {c.emoji} {c.name} is now {toggle_state[c.send_war_reminder]}.**"
                 response = 'menu'
 
 
