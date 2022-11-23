@@ -868,7 +868,10 @@ class aPlayerWarStats():
         self.missed_attacks = 0
 
         for wID, war in warlog.items():
-            self.missed_attacks += (war.total_attacks - len(war.attacks))
+            if war.result == '':
+                self.missed_attacks += 0
+            else:
+                self.missed_attacks += (war.total_attacks - len(war.attacks))
             for a in war.attacks:
                 self.offense_stars += a.stars
                 self.offense_destruction += a.destruction

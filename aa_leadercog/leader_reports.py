@@ -306,7 +306,7 @@ async def report_war_status(ctx,message,clan):
         war_status_embed = await clash_embed(ctx,
             title=f" {clan.emoji} War Opt-In Status",
             message=f"**Total Opted-In**"
-                + f"\n*In Clan:* {len(opted_in_clan)}\u3000Not In Clan: {len(opted_not_in_clan)}"
+                + f"\n*In Clan:* {len(opted_in_clan)}\u3000*Not In Clan:* {len(opted_not_in_clan)}"
                 + f"{mem_str}")
 
         output_pages.append(war_status_embed)
