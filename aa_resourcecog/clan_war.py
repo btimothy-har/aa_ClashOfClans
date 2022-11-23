@@ -1,6 +1,6 @@
 import time
 
-from .constants import warTypeGrid
+from .constants import warTypeGrid, warResultGrid
 from .notes import aNote
 
 class aClanWar():
@@ -28,7 +28,7 @@ class aClanWar():
 
         self.type = json_data['type']
         self.state = json_data['state']
-        self.result = json_data['result']
+        self.result = warResultGrid[json_data['result']]
         self.size = json_data['size']
         self.attacks_per_member = json_data['attacks_per_member']
         self.start_time = json_data['start_time']
@@ -49,7 +49,7 @@ class aClanWar():
 
         self.type = warTypeGrid[self.w.type]
         self.state = self.w.state
-        self.result = self.w.status
+        self.result = warResultGrid[self.w.status]
         self.size = self.w.team_size
         self.attacks_per_member = self.w.attacks_per_member
         self.start_time = self.w.start_time.time.timestamp()
@@ -315,7 +315,7 @@ class aPlayerWarLog():
         self = aPlayerWarLog()
         self.wID = war_id
         self.type = json_data.get('type','')
-        self.result = json_data.get('result','')
+        self.result = warResultGrid[json_data.get('result','')]
         self.clan = aPlayerWarClan.from_json(json_data['clan'])
         self.opponent = aPlayerWarClan.from_json(json_data['opponent'])
         

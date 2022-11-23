@@ -444,7 +444,7 @@ async def report_unrecognized_members(ctx,message,clan):
             elif m.discord_link:
                 m_str += f"<:Discord:1040423151760314448> <@{m.discord_link}\u3000"
 
-            if m.clan.name != m.home_clan.name:
+            if m.clan.tag != m.home_clan.tag:
                 m_str += f"<:Clan:825654825509322752> {m.clan_description}"
 
             m_str += f"\n> [Open player in-game]({m.share_link})"
@@ -561,15 +561,15 @@ async def report_to_excel(ctx,clan):
         m_data.append(sum([h.level for h in m.heroes if h.name=='Royal Champion']))
 
         hero_completion = round((m.hero_strength/m.max_hero_strength)*100,1)
-        m_data.append(hero_completion)
+        m_data.append(f"{hero_completion}%")
 
         troop_completion = round((m.troop_strength/m.max_troop_strength)*100,1)
         m_data.append(m.troop_strength)
-        m_data.append(troop_completion)
+        m_data.append(f"{troop_completion}%")
 
         spell_completion = round((m.spell_strength/m.max_spell_strength)*100,1)
         m_data.append(m.spell_strength)
-        m_data.append(spell_completion)
+        m_data.append(f"{spell_completion}%")
 
         m_data.append(m.attack_wins.season)
         m_data.append(m.defense_wins.season)
