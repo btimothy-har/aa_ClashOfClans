@@ -1515,6 +1515,8 @@ class AriXLeaderCommands(commands.Cog):
 
         menu_dict = await multiple_choice_menu_generate_emoji(ctx,menu_dict)
 
+        wait_embed = await clash_embed(ctx,message=f"<a:loading:1042769157248262154> Preparing your report... please wait.")
+
         menu_str = ""
         for i in menu_dict:
             menu_str += f"{i['emoji']} **{i['title']}**"
@@ -1557,24 +1559,31 @@ class AriXLeaderCommands(commands.Cog):
                     response = None
 
             if response in ['summary']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 response = await report_member_summary(ctx,message,c)
 
             if response in ['allmembers']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 response = await report_all_members(ctx,message,c)
 
             if response in ['missing']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 response = await report_missing_members(ctx,message,c)
 
             if response in ['unrecognized']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 response = await report_unrecognized_members(ctx,message,c)
 
             if response in ['supertroop']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 response = await report_super_troops(ctx,message,c)
 
             if response in ['warstatus']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 response = await report_war_status(ctx,message,c)
 
             if response in ['excel']:
+                await message.edit(content=ctx.author.mention,embed=wait_embed)
                 rpfile = await report_to_excel(ctx,c)
 
                 rept_embed = await clash_embed(ctx,

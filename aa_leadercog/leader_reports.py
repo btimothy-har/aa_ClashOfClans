@@ -125,7 +125,7 @@ async def report_member_summary(ctx,message,clan):
         user_accounts_townhalls = [a.town_hall.level for a in members if a.discord_user==user]
 
         townhalls_only = []
-        [townhalls_only.append(t) for t in user_accounts_townhalls if t not in townhalls_only]
+        [townhalls_only.append(str(t)) for t in user_accounts_townhalls if t not in townhalls_only]
 
         townhalls_only.sort(reverse=True)
 
