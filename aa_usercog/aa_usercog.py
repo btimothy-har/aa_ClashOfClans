@@ -404,8 +404,10 @@ class AriXMemberCommands(commands.Cog):
             home_village_str = f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})"
             home_village_str +=f"\n**Heroes**\n{a.hero_description}"
 
+            space = "\u3000"
+
             if len(currently_boosting) > 0:
-                home_village_str += f"\n**Currently Boosting**\n{'\u3000'.join(currently_boosting)}"
+                home_village_str += f"\n**Currently Boosting**\n{space.join(currently_boosting)}"
 
             home_village_str += f"\n**Strength**"
             home_village_str += f"\n{base_strength}"
