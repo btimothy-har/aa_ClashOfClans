@@ -405,7 +405,7 @@ class AriXMemberCommands(commands.Cog):
             home_village_str +=f"\n**Heroes**\n{a.hero_description}"
 
             if len(currently_boosting) > 0:
-                home_village_str += f"\n**Currently Boosting\n{' '.join(currently_boosting)}"
+                home_village_str += f"\n**Currently Boosting**\n{'\u3000'.join(currently_boosting)}"
 
             home_village_str += f"\n**Strength**"
             home_village_str += f"\n{base_strength}"
