@@ -293,12 +293,15 @@ async def report_war_status(ctx,message,clan):
         mem_str = ""
 
         for m in chunk:
-            mem_str += f"\n\n{emotes_townhall[m.town_hall.level]} {m.name}"
-            mem_str += f"\n{m.hero_description}"
-            mem_str += f"\n<:TotalWars:827845123596746773> {m.war_stats.wars_participated}\u3000"
+            mem_str += f"\n\n**{emotes_townhall[m.town_hall.level]} {m.name}**"
+            mem_str += f"\n> {m.hero_description}"
+            mem_str += f"\n> <:TotalWars:827845123596746773> {m.war_stats.wars_participated}\u3000"
             mem_str += f"<:WarStars:825756777844178944> {m.war_stats.offense_stars}\u3000"
             mem_str += f"<:Triple:1034033279411687434> {m.war_stats.triples}\u3000"
             mem_str += f"<:MissedHits:825755234412396575> {m.war_stats.missed_attacks}"
+
+            if m.clan.tag != clan.tag:
+                mem_str += f"\n> <:Clan:825654825509322752> {m.clan.name}"
 
         war_status_embed = await clash_embed(ctx,
             title=f" {clan.emoji} War Opt-In Status",
