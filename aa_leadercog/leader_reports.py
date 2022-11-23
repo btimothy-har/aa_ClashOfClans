@@ -22,7 +22,7 @@ from tabulate import tabulate
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
-from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
+from aa_resourcecog.constants import clanRanks, emotes_army, emotes_townhall, emotes_league, emotes_capitalhall
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
