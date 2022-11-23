@@ -242,14 +242,13 @@ async def report_super_troops(ctx,message,clan):
         troop_str = ""
         boost_count = 0
         for m in members:
-            if super_troop in [t.name for t in m.troops]:
+            if super_troop in [t.name for t in m.p.troops]:
                 boost_count += 1
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
                 if m.clan.tag != clan.tag:
                     troop_str += f"(<:Clan:825654825509322752> {m.clan.name})"
 
         await ctx.send(boost_count)
-
         if boost_count > 0:
             try:
                 if len(super_troop_str[page_num]) > 3000:
