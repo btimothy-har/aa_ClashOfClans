@@ -359,7 +359,7 @@ async def report_all_members(ctx,message,clan):
     return response
 
 
-async def report_missing_members(self,ctx,clan):
+async def report_missing_members(ctx,message,clan):
     output_pages = []
 
     members = await get_clan_members(ctx,clan)
@@ -404,7 +404,7 @@ async def report_missing_members(self,ctx,clan):
     return response
 
 
-async def report_unrecognized_members(self,ctx,clan):
+async def report_unrecognized_members(ctx,message,clan):
     output_pages = []
 
     members = await get_clan_members(ctx,clan)
