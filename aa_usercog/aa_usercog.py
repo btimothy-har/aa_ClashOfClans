@@ -12,6 +12,7 @@ import re
 import fasteners
 import urllib
 
+from coc.ext import discordlinks
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
 from discord.utils import get
@@ -276,6 +277,8 @@ class AriXMemberCommands(commands.Cog):
 
         home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
 
+        other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
+
         profile_msg = ""
 
         for c in home_clans:
@@ -310,6 +313,19 @@ class AriXMemberCommands(commands.Cog):
             other_accounts_embed.add_field(
                 name=f"{a.desc_title}",
                 value=f"{a.desc_full_text}",
+                inline=False)
+
+        for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
+            try:
+                p = await aPlayer.create(ctx,a)
+            except Exception as e:
+                return await error_end_processing(ctx,
+                    preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
+                    err=e)
+
+            other_accounts_embed.add_field(
+                name=f"{p.desc_title}",
+                value=f"{p.desc_full_text}",
                 inline=False)
 
         if len([a for a in user_accounts if a.is_member]) > 0:
