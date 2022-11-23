@@ -161,7 +161,7 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
             return ms[0]
 
 
-async def paginate_embed(ctx,output):
+async def paginate_embed(ctx,output,add_instructions=True):
 
     nav_options = []
     nav_str = ""
@@ -183,13 +183,17 @@ async def paginate_embed(ctx,output):
         return await ctx.send(output[0])
 
     if len(output) > 1:
-        for embed in output:
-            embed.set_footer(text=f"(Page {output.index(embed)+1} of {len(output)}) AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
         nav_options.append(prev_dict)
         nav_options.append(next_dict)
 
         nav_str += f"<:to_previous:1041988094943035422> Previous page"
         nav_str += f"<:to_next:1041988114308137010> Next page"
+
+        for embed in output:
+            embed.set_footer(text=f"(Pg {output.index(embed)+1} of {len(output)}) -- AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
+            if add_instructions:
+                embed.add_field(name="**Navigation**",value=nav_str,inline=False)
+
 
     browse_index = 0
     message = 0
