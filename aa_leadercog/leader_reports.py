@@ -248,6 +248,8 @@ async def report_super_troops(ctx,message,clan):
                 if m.clan.tag != clan.tag:
                     troop_str += f"(<:Clan:825654825509322752> {m.clan.name})"
 
+        await ctx.send(boost_count)
+
         if boost_count > 0:
             try:
                 if len(super_troop_str[page_num]) > 3000:
