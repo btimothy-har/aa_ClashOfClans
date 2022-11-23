@@ -188,7 +188,7 @@ async def userprofile_main(ctx,output,accounts):
                     attack_str += f"<:Attack:828103854814003211> {emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%\n"
 
                 if war.best_opponent_attack.order:
-                    attack_str += f"<:Defense:828103708956819467> {emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%"
+                    attack_str += f"<:Defense:828103708956819467> {emotes_townhall[war.best_opponent_attack.attacker_townhall]} vs {emotes_townhall[war.best_opponent_attack.defender_townhall]}\u3000<:WarStars:825756777844178944> {war.best_opponent_attack.stars}\u3000:fire: {war.best_opponent_attack.destruction}%"
 
                 warlog_embed.add_field(
                     name=f"{war.clan.name} vs {war.opponent.name}",
