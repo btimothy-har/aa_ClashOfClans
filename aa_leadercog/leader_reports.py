@@ -243,7 +243,7 @@ async def report_super_troops(ctx,message,clan):
         boost_count = 0
         for m in members:
             if super_troop in [t.name for t in m.p.troops]:
-                t = [t.name for t in m.p.troops][0]
+                t = [t for t in m.p.troops][0]
 
                 boost_count += 1
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
