@@ -302,11 +302,10 @@ class aPlayer():
             self.desc_title = f"{self.name} ({self.tag})"
 
             member_description = ""
-            if self.is_member:
-                if self.arix_rank not in ['Guest','Non-Member']:
-                    member_description = f"***{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}***"
-                elif self.discord_user:
-                    member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
+            if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
+                member_description = f"***{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}***"
+            elif self.discord_user:
+                member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
 
             self.desc_full_text = f"{member_description}"
             if member_description:
