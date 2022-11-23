@@ -23,7 +23,7 @@ from tabulate import tabulate
 from numerize import numerize
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
+from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
@@ -335,14 +335,7 @@ class AriXMemberCommands(commands.Cog):
             output_embed.append(other_accounts_embed)
 
 
-        if len(output_embed) > 1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            return await paginator.run()
-        elif len(output_embed) == 1:
-            return await ctx.send(embed=output_embed[0])
-        else:
-            return await ctx.send(embed=member_accounts_embed)
-
+        await paginate_embed(ctx,output_embed)
 
 
     @commands.command(name="player")

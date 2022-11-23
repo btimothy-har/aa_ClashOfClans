@@ -159,3 +159,67 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
         else:
             ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]
             return ms[0]
+
+
+async def paginate_embed(ctx,output):
+
+    nav_options = []
+    nav_str = ""
+    paginate_state = True
+
+    prev_dict = {
+        'id': 'previous',
+        'emoji': '<:to_previous:1041988094943035422>'
+        }
+    next_dict = {
+        'id': 'next',
+        'emoji': '<:to_next:1041988114308137010>'
+        }
+
+    if len(output) == 0:
+        return
+
+    if len(output) == 1:
+        return await ctx.send(output[0])
+
+    if len(output) > 1:
+        for embed in output:
+            embed.set_footer(text=f"(Page {output.index(embed)+1} of {len(output)}) AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
+        nav_options.append(prev_dict)
+        nav_options.append(next_dict)
+
+        nav_str += f"<:to_previous:1041988094943035422> Previous page"
+        nav_str += f"<:to_next:1041988114308137010> Next page"
+
+    browse_index = 0
+    message = 0
+
+    while paginate_state:
+
+        if browse_index < 0:
+            browse_index = (len(output)-1)
+        if browse_index > (len(output)-1):
+            browse_index = 0
+
+        if message:
+            await message.edit(embed=output[browse_index])
+        else:
+            message = await ctx.send(embed=output[browse_index])
+
+        await message.clear_reactions()
+        selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
+
+        if selection:
+            response = selection['id']
+
+            if response == 'previous':
+                browse_index -= 1
+
+            if response == 'next':
+                browse_index += 1
+        else:
+            response = None
+            paginate_state = False
+
+    await message.clear_reactions()
+    return response
