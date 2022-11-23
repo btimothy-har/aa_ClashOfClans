@@ -249,15 +249,14 @@ async def report_super_troops(ctx,message,clan):
                     troop_str += f"(<:Clan:825654825509322752> {m.clan.name})"
 
         if boost_count > 0:
-            if len(super_troop_str[page_num]) > 3000:
-                page_num += 1
-
             try:
+                if len(super_troop_str[page_num]) > 3000:
+                    page_num += 1
                 super_troop_str[page_num] += troop_title
                 super_troop_str[page_num] += troop_str
             except IndexError:
-                super_troop_str[page_num] = troop_title
-                super_troop_str[page_num] += troop_str
+                t_str = troop_title + troop_str
+                super_troop_str.append(t_str)
 
     page = 0
     for i in super_troop_str:
