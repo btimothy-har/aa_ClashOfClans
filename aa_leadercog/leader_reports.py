@@ -248,9 +248,9 @@ async def report_super_troops(ctx,message,clan):
                 boost_count += 1
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
 
-                if t.cooldown.days > 0:
+                if t.duration.days > 0:
                     troop_str += f"{t.cooldown.days}d"
-                if t.cooldown.hours > 0:
+                if t.duration.hours > 0:
                     troop_str += f"{t.cooldown.minutes}h"
 
                 if m.clan.tag != clan.tag:
