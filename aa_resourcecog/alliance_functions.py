@@ -73,3 +73,28 @@ async def get_alliance_clan(ctx,abbreviation=None):
 
         ret_clans = sorted(ret_clans, key=lambda x:(x.level,x.capital_hall),reverse=True)
         return ret_clans
+
+
+async def get_clan_members(ctx,clan):
+    with ctx.bot.clash_file_lock.read_lock():
+        with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+            file_json = json.load(file)
+
+    members = file_json['members']
+
+    clan_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==clan.tag]
+
+    ret_members = []
+    for tag in clan_members:
+        try:
+            p = await aPlayer.create(ctx,tag)
+        except Exception as e:
+            return await error_end_processing(ctx,
+                preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
+                err=e)
+
+        ret_members.append(p)
+
+    members = sorted(ret_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
+
+    return members

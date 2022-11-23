@@ -22,7 +22,7 @@ class aClan():
         self.tag = tag
 
         self.c = None
-        self.name = None
+        self.name = "No Clan"
 
         #Alliance Attributes
         self.is_alliance_clan = False
