@@ -73,6 +73,12 @@ class AriXClashResources(commands.Cog):
             inline=False)
 
         embed.add_field(
+            name="__System Cache__",
+            value=f"> Players: {len(ctx.bot.member_cache)}"
+                f"\n> Clans: {len(ctx.bot.clan_cache)}",
+            inline=False)
+
+        embed.add_field(
             name="__Data Files__",
             value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                 + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"

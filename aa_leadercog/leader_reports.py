@@ -249,7 +249,7 @@ async def report_super_troops(ctx,message,clan):
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
 
                 if m.clan.tag != clan.tag:
-                    troop_str += f"(<:Clan:825654825509322752> {m.clan.name})"
+                    troop_str += f" (<:Clan:825654825509322752> {m.clan.name})"
 
         if boost_count > 0:
             try:
@@ -279,8 +279,8 @@ async def report_war_status(ctx,message,clan):
     members = await get_clan_members(ctx,clan)
 
     #War Status
-    opted_in_clan = [m for m in members if m.waroptin and m.clan.tag == clan.tag]
-    opted_not_in_clan = [m for m in members if m.waroptin and m.clan.tag != clan.tag]
+    opted_in_clan = [m for m in members if m.war_optin and m.clan.tag == clan.tag]
+    opted_not_in_clan = [m for m in members if m.war_optin and m.clan.tag != clan.tag]
 
     war_opted_in = opted_in_clan + opted_not_in_clan
 

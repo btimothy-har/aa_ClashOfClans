@@ -120,7 +120,7 @@ class aPlayer():
         self.share_link = f"https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=%23{format(self.tag.strip('#'))}"
 
         #if tag already exists in cache, and current within last 5 minutes, use cached information
-        if not fetch and self.p and (time.time() - self.timestamp) < 300:
+        if not fetch and self.p and (time.time() - self.timestamp) < 600:
             return self
 
         else:
@@ -151,7 +151,7 @@ class aPlayer():
             self.trophies = getattr(self.p,'trophies',0)
             self.best_trophies = getattr(self.p,'best_trophies',0)
             self.war_stars = getattr(self.p,'war_stars',0)
-            self.war_optin = getattr(self.p,'war_opted_in',0)
+            self.war_optin = getattr(self.p,'war_opted_in',False)
 
             self.builder_hall = getattr(self.p,'builder_hall',0)
             self.versus_trophies = getattr(self.p,'versus_trophies',0)
@@ -326,7 +326,6 @@ class aPlayer():
                 self.desc_summary_text += member_description
             else:
                 self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
-            self.desc_summary_text += f"\u3000{emotes_league[self.league.name]} {self.trophies}"
 
             return self
 
