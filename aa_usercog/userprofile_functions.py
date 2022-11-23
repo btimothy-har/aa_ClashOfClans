@@ -91,6 +91,7 @@ async def userprofile_main(ctx,output,accounts):
         }
 
     response = 'start'
+    message = None
     userprofile_session = True
     page_index = 0
 
