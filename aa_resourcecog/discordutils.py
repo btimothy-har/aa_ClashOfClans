@@ -187,7 +187,7 @@ async def paginate_embed(ctx,output,add_instructions=True):
         nav_options.append(next_dict)
 
         nav_str += f"<:to_previous:1041988094943035422> Previous page"
-        nav_str += f"<:to_next:1041988114308137010> Next page"
+        nav_str += f"\u3000<:to_next:1041988114308137010> Next page"
 
         for embed in output:
             embed.set_footer(text=f"(Pg {output.index(embed)+1} of {len(output)}) -- AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")

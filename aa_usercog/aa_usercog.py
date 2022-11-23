@@ -399,13 +399,20 @@ class AriXMemberCommands(commands.Cog):
                 base_strength += f"\n<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength} *(rushed: {a.hero_rushed_pct}%)*"
             base_strength += "\n\u200b"
 
+            currently_boosting = [f"{emotes_army[t.name]}" for t in a.p.troops if t.name in coc.SUPER_TROOP_ORDER]
+
+            home_village_str = f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})"
+            home_village_str +=f"\n**Heroes**\n{a.hero_description}"
+
+            if len(currently_boosting) > 0:
+                home_village_str += f"\n**Currently Boosting\n{' '.join(currently_boosting)}"
+
+            home_village_str += f"\n**Strength**"
+            home_village_str += f"\n{base_strength}"
+
             pEmbed.add_field(
                 name="**Home Village**",
-                value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})"
-                    + f"\n**Heroes**"
-                    + f"\n{a.hero_description}"
-                    + f"\n**Strength**"
-                    + f"\n{base_strength}",
+                value=home_village_str,
                 inline=False)
 
             if a.is_member:
