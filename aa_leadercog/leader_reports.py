@@ -232,7 +232,10 @@ async def report_member_summary(ctx,message,clan):
 async def report_super_troops(ctx,message,clan):
 
     page_num = 0
+    output_pages = []
     super_troop_str = []
+
+    members = await get_clan_members(ctx,clan)
 
     for super_troop in coc.SUPER_TROOP_ORDER:
         troop_title = f"\n\n{emotes_army[super_troop]} **{super_troop}**"
@@ -270,6 +273,8 @@ async def report_super_troops(ctx,message,clan):
 
 async def report_war_status(ctx,message,clan):
     output_pages = []
+
+    members = await get_clan_members(ctx,clan)
 
     #War Status
     opted_in_clan = [m for m in members if m.waroptin and m.clan.tag == clan.tag]
