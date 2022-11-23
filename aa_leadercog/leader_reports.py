@@ -243,12 +243,19 @@ async def report_super_troops(ctx,message,clan):
         boost_count = 0
         for m in members:
             if super_troop in [t.name for t in m.p.troops]:
+                t = [t.name for t in m.p.troops][0]
+
                 boost_count += 1
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
+
+                if t.cooldown.days > 0:
+                    troop_str += f"{t.cooldown.days}d"
+                if t.cooldown.hours > 0:
+                    troop_str += f"{t.cooldown.minutes}h"
+
                 if m.clan.tag != clan.tag:
                     troop_str += f"(<:Clan:825654825509322752> {m.clan.name})"
 
-        await ctx.send(boost_count)
         if boost_count > 0:
             try:
                 if len(super_troop_str[page_num]) > 3000:
@@ -258,8 +265,6 @@ async def report_super_troops(ctx,message,clan):
             except IndexError:
                 t_str = troop_title + troop_str
                 super_troop_str.append(t_str)
-
-        await ctx.send(super_troop_str)
 
     page = 0
     for i in super_troop_str:
