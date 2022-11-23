@@ -24,9 +24,10 @@ async def get_user_profile(ctx,user_id):
             try:
                 p = await aPlayer.create(ctx,tag)
             except Exception as e:
-                return await error_end_processing(ctx,
+                await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
                     err=e)
+                return None
 
             user_accounts.append(p)
             if p.home_clan.tag not in [c.tag for c in user_home_clans]:
@@ -67,9 +68,10 @@ async def get_alliance_clan(ctx,abbreviation=None):
                 clan = await aClan.create(ctx,tag)
                 ret_clans.append(clan)
             except Exception as e:
-                return await error_end_processing(ctx,
+                await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
                     err=e)
+                return None
 
         ret_clans = sorted(ret_clans, key=lambda x:(x.level,x.capital_hall),reverse=True)
         return ret_clans
@@ -89,9 +91,10 @@ async def get_clan_members(ctx,clan):
         try:
             p = await aPlayer.create(ctx,tag)
         except Exception as e:
-            return await error_end_processing(ctx,
+            await error_end_processing(ctx,
                 preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
                 err=e)
+            return None
 
         ret_members.append(p)
 

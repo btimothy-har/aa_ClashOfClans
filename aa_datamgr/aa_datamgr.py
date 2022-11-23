@@ -391,16 +391,17 @@ class AriXClashDataMgr(commands.Cog):
             if c.current_war and (c.war_state_change or c.war_state == "inWar"):
                 str_war_update += f"__{c.tag} {c.name}__"
                 if c.war_state_change and c.war_state == 'inWar':
-                    c.war_reminder_tracking == c.war_reminder_intervals
+                    c.war_reminder_tracking = c.war_reminder_intervals
 
                     str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
 
 
                 if c.send_war_reminder and clan_reminder_channel and len(c.war_reminder_tracking) > 0:
-                    next_reminder = c.war_reminder_tracking.pop(0)
+                    next_reminder = c.war_reminder_tracking[0]
 
                     if (c.current_war.end_time - st) <= (next_reminder*3600):
                         war_reminder = True
+                        next_reminder = c.war_reminder_tracking.pop(0)
 
 
                 if c.war_state == 'warEnded':
@@ -445,7 +446,7 @@ class AriXClashDataMgr(commands.Cog):
                 str_raid_update += f"__{c.tag} {c.name}__"
 
                 if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
-                    c.war_reminder_tracking == c.war_reminder_intervals
+                    c.war_reminder_tracking = c.war_reminder_intervals
                     str_raid_update += f"\n**Raid Weekend has begun!**"
 
                     if clan_announcement_channel:
@@ -461,9 +462,10 @@ class AriXClashDataMgr(commands.Cog):
 
 
                 if len(c.raid_reminder_tracking) > 0:
-                    next_reminder = c.raid_reminder_tracking.pop(0)
+                    next_reminder = c.raid_reminder_tracking[0]
 
                     if ((c.current_raid_weekend.end_time - st) <= (next_reminder*3600)):
+                        next_reminder = c.raid_reminder_tracking.pop(0)
 
                         if next_reminder == 24 and clan_announcement_channel:
                             raid_weekend_1day_embed = await clash_embed(ctx,

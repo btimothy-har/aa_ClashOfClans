@@ -22,6 +22,8 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 from numerize import numerize
 
+from .userprofile_functions import userprofile_main
+
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize
@@ -354,15 +356,9 @@ class AriXMemberCommands(commands.Cog):
             for tag in player_tags:
                 try:
                     p = await aPlayer.create(ctx,tag)
-                except TerminateProcessing as e:
+                except Exception as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
                     return await ctx.send(eEmbed)
-                except Exception as e:
-                    p = None
-                    err_dict = {'tag':tag,'reason':f"Error retrieving data: {e}"}
-                    error_log.append(err_dict)
-                    continue
-                accounts.append(p)
 
         else:
             home_clans, accounts = await get_user_profile(ctx,ctx.author.id)
@@ -392,6 +388,9 @@ class AriXMemberCommands(commands.Cog):
                 url=f"{a.share_link}",
                 thumbnail=league_img)
 
+            if len(accounts) > 1:
+                pEmbed.set_footer(text=f"(Ac {accounts.index(a)+1} of {len(accounts)}) -- AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
+
             base_strength = f"<:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength} *(rushed: {a.troop_rushed_pct}%)*"
             if a.town_hall.level >= 5:
                 base_strength += f"\n<:TotalSpellStrength:827730290294259793> {a.spell_strength} / {a.max_spell_strength} *(rushed: {a.spell_rushed_pct}%)*"
@@ -407,7 +406,7 @@ class AriXMemberCommands(commands.Cog):
             space = "\u3000"
 
             if len(currently_boosting) > 0:
-                home_village_str += f"\n**Currently Boosting**\n{space.join(currently_boosting)}"
+                home_village_str += f"\n**Super Troops Active**\n{space.join(currently_boosting)}"
 
             home_village_str += f"\n**Strength**"
             home_village_str += f"\n{base_strength}"
@@ -491,18 +490,25 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**Clan Games**"
                         + f"\n<:ClanGames:834063648494190602> {clangames_value:,}")
 
+            nav_str = ""
+            if a.is_member:
+                nav_str += "<:ClanWars:825753092230086708> To view AriX War Log\n"
+                nav_str += "<:CapitalRaids:1034032234572816384> To view AriX Raid Log\n"
+            nav_str += "<:army_camp:1044905754471182409> To view current Troop Levels\n"
+            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
+
+            if len(accounts) > 1:
+                nav_str += "\n\n<:to_previous:1041988094943035422> Previous Account\u3000Next Account <:to_next:1041988114308137010>"
+
+            pEmbed.add_field(
+                name="Navigation",
+                value=nav_str,
+                inline=False)
+
             output_embed.append(pEmbed)
 
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            await paginator.run()
-        elif len(output_embed)==1:
-            await ctx.send(embed=output_embed[0])
-        else:
-            no_accounts = await clash_embed(ctx,
-                message="I could not find any Accounts.",
-                color="fail")
-            return await ctx.send(embed=no_accounts)
+        await userprofile_main(ctx,output_embed,accounts)
 
 
     @commands.group(name="eclipse",autohelp=False)

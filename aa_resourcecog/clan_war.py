@@ -226,7 +226,11 @@ class aWarAttack():
         if json_data:
             self.order = json_data['order']
             self.attacker = json_data['attacker']
+            self.attacker_townhall = json_data.get('attacker_townhall',1)
+            self.attacker_position = json_data.get('attacker_pos',0)
             self.defender = json_data['defender']
+            self.defender_townhall = json_data.get('defender_townhall',1)
+            self.defender_position = json_data.get('defender_pos',0)
             self.stars = json_data['stars']
             self.destruction = json_data['destruction']
             self.duration = json_data['duration']
@@ -240,9 +244,14 @@ class aWarAttack():
         self.a = game_data
 
         if game_data:
+
             self.order = self.a.order
             self.attacker = self.a.attacker_tag
+            self.attacker_townhall = self.a.attacker.town_hall
+            self.attacker_position = self.a.attacker.map_position
             self.defender = self.a.defender_tag
+            self.defender_townhall = self.a.defender.town_hall
+            self.defender_position = self.a.defender.map_position
             self.stars = self.a.stars
             self.destruction = self.a.destruction
             self.duration = self.a.duration
@@ -256,7 +265,11 @@ class aWarAttack():
                 'warID': self.wID,
                 'order': self.order,
                 'attacker': self.attacker,
+                'attacker_th': self.attacker_townhall,
+                'attacker_pos': self.attacker_position,
                 'defender': self.defender,
+                'defender_townhall': self.defender_townhall,
+                'defender_pos': self.defender_position,
                 'stars': self.stars,
                 'destruction': self.destruction,
                 'duration': self.duration,

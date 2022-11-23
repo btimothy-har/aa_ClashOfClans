@@ -106,6 +106,9 @@ async def report_member_summary(ctx,message,clan):
 
     members = await get_clan_members(ctx,clan)
 
+    if not members:
+        return None
+
     #Users & Accounts
     user_count = {}
 
@@ -236,6 +239,8 @@ async def report_super_troops(ctx,message,clan):
     super_troop_str = []
 
     members = await get_clan_members(ctx,clan)
+    if not members:
+        return None
 
     for super_troop in coc.SUPER_TROOP_ORDER:
         troop_title = f"\n\n{emotes_army[super_troop]} **{super_troop}**"
@@ -277,6 +282,8 @@ async def report_war_status(ctx,message,clan):
     output_pages = []
 
     members = await get_clan_members(ctx,clan)
+    if not members:
+        return None
 
     #War Status
     opted_in_clan = [m for m in members if m.war_optin and m.clan.tag == clan.tag]
@@ -319,6 +326,8 @@ async def report_all_members(ctx,message,clan):
     output_pages = []
 
     members = await get_clan_members(ctx,clan)
+    if not members:
+        return None
 
     chunked_members = []
     for z in range(0, len(members), 10):
@@ -363,6 +372,8 @@ async def report_missing_members(ctx,message,clan):
     output_pages = []
 
     members = await get_clan_members(ctx,clan)
+    if not members:
+        return None
 
     members_not_in_clan = [m for m in members if m.clan.tag != m.home_clan.tag]
 
@@ -388,8 +399,7 @@ async def report_missing_members(ctx,message,clan):
             if m.discord_user:
                 m_str += f"<:Discord:1040423151760314448> <@{m.discord_user}>\u3000"
 
-            if m.clan.name != m.home_clan.name:
-                m_str += f"<:Clan:825654825509322752> {m.clan_description}"
+            m_str += f"<:Clan:825654825509322752> {m.clan_description}"
 
             m_str += f"\n> [Open player in-game]({m.share_link})"
 
@@ -408,6 +418,8 @@ async def report_unrecognized_members(ctx,message,clan):
     output_pages = []
 
     members = await get_clan_members(ctx,clan)
+    if not members:
+        return None
 
     unrecognized_members = [m for m in clan.c.members if m.tag not in [a.tag for a in members]]
 
@@ -425,18 +437,14 @@ async def report_unrecognized_members(ctx,message,clan):
         for m in chunk:
             try:
                 m = await aPlayer.create(ctx,m.tag)
-            except TerminateProcessing as e:
-                return await error_end_processing(ctx,
+            except Exception as e:
+                await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for {m.tag}.",
                     err=e)
-            except Exception as e:
-                p = None
-                errD = {'tag':m.tag,'reason':e}
-                error_log.append(errD)
-                continue
+                return None
 
             m_str = f"> {m.desc_summary_text}"
-            if m.discord_user or m.clan.name != m.home_clan.name:
+            if m.discord_user:
                 m_str += f"\n > "
 
             if m.discord_user:
@@ -444,8 +452,7 @@ async def report_unrecognized_members(ctx,message,clan):
             elif m.discord_link:
                 m_str += f"<:Discord:1040423151760314448> <@{m.discord_link}\u3000"
 
-            if m.clan.tag != m.home_clan.tag:
-                m_str += f"<:Clan:825654825509322752> {m.clan_description}"
+            # m_str += f"<:Clan:825654825509322752> {m.clan_description}"
 
             m_str += f"\n> [Open player in-game]({m.share_link})"
 
@@ -463,6 +470,8 @@ async def report_unrecognized_members(ctx,message,clan):
 async def report_to_excel(ctx,clan):
 
     members = await get_clan_members(ctx,clan)
+    if not members:
+        return None
 
     dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
     report_file = f"{ctx.bot.clash_report_path}/{ctx.author.name}_{clan.abbreviation}_{dt}.xlsx"

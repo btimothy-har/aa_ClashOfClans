@@ -86,7 +86,7 @@ class aClan():
                 self = ctx.bot.clan_cache[tag]
             else:
                 self = aClan(ctx,tag)
-                ctx.bot.member_cache[tag] = self
+                ctx.bot.clan_cache[tag] = self
 
         else:
             self = aClan(ctx,tag)
@@ -152,6 +152,9 @@ class aClan():
                 self.reminder_channel = clanInfo.get('reminder_channel',0)
                 self.send_war_reminder = clanInfo.get('send_war_reminder',False)
                 self.send_raid_reminder = clanInfo.get('send_raid_reminder',False)
+
+                self.war_reminder_intervals = clanInfo.get('war_reminder_intervals',[])
+                self.raid_reminder_intervals = clanInfo.get('raid_reminder_intervals',[])
 
                 self.war_reminder_tracking = clanInfo.get('war_reminder_tracking',[])
                 self.raid_reminder_tracking = clanInfo.get('raid_reminder_tracking',[])
@@ -441,7 +444,7 @@ class aClan():
             self.send_raid_reminder = False
         else:
             self.send_raid_reminder = True
-            self.war_reminder_intervals = [36,24,12,4]
+            self.raid_reminder_intervals = [36,24,12,4]
         await self.save_to_json(ctx)
 
     async def add_note(self,ctx,message):
