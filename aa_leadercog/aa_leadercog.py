@@ -20,6 +20,8 @@ from string import ascii_letters, digits
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
+from .leader_reports import report_member_summary, report_super_troops, report_war_status, report_all_members, report_missing_members, report_unrecognized_members, report_to_excel
+
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
