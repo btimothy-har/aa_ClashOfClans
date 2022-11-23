@@ -1591,7 +1591,8 @@ class AriXLeaderCommands(commands.Cog):
                     message=f"Your report for **{c.emoji} {c.name}** is available for download below.",
                     color='success')
 
-                await ctx.send(embed=rept_embed,file=discord.File(rpfile))
+                await ctx.send(embed=rept_embed,delete_after=60)
+                await ctx.send(file=discord.File(rpfile))
 
                 response = 'menu'
 
@@ -1603,6 +1604,7 @@ class AriXLeaderCommands(commands.Cog):
 
         if message:
             await message.edit(content=ctx.author.mention,embed=end_embed)
+            await message.clear_reactions()
         else:
             await ctx.send(content=ctx.author.mention,embed=end_embed)
 
