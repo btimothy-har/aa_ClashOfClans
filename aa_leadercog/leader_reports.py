@@ -278,8 +278,8 @@ async def report_war_status(ctx,message,clan):
     war_opted_in = opted_in_clan + opted_not_in_clan
 
     chunked_war_opted_in = []
-        for z in range(0, len(war_opted_in), 10):
-            chunked_war_opted_in.append(war_opted_in[z:z+10])
+    for z in range(0, len(war_opted_in), 10):
+        chunked_war_opted_in.append(war_opted_in[z:z+10])
 
     page = 0
     for chunk in chunked_war_opted_in:
