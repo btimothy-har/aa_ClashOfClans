@@ -258,12 +258,14 @@ async def report_super_troops(ctx,message,clan):
                 t_str = troop_title + troop_str
                 super_troop_str.append(t_str)
 
+        await ctx.send(super_troop_str)
+
     page = 0
     for i in super_troop_str:
         page += 1
         super_troop_boost_embed = await clash_embed(ctx,
             title=f"{clan.emoji} Boosted Super Troops",
-            message=f"Page {page} / {len(super_troop_str)}" + super_troop_str[page-1])
+            message=i)
         output_pages.append(super_troop_boost_embed)
 
     response = await report_paginate(ctx,message,clan,output_pages)
