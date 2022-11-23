@@ -144,6 +144,7 @@ async def userprofile_main(ctx,output,accounts):
 
 
         if response == 'warlog':
+            nav_options = []
             a = accounts[page_index]
 
             nav_str = ""
@@ -170,7 +171,7 @@ async def userprofile_main(ctx,output,accounts):
             warlog_embed = await clash_embed(ctx,
                 title=f"War Log: **{a.name}** ({a.tag})",
                 message=f"**Stats for: {current_season} Season**"
-                    + f"<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000"
+                    + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000"
                     + f"<:Triple:1034033279411687434> {a.war_stats.triples}\u3000"
                     + f"<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
                     + f"\n> <:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars} :fire: {a.war_stats.offense_destruction}%"

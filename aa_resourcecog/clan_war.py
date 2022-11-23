@@ -226,10 +226,10 @@ class aWarAttack():
         if json_data:
             self.order = json_data['order']
             self.attacker = json_data['attacker']
-            self.attacker_townhall = json_data.get('attacker_townhall',1)
+            self.attacker_townhall = json_data.get('attacker_th',1)
             self.attacker_position = json_data.get('attacker_pos',0)
             self.defender = json_data['defender']
-            self.defender_townhall = json_data.get('defender_townhall',1)
+            self.defender_townhall = json_data.get('defender_th',1)
             self.defender_position = json_data.get('defender_pos',0)
             self.stars = json_data['stars']
             self.destruction = json_data['destruction']
@@ -268,7 +268,7 @@ class aWarAttack():
                 'attacker_th': self.attacker_townhall,
                 'attacker_pos': self.attacker_position,
                 'defender': self.defender,
-                'defender_townhall': self.defender_townhall,
+                'defender_th': self.defender_townhall,
                 'defender_pos': self.defender_position,
                 'stars': self.stars,
                 'destruction': self.destruction,
