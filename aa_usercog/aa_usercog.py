@@ -277,7 +277,7 @@ class AriXMemberCommands(commands.Cog):
 
         home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
 
-        other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
+        #other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
         profile_msg = ""
 
@@ -306,27 +306,27 @@ class AriXMemberCommands(commands.Cog):
         for a in [a for a in user_accounts if a.is_member]:
             member_accounts_embed.add_field(
                 name=f"{a.desc_title}",
-                value=f"{a.desc_full_text}",
+                value=f"{a.desc_full_text}\n\u200b",
                 inline=False)
 
         for a in [a for a in user_accounts if not a.is_member]:
             other_accounts_embed.add_field(
                 name=f"{a.desc_title}",
-                value=f"{a.desc_full_text}",
+                value=f"{a.desc_full_text}\n\u200b",
                 inline=False)
 
-        for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
-            try:
-                p = await aPlayer.create(ctx,a)
-            except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
-                    err=e)
+        # for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
+        #     try:
+        #         p = await aPlayer.create(ctx,a)
+        #     except Exception as e:
+        #         return await error_end_processing(ctx,
+        #             preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
+        #             err=e)
 
-            other_accounts_embed.add_field(
-                name=f"{p.desc_title}",
-                value=f"{p.desc_full_text}",
-                inline=False)
+        #     other_accounts_embed.add_field(
+        #         name=f"{p.desc_title}",
+        #         value=f"{p.desc_full_text}\n\u200b",
+        #         inline=False)
 
         if len([a for a in user_accounts if a.is_member]) > 0:
             output_embed.append(member_accounts_embed)

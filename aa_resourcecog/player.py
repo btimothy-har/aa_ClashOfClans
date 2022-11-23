@@ -297,9 +297,7 @@ class aPlayer():
                 self.war_stats = aPlayerWarStats(self.warlog)
                 self.raid_stats = aPlayerRaidStats(self.raidlog)
 
-            if not self.discord_user:
-                get_links = await ctx.bot.discordlinks.get_links(self.tag)
-                self.discord_user = int(get_links[0][1])
+
 
             self.desc_title = f"{self.name} ({self.tag})"
 
@@ -307,7 +305,7 @@ class aPlayer():
             if self.is_member:
                 if self.arix_rank not in ['Guest','Non-Member']:
                     member_description = f"***{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}***"
-                else:
+                elif self.discord_user:
                     member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
 
             self.desc_full_text = f"{member_description}"
@@ -326,6 +324,10 @@ class aPlayer():
                 self.desc_summary_text += member_description
             else:
                 self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
+
+            if not self.discord_user:
+                get_links = await ctx.bot.discordlinks.get_links(self.tag)
+                self.discord_user = int(get_links[0][1])
 
             return self
 
