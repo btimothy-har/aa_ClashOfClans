@@ -389,7 +389,7 @@ class AriXMemberCommands(commands.Cog):
                 thumbnail=league_img)
 
             if len(accounts) > 1:
-                pEmbed.set_footer(text=f"(Ac {accounts.index(a)+1} of {len(accounts)}) -- AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
+                pEmbed.set_footer(text=f"({accounts.index(a)+1} of {len(accounts)}) -- AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
 
             base_strength = f"<:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength} *(rushed: {a.troop_rushed_pct}%)*"
             if a.town_hall.level >= 5:
@@ -499,7 +499,7 @@ class AriXMemberCommands(commands.Cog):
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes"
 
             if len(accounts) > 1:
-                nav_str += "\n\n<:to_previous:1041988094943035422> Previous Account\u3000Next Account <:to_next:1041988114308137010>"
+                nav_str += "\n\n<:to_previous:1041988094943035422> Previous Account\nNext Account <:to_next:1041988114308137010>"
 
             pEmbed.add_field(
                 name="Navigation",

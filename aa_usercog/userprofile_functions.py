@@ -266,7 +266,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 hero_str += "\n"
             else:
-                hero_str += "\u200b\u200b"
+                hero_str += "  "
             hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -282,7 +282,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 pets_str += "\n"
             else:
-                pets_str += "\u200b\u200b"
+                pets_str += "  "
             pets_str += f"{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -298,7 +298,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 elixir_troops_str += "\n"
             else:
-                elixir_troops_str += "\u200b\u200b"
+                elixir_troops_str += "  "
             elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -314,7 +314,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 darkelixir_troops_str += "\n"
             else:
-                darkelixir_troops_str += "\u200b\u200b"
+                darkelixir_troops_str += "  "
             darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -330,7 +330,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 siege_machines_str += "\n"
             else:
-                siege_machines_str += "\u200b\u200b"
+                siege_machines_str += "  "
             siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -346,7 +346,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 elixir_spells_str += "\n"
             else:
-                elixir_spells_str += "\u200b\u200b"
+                elixir_spells_str += "  "
             elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -362,7 +362,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             if ct % 4 == 0:
                 darkelixir_spells_str += "\n"
             else:
-                darkelixir_spells_str += "\u200b\u200b"
+                darkelixir_spells_str += "  "
             darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
 
         trooplevels_embed.add_field(
@@ -462,7 +462,7 @@ async def userprofile_rushed(ctx,account,message=None):
             if ct % 4 == 0:
                 elixir_troops_str += "\n"
             else:
-                elixir_troops_str += "\u200b\u200b"
+                elixir_troops_str += "  "
             elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`"
 
         rushed_embed.add_field(
@@ -478,7 +478,7 @@ async def userprofile_rushed(ctx,account,message=None):
             if ct % 4 == 0:
                 darkelixir_troops_str += "\n"
             else:
-                darkelixir_troops_str += "\u200b\u200b"
+                darkelixir_troops_str += "  "
             darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
 
         rushed_embed.add_field(
@@ -494,7 +494,7 @@ async def userprofile_rushed(ctx,account,message=None):
             if ct % 4 == 0:
                 siege_machines_str += "\n"
             else:
-                siege_machines_str += "\u200b\u200b"
+                siege_machines_str += "  "
             siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
 
         rushed_embed.add_field(
@@ -510,7 +510,7 @@ async def userprofile_rushed(ctx,account,message=None):
             if ct % 4 == 0:
                 elixir_spells_str += "\n"
             else:
-                elixir_spells_str += "\u200b\u200b"
+                elixir_spells_str += "  "
             elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
 
         rushed_embed.add_field(
@@ -526,7 +526,7 @@ async def userprofile_rushed(ctx,account,message=None):
             if ct % 4 == 0:
                 darkelixir_spells_str += "\n"
             else:
-                darkelixir_spells_str += "\u200b\u200b"
+                darkelixir_spells_str += "  "
             darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
 
         rushed_embed.add_field(
