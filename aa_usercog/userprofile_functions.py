@@ -481,7 +481,7 @@ async def userprofile_rushed(ctx,account,message=None):
                 darkelixir_troops_str += "\n"
             darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
 
-        trooplevels_embed.add_field(
+        rushed_embed.add_field(
             name=f"Dark Elixir Troops ({len(darkelixir_troops)})",
             value=f"{darkelixir_troops_str}\n\u200b",
             inline=False)
@@ -497,7 +497,7 @@ async def userprofile_rushed(ctx,account,message=None):
                 siege_machines_str += "\n"
             siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
 
-        trooplevels_embed.add_field(
+        rushed_embed.add_field(
             name=f"Siege Machines ({len(siege_machines)})",
             value=f"{siege_machines_str}\n\u200b",
             inline=False)
@@ -513,7 +513,7 @@ async def userprofile_rushed(ctx,account,message=None):
                 elixir_spells_str += "\n"
             elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
 
-        trooplevels_embed.add_field(
+        rushed_embed.add_field(
             name=f"Elixir Spells ({len(elixir_spells)})",
             value=f"{elixir_spells_str}\n\u200b",
             inline=False)
@@ -529,23 +529,32 @@ async def userprofile_rushed(ctx,account,message=None):
                 darkelixir_spells_str += "\n"
             darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
 
-        trooplevels_embed.add_field(
+        rushed_embed.add_field(
             name=f"Dark Elixir Spells ({len(darkelixir_spells)})",
             value=f"{darkelixir_spells_str}\n\u200b",
             inline=False)
 
+    rushed_embed.add_field(name="Navigation",value=nav_str,inline=False)
 
+    if message:
+        await message.edit(embed=rushed_embed)
+    else:
+        message = await ctx.send(embed=rushed_embed)
 
+    await message.clear_reactions()
+    selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
 
-
-
-
-
-
+    if selection:
+        response = selection['id']
+    else:
+        response = None
+    return response
 
 
 
 async def userprofile_main(ctx,output,accounts):
+
+    tries = 10
 
     userprofile_session = False
 
@@ -556,6 +565,8 @@ async def userprofile_main(ctx,output,accounts):
 
     while userprofile_session:
 
+        tries -= 1
+
         if page_index < 0:
             page_index = (len(output)-1)
 
@@ -565,6 +576,7 @@ async def userprofile_main(ctx,output,accounts):
         nav_options = []
 
         if response in ['start','main']:
+            tries = 10
             if len(output) > 1:
                 nav_options.append(prev_dict)
 
@@ -601,23 +613,28 @@ async def userprofile_main(ctx,output,accounts):
             else:
                 userprofile_session = False
 
-
         if response == 'warlog':
+            tries = 10
             a = accounts[page_index]
             response = await userprofile_warlog(ctx,a,message)
 
         if response == 'raidlog':
+            tries = 10
             a = accounts[page_index]
             response = await userprofile_raidlog(ctx,a,message)
 
         if response == 'trooplevels':
+            tries = 10
             a = accounts[page_index]
-            response = userprofile_trooplevels(ctx,a,message)
+            response = await userprofile_trooplevels(ctx,a,message)
 
+        if response == 'rushedtroops':
+            tries = 10
+            a = accounts[page_index]
+            response = await userprofile_rushed(ctx,a,message)
 
-
-
-
+        if tries == 0 or response == None:
+            userprofile_session = False
 
 
     if message:
