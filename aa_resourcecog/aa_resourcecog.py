@@ -138,15 +138,15 @@ class AriXClashResources(commands.Cog):
             title="Hello, I am N.E.B.U.L.A .",
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
                 + "\n\nMy commands are designed to be simple and easy to remember. "
-                + "Depending on your roles in the Alliance, you will have access to these commands below."
+                + "The commands displayed below are based on your access levels."
                 + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b")
 
         nebula_embed.add_field(
-            name="**General Commands**",
+            name="**__General Commands__**",
             value="These commands are usable by everyone."
-                + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
-                + f"\n\n**profile** View the AriX Profile of yourself, or another Discord Member."
-                + f"\n\n**player** Gets your Clash of Clans player stats. You may specify multiple player tag(s) when using this command."
+                + f"\n\n> **arix**\n> Lists all the Clans in the AriX Alliance."
+                + f"\n\n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
+                + f"\n\n> **player** `[optional: COC Player Tags or @Discord User]`\n> Gets your Clash of Clans player stats. You may specify multiple player tag(s) when using this command."
                 + f"\n\n****")
 
         await ctx.send(embed=nebula_embed)
