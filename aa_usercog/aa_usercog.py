@@ -348,6 +348,8 @@ class AriXMemberCommands(commands.Cog):
         If no tags are provided, will return all of your accounts registered with AriX.
         """
 
+        discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
+
         output_embed = []
         accounts = []
 
