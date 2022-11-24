@@ -249,7 +249,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
     trooplevels_embed = await clash_embed(ctx,
         title=f"**Offense Levels: {a.name} ({a.tag})**",
         message=f"Hero & Troop Levels for: {emotes_townhall[a.town_hall.level]} TH {a.town_hall.level}"
-            + f"\n\n*Italicized levels indicate rushed levels.*"
+            + f"\n*`Italicized levels indicate rushed levels.`*"
         )
 
     elixir_troops = [t for t in a.troops if t.is_elixir_troop]
@@ -263,7 +263,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         hero_str = ""
         ct = 0
         for h in a.heroes:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 hero_str += "\n"
             else:
                 hero_str += "  "
@@ -283,7 +283,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         pets_str = ""
         ct = 0
         for p in a.pets:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 pets_str += "\n"
             else:
                 pets_str += "  "
@@ -302,7 +302,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         elixir_troops_str = ""
         ct = 0
         for et in elixir_troops:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 elixir_troops_str += "\n"
             else:
                 elixir_troops_str += "  "
@@ -322,7 +322,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         darkelixir_troops_str = ""
         ct = 0
         for dt in darkelixir_troops:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 darkelixir_troops_str += "\n"
             else:
                 darkelixir_troops_str += "  "
@@ -342,7 +342,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         siege_machines_str = ""
         ct = 0
         for sm in siege_machines:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 siege_machines_str += "\n"
             else:
                 siege_machines_str += "  "
@@ -362,7 +362,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         elixir_spells_str = ""
         ct = 0
         for es in elixir_spells:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 elixir_spells_str += "\n"
             else:
                 elixir_spells_str += "  "
@@ -382,7 +382,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         darkelixir_spells_str = ""
         ct = 0
         for ds in darkelixir_spells:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 darkelixir_spells_str += "\n"
             else:
                 darkelixir_spells_str += "  "
@@ -456,7 +456,7 @@ async def userprofile_rushed(ctx,account,message=None):
         hero_str = ""
         ct = 0
         for h in heroes:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 hero_str += " "
             else:
                 hero_str += "\n"
@@ -472,7 +472,7 @@ async def userprofile_rushed(ctx,account,message=None):
         pets_str = ""
         ct = 0
         for p in pets:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 pets_str += " "
             else:
                 pets_str += "\n"
@@ -488,7 +488,7 @@ async def userprofile_rushed(ctx,account,message=None):
         elixir_troops_str = ""
         ct = 0
         for et in elixir_troops:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 elixir_troops_str += "\n"
             else:
                 elixir_troops_str += "  "
@@ -504,7 +504,7 @@ async def userprofile_rushed(ctx,account,message=None):
         darkelixir_troops_str = ""
         ct = 0
         for dt in darkelixir_troops:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 darkelixir_troops_str += "\n"
             else:
                 darkelixir_troops_str += "  "
@@ -520,7 +520,7 @@ async def userprofile_rushed(ctx,account,message=None):
         siege_machines_str = ""
         ct = 0
         for sm in siege_machines:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 siege_machines_str += "\n"
             else:
                 siege_machines_str += "  "
@@ -536,7 +536,7 @@ async def userprofile_rushed(ctx,account,message=None):
         elixir_spells_str = ""
         ct = 0
         for es in elixir_spells:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 elixir_spells_str += "\n"
             else:
                 elixir_spells_str += "  "
@@ -552,7 +552,7 @@ async def userprofile_rushed(ctx,account,message=None):
         darkelixir_spells_str = ""
         ct = 0
         for ds in darkelixir_spells:
-            if ct % 4 == 0:
+            if ct % 3 == 0:
                 darkelixir_spells_str += "\n"
             else:
                 darkelixir_spells_str += "  "
