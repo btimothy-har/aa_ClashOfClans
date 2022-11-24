@@ -316,7 +316,7 @@ async def userprofile_main(ctx,output,accounts):
             if len(a.heroes) > 0:
                 hero_str = ""
                 for h in a.heroes:
-                    hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^8}\u3000"
+                    hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^8}`\u3000"
 
                 trooplevels_embed.add_field(
                     name=f"Heroes",
