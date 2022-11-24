@@ -161,7 +161,7 @@ class aPlayer():
             hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
             for hero_name in list(chain.from_iterable(hero_d)):
                 is_unlocked_at_this_level = False
-                if troop_name in troop_availability[self.town_hall.level]:
+                if hero_name in hero_availability[self.town_hall.level]:
                     is_unlocked_at_this_level = True
                 hero = self.p.get_hero(name=hero_name)
                 if not hero:
@@ -618,7 +618,7 @@ class aHero():
         return self
 
     @classmethod
-    def from_data(cls,gameData,th_level):
+    def from_data(cls,gameData,th_level,is_unlocked_at_this_level):
         self = aHero()
         self.hero = gameData
 
@@ -639,6 +639,9 @@ class aHero():
             minlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level-1)
             self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
         except:
+            self.minlevel_for_townhall = 0
+
+        if is_unlocked_at_this_level:
             self.minlevel_for_townhall = 0
 
         if self.level < self.minlevel_for_townhall:
@@ -774,6 +777,9 @@ class aTroop():
         minlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level-1)
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
 
+        if is_unlocked_at_this_level:
+            self.minlevel_for_townhall = 0
+
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
         return self
@@ -829,7 +835,7 @@ class aSpell():
         return self
 
     @classmethod
-    def from_data(cls,gameData,th_level):
+    def from_data(cls,gameData,th_level,is_unlocked_at_this_level):
         self = aSpell()
         self.spell = gameData
 
@@ -849,6 +855,9 @@ class aSpell():
 
         minlevel_for_townhall = self.spell.get_max_level_for_townhall(th_level-1)
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
+
+        if is_unlocked_at_this_level:
+            self.minlevel_for_townhall = 0
 
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
