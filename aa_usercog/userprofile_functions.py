@@ -125,7 +125,7 @@ async def userprofile_warlog(ctx,account,message=None):
     for wid in war_id_sort:
         war = a.warlog[wid]
 
-        if war.state != 'preparation':
+        if war.result != '':
             attack_str = ""
             for att in war.attacks:
                 if war.attacks.index(att) > 0:
