@@ -252,7 +252,7 @@ async def userprofile_main(ctx,output,accounts):
             for rid in raid_id_sort:
                 raid = a.raidlog[rid]
 
-                raid_date = datetime.fromtimestamp(int(rid)).strftime('%d %b %Y')
+                raid_date = datetime.fromtimestamp(float(rid)).strftime('%d %b %Y')
 
                 raidlog_embed.add_field(
                     name=f"Raid Weekend: {raid_date}",
