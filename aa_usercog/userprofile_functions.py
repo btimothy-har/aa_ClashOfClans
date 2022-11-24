@@ -414,7 +414,7 @@ async def userprofile_rushed(ctx,account,message=None):
             + f"\n\nOverall Rushed: **{a.overall_rushed_pct}%**")
 
     heroes = [h for h in a.heroes if h.is_rushed]
-    pets = [p for p in a.pets if a.level < a.minlevel_for_townhall]
+    pets = [p for p in a.pets if p.level < p.minlevel_for_townhall]
     elixir_troops = [t for t in a.troops if t.is_elixir_troop and t.is_rushed]
     darkelixir_troops = [t for t in a.troops if t.is_dark_troop and t.is_rushed]
     siege_machines = [t for t in a.troops if t.is_siege_machine and t.is_rushed]
