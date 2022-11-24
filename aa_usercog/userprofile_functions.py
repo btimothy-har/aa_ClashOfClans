@@ -112,11 +112,11 @@ async def userprofile_warlog(ctx,account,message=None):
     warlog_embed = await clash_embed(ctx,
         title=f"**War Log: {a.name} ({a.tag})**",
         message=f"**Stats for: {current_season} Season**"
-            + f"\n<:TotalWars:827845123596746773> `{a.war_stats.wars_participated:<2}`\u3000"
-            + f"<:Triple:1034033279411687434> `{a.war_stats.triples:<2}`\u3000"
-            + f"<:MissedHits:825755234412396575> `{a.war_stats.missed_attacks:<2}`"
-            + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> `{a.war_stats.offense_stars:<2}`\u3000:fire: `{a.war_stats.offense_destruction:>3}%`"
-            + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.war_stats.defense_stars:<2}`\u3000:fire: `{a.war_stats.defense_destruction:>3}%`"
+            + f"\n<:TotalWars:827845123596746773> `{a.war_stats.wars_participated:^3}`\u3000"
+            + f"<:Triple:1034033279411687434> `{a.war_stats.triples:^3}`\u3000"
+            + f"<:MissedHits:825755234412396575> `{a.war_stats.missed_attacks:^3}`"
+            + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> `{a.war_stats.offense_stars:<3}`\u3000:fire: `{a.war_stats.offense_destruction:>3}%`"
+            + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.war_stats.defense_stars:<3}`\u3000:fire: `{a.war_stats.defense_destruction:>3}%`"
             + f"\n\u200b")
 
     war_id_sort = [wid for wid,war in a.warlog.items()]
@@ -130,7 +130,7 @@ async def userprofile_warlog(ctx,account,message=None):
             for att in war.attacks:
                 if war.attacks.index(att) > 0:
                     attack_str += "\n"
-                attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} `v` {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> `{att.stars}`\u3000:fire: `{att.destruction:>3}%`"
+                attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> `{att.stars:^3}`\u3000:fire: `{att.destruction:>3}%`"
 
             if len(war.defenses) > 0:
                 if len(war.attacks) > 0:
@@ -139,13 +139,13 @@ async def userprofile_warlog(ctx,account,message=None):
                 for defe in war.defenses:
                     if war.defenses.index(defe) > 0:
                         attack_str += "\n"
-                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker_townhall]} `v` {emotes_townhall[defe.defender_townhall]}\u3000<:WarStars:825756777844178944> `{defe.stars}`\u3000:fire: `{defe.destruction:>3}%`"
+                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker_townhall]} vs {emotes_townhall[defe.defender_townhall]}\u3000<:WarStars:825756777844178944> `{defe.stars:^3}`\u3000:fire: `{defe.destruction:>3}%`"
 
             attack_str += "\n\u200b"
 
             warlog_embed.add_field(
                 name=f"{war.clan.name} vs {war.opponent.name}",
-                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(war.attacks)}`\u3000<:MissedHits:825755234412396575> `{war.total_attacks - len(war.attacks)}`\u3000<:Defense:828103708956819467> `{len(war.defenses)}`"
+                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(war.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{war.total_attacks - len(war.attacks):^3}`\u3000<:Defense:828103708956819467> `{len(war.defenses):^3}`"
                     + f"\n{attack_str}",
                 inline=False
                 )
