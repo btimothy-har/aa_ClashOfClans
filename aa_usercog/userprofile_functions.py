@@ -322,7 +322,7 @@ async def userprofile_main(ctx,output,accounts):
                         elixir_troops_str += "\u3000\u3000"
                     else:
                         elixir_troops_str += "\n"
-                    elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + '/' + str(et.maxlevel_for_townhall): <8}`"
+                    elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): <8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Elixir Troops",
