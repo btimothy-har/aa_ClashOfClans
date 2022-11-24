@@ -23,7 +23,7 @@ from tabulate import tabulate
 from .leader_reports import report_member_summary, report_super_troops, report_war_status, report_all_members, report_missing_members, report_unrecognized_members, report_to_excel
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
-from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
+from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
@@ -72,16 +72,10 @@ class AriXLeaderCommands(commands.Cog):
         This includes the number of registered members, the (suggested) townhall levels, and the last 5 Leader's notes on file.
         """
 
-        clans, members = await get_current_alliance(ctx)
+        clans = await get_alliance_clan(ctx)
         output_embed = []
 
-        for tag in clans:
-            try:    
-                c = await aClan.create(ctx,tag)
-            except Exception as e:
-                eEmbed = await clash_embed(ctx=ctx,message=f"{e}",color="fail")
-                return await ctx.send(embed=eEmbed)
-
+        for c in clans:
             th_str = ""
             for th in c.recruitment_level:
                 th_str += f"{emotes_townhall[th]} "
@@ -102,11 +96,7 @@ class AriXLeaderCommands(commands.Cog):
 
             output_embed.append(clanEmbed)
 
-        if len(output_embed)>1:
-            paginator = BotEmbedPaginator(ctx,output_embed)
-            return await paginator.run()
-        elif len(output_embed)==1:
-            return await ctx.send(embed=output_embed[0])
+        await paginate_embed(ctx,output_embed)
 
 
     @commands.group(name="clan")

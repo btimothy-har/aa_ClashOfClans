@@ -115,24 +115,21 @@ class AriXClashResources(commands.Cog):
         leader_state = False
         coleader_state = False
         elder_state = False
+        member_state = False
 
-        clans = await get_alliance_clan(ctx)
+        discord_member = await ctx.bot.alliance_server.get_member(ctx.author.id)
 
-        leaders = [c.leader for c in clans]
-        coleaders = []
-        [coleaders.extend(c.co_leaders) for c in clans]
-
-        elders = []
-        [elders.extend(c.elders) for c in clans]
-
-        if ctx.author.id in leaders:
+        if ctx.bot.leader_role in discord_member.roles:
             leader_state = True
 
-        if ctx.author.id in coleaders:
+        if ctx.bot.coleader_role in discord_member.roles:
             coleader_state = True
 
-        if ctx.author.id in elders:
+        if ctx.bot.elder_role in discord_member.roles:
             elder_state = True
+
+        if ctx.bot.member_role in discord_member.roles:
+            member_state = True
 
         nebula_embed = await clash_embed(ctx,
             title="Hello, I am N.E.B.U.L.A .",
@@ -146,8 +143,15 @@ class AriXClashResources(commands.Cog):
             value="These commands are usable by everyone."
                 + f"\n\n> **arix**\n> Lists all the Clans in the AriX Alliance."
                 + f"\n\n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
-                + f"\n\n> **player** `[optional: COC Player Tags or @Discord User]`\n> Gets your Clash of Clans player stats. You may specify multiple player tag(s) when using this command."
-                + f"\n\n****")
+                + f"\n\n> **player** `[optional: COC Player Tags or @Discord User]`\n> Gets your Clash of Clans player stats.\n> You may provide: multiple player tag(s) OR 1 Discord User.")
+
+        if member_state:
+            nebula_embed.add_field(
+                name="**__Member Commands__**",
+                value="These commands are usable only by members."
+                    + f"\n\n> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
+                    + f"\n\n> **nickname**\n> Change your Discord nickname based on your member accounts!"
+                    + f"\n\n> **eclipse**\n> Open E.C.L.I.P.S.E.")
 
         await ctx.send(embed=nebula_embed)
 
