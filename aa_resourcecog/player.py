@@ -367,7 +367,7 @@ class aPlayer():
 
         memberJson = {
             'name': self.name,
-            'last_update': self.timestamp,
+            'last_update': self.last_update,
             'time_in_home_clan': self.time_in_home_clan,
             'role': self.role,
             'current_clan': {
@@ -441,6 +441,8 @@ class aPlayer():
                     self.capitalcontribution.update_stat(achievement.value)
                 if achievement.name == 'Games Champion':
                     self.clangames.update_stat(achievement.value)
+
+            self.last_update = self.timestamp
 
 
     async def set_baselines(self,ctx):
