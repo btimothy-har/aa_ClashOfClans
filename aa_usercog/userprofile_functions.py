@@ -319,10 +319,10 @@ async def userprofile_main(ctx,output,accounts):
                 for et in elixir_troops:
                     ct += 1
                     if ct % 2 == 0:
-                        elixir_troops_str += "\u3000"
+                        elixir_troops_str += "\u3000\u3000"
                     else:
                         elixir_troops_str += "\n"
-                    elixir_troops_str += f"{emotes_army[et.name]} `{et.level} / {et.maxlevel_for_townhall}`"
+                    elixir_troops_str += f"{emotes_army[et.name]} `{et.level '/' et.maxlevel_for_townhall: <8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Elixir Troops",
@@ -335,7 +335,7 @@ async def userprofile_main(ctx,output,accounts):
                 for dt in darkelixir_troops:
                     ct += 1
                     if ct % 2 == 0:
-                        darkelixir_troops_str += "\u3000"
+                        darkelixir_troops_str += "\u3000\u3000"
                     else:
                         darkelixir_troops_str += "\n"
                     darkelixir_troops_str += f"{emotes_army[dt.name]} `{dt.level} / {dt.maxlevel_for_townhall}`"
@@ -351,7 +351,7 @@ async def userprofile_main(ctx,output,accounts):
                 for sm in siege_machines:
                     ct += 1
                     if ct % 2 == 0:
-                        siege_machines_str += "\u3000"
+                        siege_machines_str += "\u3000\u3000"
                     else:
                         siege_machines_str += "\n"
                     siege_machines_str += f"{emotes_army[sm.name]} `{sm.level} / {sm.maxlevel_for_townhall}`"
@@ -367,7 +367,7 @@ async def userprofile_main(ctx,output,accounts):
                 for es in elixir_spells:
                     ct += 1
                     if ct % 2 == 0:
-                        elixir_spells_str += "\u3000"
+                        elixir_spells_str += "\u3000\u3000"
                     else:
                         elixir_spells_str += "\n"
                     elixir_spells_str += f"{emotes_army[es.name]} `{es.level} / {es.maxlevel_for_townhall}`"
@@ -383,7 +383,7 @@ async def userprofile_main(ctx,output,accounts):
                 for ds in darkelixir_spells:
                     ct += 1
                     if ct % 2 == 0:
-                        darkelixir_spells_str += "\u3000"
+                        darkelixir_spells_str += "\u3000\u3000"
                     else:
                         darkelixir_spells_str += "\n"
                     darkelixir_spells_str += f"{emotes_army[ds.name]} `{ds.level} / {ds.maxlevel_for_townhall}`"
