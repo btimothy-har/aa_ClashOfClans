@@ -134,18 +134,22 @@ class AriXClashResources(commands.Cog):
         if ctx.author.id in elders:
             elder_state = True
 
-        meteor_embed = await clash_embed(ctx,
+        nebula_embed = await clash_embed(ctx,
             name="Hello, I am N.E.B.U.L.A .",
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
                 + "\n\nMy commands are designed to be simple and easy to remember. "
-                + "Depending on your roles in the Alliance, you will have access to these commands below.\n\u200b")
+                + "Depending on your roles in the Alliance, you will have access to these commands below."
+                + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b")
 
-        meteor_embed.add_field(
+        nebula_embed.add_field(
             name="**General Commands**",
             value="These commands are usable by everyone."
                 + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
-                + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
+                + f"\n\n**profile** View the AriX Profile of yourself, or another Discord Member."
+                + f"\n\n**player** Gets your Clash of Clans player stats. You may specify multiple player tag(s) when using this command."
                 + f"\n\n****")
+
+        await ctx.send(embed=nebula_embed)
 
     async def player_description(ctx,p):
         #build title
