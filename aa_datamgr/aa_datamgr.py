@@ -123,11 +123,11 @@ class AriXClashDataMgr(commands.Cog):
             embed = await clash_embed(ctx=ctx,title="System Status Report")
             embed.add_field(
                 name="__Summary__",
-                value=f"> **Alliance Server**: {getattr(ctx.bot.alliance_server,'name','Not Set')}"
-                    + f"\n> **Leader Role: {getattr(ctx.bot.leader_role,'mention','Not Set')}"
-                    + f"\n> **Co-Leader Role: {getattr(ctx.bot.coleader_role,'mention','Not Set')}"
-                    + f"\n> **Elder Role: {getattr(ctx.bot.elder_role,'mention','Not Set')}"
-                    + f"\n> **Member Role: {getattr(ctx.bot.member_role,'mention','Not Set')}"
+                value=f"> **Alliance Server**: {getattr(ctx.bot.alliance_server,'name','Not Set')} `({getattr(ctx.bot.alliance_server,'id',0)})`"
+                    + f"\n> **Leader Role**: {getattr(ctx.bot.leader_role,'mention','Not Set')}"
+                    + f"\n> **Co-Leader Role**: {getattr(ctx.bot.coleader_role,'mention','Not Set')}"
+                    + f"\n> **Elder Role**: {getattr(ctx.bot.elder_role,'mention','Not Set')}"
+                    + f"\n> **Member Role**: {getattr(ctx.bot.member_role,'mention','Not Set')}"
                     + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
                     + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
                     + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
