@@ -219,6 +219,7 @@ async def userprofile_main(ctx,output,accounts):
 
 
         if response == 'raidlog':
+
             nav_options = []
             a = accounts[page_index]
 
@@ -226,7 +227,7 @@ async def userprofile_main(ctx,output,accounts):
             nav_options.append(back_dict)
             nav_str += "<:backwards:1041976602420060240> Back to Accounts view\n"
             if a.is_member:
-                nav_options.append(capitalraid_dict)
+                nav_options.append(warlog_dict)
                 nav_str += "<:ClanWars:825753092230086708> To view AriX War Log\n"
 
             nav_options.append(trooplevels_dict)
@@ -242,7 +243,7 @@ async def userprofile_main(ctx,output,accounts):
                 title=f"**Raid Log: {a.name} ({a.tag})**",
                 message=f"**Stats for: {current_season} Season**"
                     + f"\n<:CapitalRaids:1034032234572816384> {a.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.raid_stats.raids_participated * 6) - a.raid_stats.raid_attacks}"
-                    + f"<:CapitalGoldLooted:1045200974094028821> {a.raid_stats.resources_looted}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned}"
+                    + f"\n<:CapitalGoldLooted:1045200974094028821> {a.raid_stats.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned:,}"
                     + f"\n\u200b"
                     )
 
@@ -256,8 +257,8 @@ async def userprofile_main(ctx,output,accounts):
 
                 raidlog_embed.add_field(
                     name=f"Raid Weekend: {raid_date}",
-                    value=f"<:Clan:825654825509322752> {raid.clan_name}\u3000<:Attack:828103854814003211> {raid.attack_count} / 6"
-                        + f"\n<:CapitalGoldLooted:1045200974094028821> {raid.resources_looted}\u3000<:RaidMedals:983374303552753664> {raid.medals_earned}"
+                    value=f"<:Clan:825654825509322752> {raid.clan_name}\n<:Attack:828103854814003211> {raid.attack_count} / 6"
+                        + f"\u3000<:CapitalGoldLooted:1045200974094028821> {raid.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {raid.medals_earned:,}"
                         + f"\n\u200b",
                     inline=False
                     )
@@ -279,6 +280,133 @@ async def userprofile_main(ctx,output,accounts):
                 response = selection['id']
             else:
                 userprofile_session = False
+
+
+        if response == 'trooplevels':
+
+            nav_options = []
+            a = accounts[page_index]
+
+            nav_options.append(back_dict)
+            nav_str += "<:backwards:1041976602420060240> Back to Accounts view\n"
+            if a.is_member:
+                nav_options.append(warlog_dict)
+                nav_str += "<:ClanWars:825753092230086708> To view AriX War Log\n"
+                nav_options.append(capitalraid_dict)
+                nav_str += "<:CapitalRaids:1034032234572816384> To view AriX Raid Log\n"
+
+            nav_options.append(laboratory_dict)
+            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            nav_options.append(rushed_dict)
+            nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
+
+            trooplevels_embed = await clash_embed(ctx,
+                title=f"**Offense Levels: {a.name} ({a.tag})",
+                message=f"Hero & Troop Levels for: {emotes_townhall[a.town_hall.level]} TH {a.town_hall.level}"
+                )
+
+            elixir_troops = [t for t in a.troops if t.is_elixir_troop]
+            darkelixir_troops = [t for t in a.troops if t.is_dark_troop]
+            siege_machines = [t for t in a.troops if t.is_siege_machine]
+
+            elixir_spells = [s for s in a.spells if s.is_elixir_spell]
+            darkelixir_spells = [s for s in a.spells if s.is_dark_spell]
+
+            if len(elixir_troops) > 0:
+                elixir_troops_str = ""
+                ct = 0
+                for et in elixir_troops:
+                    ct += 1
+                    if ct % 2 == 0:
+                        elixir_troops_str += "\u3000"
+                    else:
+                        elixir_troops_str += "\n"
+                    elixir_troops_str += f"{emotes_army[et.name]} `{et.level} / {et.maxlevel_for_townhall}`"
+
+                trooplevels_embed.add_field(
+                    name=f"Elixir Troops",
+                    value=f"{elixir_troops_str}\n\u200b",
+                    inline=False)
+
+            if len(darkelixir_troops) > 0:
+                darkelixir_troops_str = ""
+                ct = 0
+                for dt in darkelixir_troops:
+                    ct += 1
+                    if ct % 2 == 0:
+                        darkelixir_troops_str += "\u3000"
+                    else:
+                        darkelixir_troops_str += "\n"
+                    darkelixir_troops_str += f"{emotes_army[dt.name]} `{dt.level} / {dt.maxlevel_for_townhall}`"
+
+                trooplevels_embed.add_field(
+                    name=f"Dark Elixir Troops",
+                    value=f"{darkelixir_troops_str}\n\u200b",
+                    inline=False)
+
+            if len(siege_machines) > 0:
+                siege_machines_str = ""
+                ct = 0
+                for sm in siege_machines:
+                    ct += 1
+                    if ct % 2 == 0:
+                        siege_machines_str += "\u3000"
+                    else:
+                        siege_machines_str += "\n"
+                    siege_machines_str += f"{emotes_army[sm.name]} `{sm.level} / {sm.maxlevel_for_townhall}`"
+
+                trooplevels_embed.add_field(
+                    name=f"Siege Machines",
+                    value=f"{siege_machines_str}\n\u200b",
+                    inline=False)
+
+            if len(elixir_spells) > 0:
+                elixir_spells_str = ""
+                ct = 0
+                for es in elixir_spells:
+                    ct += 1
+                    if ct % 2 == 0:
+                        elixir_spells_str += "\u3000"
+                    else:
+                        elixir_spells_str += "\n"
+                    elixir_spells_str += f"{emotes_army[es.name]} `{es.level} / {es.maxlevel_for_townhall}`"
+
+                trooplevels_embed.add_field(
+                    name=f"Elixir Spells",
+                    value=f"{elixir_spells_str}\n\u200b",
+                    inline=False)
+
+            if len(darkelixir_spells) > 0:
+                darkelixir_spells_str = ""
+                ct = 0
+                for ds in darkelixir_spells:
+                    ct += 1
+                    if ct % 2 == 0:
+                        darkelixir_spells_str += "\u3000"
+                    else:
+                        darkelixir_spells_str += "\n"
+                    darkelixir_spells_str += f"{emotes_army[ds.name]} `{ds.level} / {ds.maxlevel_for_townhall}`"
+
+                trooplevels_embed.add_field(
+                    name=f"Dark Elixir Spells",
+                    value=f"{darkelixir_spells_str}\n\u200b",
+                    inline=False)
+
+            trooplevels_embed.add_field(name="Navigation",value=nav_str,inline=False)
+
+            if message:
+                await message.edit(embed=raidlog_embed)
+            else:
+                message = await ctx.send(embed=raidlog_embed)
+
+            await message.clear_reactions()
+            selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
+
+            if selection:
+                response = selection['id']
+            else:
+                userprofile_session = False
+
 
 
 
