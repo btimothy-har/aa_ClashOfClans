@@ -373,7 +373,8 @@ class AriXMemberCommands(commands.Cog):
 
             discord_msg = ""
             if a.discord_user:
-                discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_user}>"
+                user_object = await ctx.bot.fetch_user(a.discord_user)
+                discord_msg += f"\n<:Discord:1040423151760314448> {user_object.mention}"
 
             if a.league.name == 'Unranked':
                 league_img = "https://i.imgur.com/TZF5r54.png"
