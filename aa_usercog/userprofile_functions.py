@@ -262,12 +262,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         hero_str = ""
         ct = 0
         for h in a.heroes:
-            ct += 1
             if ct % 4 == 0:
                 hero_str += "\n"
             else:
                 hero_str += "  "
             hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Heroes",
@@ -278,12 +278,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         pets_str = ""
         ct = 0
         for p in a.pets:
-            ct += 1
             if ct % 4 == 0:
                 pets_str += "\n"
             else:
                 pets_str += "  "
             pets_str += f"{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Hero Pets",
@@ -294,12 +294,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         elixir_troops_str = ""
         ct = 0
         for et in elixir_troops:
-            ct += 1
             if ct % 4 == 0:
                 elixir_troops_str += "\n"
             else:
                 elixir_troops_str += "  "
             elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Elixir Troops",
@@ -310,12 +310,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         darkelixir_troops_str = ""
         ct = 0
         for dt in darkelixir_troops:
-            ct += 1
             if ct % 4 == 0:
                 darkelixir_troops_str += "\n"
             else:
                 darkelixir_troops_str += "  "
             darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Dark Elixir Troops",
@@ -326,12 +326,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         siege_machines_str = ""
         ct = 0
         for sm in siege_machines:
-            ct += 1
             if ct % 4 == 0:
                 siege_machines_str += "\n"
             else:
                 siege_machines_str += "  "
             siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Siege Machines",
@@ -342,12 +342,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         elixir_spells_str = ""
         ct = 0
         for es in elixir_spells:
-            ct += 1
             if ct % 4 == 0:
                 elixir_spells_str += "\n"
             else:
                 elixir_spells_str += "  "
             elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Elixir Spells",
@@ -358,12 +358,12 @@ async def userprofile_trooplevels(ctx,account,message=None):
         darkelixir_spells_str = ""
         ct = 0
         for ds in darkelixir_spells:
-            ct += 1
             if ct % 4 == 0:
                 darkelixir_spells_str += "\n"
             else:
                 darkelixir_spells_str += "  "
             darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         trooplevels_embed.add_field(
             name=f"Dark Elixir Spells",
@@ -426,12 +426,12 @@ async def userprofile_rushed(ctx,account,message=None):
         hero_str = ""
         ct = 0
         for h in heroes:
-            ct += 1
             if ct % 4 == 0:
                 hero_str += " "
             else:
                 hero_str += "\n"
             hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Heroes ({len(heroes)})",
@@ -442,12 +442,12 @@ async def userprofile_rushed(ctx,account,message=None):
         pets_str = ""
         ct = 0
         for p in pets:
-            ct += 1
             if ct % 4 == 0:
                 pets_str += " "
             else:
                 pets_str += "\n"
             pets_str += f"{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Hero Pets ({len(pets)})",
@@ -458,12 +458,12 @@ async def userprofile_rushed(ctx,account,message=None):
         elixir_troops_str = ""
         ct = 0
         for et in elixir_troops:
-            ct += 1
             if ct % 4 == 0:
                 elixir_troops_str += "\n"
             else:
                 elixir_troops_str += "  "
             elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Elixir Troops ({len(elixir_troops)})",
@@ -474,12 +474,12 @@ async def userprofile_rushed(ctx,account,message=None):
         darkelixir_troops_str = ""
         ct = 0
         for dt in darkelixir_troops:
-            ct += 1
             if ct % 4 == 0:
                 darkelixir_troops_str += "\n"
             else:
                 darkelixir_troops_str += "  "
             darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Dark Elixir Troops ({len(darkelixir_troops)})",
@@ -490,12 +490,12 @@ async def userprofile_rushed(ctx,account,message=None):
         siege_machines_str = ""
         ct = 0
         for sm in siege_machines:
-            ct += 1
             if ct % 4 == 0:
                 siege_machines_str += "\n"
             else:
                 siege_machines_str += "  "
             siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Siege Machines ({len(siege_machines)})",
@@ -506,12 +506,12 @@ async def userprofile_rushed(ctx,account,message=None):
         elixir_spells_str = ""
         ct = 0
         for es in elixir_spells:
-            ct += 1
             if ct % 4 == 0:
                 elixir_spells_str += "\n"
             else:
                 elixir_spells_str += "  "
             elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Elixir Spells ({len(elixir_spells)})",
@@ -522,12 +522,12 @@ async def userprofile_rushed(ctx,account,message=None):
         darkelixir_spells_str = ""
         ct = 0
         for ds in darkelixir_spells:
-            ct += 1
             if ct % 4 == 0:
                 darkelixir_spells_str += "\n"
             else:
                 darkelixir_spells_str += "  "
             darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
+            ct += 1
 
         rushed_embed.add_field(
             name=f"Dark Elixir Spells ({len(darkelixir_spells)})",
