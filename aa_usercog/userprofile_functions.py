@@ -396,9 +396,9 @@ async def userprofile_main(ctx,output,accounts):
             trooplevels_embed.add_field(name="Navigation",value=nav_str,inline=False)
 
             if message:
-                await message.edit(embed=raidlog_embed)
+                await message.edit(embed=trooplevels_embed)
             else:
-                message = await ctx.send(embed=raidlog_embed)
+                message = await ctx.send(embed=trooplevels_embed)
 
             await message.clear_reactions()
             selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
