@@ -74,7 +74,7 @@ async def userprofile_main(ctx,output,accounts):
 
     trooplevels_dict = {
         'id': 'trooplevels',
-        'emoji': "<:army_camp:1044905754471182409>",
+        'emoji': "<:laboratory:1044904659917209651>",
         'title': ""
         }
 
@@ -114,7 +114,7 @@ async def userprofile_main(ctx,output,accounts):
                 nav_options.append(capitalraid_dict)
 
             nav_options.append(trooplevels_dict)
-            nav_options.append(laboratory_dict)
+            #nav_options.append(laboratory_dict)
             nav_options.append(rushed_dict)
 
             if len(output) > 1:
@@ -156,8 +156,8 @@ async def userprofile_main(ctx,output,accounts):
 
             nav_options.append(trooplevels_dict)
             nav_str += "<:army_camp:1044905754471182409> To view current Troop Levels\n"
-            nav_options.append(laboratory_dict)
-            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            #nav_options.append(laboratory_dict)
+            #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_options.append(rushed_dict)
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
 
@@ -232,8 +232,8 @@ async def userprofile_main(ctx,output,accounts):
 
             nav_options.append(trooplevels_dict)
             nav_str += "<:army_camp:1044905754471182409> To view current Troop Levels\n"
-            nav_options.append(laboratory_dict)
-            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            #nav_options.append(laboratory_dict)
+            #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_options.append(rushed_dict)
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
 
@@ -296,13 +296,13 @@ async def userprofile_main(ctx,output,accounts):
                 nav_options.append(capitalraid_dict)
                 nav_str += "<:CapitalRaids:1034032234572816384> To view AriX Raid Log\n"
 
-            nav_options.append(laboratory_dict)
-            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            #nav_options.append(laboratory_dict)
+            #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_options.append(rushed_dict)
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
 
             trooplevels_embed = await clash_embed(ctx,
-                title=f"**Offense Levels: {a.name} ({a.tag})",
+                title=f"**Offense Levels: {a.name} ({a.tag})**",
                 message=f"Hero & Troop Levels for: {emotes_townhall[a.town_hall.level]} TH {a.town_hall.level}"
                 )
 
@@ -312,6 +312,16 @@ async def userprofile_main(ctx,output,accounts):
 
             elixir_spells = [s for s in a.spells if s.is_elixir_spell]
             darkelixir_spells = [s for s in a.spells if s.is_dark_spell]
+
+            if len(a.heroes) > 0:
+                hero_str = ""
+                for h in a.heroes:
+                    hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^8}\u3000"
+
+                trooplevels_embed.add_field(
+                    name=f"Heroes",
+                    value=f"{hero_str}\n\u200b",
+                    inline=False)
 
             if len(elixir_troops) > 0:
                 elixir_troops_str = ""

@@ -494,8 +494,8 @@ class AriXMemberCommands(commands.Cog):
             if a.is_member:
                 nav_str += "<:ClanWars:825753092230086708> To view AriX War Log\n"
                 nav_str += "<:CapitalRaids:1034032234572816384> To view AriX Raid Log\n"
-            nav_str += "<:army_camp:1044905754471182409> To view current Troop Levels\n"
-            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            nav_str += "<:laboratory:1044904659917209651> To view current Troop Levels\n"
+            #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes"
 
             if len(accounts) > 1:
