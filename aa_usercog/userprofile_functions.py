@@ -322,7 +322,7 @@ async def userprofile_main(ctx,output,accounts):
                         elixir_troops_str += "\u3000\u3000"
                     else:
                         elixir_troops_str += "\n"
-                    elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): =8}`"
+                    elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Elixir Troops",
@@ -338,7 +338,7 @@ async def userprofile_main(ctx,output,accounts):
                         darkelixir_troops_str += "\u3000\u3000"
                     else:
                         darkelixir_troops_str += "\n"
-                    darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): =8}`"
+                    darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Dark Elixir Troops",
@@ -354,7 +354,7 @@ async def userprofile_main(ctx,output,accounts):
                         siege_machines_str += "\u3000\u3000"
                     else:
                         siege_machines_str += "\n"
-                    siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): =8}`"
+                    siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Siege Machines",
@@ -370,7 +370,7 @@ async def userprofile_main(ctx,output,accounts):
                         elixir_spells_str += "\u3000\u3000"
                     else:
                         elixir_spells_str += "\n"
-                    elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): =8}`"
+                    elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Elixir Spells",
@@ -386,7 +386,7 @@ async def userprofile_main(ctx,output,accounts):
                         darkelixir_spells_str += "\u3000\u3000"
                     else:
                         darkelixir_spells_str += "\n"
-                    darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): =8}`"
+                    darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^8}`"
 
                 trooplevels_embed.add_field(
                     name=f"Dark Elixir Spells",
