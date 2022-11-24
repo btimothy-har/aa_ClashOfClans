@@ -131,16 +131,20 @@ async def userprofile_warlog(ctx,account,message=None):
                 attack_str += "\n"
             attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%"
 
-        if war.best_opponent_attack.order:
+        if len(war.defenses) > 0:
             if len(war.attacks) > 0:
                 attack_str += "\n"
-            attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[war.best_opponent_attack.attacker_townhall]} vs {emotes_townhall[war.best_opponent_attack.defender_townhall]}\u3000<:WarStars:825756777844178944> {war.best_opponent_attack.stars}\u3000:fire: {war.best_opponent_attack.destruction}%"
+
+            for defe in war.defenses:
+                if war.defenses.index(defe) > 1:
+                    attack_str += "\n"
+                attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker_townhall]} vs {emotes_townhall[defe.defender_townhall]}\u3000<:WarStars:825756777844178944> {defe.stars}\u3000:fire: {defe.destruction}%"
 
         attack_str += "\n\u200b"
 
         warlog_embed.add_field(
             name=f"{war.clan.name} vs {war.opponent.name}",
-            value=f"{warResultDesc[war.result]}\u3000<:MissedHits:825755234412396575> {war.total_attacks - len(war.attacks)}"
+            value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> {len(war.attacks)}\u3000<:MissedHits:825755234412396575> {war.total_attacks - len(war.attacks)}<:Defense:828103708956819467> {len(war.defenses)}"
                 + f"\n{attack_str}",
             inline=False
             )
@@ -263,7 +267,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         hero_str = ""
         ct = 0
         for h in a.heroes:
-            if ct % 3 == 0:
+            if ct % 2 == 0:
                 hero_str += "\n"
             else:
                 hero_str += "  "
@@ -283,7 +287,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
         pets_str = ""
         ct = 0
         for p in a.pets:
-            if ct % 3 == 0:
+            if ct % 2 == 0:
                 pets_str += "\n"
             else:
                 pets_str += "  "
@@ -456,7 +460,7 @@ async def userprofile_rushed(ctx,account,message=None):
         hero_str = ""
         ct = 0
         for h in heroes:
-            if ct % 3 == 0:
+            if ct % 2 == 0:
                 hero_str += " "
             else:
                 hero_str += "\n"
@@ -472,7 +476,7 @@ async def userprofile_rushed(ctx,account,message=None):
         pets_str = ""
         ct = 0
         for p in pets:
-            if ct % 3 == 0:
+            if ct % 2 == 0:
                 pets_str += " "
             else:
                 pets_str += "\n"

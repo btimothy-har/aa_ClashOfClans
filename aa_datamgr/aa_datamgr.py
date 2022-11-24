@@ -427,10 +427,13 @@ class AriXClashDataMgr(commands.Cog):
 
 
                 if war_reminder:
-                    if (c.current_war.end_time - st) < 3600:
+                    remaining_time = c.current_war.end_time - st
+                    if remaining_time < 3600:
                         ping_str = f"There is **less than 1 hour** left in Clan Wars and you have **NOT** used all your attacks.\n\n"
+
                     else:
-                        ping_str = f"There are **{round((c.current_war.end_time - st)/3600,1)} hour(s)** left in Clan Wars and you have **NOT** used all your attacks.\n\n"
+                        dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
+                        ping_str = f"Clan War ends in **{hh} hours, {mm} minutes**. You have **NOT** used all your attacks.\n\n"
 
                     ping_str += f"{humanize_list([f'<@{mid}>' for mid in war_reminder_ping])}"
 
@@ -480,26 +483,38 @@ class AriXClashDataMgr(commands.Cog):
 
                         if c.send_raid_reminder and clan_reminder_channel:
 
+                            remaining_time = c.current_raid_weekend.end_time - st
+                            dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
+
+                            remaining_time_str = ""
+                            if dd > 0:
+                                remaining_time_str += f"{dd} day(s)"
+
+                            if hh > 0:
+                                remaining_time_str += f"{hh} hour(s)"
+
+                            if mm > 0:
+                                remaining_time_str += f"{mm} minute(s)"
+
                             members_not_in_raid = [m for m in alliance_members if m.home_clan.tag == c.tag and m.tag not in [z.tag for z in c.current_raid_weekend.members]]
                             members_unfinished_raid = [m for m in alliance_members if m.tag in [z.tag for z in c.current_raid_weekend.members if z.attack_count < 6]]
 
                             if (c.current_raid_weekend.end_time - st) < 3600:
                                 not_in_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you have **NOT** participated.\n\n"
                             else:
-                                not_in_raid_str = f"There are **{round((c.current_raid_weekend.end_time - st)/3600,1)} hour(s)** left in Raid Weekend and you have **NOT** participated.\n\n"
+                                not_in_raid_str = f"Raid Weekend ends in **{remaining_time_str}** and you have **NOT** participated.\n\n"
 
                             not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
 
                             if (c.current_raid_weekend.end_time - st) < 3600:
                                 unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **DID NOT** use all your Raid Attacks.\n\n"
                             else:
-                                unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. There are **{round((c.current_raid_weekend.end_time - st)/3600,1)} hour(s)** left.\n\n"
+                                unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
 
                             unfinished_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_unfinished_raid])}"
 
                             await clan_reminder_channel.send(not_in_raid_str)
                             await clan_reminder_channel.send(unfinished_raid_str)
-
 
 
                 if c.current_raid_weekend.state == 'ended':

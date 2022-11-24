@@ -359,6 +359,7 @@ class AriXMemberCommands(commands.Cog):
                 except Exception as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
                     return await ctx.send(eEmbed)
+                accounts.append(p)
 
         else:
             home_clans, accounts = await get_user_profile(ctx,ctx.author.id)
