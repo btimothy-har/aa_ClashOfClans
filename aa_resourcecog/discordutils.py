@@ -195,7 +195,7 @@ async def paginate_embed(ctx,output,add_instructions=True):
                 embed.add_field(name="**Navigation**",value=nav_str,inline=False)
 
     browse_index = 0
-    message = 0
+    message = None
 
     while paginate_state:
 
