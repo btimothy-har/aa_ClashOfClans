@@ -50,11 +50,14 @@ class AriXClashResources(commands.Cog):
         self.config.register_user(**defaults_user)
 
     async def initialize_config(self,bot):
-        alliance_server_id = await self.config.alliance_server()
-        alliance_leader_role = await self.config.alliance_leader_role()
-        alliance_coleader_role = await self.config.alliance_coleader_role()
-        alliance_elder_role = await self.config.alliance_elder_role()
-        alliance_member_role = await self.config.alliance_member_role()
+
+        resource_cog = bot.get_cog("AriXClashResources")
+
+        alliance_server_id = await resource_cog.config.alliance_server()
+        alliance_leader_role = await resource_cog.config.alliance_leader_role()
+        alliance_coleader_role = await resource_cog.config.alliance_coleader_role()
+        alliance_elder_role = await resource_cog.config.alliance_elder_role()
+        alliance_member_role = await resource_cog.config.alliance_member_role()
 
         try:
             bot.alliance_server = bot.get_guild(int(alliance_server_id))
