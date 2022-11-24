@@ -88,17 +88,30 @@ class AriXClashDataMgr(commands.Cog):
             embed = await clash_embed(ctx=ctx,title="System Status Report")
             embed.add_field(
                 name="__Summary__",
-                value=f"> **File Path**: {ctx.bot.clash_dir_path}"
-                    + f"\n> **Log Channel**: {log_channel}",
+                value=f"> **Alliance Server**: {ctx.bot.alliance_server.name}"
+                    + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
+                    + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
+                    + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
                 inline=False)
 
             embed.add_field(
-                name="__Data Files__",
+                name="__System Cache__",
+                value=f"> Players: {len(ctx.bot.member_cache)}"
+                    f"\n> Clans: {len(ctx.bot.clan_cache)}",
+                inline=False)
+
+            embed.add_field(
+                name="__Core Data Files__",
                 value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
                     + f"\n> **members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
                     + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+                    inline=False)
+
+            embed.add_field(
+                name="__Eclipse Data Files__",
+                value=f"> **warbases.json**: {os.path.exists(ctx.bot.eclipse_path+'/warbases.json')}",
                     inline=False)
 
             embed.add_field(

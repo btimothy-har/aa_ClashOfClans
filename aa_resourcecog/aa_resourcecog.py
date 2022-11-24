@@ -50,43 +50,63 @@ class AriXClashResources(commands.Cog):
         self.config.register_user(**defaults_user)
 
 
-    @commands.command(name="status")
+    async def initialize_config(self,bot):
+        alliance_server_id = await self.config.alliance_server()
+        alliance_leader_role = await self.config.alliance_leader_role()
+        alliance_coleader_role = await self.config.alliance_coleader_role()
+        alliance_elder_role = await self.config.alliance_elder_role()
+        alliance_member_role = await self.config.alliance_member_role()
+
+        try:
+            bot.alliance_server = bot.get_guild(int(alliance_server_id))
+        except:
+            bot.alliance_server = None
+
+        try:
+            bot.leader_role = bot.alliance_server.get_role(int(alliance_leader_role))
+        except:
+            bot.leader_role = None
+
+        try:
+            bot.coleader_role = bot.alliance_server.get_role(int(alliance_coleader_role))
+        except:
+            bot.coleader_role = None
+
+        try:
+            bot.elder_role = bot.alliance_server.get_role(int(alliance_elder_role))
+        except:
+            bot.elder_role = None
+
+        try:
+            bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
+        except:
+            bot.member_role = None
+
+    @commands.command(name="setclashserver")
     @commands.is_owner()
-    async def system_status(self,ctx):
-        """Gets information on the system status."""
+    async def set_clash_alliance_server(self,ctx,server_id:int):
+        """
+        Sets the main Alliance server for use by the bot.
+        """
 
-        if ctx.bot.alliance_server:
-            try:
-                a_server = ctx.bot.alliance_server.name
-            except:
-                a_server = ctx.guild.name
+        try:
+            server = ctx.bot.get_guild(int(server_id))
+        except:
+            return await ctx.send(f"The Server ID {server_id} seems to be invalid.")
+
         else:
-            a_server = ctx.guild.name
+            await self.config.alliance_server.set(int(server.id))
+            ctx.bot.alliance_server = server
 
-        embed = await clash_embed(ctx=ctx,title="System Status Report")
-        embed.add_field(
-            name="__Summary__",
-            value=f"> **Alliance Server**: {a_server}"
-                + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
-                + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
-                + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
-            inline=False)
+            return await ctx.send(f"The Alliance Server has been set to `{ctx.bot.alliance_server.name}`.")
 
-        embed.add_field(
-            name="__System Cache__",
-            value=f"> Players: {len(ctx.bot.member_cache)}"
-                f"\n> Clans: {len(ctx.bot.clan_cache)}",
-            inline=False)
 
-        embed.add_field(
-            name="__Data Files__",
-            value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
-                + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
-                + f"\n> **members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
-                + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
-                + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
-                inline=False)
-        await ctx.send(embed=embed)
+
+
+
+
+
+
 
     # @commands.command(name="meteor")
     # async def help_meteor(self,ctx):

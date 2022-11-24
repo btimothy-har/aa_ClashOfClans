@@ -223,7 +223,7 @@ class aPlayer():
 
             rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
             if self.min_hero_strength > 0:
-                self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,1)
+                self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,2)
             else:
                 self.hero_rushed_pct = 0
 
@@ -233,7 +233,7 @@ class aPlayer():
 
             rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.pets if p.level < p.minlevel_for_townhall])
             if self.min_troop_strength > 0:
-                self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,1)
+                self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,2)
             else:
                 self.troop_rushed_pct = 0
 
@@ -243,7 +243,7 @@ class aPlayer():
 
             rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
             if self.min_spell_strength > 0:
-                self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,1)
+                self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,2)
             else:
                 self.spell_rushed_pct = 0
 
