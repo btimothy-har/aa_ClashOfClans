@@ -49,7 +49,6 @@ class AriXClashResources(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
-
     async def initialize_config(self,bot):
         alliance_server_id = await self.config.alliance_server()
         alliance_leader_role = await self.config.alliance_leader_role()
