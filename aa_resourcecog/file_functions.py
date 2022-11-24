@@ -4,6 +4,7 @@ import pytz
 from datetime import datetime
 
 from .constants import clanRanks
+from .alliance_functions import get_alliance_clan
 
 async def get_current_season():
     helsinkiTz = pytz.timezone("Europe/Helsinki")
@@ -22,59 +23,51 @@ async def season_file_handler(ctx,season):
 
 
     if season != current_season:
-        is_new_season = True
-        new_season = season
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                with open(ctx.bot.clash_dir_path+'/seasons.json','r+') as file:
-                    s_json = json.load(file)
-                    s_json['tracked'].append(currrent_season)
-                    s_json['current'] = new_season
-                    file.seek(0)
-                    json.dump(s_json,file,indent=2)
-                    file.truncate()
 
-            clans, members = await get_current_alliance()
+        update_season = True
 
-            new_path = ctx.bot.clash_dir_path+'/'+new_season
-            os.makedirs(new_path)
+        alliance_clans = await get_current_alliance()
 
-            shutil.copy2(ctx.bot.clash_dir_path+'/members.json',new_path)
-            #open in w+ as we are wiping out existing file
-            with open(ctx.bot.clash_dir_path+'/members.json','w+') as file:
-                json.dump({},file,indent=2)
+        for c in alliance_clans:
+            c.update_clan_war(ctx)
+            c.update_raid_weekend(ctx)
 
-            with open(ctx.bot.clash_dir_path+'/warlog.json','r+') as file:
-                w_json = json.load(file)
-                for key,item in w_json.items():
-                    if item['state'] != "warEnded":
-                        del w_json[key]
-                    new_w = {}
-                for c in clans:
-                    new_w[c] = {}
-                file.seek(0)
-                json.dump(new_w,file,indent=2)
-                file.truncate()
+            if c.war_state == "inWar":
+                update_season = False
 
-            #open in w+ as we are wiping out existing file
-            with open(new_path+'/warlog.json','w+') as file:
-                json.dump(w_json,file,indent=2)
+            if c.raid_weekend_state == "ongoing":
+                update_season = False
 
-            with open(ctx.bot.clash_dir_path+'/capitalraid.json','r+') as file:
-                r_json = json.load(file)
-                for key,item in r_json.items():
-                    if item['state'] != "ended":
-                        del r_json[key]
-                new_r = {}
-                for c in clans:
-                    new_r[c] = {}
-                file.seek(0)
-                json.dump(new_r,file,indent=2)
-                file.truncate()
 
-            #open in w+ as we are wiping out existing file
-            with open(new_path+'/capitalraid.json','w+') as file:
-                json.dump(r_json,file,indent=2)
+        if update_season:
+
+            is_new_season = True
+            new_season = season
+            async with ctx.bot.async_file_lock:
+                with ctx.bot.clash_file_lock.write_lock():
+                    with open(ctx.bot.clash_dir_path+'/seasons.json','r+') as file:
+                        s_json = json.load(file)
+                        s_json['tracked'].append(currrent_season)
+                        s_json['current'] = new_season
+                        file.seek(0)
+                        json.dump(s_json,file,indent=2)
+                        file.truncate()
+
+                new_path = ctx.bot.clash_dir_path+'/'+new_season
+                os.makedirs(new_path)
+
+                shutil.copy2(ctx.bot.clash_dir_path+'/members.json',new_path)
+                with open(ctx.bot.clash_dir_path+'/members.json','w+') as file:
+                    json.dump({},file,indent=2)
+
+                shutil.copy2(ctx.bot.clash_dir_path+'/warlog.json',new_path)
+                with open(ctx.bot.clash_dir_path+'/warlog.json','w+') as file:
+                    json.dump({},file,indent=2)
+
+                shutil.copy2(ctx.bot.clash_dir_path+'/capitalraid.json',new_path)
+                with open(ctx.bot.clash_dir_path+'/capitalraid.json','w+') as file:
+                    json.dump({},file,indent=2)
+
     return is_new_season, current_season, new_season
 
 

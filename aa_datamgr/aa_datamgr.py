@@ -358,18 +358,19 @@ class AriXClashDataMgr(commands.Cog):
 
         ## MEMBER UPDATE
         for mtag in member_keys:
-            p = await aPlayer.create(ctx,mtag,fetch=True)
-            # except TerminateProcessing as e:
-            #     eEmbed = await clash_embed(ctx,message=e,color='fail')
-            #     eEmbed.set_footer(
-            #         text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-            #         icon_url="https://i.imgur.com/TZF5r54.png")
-            #     return await log_channel.send(eEmbed)
-            # except Exception as e:
-            #     p = None
-            #     err_dict = {'tag':f'm{mtag}','reason':e}
-            #     err_log.append(err_dict)
-            #     continue
+            try:
+                p = await aPlayer.create(ctx,mtag,fetch=True)
+            except TerminateProcessing as e:
+                 eEmbed = await clash_embed(ctx,message=e,color='fail')
+                 eEmbed.set_footer(
+                     text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
+                     icon_url="https://i.imgur.com/TZF5r54.png")
+                 return await log_channel.send(eEmbed)
+            except Exception as e:
+                p = None
+                err_dict = {'tag':f'm{mtag}','reason':e}
+                err_log.append(err_dict)
+                continue
 
             if p.is_member:
                 alliance_members.append(p)
@@ -810,6 +811,14 @@ class AriXClashDataMgr(commands.Cog):
 
                 if role_change:
                     role_count += 1
+
+        for tag,c_member in ctx.bot.member_cache.items():
+            if st - c_member.timestamp > 86400:
+                del ctx.bot.member_cache[tag]
+
+        for tag,c_clan in ctx.bot.clan_cache.items():
+            if st - c_clan.timestamp > 86400:
+                del ctx.bot.clan_cache[tag]
 
         et = time.time()
 
