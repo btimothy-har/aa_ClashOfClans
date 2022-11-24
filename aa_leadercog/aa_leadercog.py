@@ -797,7 +797,7 @@ class AriXLeaderCommands(commands.Cog):
 
         Once added, the Welcome DM will be sent to the tagged user by NEBULA.
 
-        To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `$member add @user S`).
+        **Toggle Silent Mode**: To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `$member add @user S`).
         """
 
         user = Discord_User
