@@ -143,7 +143,8 @@ class AriXClashResources(commands.Cog):
             value="These commands are usable by everyone."
                 + f"\n\n> **arix**\n> Lists all the Clans in the AriX Alliance."
                 + f"\n\n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
-                + f"\n\n> **player** `[optional: COC Player Tags or @Discord User]`\n> Gets your Clash of Clans player stats.\n> You may provide: multiple player tag(s) OR 1 Discord User.")
+                + f"\n\n> **player** `[optional: COC Player Tags or @Discord User]`\n> Gets your Clash of Clans player stats.\n> You may provide: multiple player tag(s) OR 1 Discord User.",
+            inline=False)
 
         if member_state:
             nebula_embed.add_field(
@@ -151,7 +152,8 @@ class AriXClashResources(commands.Cog):
                 value="These commands are usable only by members."
                     + f"\n\n> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
                     + f"\n\n> **nickname**\n> Change your Discord nickname based on your member accounts!"
-                    + f"\n\n> **eclipse**\n> Open E.C.L.I.P.S.E.")
+                    + f"\n\n> **eclipse**\n> Open E.C.L.I.P.S.E.",
+                inline=False)
 
         if coleader_state:
             nebula_embed.add_field(
@@ -159,7 +161,8 @@ class AriXClashResources(commands.Cog):
                 value="These commands are usable only by Leaders or Co-Leaders."
                     + f"\n\n> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
                     + f"\n\n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
-                    + f"\n\n> **eclipse**\n> Open E.C.L.I.P.S.E.")
+                    + f"\n\n> **eclipse**\n> Open E.C.L.I.P.S.E.",
+                inline=False)
 
         await ctx.send(embed=nebula_embed)
 
