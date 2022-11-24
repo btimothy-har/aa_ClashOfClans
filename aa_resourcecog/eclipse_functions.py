@@ -43,30 +43,35 @@ async def eclipse_main_menu(ctx,session):
     menu_options = []
 
     personal_vault_option = {
-            'id': 'personalvault',
-            'title': f"Visit your Personal Base Vault",
-            'description': "Your personal base vault. This will open E.C.L.I.P.S.E. in your DMs."
-            }
+        'id': 'personalvault',
+        'title': f"Visit your Personal Base Vault",
+        'description': "Bases saved from our AriX Base Vault will appear in your personal vault for you to refer in future\nNote: This will open E.C.L.I.P.S.E. in your DMs."
+        }
     base_vault_option = {
-            'id': 'basevault',
-            'title': "Browse the Base Vault",
-            'description': f"We have bases covering TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
-            }
+        'id': 'basevault',
+        'title': "Browse the AriX Base Vault",
+        'description': f"We have bases covering TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+        }
     base_army_guides = {
-            'id': 'armyguides',
-            'title': "Browse the War Army Guide",
-            'description': f"We have a compilation of war armies and variations from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
-            }
+        'id': 'armyguides',
+        'title': "Browse the War Army Guide",
+        'description': f"We have a compilation of war armies and variations from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+        }
     strategy_guides = {
-            'id': 'strategy',
-            'title': "Browse the Strategy Guide",
-            'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
-            }
+        'id': 'strategy',
+        'title': "Browse the Strategy Guide",
+        'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
+        }
     army_analyzer = {
-            'id': 'armyanalyze',
-            'title': "Army Analysis",
-            'description': f"Compare up to 3 army compositions side-by-side."
-            }
+        'id': 'armyanalyze',
+        'title': "Army Analysis",
+        'description': f"Compare up to 3 army compositions side-by-side."
+        }
+    troop_encyclopedia = {
+        'id': 'troopencyclopedia',
+        'title': "Troop Encyclopedia",
+        'description': f"In-game stats for all Troops, Spells, Heroes for all levels."
+        }
 
     menu_options.append(personal_vault_option)
     menu_options.append(base_vault_option)
@@ -669,9 +674,7 @@ async def eclipse_personal_vault(ctx,session):
     menu_embed = await eclipse_embed(ctx,
         title=f"{session.user.display_name}'s Personal Vault",
         message=f"\nWelcome to your personal E.C.L.I.P.S.E. Vault."
-            + f"\n\nHere, you can access any of the War Bases that you've saved from the member's Vault. "
-            + f"In addition, E.C.L.I.P.S.E. also offers a personal Army Composition Database for your use."
-            + f"\n\n**All data saved in your E.C.L.I.P.S.E. Vault is only accessible by you.**\n\u200b")
+            + f"\n\nHere, you can access any of the War Bases that you've saved from the AriX Base Vault, with Base Links made available to you.\n\u200b")
 
     select_str = ""
     for i in menu_options:

@@ -1620,7 +1620,7 @@ class AriXLeaderCommands(commands.Cog):
                 main_menu_embed = await clash_embed(ctx,
                     title=f"Report Hub: {c.emoji} {c.desc_title}",
                     message=f"**Welcome to the Report Hub.**"
-                        + f"\n\nHere, you'll be able to generate various in-discord reports for your selected clan."
+                        + f"\n\nHere, you'll be able to generate various in-discord reports for your selected clan. "
                         + f"Alternatively, extract all data in the bot into an Excel spreadsheet.\n\u200b",
                     thumbnail=c.c.badge.url)
 

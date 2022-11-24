@@ -499,6 +499,9 @@ class AriXMemberCommands(commands.Cog):
             #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes"
 
+            if (ctx.bot.leader_role in discord_member.roles or ctx.bot.coleader_role in discord_member.roles):
+                nav_str += f"\n\n:mag: View Member Notes ({len(a.notes)})"
+
             if len(accounts) > 1:
                 nav_str += "\n\n<:to_previous:1041988094943035422> Previous Account\n<:to_next:1041988114308137010> Next Account"
 
@@ -619,10 +622,16 @@ class AriXMemberCommands(commands.Cog):
 
 
     @eclipse_group.command(name="addbase")
+    @commands.is_owner()
     async def eclipse_add_base(self,ctx):
         """
         Add a base to Eclipse.
         """
+
+        if ctx.author.id not in ctx.bot.owner_ids:
+            embed = await clash_embed(ctx,message="To use this command please contact <@644530507505336330>.")
+            return await ctx.send(embed=embed)
+
 
         timeout_embed = await eclipse_embed(ctx,message=f"Operation timed out.")
         

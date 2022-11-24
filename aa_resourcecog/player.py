@@ -468,6 +468,8 @@ class aPlayer():
                 if achievement.name == 'Games Champion':
                     self.clangames.set_baseline(achievement.value)
 
+            self.last_update = self.timestamp
+
 
     async def update_war(self,ctx,war_entry):
         player_log = aPlayerWarLog.from_war(war_entry)
