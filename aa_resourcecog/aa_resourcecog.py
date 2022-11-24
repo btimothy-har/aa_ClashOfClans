@@ -120,7 +120,7 @@ class AriXClashResources(commands.Cog):
 
         leaders = [c.leader for c in clans]
         coleaders = []
-        [coleaders.extend(c.coleaders) for c in clans]
+        [coleaders.extend(c.co_leaders) for c in clans]
 
         elders = []
         [elders.extend(c.elders) for c in clans]
