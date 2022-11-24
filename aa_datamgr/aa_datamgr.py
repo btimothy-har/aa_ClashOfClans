@@ -48,6 +48,41 @@ class AriXClashDataMgr(commands.Cog):
         self.config.register_guild(**default_guild)
 
 
+    async def initialize_config(self,bot):
+        resource_cog = bot.get_cog("AriXClashResources")
+
+        alliance_server_id = await resource_cog.config.alliance_server()
+        alliance_leader_role = await resource_cog.config.alliance_leader_role()
+        alliance_coleader_role = await resource_cog.config.alliance_coleader_role()
+        alliance_elder_role = await resource_cog.config.alliance_elder_role()
+        alliance_member_role = await resource_cog.config.alliance_member_role()
+
+        try:
+            bot.alliance_server = bot.get_guild(int(alliance_server_id))
+        except:
+            bot.alliance_server = None
+
+        try:
+            bot.leader_role = bot.alliance_server.get_role(int(alliance_leader_role))
+        except:
+            bot.leader_role = None
+
+        try:
+            bot.coleader_role = bot.alliance_server.get_role(int(alliance_coleader_role))
+        except:
+            bot.coleader_role = None
+
+        try:
+            bot.elder_role = bot.alliance_server.get_role(int(alliance_elder_role))
+        except:
+            bot.elder_role = None
+
+        try:
+            bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
+        except:
+            bot.member_role = None
+
+
     @commands.group(name="data",autohelp=False)
     @commands.is_owner()
     async def data_control(self,ctx):
