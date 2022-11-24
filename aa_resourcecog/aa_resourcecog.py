@@ -135,7 +135,7 @@ class AriXClashResources(commands.Cog):
             elder_state = True
 
         nebula_embed = await clash_embed(ctx,
-            name="Hello, I am N.E.B.U.L.A .",
+            title="Hello, I am N.E.B.U.L.A .",
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
                 + "\n\nMy commands are designed to be simple and easy to remember. "
                 + "Depending on your roles in the Alliance, you will have access to these commands below."
