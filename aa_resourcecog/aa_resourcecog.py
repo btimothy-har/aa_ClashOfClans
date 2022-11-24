@@ -137,7 +137,8 @@ class AriXClashResources(commands.Cog):
         meteor_embed = await clash_embed(ctx,
             name="Hello, I am N.E.B.U.L.A .",
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
-                + "\n\nMy commands are designed to be simple and easy to remember. They are split up into Leaders-only and Members-only.\n\u200b")
+                + "\n\nMy commands are designed to be simple and easy to remember. "
+                + "Depending on your roles in the Alliance, you will have access to these commands below.\n\u200b")
 
         meteor_embed.add_field(
             name="**General Commands**",
@@ -145,7 +146,6 @@ class AriXClashResources(commands.Cog):
                 + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
                 + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
                 + f"\n\n****")
-    eclipse
 
     async def player_description(ctx,p):
         #build title
