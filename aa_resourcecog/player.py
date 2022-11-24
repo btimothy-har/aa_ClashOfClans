@@ -239,7 +239,8 @@ class aPlayer():
                 self.spell_rushed_pct = 0
 
             if self.min_hero_strength + self.min_troop_strength + self.min_spell_strength > 0:
-                self.overall_rushed_pct = round(((rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength))*100,1)
+                rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
+                self.overall_rushed_pct = round(rushed_pct*100,2)
             else:
                 self.overall_rushed_pct = 0
 
