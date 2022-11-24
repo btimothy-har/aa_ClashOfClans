@@ -265,8 +265,6 @@ class AriXMemberCommands(commands.Cog):
         Gets a User's AriX Profile.
         """
 
-        await ctx.send("hello")
-
         output_embed = []
 
         if not user:
@@ -335,8 +333,6 @@ class AriXMemberCommands(commands.Cog):
 
         if len([a for a in user_accounts if not a.is_member]) > 0:
             output_embed.append(other_accounts_embed)
-
-        await ctx.send("hbyeo")
 
         await paginate_embed(ctx,output_embed)
 

@@ -162,7 +162,6 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
 
 
 async def paginate_embed(ctx,output,add_instructions=True):
-
     nav_options = []
     nav_str = ""
     paginate_state = True
@@ -180,7 +179,7 @@ async def paginate_embed(ctx,output,add_instructions=True):
         return
 
     if len(output) == 1:
-        return await ctx.send(output[0])
+        return await ctx.send(embed=output[0])
 
     if len(output) > 1:
         nav_options.append(prev_dict)
