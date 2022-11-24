@@ -499,7 +499,7 @@ class AriXMemberCommands(commands.Cog):
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes"
 
             if len(accounts) > 1:
-                nav_str += "\n\n<:to_previous:1041988094943035422> Previous Account\nNext Account <:to_next:1041988114308137010>"
+                nav_str += "\n\n<:to_previous:1041988094943035422> Previous Account\n<:to_next:1041988114308137010> Next Account"
 
             pEmbed.add_field(
                 name="Navigation",

@@ -249,6 +249,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
     trooplevels_embed = await clash_embed(ctx,
         title=f"**Offense Levels: {a.name} ({a.tag})**",
         message=f"Hero & Troop Levels for: {emotes_townhall[a.town_hall.level]} TH {a.town_hall.level}"
+            + f"\n\n*Italicized levels indicate rushed levels.*"
         )
 
     elixir_troops = [t for t in a.troops if t.is_elixir_troop]
@@ -266,7 +267,11 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 hero_str += "\n"
             else:
                 hero_str += "  "
-            hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`"
+
+            if h.is_rushed:
+                hero_str += f"*{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`*"
+            else:
+                hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -282,7 +287,10 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 pets_str += "\n"
             else:
                 pets_str += "  "
-            pets_str += f"{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`"
+            if p.level < p.minlevel_for_townhall:
+                pets_str += f"*{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`*"
+            else:
+                pets_str += f"{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -298,7 +306,11 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 elixir_troops_str += "\n"
             else:
                 elixir_troops_str += "  "
-            elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`"
+
+            if et.is_rushed:
+                elixir_troops_str += f"*{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`*"
+            else:
+                elixir_troops_str += f"{emotes_army[et.name]} `{str(et.level) + ' / ' + str(et.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -314,7 +326,11 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 darkelixir_troops_str += "\n"
             else:
                 darkelixir_troops_str += "  "
-            darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
+
+            if dt.is_rushed:
+                darkelixir_troops_str += f"*{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`*"
+            else:
+                darkelixir_troops_str += f"{emotes_army[dt.name]} `{str(dt.level) + ' / ' + str(dt.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -330,7 +346,11 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 siege_machines_str += "\n"
             else:
                 siege_machines_str += "  "
-            siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
+
+            if sm.is_rushed:
+                siege_machines_str += f"*{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`*"
+            else:
+                siege_machines_str += f"{emotes_army[sm.name]} `{str(sm.level) + ' / ' + str(sm.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -346,7 +366,11 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 elixir_spells_str += "\n"
             else:
                 elixir_spells_str += "  "
-            elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
+
+            if es.is_rushed:
+                elixir_spells_str += f"*{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`*"
+            else:
+                elixir_spells_str += f"{emotes_army[es.name]} `{str(es.level) + ' / ' + str(es.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -362,7 +386,11 @@ async def userprofile_trooplevels(ctx,account,message=None):
                 darkelixir_spells_str += "\n"
             else:
                 darkelixir_spells_str += "  "
-            darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
+
+            if ds.is_rushed:
+                darkelixir_spells_str += f"*{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`*"
+            else:
+                darkelixir_spells_str += f"{emotes_army[ds.name]} `{str(ds.level) + ' / ' + str(ds.maxlevel_for_townhall): ^7}`"
             ct += 1
 
         trooplevels_embed.add_field(
@@ -408,10 +436,12 @@ async def userprofile_rushed(ctx,account,message=None):
     rushed_embed = await clash_embed(ctx,
         title=f"**Rushed Troops: {a.name} ({a.tag})**",
         message=f"*All levels based on: {emotes_townhall[a.town_hall.level]} TH {a.town_hall.level}*"
-            + f"\n\nTroops: {a.troop_rushed_pct}% rushed"
-            + f"\nSpells: {a.spell_rushed_pct}% rushed"
-            + f"\nHeroes: {a.spell_rushed_pct}% rushed"
-            + f"\n\nOverall Rushed: **{a.overall_rushed_pct}%**")
+            + f"\n\n**Rushed Percentage**"
+            + f"\nTroops: {a.troop_rushed_pct}%"
+            + f"\nSpells: {a.spell_rushed_pct}%"
+            + f"\nHeroes: {a.spell_rushed_pct}%"
+            + f"\n\nOverall: **{a.overall_rushed_pct}%**"
+            + f"\n*Percentages exclude Pets.*")
 
     heroes = [h for h in a.heroes if h.is_rushed]
     pets = [p for p in a.pets if p.level < p.minlevel_for_townhall]
