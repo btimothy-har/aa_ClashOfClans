@@ -185,9 +185,13 @@ async def userprofile_main(ctx,output,accounts):
 
                 attack_str = ""
                 for att in war.attacks:
-                    attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%\n"
+                    if war.attacks.index(att) > 0:
+                        attack_str += "\n"
+                    attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%"
 
                 if war.best_opponent_attack.order:
+                    if len(war.attacks) > 0:
+                        attack_str += "\n"
                     attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[war.best_opponent_attack.attacker_townhall]} vs {emotes_townhall[war.best_opponent_attack.defender_townhall]}\u3000<:WarStars:825756777844178944> {war.best_opponent_attack.stars}\u3000:fire: {war.best_opponent_attack.destruction}%"
 
                 attack_str += "\n\u200b"
