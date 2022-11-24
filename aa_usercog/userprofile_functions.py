@@ -287,6 +287,7 @@ async def userprofile_main(ctx,output,accounts):
             nav_options = []
             a = accounts[page_index]
 
+            nav_str = ""
             nav_options.append(back_dict)
             nav_str += "<:backwards:1041976602420060240> Back to Accounts view\n"
             if a.is_member:
