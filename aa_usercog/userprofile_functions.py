@@ -67,7 +67,7 @@ async def userprofile_main(ctx,output,accounts):
         }
 
     capitalraid_dict = {
-        'id': 'capitalraids',
+        'id': 'raidlog',
         'emoji': "<:CapitalRaids:1034032234572816384>",
         'title': ""
         }
@@ -167,15 +167,15 @@ async def userprofile_main(ctx,output,accounts):
             # lost = [w for wid,w in a.warlog.items() if w.result in ['lost','losing']]
             # tied = [w for wid,w in a.warlog.items() if w.result in ['tied']]
 
-
             warlog_embed = await clash_embed(ctx,
-                title=f"War Log: **{a.name}** ({a.tag})",
+                title=f"**War Log: {a.name} ({a.tag})**",
                 message=f"**Stats for: {current_season} Season**"
                     + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000"
                     + f"<:Triple:1034033279411687434> {a.war_stats.triples}\u3000"
                     + f"<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
-                    + f"\n> <:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars} :fire: {a.war_stats.offense_destruction}%"
-                    + f"\n> <:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> {a.war_stats.defense_stars} :fire: {a.war_stats.defense_destruction}%")
+                    + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars}\u3000:fire: {a.war_stats.offense_destruction}%"
+                    + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> {a.war_stats.defense_stars}\u3000:fire: {a.war_stats.defense_destruction}%"
+                    + f"\n\u200b")
 
             war_id_sort = [wid for wid,war in a.warlog.items()]
             war_id_sort.sort(reverse=True)
@@ -185,10 +185,12 @@ async def userprofile_main(ctx,output,accounts):
 
                 attack_str = ""
                 for att in war.attacks:
-                    attack_str += f"<:Attack:828103854814003211> {emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%\n"
+                    attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> {att.stars}\u3000:fire: {att.destruction}%\n"
 
                 if war.best_opponent_attack.order:
-                    attack_str += f"<:Defense:828103708956819467> {emotes_townhall[war.best_opponent_attack.attacker_townhall]} vs {emotes_townhall[war.best_opponent_attack.defender_townhall]}\u3000<:WarStars:825756777844178944> {war.best_opponent_attack.stars}\u3000:fire: {war.best_opponent_attack.destruction}%"
+                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[war.best_opponent_attack.attacker_townhall]} vs {emotes_townhall[war.best_opponent_attack.defender_townhall]}\u3000<:WarStars:825756777844178944> {war.best_opponent_attack.stars}\u3000:fire: {war.best_opponent_attack.destruction}%"
+
+                attack_str += "\n\u200b"
 
                 warlog_embed.add_field(
                     name=f"{war.clan.name} vs {war.opponent.name}",
@@ -214,6 +216,71 @@ async def userprofile_main(ctx,output,accounts):
                 response = selection['id']
             else:
                 userprofile_session = False
+
+
+        if response == 'raidlog':
+            nav_options = []
+            a = accounts[page_index]
+
+            nav_str = ""
+            nav_options.append(back_dict)
+            nav_str += "<:backwards:1041976602420060240> Back to Accounts view\n"
+            if a.is_member:
+                nav_options.append(capitalraid_dict)
+                nav_str += "<:ClanWars:825753092230086708> To view AriX War Log\n"
+
+            nav_options.append(trooplevels_dict)
+            nav_str += "<:army_camp:1044905754471182409> To view current Troop Levels\n"
+            nav_options.append(laboratory_dict)
+            nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
+            nav_options.append(rushed_dict)
+            nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
+
+            current_season = await get_current_season()
+
+            raidlog_embed = await clash_embed(ctx,
+                title=f"**Raid Log: {a.name} ({a.tag})**",
+                message=f"**Stats for: {current_season} Season**"
+                    + f"\n<:CapitalRaids:1034032234572816384> {a.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.raid_stats.raids_participated * 6) - a.raid_stats.raid_attacks}"
+                    + f"<:CapitalGoldLooted:1045200974094028821> {a.raid_stats.resources_looted}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned}"
+                    + f"\n\u200b"
+                    )
+
+            raid_id_sort = [rid for rid,raid in a.raidlog.items()]
+            raid_id_sort.sort(reverse=True)
+
+            for rid in raid_id_sort:
+                raid = a.raidlog[rid]
+
+                raid_date = datetime.fromtimestamp(int(rid)).strftime('%d %b %Y')
+
+                raidlog_embed.add_field(
+                    name=f"Raid Weekend: {raid_date}",
+                    value=f"<:Clan:825654825509322752> {raid.clan_name}\u3000<:Attack:828103854814003211> {raid.attack_count} / 6"
+                        + f"\n<:CapitalGoldLooted:1045200974094028821> {raid.resources_looted}\u3000<:RaidMedals:983374303552753664> {raid.medals_earned}"
+                        + f"\n\u200b",
+                    inline=False
+                    )
+
+            raidlog_embed.add_field(
+                name="Navigation",
+                value=nav_str,
+                inline=False)
+
+            if message:
+                await message.edit(embed=raidlog_embed)
+            else:
+                message = await ctx.send(embed=raidlog_embed)
+
+            await message.clear_reactions()
+            selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
+
+            if selection:
+                response = selection['id']
+            else:
+                userprofile_session = False
+
+
 
     if message:
         await message.clear_reactions()
