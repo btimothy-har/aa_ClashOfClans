@@ -49,41 +49,6 @@ class AriXClashResources(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
-    async def initialize_config(self,bot):
-
-        resource_cog = bot.get_cog("AriXClashResources")
-
-        alliance_server_id = await resource_cog.config.alliance_server()
-        alliance_leader_role = await resource_cog.config.alliance_leader_role()
-        alliance_coleader_role = await resource_cog.config.alliance_coleader_role()
-        alliance_elder_role = await resource_cog.config.alliance_elder_role()
-        alliance_member_role = await resource_cog.config.alliance_member_role()
-
-        try:
-            bot.alliance_server = bot.get_guild(int(alliance_server_id))
-        except:
-            bot.alliance_server = None
-
-        try:
-            bot.leader_role = bot.alliance_server.get_role(int(alliance_leader_role))
-        except:
-            bot.leader_role = None
-
-        try:
-            bot.coleader_role = bot.alliance_server.get_role(int(alliance_coleader_role))
-        except:
-            bot.coleader_role = None
-
-        try:
-            bot.elder_role = bot.alliance_server.get_role(int(alliance_elder_role))
-        except:
-            bot.elder_role = None
-
-        try:
-            bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
-        except:
-            bot.member_role = None
-
     @commands.command(name="setclashserver")
     @commands.is_owner()
     async def set_clash_alliance_server(self,ctx,server_id:int):
@@ -102,11 +67,43 @@ class AriXClashResources(commands.Cog):
 
             return await ctx.send(f"The Alliance Server has been set to `{ctx.bot.alliance_server.name}`.")
 
+    @commands.command(name="setalliancerole")
+    @commands.is_owner()
+    async def set_clash_alliance_server(self,ctx,role_type:str,role_id:int):
+        """
+        Sets the main Alliance server for use by the bot.
+        """
 
+        valid_roles = ['leader','coleader','elder','member']
 
+        if role_type not in valid_roles:
+            return await ctx.send(f"The Role Type seems to be invalid. Acceptable types: {humanize_list(valid_roles)}")
 
+        try:
+            role = ctx.bot.alliance_server.get_role(int(role_id))
+        except:
+            return await ctx.send(f"The Role ID {role_id} seems to be invalid.")
 
+        else:
+            if role_type == 'leader':
+                await self.config.alliance_leader_role.set(int(role.id))
+                ctx.bot.leader_role = role
+                return await ctx.send(f"The Alliance Leader Role has been set to `{ctx.bot.leader_role.name}`.")
 
+            if role_type == 'coleader':
+                await self.config.alliance_coleader_role.set(int(role.id))
+                ctx.bot.coleader_role = role
+                return await ctx.send(f"The Alliance Co-Leader Role has been set to `{ctx.bot.coleader_role.name}`.")
+
+            if role_type == 'elder':
+                await self.config.alliance_elder_role.set(int(role.id))
+                ctx.bot.elder_role = role
+                return await ctx.send(f"The Alliance Elder Role has been set to `{ctx.bot.elder_role.name}`.")
+
+            if role_type == 'member':
+                await self.config.alliance_member_role.set(int(role.id))
+                ctx.bot.member_role = role
+                return await ctx.send(f"The Alliance Member Role has been set to `{ctx.bot.member_role.name}`.")
 
 
 

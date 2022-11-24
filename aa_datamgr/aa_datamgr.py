@@ -124,6 +124,10 @@ class AriXClashDataMgr(commands.Cog):
             embed.add_field(
                 name="__Summary__",
                 value=f"> **Alliance Server**: {getattr(ctx.bot.alliance_server,'name','Not Set')}"
+                    + f"\n> **Leader Role: {getattr(ctx.bot.alliance_leader_role,'mention','Not Set')}"
+                    + f"\n> **Co-Leader Role: {getattr(ctx.bot.alliance_coleader_role,'mention','Not Set')}"
+                    + f"\n> **Elder Role: {getattr(ctx.bot.alliance_elder_role,'mention','Not Set')}"
+                    + f"\n> **Member Role: {getattr(ctx.bot.alliance_member_role,'mention','Not Set')}"
                     + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
                     + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
                     + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
@@ -198,6 +202,7 @@ class AriXClashDataMgr(commands.Cog):
                     +f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
             color="success")
         return await ctx.send(embed=embed)
+
 
     @data_control.command(name="reset")
     @commands.is_owner()
