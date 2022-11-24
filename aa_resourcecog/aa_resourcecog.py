@@ -106,29 +106,46 @@ class AriXClashResources(commands.Cog):
                 return await ctx.send(f"The Alliance Member Role has been set to `{ctx.bot.member_role.name}`.")
 
 
+    @commands.command(name="nebula",aliases=["n"])
+    async def help_nebula(self,ctx):
+        """
+        Custom help command for N.E.B.U.L.A.
+        """
 
-    # @commands.command(name="meteor")
-    # async def help_meteor(self,ctx):
-    #     """
-    #     Custom help command for M.E.T.E.O.R.
-    #     """
+        leader_state = False
+        coleader_state = False
+        elder_state = False
 
-    #     coleader_clans = await get_staff_position(ctx,ctx.author.id,"Co-Leader")
-    #     elder_clans = await get_staff_position(ctx,ctx.author.id,"Elder")
+        clans = await get_alliance_clan(ctx)
 
-    #     meteor_embed = await clash_embed(ctx,
-    #         name="Hello, I am M.E.T.E.O.R. .",
-    #         message="**M**ain **E**xecutive **T**erminal and **E**xtra-**O**rdinary **R**obot."
-    #             + "\n\nI host several commands for AriX Members and Leaders, so that the alliance runs smoothly at all times."
-    #             + " Below are some commands you may have access to.\n\u200b")
+        leaders = [c.leader for c in clans]
+        coleaders = []
+        [coleaders.extend(c.coleaders) for c in clans]
 
-    #     meteor_embed.add_field(
-    #         name="**General Commands**",
-    #         value="These commands are usable by everyone."
-    #             + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
-    #             + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
-    #             + f"\n\n****")
-    #eclipse
+        elders = []
+        [elders.extend(c.elders) for c in clans]
+
+        if ctx.author.id in leaders:
+            leader_state = True
+
+        if ctx.author.id in coleaders:
+            coleader_state = True
+
+        if ctx.author.id in elders:
+            elder_state = True
+
+        meteor_embed = await clash_embed(ctx,
+            name="Hello, I am N.E.B.U.L.A .",
+            message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
+                + "\n\nMy commands are designed to be simple and easy to remember. They are split up into Leaders-only and Members-only.\n\u200b")
+
+        meteor_embed.add_field(
+            name="**General Commands**",
+            value="These commands are usable by everyone."
+                + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
+                + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
+                + f"\n\n****")
+    eclipse
 
     async def player_description(ctx,p):
         #build title

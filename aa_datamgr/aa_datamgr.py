@@ -83,7 +83,7 @@ class AriXClashDataMgr(commands.Cog):
             bot.member_role = None
 
 
-    @commands.group(name="data",autohelp=False)
+    @commands.group(name="data",aliases=["status"],autohelp=False)
     @commands.is_owner()
     async def data_control(self,ctx):
         """Manage the bot's Clash of Clans data."""
@@ -122,15 +122,12 @@ class AriXClashDataMgr(commands.Cog):
 
             embed = await clash_embed(ctx=ctx,title="System Status Report")
             embed.add_field(
-                name="__Summary__",
+                name="__Discord Configuration__",
                 value=f"> **Alliance Server**: {getattr(ctx.bot.alliance_server,'name','Not Set')} `({getattr(ctx.bot.alliance_server,'id',0)})`"
                     + f"\n> **Leader Role**: {getattr(ctx.bot.leader_role,'mention','Not Set')}"
                     + f"\n> **Co-Leader Role**: {getattr(ctx.bot.coleader_role,'mention','Not Set')}"
                     + f"\n> **Elder Role**: {getattr(ctx.bot.elder_role,'mention','Not Set')}"
-                    + f"\n> **Member Role**: {getattr(ctx.bot.member_role,'mention','Not Set')}"
-                    + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
-                    + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
-                    + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
+                    + f"\n> **Member Role**: {getattr(ctx.bot.member_role,'mention','Not Set')}",
                 inline=False)
 
             embed.add_field(
@@ -138,6 +135,12 @@ class AriXClashDataMgr(commands.Cog):
                 value=f"> Players: {len(ctx.bot.member_cache)}"
                     f"\n> Clans: {len(ctx.bot.clan_cache)}",
                 inline=False)
+
+            embed.add_field(
+                name="__File Path Config__",
+                value=f"\n> **File Path**: {ctx.bot.clash_dir_path}"
+                    + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
+                    + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",)
 
             embed.add_field(
                 name="__Core Data Files__",
@@ -167,9 +170,9 @@ class AriXClashDataMgr(commands.Cog):
         """Erases all data and resets all data files to default."""
 
         embed = await clash_embed(ctx=ctx,
-                                title="Confirmation Required.",
-                                message=f"**This action erases __ALL__ data from the bot.**"+
-                                        "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
+            title="Confirmation Required.",
+            message=f"**This action erases __ALL__ data from the bot.**"+
+                "\n\nIf you wish to continue, enter the token below as your next message.\nYou have 60 seconds to respond.")
         cMsg = await ctx.send(content=ctx.author.mention,embed=embed)
 
         if not await user_confirmation(ctx,cMsg,confirm_method='token_only'):

@@ -194,7 +194,6 @@ async def paginate_embed(ctx,output,add_instructions=True):
             if add_instructions:
                 embed.add_field(name="**Navigation**",value=nav_str,inline=False)
 
-
     browse_index = 0
     message = 0
 

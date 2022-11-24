@@ -263,9 +263,9 @@ class AriXMemberCommands(commands.Cog):
     async def arix_profile(self,ctx,user:discord.User=None):
         """
         Gets a User's AriX Profile.
-
-        Returns only AriX-registered accounts.
         """
+
+        await ctx.send("hello")
 
         output_embed = []
 
@@ -336,6 +336,7 @@ class AriXMemberCommands(commands.Cog):
         if len([a for a in user_accounts if not a.is_member]) > 0:
             output_embed.append(other_accounts_embed)
 
+        await ctx.send("hbyeo")
 
         await paginate_embed(ctx,output_embed)
 
