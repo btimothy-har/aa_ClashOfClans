@@ -160,28 +160,37 @@ class aPlayer():
             self.heroes = []
             hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
             for hero_name in list(chain.from_iterable(hero_d)):
+                is_unlocked_at_this_level = False
+                if troop_name in troop_availability[self.town_hall.level]:
+                    is_unlocked_at_this_level = True
                 hero = self.p.get_hero(name=hero_name)
                 if not hero:
                     hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
-                hero = aHero.from_data(hero,self.town_hall.level)
+                hero = aHero.from_data(hero,self.town_hall.level,is_unlocked_at_this_level)
                 self.heroes.append(hero)
 
             self.troops = []
             troop_d = [troop for (th,troop) in troop_availability.items() if th<=self.town_hall.level]
             for troop_name in list(chain.from_iterable(troop_d)):
+                is_unlocked_at_this_level = False
+                if troop_name in troop_availability[self.town_hall.level]:
+                    is_unlocked_at_this_level = True
                 troop = self.p.get_troop(name=troop_name,is_home_troop=True)
                 if not troop:
                     troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
-                troop = aTroop.from_data(troop,self.town_hall.level)
+                troop = aTroop.from_data(troop,self.town_hall.level,is_unlocked_at_this_level)
                 self.troops.append(troop)
 
             self.spells = []
             spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
             for spell_name in list(chain.from_iterable(spell_d)):
+                is_unlocked_at_this_level = False
+                if spell_name in spell_availability[self.town_hall.level]:
+                    is_unlocked_at_this_level = True
                 spell = self.p.get_spell(name=spell_name)
                 if not spell:
                     spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
-                spell = aSpell.from_data(spell,self.town_hall.level)
+                spell = aSpell.from_data(spell,self.town_hall.level,is_unlocked_at_this_level)
                 self.spells.append(spell)
 
             self.pets = []
@@ -738,7 +747,7 @@ class aTroop():
         return self
 
     @classmethod
-    def from_data(cls,gameData,th_level):
+    def from_data(cls,gameData,th_level,is_unlocked_at_this_level=False):
         self = aTroop()
         self.troop = gameData
 
