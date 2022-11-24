@@ -165,8 +165,8 @@ class AriXClashResources(commands.Cog):
                     + f"\n\n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
                     + f"\n\n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
                     + f"\n\n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
-                    + f"\n\n> **clan**\n> Composite command to manage Alliance clans. Use the command to get more information."
-                    + f"\n\n> **member**\n> Composite command to manage Alliance members. Use the command to get more information."
+                    + f"\n\n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
+                    + f"\n\n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
                     + f"\n\u200b",
                 inline=False)
 

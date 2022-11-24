@@ -260,10 +260,12 @@ class AriXMemberCommands(commands.Cog):
     #     await ctx.send(embed=rEmbed)
 
     @commands.command(name="profile")
-    async def arix_profile(self,ctx,user:discord.User=None):
+    async def arix_profile(self,ctx,Discord_User:discord.User=None):
         """
         Gets a User's AriX Profile.
         """
+
+        user = Discord_User
 
         output_embed = []
 
@@ -277,7 +279,7 @@ class AriXMemberCommands(commands.Cog):
 
         home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
 
-        #other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
+        other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
         profile_msg = ""
 
@@ -310,28 +312,28 @@ class AriXMemberCommands(commands.Cog):
                 inline=False)
 
         for a in [a for a in user_accounts if not a.is_member]:
-            other_accounts_embed.add_field(
+            member_accounts_embed.add_field(
                 name=f"{a.desc_title}",
                 value=f"{a.desc_full_text}\n\u200b",
                 inline=False)
 
-        # for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
-        #     try:
-        #         p = await aPlayer.create(ctx,a)
-        #     except Exception as e:
-        #         return await error_end_processing(ctx,
-        #             preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
-        #             err=e)
+        for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
+            try:
+                p = await aPlayer.create(ctx,a)
+            except Exception as e:
+                return await error_end_processing(ctx,
+                    preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
+                    err=e)
 
-        #     other_accounts_embed.add_field(
-        #         name=f"{p.desc_title}",
-        #         value=f"{p.desc_full_text}\n\u200b",
-        #         inline=False)
+            other_accounts_embed.add_field(
+                name=f"{p.desc_title}",
+                value=f"{p.desc_full_text}\n\u200b",
+                inline=False)
 
-        if len([a for a in user_accounts if a.is_member]) > 0:
+        if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
             output_embed.append(member_accounts_embed)
 
-        if len([a for a in user_accounts if not a.is_member]) > 0:
+        if len([a for a in other_accounts if a not in [u.tag for u in user_accounts]]) > 0:
             output_embed.append(other_accounts_embed)
 
         await paginate_embed(ctx,output_embed)

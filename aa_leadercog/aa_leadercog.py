@@ -416,8 +416,6 @@ class AriXLeaderCommands(commands.Cog):
         """
         Change Clan Settings.
 
-        ```Required inputs: Clan Abbreviation```
-
         **Usable only by Co-Leaders and Leaders.**
 
         The following settings can be adjusted from this command:
@@ -714,10 +712,7 @@ class AriXLeaderCommands(commands.Cog):
         """
         Add a Leader's note to a clan.
 
-        ```Required inputs: Clan Abbreviation```
-
         Notes appear in the Recruiting Hub (`$recruitment`), and can be used to share information between Leaders.
-
         """
 
         def response_check(m):
@@ -797,9 +792,6 @@ class AriXLeaderCommands(commands.Cog):
     async def member_manage_add(self,ctx,Discord_User:discord.User, Toggle_Silent_Mode=None):
         """
         Add a Member to the Alliance.
-
-        ```Required inputs: Discord User
-        Optional inputs: Toggle Silent Mode (enter S to toggle)```
 
         A Member is permanently assigned to a Home Clan in the Alliance. Until removed, they will be treated as a Member, regardless of their in-game status.
 
@@ -996,9 +988,11 @@ class AriXLeaderCommands(commands.Cog):
     @member_manage.command(name="remove")
     async def member_manage_remove(self,ctx,*player_tags):
         """
-        Remove members from the Alliance. 
+        Remove Members from the Alliance.
 
-        Multiple tags can be separated by a blank space.
+        This removes the Member Status from the provided player tag(s), and removes them from the originally assigned Home Clan.
+
+        You can provide multiple player tags, separated by a space in between.
         """
 
         remove_accounts = []
@@ -1081,12 +1075,20 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @member_manage.command(name="addnote")
-    async def member_manage_addnote(self,ctx,user:discord.User):
+    async def member_manage_addnote(self,ctx,Discord_User:discord.User):
         """
-        Add a Leader's note to a member.
+        Add a Leader's note to a Member.
 
-        Notes can only be added to active members, and can be added to all of a user's accounts, or only a specific one.
+        As members are identified by Discord User, tagging a user will let you add the note to:
+
+        > 1) All of the User's Linked Accounts; or
+        > 2) All of the User's Accounts in a Clan; or
+        > 3) A specific account
+
+        Notes are viewable when using the `$player` command, when run as a Leader/Co-Leader.
         """
+
+        user = Discord_User
 
         def response_check(m):
             if m.author.id == ctx.author.id and m.channel.type == discord.ChannelType.private:
@@ -1187,12 +1189,18 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=final_embed)
 
     @member_manage.command(name="setnick")
-    async def member_manage_setnickname(self,ctx,user:discord.User):
+    async def member_manage_setnickname(self,ctx,Discord_User:discord.User):
         """
-        Set a member's nickname.
+        Change a Member's Discord Nickname.
 
-        Nicknames can only be set from a user's active accounts. 
+        Nicknames follow the format of: `In-Game Name | Clan Membership`.
+
+        This command will let you pick an active member account to set the member's nickname to. Clan Membership is automatically populated.
+
+        If the provided user only has 1 active account, that account becomes the default nickname.
         """
+
+        user = Discord_User
 
         new_nickname = await resc.user_nickname_handler(ctx,user)
 
@@ -1368,8 +1376,21 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @commands.command(name="promote")
-    async def member_promote(self,ctx,user:discord.User):
-        """Promote a member."""
+    async def member_promote(self,ctx,Discord_User:discord.User):
+        """
+        Promote a Member.
+
+        Members are ranked based on Discord User and Clan. When promoting a Discord User, all their accounts registered in the provided Clan are promoted/demoted as a group.
+
+        **Clan Permissions Apply**
+        > - Only Clan Leaders can promote/demote Co-Leaders.
+        > - Clan Leaders and Co-Leaders can promote/demote Elders and Members.
+        > - You can only promote/demote for Clans that you are a Leader/Co-Leader in.
+        > - A User must be a Member in that Clan to be eligible for promotion/demotion.
+
+        **To change a Clan Leader, promote a Co-Leader. A Clan Leader cannot be promoted or demoted.**
+
+        """
 
         if ctx.author.id == user.id:
             eEmbed = await clash_embed(ctx,message=f"Self-glorification is not allowed. Go grovel and beg for mercy.",color='fail')
@@ -1382,7 +1403,20 @@ class AriXLeaderCommands(commands.Cog):
 
     @commands.command(name="demote")
     async def member_demote(self,ctx,user:discord.User):
-        """Demote a member."""
+        """
+        Demote a Member.
+
+        Members are ranked based on Discord User and Clan. When promoting a Discord User, all their accounts registered in the provided Clan are promoted/demoted as a group.
+
+        **Clan Permissions Apply**
+        > - Only Clan Leaders can promote/demote Co-Leaders.
+        > - Clan Leaders and Co-Leaders can promote/demote Elders and Members.
+        > - You can only promote/demote for Clans that you are a Leader/Co-Leader in.
+        > - A User must be a Member in that Clan to be eligible for promotion/demotion.
+
+        **To change a Clan Leader, promote a Co-Leader. A Clan Leader cannot be promoted or demoted.**
+        **Members cannot be demoted.**
+        """
 
         if ctx.author.id == user.id:
             eEmbed = await clash_embed(ctx,message=f"Self-mutilation is strongly discouraged. You might want to seek help.",color='fail')
@@ -1394,88 +1428,88 @@ class AriXLeaderCommands(commands.Cog):
             user=user)
 
 
-    @commands.command(name="whois")
-    async def member_whois(self,ctx,user:discord.User):
-        """
-        Get information about a Discord user.
-        """
+    # @commands.command(name="whois")
+    # async def member_whois(self,ctx,user:discord.User):
+    #     """
+    #     Get information about a Discord user.
+    #     """
 
-        def build_str(a):
-            a_str = ""
-            if a.is_member:
-                clan_des = f"*{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}*"
-            else:
-                clan_des = f"<:Clan:825654825509322752> {a.clan_description}"
-            a_str += f"> {clan_des}"
-            a_str += f"\n> <:Exp:825654249475932170> {a.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies}"
-            a_str += f"\n> <:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength}"
-            if a.town_hall.level >= 5:
-                a_str += f"\u3000<:TotalSpellStrength:827730290294259793> {a.spell_strength} / {a.max_spell_strength}"
-            if a.town_hall.level >= 7:
-                a_str += f"\u3000<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength}"
-                a_str += f"\n> {a.hero_description}"
-            return a_str
+    #     def build_str(a):
+    #         a_str = ""
+    #         if a.is_member:
+    #             clan_des = f"*{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}*"
+    #         else:
+    #             clan_des = f"<:Clan:825654825509322752> {a.clan_description}"
+    #         a_str += f"> {clan_des}"
+    #         a_str += f"\n> <:Exp:825654249475932170> {a.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies}"
+    #         a_str += f"\n> <:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength}"
+    #         if a.town_hall.level >= 5:
+    #             a_str += f"\u3000<:TotalSpellStrength:827730290294259793> {a.spell_strength} / {a.max_spell_strength}"
+    #         if a.town_hall.level >= 7:
+    #             a_str += f"\u3000<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength}"
+    #             a_str += f"\n> {a.hero_description}"
+    #         return a_str
 
-        info_embed = await clash_embed(ctx,
-            title=f"Member Profile: {user.name}#{user.discriminator}",
-            thumbnail=user.avatar_url)
+    #     info_embed = await clash_embed(ctx,
+    #         title=f"Member Profile: {user.name}#{user.discriminator}",
+    #         thumbnail=user.avatar_url)
 
-        user_alliance_accounts_tags = await get_user_accounts(ctx,user.id)
-        user_linked_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
+    #     user_alliance_accounts_tags = await get_user_accounts(ctx,user.id)
+    #     user_linked_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
-        user_alliance_accounts = []
-        user_other_accounts = []
-        user_error_tags = []
+    #     user_alliance_accounts = []
+    #     user_other_accounts = []
+    #     user_error_tags = []
         
-        for tag in user_alliance_accounts_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                if p.trophies == 0:
-                    await p.retrieve_data()
-            except TerminateProcessing as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
-            except Exception as e:
-                p = None
-                err_dict = {'tag':tag,'reason':e}
-                user_error_tags.append(err_dict)
-                continue
-            user_alliance_accounts.append(p)
+    #     for tag in user_alliance_accounts_tags:
+    #         try:
+    #             p = await aPlayer.create(ctx,tag)
+    #             if p.trophies == 0:
+    #                 await p.retrieve_data()
+    #         except TerminateProcessing as e:
+    #             eEmbed = await clash_embed(ctx,message=e,color='fail')
+    #             return await ctx.send(eEmbed)
+    #         except Exception as e:
+    #             p = None
+    #             err_dict = {'tag':tag,'reason':e}
+    #             user_error_tags.append(err_dict)
+    #             continue
+    #         user_alliance_accounts.append(p)
 
-        for tag in [u for u in user_linked_accounts if u not in user_alliance_accounts_tags]:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                await p.retrieve_data()
-            except TerminateProcessing as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
-            except Exception as e:
-                p = None
-                err_dict = {'tag':tag,'reason':e}
-                user_error_tags.append(err_dict)
-                continue
-            user_other_accounts.append(p)
+    #     for tag in [u for u in user_linked_accounts if u not in user_alliance_accounts_tags]:
+    #         try:
+    #             p = await aPlayer.create(ctx,tag)
+    #             await p.retrieve_data()
+    #         except TerminateProcessing as e:
+    #             eEmbed = await clash_embed(ctx,message=e,color='fail')
+    #             return await ctx.send(eEmbed)
+    #         except Exception as e:
+    #             p = None
+    #             err_dict = {'tag':tag,'reason':e}
+    #             user_error_tags.append(err_dict)
+    #             continue
+    #         user_other_accounts.append(p)
 
-        user_alliance_accounts = sorted(user_alliance_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
-        user_other_accounts = sorted(user_other_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
+    #     user_alliance_accounts = sorted(user_alliance_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
+    #     user_other_accounts = sorted(user_other_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
 
-        info_embed = await clash_embed(ctx,title=f"Member Profile: {user.name}#{user.discriminator}")
+    #     info_embed = await clash_embed(ctx,title=f"Member Profile: {user.name}#{user.discriminator}")
 
-        for a in user_alliance_accounts:
-            al_str = build_str(a)
-            info_embed.add_field(
-                name=f"{a.name} ({a.tag})",
-                value=al_str+"\n\u200b",
-                inline=False)
+    #     for a in user_alliance_accounts:
+    #         al_str = build_str(a)
+    #         info_embed.add_field(
+    #             name=f"{a.name} ({a.tag})",
+    #             value=al_str+"\n\u200b",
+    #             inline=False)
 
-        for a in user_other_accounts:
-            al_str = build_str(a)
-            info_embed.add_field(
-                name=f"{a.name} ({a.tag})",
-                value=al_str+"\n\u200b",
-                inline=False)
+    #     for a in user_other_accounts:
+    #         al_str = build_str(a)
+    #         info_embed.add_field(
+    #             name=f"{a.name} ({a.tag})",
+    #             value=al_str+"\n\u200b",
+    #             inline=False)
 
-        await ctx.send(embed=info_embed)
+    #     await ctx.send(embed=info_embed)
 
     ####################################################################################################
 
@@ -1504,9 +1538,9 @@ class AriXLeaderCommands(commands.Cog):
     @commands.command(name="getreport")
     async def leader_report(self,ctx,clan_abbreviation:str):
         """
-        Generate various reports for leaders.
+        Leader's Report Hub.
 
-        Clan selection by abbreviation.
+        Provides a one-stop repository of reports and data through an interactive menu.
         """
 
         c = await get_alliance_clan(ctx,clan_abbreviation)
