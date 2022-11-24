@@ -335,9 +335,26 @@ class AriXClashDataMgr(commands.Cog):
         if datetime.now(helsinkiTz).day <= 9:
             is_cwl = True
 
+        for key in clan_keys:
+            try:
+                c = await aClan.create(ctx,key,fetch=True)
+            except TerminateProcessing as e:
+                eEmbed = await clash_embed(ctx,message=e,color='fail')
+                eEmbed.set_footer(
+                    text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
+                    icon_url="https://i.imgur.com/TZF5r54.png")
+                return await log_channel.send(embed=eEmbed)
+            except Exception as e:
+                c = None
+                err_dict = {'tag':f'c{ctag}','reason':e}
+                err_log.append(err_dict)
+                continue
+
+            alliance_clans.append(c)
+
 
         ## SEASON UPDATE
-        is_new_season, current_season, new_season = await season_file_handler(ctx,season)
+        is_new_season, current_season, new_season = await season_file_handler(ctx,season,alliance_clans)
 
         if is_new_season:
             sEmbed.add_field(
@@ -409,26 +426,14 @@ class AriXClashDataMgr(commands.Cog):
                         }
 
 
-        for ctag in clan_keys:
+        for c in alliance_clans:
+            clan_announcement_channel = None
+            clan_reminder_channel = None
+
             war_reminder = False
             war_member_count = 0
             raid_member_count = 0
 
-            try:
-                c = await aClan.create(ctx,ctag,fetch=True)
-            except TerminateProcessing as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                eEmbed.set_footer(
-                    text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-                    icon_url="https://i.imgur.com/TZF5r54.png")
-                return await log_channel.send(embed=eEmbed)
-            except Exception as e:
-                c = None
-                err_dict = {'tag':f'c{ctag}','reason':e}
-                err_log.append(err_dict)
-                continue
-
-            alliance_clans.append(c)
             c.member_count = len([a for a in alliance_members if a.home_clan.tag == c.tag])
 
             if c.announcement_channel:

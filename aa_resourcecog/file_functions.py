@@ -3,16 +3,13 @@ import pytz
 
 from datetime import datetime
 
-from .constants import clanRanks
-from .alliance_functions import get_alliance_clan
-
 async def get_current_season():
     helsinkiTz = pytz.timezone("Europe/Helsinki")
     current_season = f"{datetime.now(helsinkiTz).month}-{datetime.now(helsinkiTz).year}"
     return current_season
 
 
-async def season_file_handler(ctx,season):
+async def season_file_handler(ctx,season,clans):
     is_new_season = False
     current_season = None
     new_season = None
@@ -26,12 +23,7 @@ async def season_file_handler(ctx,season):
 
         update_season = True
 
-        alliance_clans = await get_current_alliance()
-
-        for c in alliance_clans:
-            c.update_clan_war(ctx)
-            c.update_raid_weekend(ctx)
-
+        for c in clans:
             if c.war_state == "inWar":
                 update_season = False
 
@@ -40,7 +32,6 @@ async def season_file_handler(ctx,season):
 
 
         if update_season:
-
             is_new_season = True
             new_season = season
             async with ctx.bot.async_file_lock:
