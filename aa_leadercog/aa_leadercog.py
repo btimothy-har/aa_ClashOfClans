@@ -103,6 +103,14 @@ class AriXLeaderCommands(commands.Cog):
     async def clan_manage(self,ctx):
         """
         Manage Alliance clans.
+
+        All sub-commands in this group have required inputs when running them.
+        To view additional information about the commands, run them without the parameters.
+
+        Example: to get information about `clan settings`, simply run `$clan settings`.
+
+        **This is a command group. To use the sub-commands below, follow the syntax: `$clan [sub-command]`.**
+
         """
             
         if not ctx.invoked_subcommand:
@@ -110,12 +118,18 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @clan_manage.command(name="add")
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     async def clan_manage_add(self, ctx, tag:str, force=False):
         """
-        Add a clan to the Alliance.
+        [Owner-only] Add a Clan to the Alliance.
 
-        Only the in-game tag of the clan is required when running the command. Any other information will be requested by the bot.
+        To successfully add a clan, you will need:
+        > - A Clan Leader (by Discord User)
+        > - A Clan Abbreviation
+        > - A Clan Emoji
+        > - Co-Leader Role
+        > - Elder Role
+        > - Member Role
         """
 
         def response_check(m):
@@ -126,6 +140,10 @@ class AriXLeaderCommands(commands.Cog):
                     return True
                 else:
                     return False
+
+        if ctx.author.id not in ctx.bot.owner_ids:
+            embed = await clash_embed(ctx,message="To use this command please contact <@644530507505336330>.")
+            return await ctx.send(embed=embed)
 
         try:
             c = await aClan.create(ctx,tag)
@@ -282,13 +300,19 @@ class AriXLeaderCommands(commands.Cog):
         return await ctx.send(embed=final_embed)
 
     @clan_manage.command(name="remove")
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     async def clan_manage_remove(self, ctx, clan_abbreviation):
         """
-        Remove a clan from the Alliance.
+        [Owner-only] Remove a Clan from the Alliance.
 
-        Use the Clan Abbreviation to specify a clan.
+        This removes a Clan from the Alliance. The Clan and it's associated data will be permanently deleted.
+
+        **Unlike removing members, this deletes the record of the Clan. This action is irreversible.**
         """
+
+        if ctx.author.id not in ctx.bot.owner_ids:
+            embed = await clash_embed(ctx,message="To use this command please contact <@644530507505336330>.")
+            return await ctx.send(embed=embed)
 
         c = await get_alliance_clan(ctx,clan_abbreviation)
         if not c:
@@ -332,12 +356,20 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @clan_manage.command(name="setleader")
-    @commands.admin_or_permissions(administrator=True)
+    @commands.is_owner()
     async def clan_manage_setleader(self, ctx, clan_abbreviation, new_leader:discord.User):
         """
-        [Admin-only] Overrides the set Leader for a clan.
+        [Owner-only] Overrides the Leader of a Clan.
+
+        This is a very powerful command and confers Leader permissions to the specified user.
+
+        **This should only be used in cases of emergencies.**
 
         """
+
+        if ctx.author.id not in ctx.bot.owner_ids:
+            embed = await clash_embed(ctx,message="To use this command please contact <@644530507505336330>.")
+            return await ctx.send(embed=embed)
 
         c = await get_alliance_clan(ctx,clan_abbreviation)
         if not c:
@@ -380,12 +412,24 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @clan_manage.command(name="settings")
-    @commands.admin_or_permissions(administrator=True)
     async def clan_manage_settings(self, ctx, clan_abbreviation):
         """
-        Change various settings for the provided clan.
+        Change Clan Settings.
 
-        Select a Clan by specifying the Clan Abbreviation.
+        ```Required inputs: Clan Abbreviation```
+
+        **Usable only by Co-Leaders and Leaders.**
+
+        The following settings can be adjusted from this command:
+
+        > - Clan Emoji
+        > - Recruiting Townhalls
+        > - Turn War Reminders On/Off
+        > - Turn Raid Reminders On/Off
+        > - War Reminder Interval
+        > - Raid Reminder Interval
+
+        **Note on War/Raid Reminders: Any changes to the Reminder Intervals will only take effect from the next war/raid weekend.**
         """
 
         toggle_state = {
@@ -670,7 +714,9 @@ class AriXLeaderCommands(commands.Cog):
         """
         Add a Leader's note to a clan.
 
-        Notes can be used to share information with other leaders.
+        ```Required inputs: Clan Abbreviation```
+
+        Notes appear in the Recruiting Hub (`$recruitment`), and can be used to share information between Leaders.
 
         """
 
@@ -735,20 +781,34 @@ class AriXLeaderCommands(commands.Cog):
     async def member_manage(self,ctx):
         """
         Manage Alliance Members.
+
+        All sub-commands in this group have required inputs when running them.
+        To view additional information about the commands, run them without the parameters.
+
+        Example: to get information about `member add`, simply run `$member add`.
+
+        **This is a command group. To use the sub-commands below, follow the syntax: `$member [sub-command]`.**
         """
         
         if not ctx.invoked_subcommand:
             pass
 
     @member_manage.command(name="add")
-    async def member_manage_add(self,ctx,user:discord.User, silent_mode_param=None):
+    async def member_manage_add(self,ctx,Discord_User:discord.User, Toggle_Silent_Mode=None):
         """
-        Add a member to the Alliance.
+        Add a Member to the Alliance.
 
-        You will be prompted for the Player Tags after the command is executed.
+        ```Required inputs: Discord User
+        Optional inputs: Toggle Silent Mode (enter S to toggle)```
 
-        To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `member add @user S`).
+        A Member is permanently assigned to a Home Clan in the Alliance. Until removed, they will be treated as a Member, regardless of their in-game status.
+
+        Once added, the Welcome DM will be sent to the tagged user by NEBULA.
+
+        To add silently and not send the welcome message, include an "S" after mentioning the Discord user. (e.g. `$member add @user S`).
         """
+
+        user = Discord_User
 
         def response_check(m):
             msg_check = False
@@ -773,8 +833,8 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if silent_mode_param:
-            if silent_mode_param.lower() == "s":
+        if enter_S_to_not_send_welcome:
+            if enter_S_to_not_send_welcome.lower() == "s":
                 silent_mode = True
 
         alliance_clans = await get_alliance_clan(ctx)
