@@ -70,4 +70,3 @@ async def setup(bot:Red):
     
     cog = AriXClashResources()
     bot.add_cog(cog)
-    await cog.initialize_config(bot)
