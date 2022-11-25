@@ -15,3 +15,4 @@ from .aa_datamgr import AriXClashDataMgr
 async def setup(bot:Red):
     cog = AriXClashDataMgr()
     bot.add_cog(cog)
+    await cog.initialize_config(bot)

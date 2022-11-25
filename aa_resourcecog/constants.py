@@ -14,6 +14,7 @@ json_file_defaults = {
     }
 
 emotes_townhall = {
+    0:"<:01:1037000998566240256>",
     1:"<:01:1037000998566240256>",
     2:"<:02:1037000999753228320>",
     3:"<:03:1037001001275752498>",
@@ -44,6 +45,7 @@ emotes_builderhall = {
     }
 
 emotes_capitalhall = {
+    0:"<:Capital_Hall1:1038113658145886229>",
     1:"<:Capital_Hall1:1038113658145886229>",
     2:"<:Capital_Hall2:1038113660041711626>",
     3:"<:Capital_Hall3:1038113661811695708>",
@@ -172,6 +174,16 @@ warResultGrid = {
     'won':'won',
     'tie':'tie',
     'lost':'lost',
+    '':'',
+    }
+
+warResultDesc = {
+    'winning':'<:Win:828100053079687188> Winning',
+    'tied':'<:Clan:825654825509322752> Tied',
+    'losing':'<:Lost:828099964076556319> Losing',
+    'won':'<:Win:828100053079687188> Won',
+    'tie':'<:Clan:825654825509322752> Tied',
+    'lost':'<:Lost:828099964076556319> Lost',
     '':'',
     }
 

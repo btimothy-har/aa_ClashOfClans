@@ -119,88 +119,109 @@ async def user_confirmation(ctx, cMsg, confirm_method=None) -> bool:
                 await cMsg.remove_reaction('<:red_cross:838461484312428575>',ctx.bot.user)
                 return False
 
-async def multiple_choice_select(ctx, sEmbed, selection_list:list, selection_text=None, cancel_message=None):
-    #prepare embed from parent function - allows for greater customisability
-    #selection_list should be in format [{'title':str, 'description':str},{'title':str, 'description':str}].
-    
+
+async def multiple_choice_menu_generate_emoji(ctx,options):
+    sel_list = []
+    num = 0
+    for i in options:
+        if 'emoji' not in list(i.keys()):
+            hex_str = hex(224 + (6 + num))[2:]
+            emoji = b"\\U0001f1a".replace(b"a", bytes(hex_str, "utf-8"))
+            emoji = emoji.decode("unicode-escape")
+
+            i['emoji'] = emoji
+        sel_list.append(i)
+        num += 1
+
+    return sel_list
+
+
+async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
     def chk_select(r,u):
-        if str(r.emoji) in selection_emojis and r.message.id == menu_message.id and u.id == ctx.author.id:
+        if str(r.emoji) in sel_emojis and r.message.id == smsg.id and u.id == ctx.author.id:
             return True
         else:
             return False
 
-    selection_emojis = []
+    sel_emojis = [i['emoji'] for i in sel_list]
+    sel_emojis.append('<:red_cross:838461484312428575>')
 
-    if not selection_text:
-        selection_text = "\u200b"
+    for e in sel_emojis:
+        await smsg.add_reaction(e)
 
-    #Build List
-    sel_text = ''
-    sel_number = 0
-    for item in selection_list:
-        #handle emojis
-        custom_emoji = item.get('emoji',None)
-
-        if custom_emoji:
-            emoji = item['emoji']
-        else:
-            hex_str = hex(224 + (6 + sel_number))[2:]
-            emoji = b"\\U0001f1a".replace(b"a", bytes(hex_str, "utf-8"))
-            emoji = emoji.decode("unicode-escape")
-        
-        selection_emojis.append(emoji)
-
-        if sel_number > 0:
-            sel_text += "\n\n\u200b"
-        if item['description']:
-            sel_str = f"{emoji} **{item['title']}**\n{item['description']}"
-        else:
-            sel_str = f"{emoji} {item['title']}"
-            
-        sel_text += sel_str
-        sel_number += 1
-
-    selection_emojis.append('<:red_cross:838461484312428575>')
-    sel_text += "\n\u200b"
-
-    sEmbed.add_field(
-        name=selection_text,
-        value=sel_text,
-        inline=False)
-
-    menu_message = await ctx.send(embed=sEmbed)
-    for emoji in selection_emojis:
-        await menu_message.add_reaction(emoji)
     try:
-        reaction, user = await ctx.bot.wait_for("reaction_add",timeout=60,check=chk_select)
+        reaction, user = await ctx.bot.wait_for("reaction_add",timeout=timeout,check=chk_select)
     except asyncio.TimeoutError:
-        if cancel_message:
-            to_embed = await clash_embed(ctx,
-                message=f"Menu timed out. {cancel_message}",
-                color="fail")
-        else:
-            to_embed = await clash_embed(ctx,
-                message="Menu timed out. Please try again.",
-                color="fail")
-        await menu_message.edit(embed=to_embed)
-        for emoji in selection_emojis:
-            await menu_message.remove_reaction(emoji,ctx.bot.user)
         return None
     else:
         if str(reaction.emoji) == '<:red_cross:838461484312428575>':
-            if cancel_message:
-                cancel_embed = await clash_embed(ctx,
-                    message=f"Menu cancelled. {cancel_message}",
-                    color="fail")
-            else:
-                cancel_embed = await clash_embed(ctx,
-                    message="Menu cancelled.",
-                    color="fail")
-            await menu_message.edit(embed=cancel_embed)
-            for emoji in selection_emojis:
-                await menu_message.remove_reaction(emoji,ctx.bot.user)
             return None
         else:
-            sel_index = selection_emojis.index(str(reaction.emoji))
-            await menu_message.delete()
-            return selection_list[sel_index]
+            ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]
+            return ms[0]
+
+
+async def paginate_embed(ctx,output,add_instructions=True):
+    nav_options = []
+    nav_str = ""
+    paginate_state = True
+
+    prev_dict = {
+        'id': 'previous',
+        'emoji': '<:to_previous:1041988094943035422>'
+        }
+    next_dict = {
+        'id': 'next',
+        'emoji': '<:to_next:1041988114308137010>'
+        }
+
+    if len(output) == 0:
+        return
+
+    if len(output) == 1:
+        return await ctx.send(embed=output[0])
+
+    if len(output) > 1:
+        nav_options.append(prev_dict)
+        nav_options.append(next_dict)
+
+        nav_str += f"<:to_previous:1041988094943035422> Previous page"
+        nav_str += f"\u3000<:to_next:1041988114308137010> Next page"
+
+        for embed in output:
+            embed.set_footer(text=f"(Pg {output.index(embed)+1} of {len(output)}) -- AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
+            if add_instructions:
+                embed.add_field(name="**Navigation**",value=nav_str,inline=False)
+
+    browse_index = 0
+    message = None
+
+    while paginate_state:
+
+        if browse_index < 0:
+            browse_index = (len(output)-1)
+        if browse_index > (len(output)-1):
+            browse_index = 0
+
+        if message:
+            await message.edit(embed=output[browse_index])
+        else:
+            message = await ctx.send(embed=output[browse_index])
+
+        await message.clear_reactions()
+        selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
+
+        if selection:
+            response = selection['id']
+
+            if response == 'previous':
+                browse_index -= 1
+
+            if response == 'next':
+                browse_index += 1
+        else:
+            response = None
+            paginate_state = False
+
+    await message.clear_reactions()
+    return response

@@ -1,4 +1,4 @@
-from .discordutils import clash_embed, user_confirmation, multiple_choice_select
+from .discordutils import clash_embed
 
 class TerminateProcessing(Exception):
     """Raise this exception when processing should be terminated."""

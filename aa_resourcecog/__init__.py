@@ -31,19 +31,15 @@ async def setup(bot:Red):
     bot.clash_report_path = os.getenv('REPORTPATH')
     bot.eclipse_path = os.getenv('ECLIPSEPATH')
 
-    bot.alliance_server = bot.get_guild(int(os.getenv('ALLIANCESERVER')))
-
-    bot.leader_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCELEADER')))
-    bot.coleader_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCECOLEADER')))
-    bot.elder_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCEELDER')))
-    bot.member_role = bot.alliance_server.get_role(int(os.getenv('ALLIANCEMEMBER')))
-
     bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")
 
     bot.async_eclipse_lock = asyncio.Lock()
     bot.clash_eclipse_lock = fasteners.InterProcessReaderWriterLock(os.getenv('ECLIPSEPATH') + "/eclipse.lock")
     bot.clash_eclipse_sessions = []
+
+    bot.member_cache = {}
+    bot.clan_cache = {}
 
     if not os.path.exists(bot.clash_dir_path+'/seasons.json'):
         with bot.clash_file_lock.write_lock():

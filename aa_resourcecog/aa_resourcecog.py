@@ -19,9 +19,10 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 
-from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_select
+from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
-from .file_functions import get_current_season, get_current_alliance, get_user_accounts, get_staff_position, season_file_handler, alliance_file_handler, data_file_handler
+from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .alliance_functions import get_user_profile, get_alliance_clan
 from .notes import aNote
 from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
 from .clan import aClan
@@ -35,86 +36,139 @@ class AriXClashResources(commands.Cog):
 
     def __init__(self):
         self.config = Config.get_conf(self,identifier=4654586202897940,force_registration=True)
-        default_global = {}
+        default_global = {
+            "alliance_server": 0,
+            "alliance_leader_role": 0,
+            "alliance_coleader_role": 0,
+            "alliance_elder_role": 0,
+            "alliance_member_role": 0,
+            }
         default_guild = {}
         defaults_user = {}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
-    @commands.command(name="status")
+    @commands.command(name="setclashserver")
     @commands.is_owner()
-    async def system_status(self,ctx):
-        """Gets information on the system status."""
+    async def set_clash_alliance_server(self,ctx,server_id:int):
+        """
+        Sets the main Alliance server for use by the bot.
+        """
 
-        if ctx.bot.alliance_server:
-            try:
-                a_server = ctx.bot.alliance_server.name
-            except:
-                a_server = ctx.guild.name
+        try:
+            server = ctx.bot.get_guild(int(server_id))
+        except:
+            return await ctx.send(f"The Server ID {server_id} seems to be invalid.")
+
         else:
-            a_server = ctx.guild.name
+            await self.config.alliance_server.set(int(server.id))
+            ctx.bot.alliance_server = server
 
-        embed = await clash_embed(ctx=ctx,title="System Status Report")
-        embed.add_field(
-            name="__Summary__",
-            value=f"> **Alliance Server**: {a_server}"
-                + f"\n> \n> **File Path**: {ctx.bot.clash_dir_path}"
-                + f"\n> **Report Path**: {ctx.bot.clash_report_path}"
-                + f"\n> **Eclipse Path**: {ctx.bot.eclipse_path}",
+            return await ctx.send(f"The Alliance Server has been set to `{ctx.bot.alliance_server.name}`.")
+
+    @commands.command(name="setalliancerole")
+    @commands.is_owner()
+    async def set_clash_alliance_server(self,ctx,role_type:str,role_id:int):
+        """
+        Sets the main Alliance server for use by the bot.
+        """
+
+        valid_roles = ['leader','coleader','elder','member']
+
+        if role_type not in valid_roles:
+            return await ctx.send(f"The Role Type seems to be invalid. Acceptable types: {humanize_list(valid_roles)}")
+
+        try:
+            role = ctx.bot.alliance_server.get_role(int(role_id))
+        except:
+            return await ctx.send(f"The Role ID {role_id} seems to be invalid.")
+
+        else:
+            if role_type == 'leader':
+                await self.config.alliance_leader_role.set(int(role.id))
+                ctx.bot.leader_role = role
+                return await ctx.send(f"The Alliance Leader Role has been set to `{ctx.bot.leader_role.name}`.")
+
+            if role_type == 'coleader':
+                await self.config.alliance_coleader_role.set(int(role.id))
+                ctx.bot.coleader_role = role
+                return await ctx.send(f"The Alliance Co-Leader Role has been set to `{ctx.bot.coleader_role.name}`.")
+
+            if role_type == 'elder':
+                await self.config.alliance_elder_role.set(int(role.id))
+                ctx.bot.elder_role = role
+                return await ctx.send(f"The Alliance Elder Role has been set to `{ctx.bot.elder_role.name}`.")
+
+            if role_type == 'member':
+                await self.config.alliance_member_role.set(int(role.id))
+                ctx.bot.member_role = role
+                return await ctx.send(f"The Alliance Member Role has been set to `{ctx.bot.member_role.name}`.")
+
+
+    @commands.command(name="nebula",aliases=["n"])
+    async def help_nebula(self,ctx):
+        """
+        Custom help command for N.E.B.U.L.A.
+        """
+
+        leader_state = False
+        coleader_state = False
+        elder_state = False
+        member_state = False
+
+        discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
+
+        if ctx.bot.leader_role in discord_member.roles:
+            leader_state = True
+
+        if ctx.bot.coleader_role in discord_member.roles:
+            coleader_state = True
+
+        if ctx.bot.elder_role in discord_member.roles:
+            elder_state = True
+
+        if ctx.bot.member_role in discord_member.roles:
+            member_state = True
+
+        nebula_embed = await clash_embed(ctx,
+            title="Hello, I am N.E.B.U.L.A .",
+            message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
+                + "\n\nMy commands are designed to be simple and easy to remember. "
+                + "The commands displayed below are based on your access levels."
+                + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
+            thumbnail="https://i.imgur.com/TZF5r54.png")
+
+        nebula_embed.add_field(
+            name="**__General Commands__**",
+            value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
+                + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
+                + f"\n> \n> **player** `[optional: COC Player Tags]`\n> Gets your Clash of Clans player stats.\n> You may provide multiple player tag(s), separated by a space."
+                + f"\n\u200b",
             inline=False)
 
-        embed.add_field(
-            name="__Data Files__",
-            value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
-                + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
-                + f"\n> **members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
-                + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
-                + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+        if member_state:
+            nebula_embed.add_field(
+                name="**__Member Commands__**",
+                value=f"> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
+                    + f"\n> \n> **nickname**\n> Change your Discord nickname based on your member accounts!"
+                    + f"\n> \n> **eclipse**\n> Open E.C.L.I.P.S.E."
+                    + f"\n\u200b",
                 inline=False)
-        await ctx.send(embed=embed)
 
-    # @commands.command(name="meteor")
-    # async def help_meteor(self,ctx):
-    #     """
-    #     Custom help command for M.E.T.E.O.R.
-    #     """
+        if coleader_state:
+            nebula_embed.add_field(
+                name="**__Leaders & Co-Leader Commands__**",
+                value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
+                    + f"\n> \n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
+                    + f"\n> \n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
+                    + f"\n> \n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
+                    + f"\n> \n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
+                    + f"\n> \n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
+                    + f"\n\u200b",
+                inline=False)
 
-    #     coleader_clans = await get_staff_position(ctx,ctx.author.id,"Co-Leader")
-    #     elder_clans = await get_staff_position(ctx,ctx.author.id,"Elder")
-
-    #     meteor_embed = await clash_embed(ctx,
-    #         name="Hello, I am M.E.T.E.O.R. .",
-    #         message="**M**ain **E**xecutive **T**erminal and **E**xtra-**O**rdinary **R**obot."
-    #             + "\n\nI host several commands for AriX Members and Leaders, so that the alliance runs smoothly at all times."
-    #             + " Below are some commands you may have access to.\n\u200b")
-
-    #     meteor_embed.add_field(
-    #         name="**General Commands**",
-    #         value="These commands are usable by everyone."
-    #             + f"\n\n**arix** Lists all the Clans in the AriX Alliance."
-    #             + f"\n\n**player** Gets your Clash of Clans player stats. You may specify player tag(s) when using this command."
-    #             + f"\n\n****")
-    #eclipse
-
-
-
-
-    async def clan_description(ctx,c):
-        #build title
-        title = ""
-        text_full = ""
-        text_summary = ""
-        title += f"{c.name}"
-
-        text_full += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000<:Members:1040672942524215337> {c.member_count}"
-        text_full += f"\n{emotes_league[c.c.war_league.name]} {c.c.war_league.name}\n<:ClanWars:825753092230086708> W{c.c.war_wins}/D{c.c.war_ties}/L{c.c.war_losses} (Streak: {c.c.war_win_streak})"
-        text_full += f"\n[Clan Link: {c.tag}]({c.c.share_link})"
-
-        text_summary += f"<:Clan:825654825509322752> Level {c.level}\u3000{emotes_capitalhall[c.capital_hall]} CH {c.capital_hall}\u3000{emotes_league[c.c.war_league.name]} {c.c.war_league.name}"
-
-        return title, text_full, text_summary
-
+        await ctx.send(embed=nebula_embed)
 
     async def player_description(ctx,p):
         #build title
@@ -151,17 +205,28 @@ class AriXClashResources(commands.Cog):
     async def get_welcome_embed(ctx,user):
         intro_embed = await clash_embed(ctx,
             title="Congratulations! You're an AriX Member!",
-            message=f"Before going further, there are a few additional things you need to understand and do:"
+            message=f"We're really happy to have you with us. We *strongly encourage* you to review the information below, so you can understand everything that goes on in AriX."
                 + f"\n\nThe **AriX Alliance** is made up of 4 active clans:\n- ArmyOf9YearOlds (AO9)\n- Phoenix Reborn (PR)\n- Project AriX (PA)\n- Assassins (AS)"
-                + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)"
-                + f"\n\nIn turn, AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**.\n\u200b")
+                + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)\n\u200b")
+
+        intro_embed.add_field(
+            name="**Getting Started in AriX**",
+            value="We strongly encourage you to check out the following channels to get yourself set up in the community. If you have any questions, our Leaders will be around to assist."
+                + f"\n\n> - Read <#973472492222046258> for info regarding the AriX Alliance Server"
+                + f" \n> - Read <#970239273456500736> for info about our Hierarchy"
+                + f"\n> - Read <#960096690394767380> for info about our War Rules"
+                + f"\n> - Read <#998620795116986499> for info regarding our Raid Rules"
+                + f"\n> - Take your Utility Roles from <#970394343133315192>")
+
         intro_embed.add_field(
             name="**About CWLA**",
-            value=f"Through CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
+            value=f"AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**."
+                + f"\n\nThrough CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
                 + f"Clans are available from <:GoldLeagueII:1037033274146570360> Gold II all the way to <:ChampionLeagueI:1037033289564815430> Champions I. "
                 + f"\n\nNote: Allocations are made based on your town hall level and experience (e.g TH13 will probably let you be in Crystal 1 or Masters 3, TH12 will probably be Crystal etc.)."
                 + f"\n\u200b",
             inline=False)
+
         intro_embed.add_field(
             name="**You are required to join the CWLA Server ASAP.**",
             value=f"The server link is below. Follow the steps below to get yourself set up in CWLA:"
@@ -174,41 +239,43 @@ class AriXClashResources(commands.Cog):
 
         return intro_embed
 
+
     async def user_nickname_handler(ctx,user):
-        accounts = []
         leader_clans = []
-        home_clans = []
-        player_tags = await get_user_accounts(ctx,user.id)
+        home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
-        for tag in player_tags:
-            try:
-                p = await aPlayer.create(ctx,tag)
-                if not p.is_member:
-                    await p.retrieve_data()
-            except Exception as e:
-                eEmbed = await clash_embed(ctx,message=e,color='fail')
-                return await ctx.send(eEmbed)
-
-            if p.is_member:
-                if p.home_clan.tag not in [c.tag for c in home_clans]:
-                    home_clans.append(p.home_clan)
-                accounts.append(p)
-
-            if p.arix_rank == 'Leader' and p.home_clan.tag not in [c.tag for c in leader_clans]:
-                leader_clans.append(p.home_clan)
-
-        accounts = sorted(accounts,key=lambda p:(p.exp_level,p.town_hall.level),reverse=True)
-        home_clans = sorted(home_clans,key=lambda c:(c.level,c.capital_hall),reverse=True)
-
-        if len(accounts) < 1:
-            end_embed = await clash_embed(ctx=c,
-                message=f"{user.mention} is not an AriX Member.",
-                color='fail')
+        if not user_accounts:
+            if ctx.author.id == user.id:
+                end_embed = await clash_embed(ctx,
+                    message="You must be an AriX Member to use this command.",
+                    color="fail")
+            else:
+                end_embed = await clash_embed(ctx,
+                    message=f"{user.mention} is not an AriX Member.",
+                    color='fail')
             await ctx.send(embed=end_embed)
             return None
 
-        elif len(accounts) == 1:
-            a = accounts[0]
+        user_accounts = [a for a in user_accounts if a.is_member]
+
+        for a in user_accounts:
+            if a.arix_rank == 'Leader' and a.home_clan.tag not in [c.tag for c in leader_clans]:
+                leader_clans.append(a.home_clan)
+
+        if len(user_accounts) < 1:
+            if ctx.author.id == user.id:
+                end_embed = await clash_embed(ctx,
+                    message="You must be an AriX Member to use this command.",
+                    color="fail")
+            else:
+                end_embed = await clash_embed(ctx,
+                    message=f"{user.mention} is not an AriX Member.",
+                    color='fail')
+            await ctx.send(embed=end_embed)
+            return None
+
+        elif len(user_accounts) == 1:
+            a = user_accounts[0]
             selected_account = {
                 'id': f"{a.tag}",
                 'title': f"{a.name} {a.tag}",
@@ -217,7 +284,8 @@ class AriXClashResources(commands.Cog):
         
         else:
             selection_list = []
-            for a in accounts:
+            selection_str = ""
+            for a in user_accounts:
                 a_dict = {
                     'id': f"{a.tag}",
                     'title': f"{a.name} ({a.tag})",
@@ -225,19 +293,31 @@ class AriXClashResources(commands.Cog):
                     }
                 selection_list.append(a_dict)
 
+            selection_list = await multiple_choice_menu_generate_emoji(ctx,selection_list)
+
+            for i in selection_list:
+                selection_str += f"\n{i['emoji']} **{i['title']}**\n{i['description']}"
+
+                if selection_list.index(i) < (len(selection_list)-1):
+                    selection_str += "\n\n"
+
             nick_embed = await clash_embed(ctx,
                 title=f"Nickname Change: {user.name}#{user.discriminator}",
                 thumbnail=f"{user.avatar_url}")
 
-            selected_account = await multiple_choice_select(ctx,
-                sEmbed=nick_embed,
-                selection_list=selection_list,
-                selection_text="Select an account from the list below to be the new nickname.\n")
+            nick_embed.add_field(
+                name="Select an account from the list below to be the new server nickname.",
+                value=selection_str,
+                inline=False)
 
-        if not selected_account:
-            return None
+            select_msg = await ctx.send(content=ctx.author.mention,embed=nick_embed)
+
+            selected_account = await multiple_choice_menu_select(ctx,select_msg,selection_list)
+
+            if not selected_account:
+                return None
         
-        new_nickname = [a.name for a in accounts if a.tag == selected_account['id']][0]
+        new_nickname = [a.name for a in user_accounts if a.tag == selected_account['id']][0]
 
         new_nickname = new_nickname.replace('[AriX]','')
         new_nickname = new_nickname.strip()

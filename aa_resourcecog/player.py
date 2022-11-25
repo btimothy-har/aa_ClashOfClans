@@ -7,8 +7,8 @@ from itertools import chain
 
 from coc.ext import discordlinks
 
-from .constants import emotes_townhall, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
-from .file_functions import get_current_alliance, season_file_handler, alliance_file_handler, data_file_handler
+from .constants import emotes_townhall, emotes_builderhall, emotes_capitalhall, emotes_league, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
+from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
 
 from .notes import aNote
 from .clan import aClan
@@ -23,12 +23,7 @@ class ClashPlayerError(Exception):
 class aPlayer():
     def __init__(self,ctx,tag):
         self.timestamp = time.time()
-        self.ctx = ctx
-        self.tag = coc.utils.correct_tag(tag)
-
-        if not coc.utils.is_valid_tag(tag):
-            raise InvalidTag(tag)
-            return None
+        self.tag = tag
 
         self.p = None
         self.name = None
@@ -37,7 +32,7 @@ class aPlayer():
         self.discord_link = None
 
         #Membership Attributes
-        self.home_clan = None
+        self.home_clan = aClan(ctx,None)
         self.is_member = False
         self.arix_rank = 'Non-Member'
         self.discord_user = 0
@@ -51,7 +46,7 @@ class aPlayer():
         #Player Attributes
         self.exp_level = 1
 
-        self.clan = None
+        self.clan = aClan(ctx,None)
         self.role = ''
         self.clan_description = ''
 
@@ -89,8 +84,8 @@ class aPlayer():
         self.attack_wins = aPlayerStat({})
         self.defense_wins = aPlayerStat({})
 
-        self.donation_sent = aPlayerStat({})
-        self.donation_rcvd = aPlayerStat({})
+        self.donations_sent = aPlayerStat({})
+        self.donations_rcvd = aPlayerStat({})
 
         self.loot_gold = aPlayerStat({})
         self.loot_elixir = aPlayerStat({})
@@ -100,335 +95,260 @@ class aPlayer():
 
         self.capitalcontribution = aPlayerStat({})
 
-        self.warlog = None
-        self.war_stats = None
+        self.warlog = {}
+        self.war_stats = aPlayerWarStats({})
  
-        self.raidlog = None
-        self.raid_stats = None
+        self.raidlog = {}
+        self.raid_stats = aPlayerRaidStats({})
 
     @classmethod
-    async def create(cls,ctx,tag):
-        self = aPlayer(ctx,tag)
+    async def create(cls,ctx,tag,fetch=False):
+        tag = coc.utils.correct_tag(tag)
 
-        memberInfo = await alliance_file_handler(self.ctx,'members',self.tag)
-        memberStats = await data_file_handler(self.ctx,'members',self.tag)
+        if not coc.utils.is_valid_tag(tag):
+            raise InvalidTag(tag)
+            return None
 
-        self.name = memberStats.get('name',None)
+        #get from cache
+        if tag in list(ctx.bot.member_cache.keys()):
+            self = ctx.bot.member_cache[tag]
+        else:
+            self = aPlayer(ctx,tag)
+            #add to cache
+            ctx.bot.member_cache[tag] = self
+            fetch = True
 
         self.share_link = f"https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=%23{format(self.tag.strip('#'))}"
 
-        #Membership Attributes
-        try:
-            hcTag = memberInfo['home_clan']['tag']
-        except:
-            hcTag = None
-        self.home_clan = await aClan.create(ctx,hcTag)
-        self.is_member = memberInfo.get('is_member',False)
+        #if tag already exists in cache, and current within last 5 minutes, use cached information
+        if not fetch and self.p and (time.time() - self.timestamp) < 600:
+            return self
 
-        self.discord_user = memberInfo.get('discord_user',0)
+        else:
+            self.timestamp = time.time()
+            try:
+                self.p = await ctx.bot.coc_client.get_player(self.tag)
+            except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError, ClientConnectorError) as exc:
+                raise TerminateProcessing(exc) from exc
+                return None
 
-        if self.is_member and self.discord_user:
-            if self.discord_user == self.home_clan.leader:
-                self.arix_rank = 'Leader'
-            if self.discord_user in self.home_clan.co_leaders:
-                self.arix_rank = 'Co-Leader'
-            if self.discord_user in self.home_clan.elders:
-                self.arix_rank = 'Elder'
+            memberInfo = await alliance_file_handler(ctx,'members',self.tag)
+            memberStats = await data_file_handler(ctx,'members',self.tag)
+
+            self.name = self.p.name
+            self.exp_level = self.p.exp_level
+
+            clan = getattr(self.p,'clan',None)
+            self.clan = await aClan.create(ctx,getattr(clan,'tag',None))
+            self.role = str(getattr(self.p,'role',''))
+
+            if self.clan.tag:
+                self.clan_description = f"{self.role} of {self.clan.name}"
             else:
-                self.arix_rank = 'Member'
-        else:
-            self.arix_rank = 'Non-Member'
+                self.clan_description = "No Clan"
 
-        notes = [aNote.from_json(self.ctx,n) for n in memberInfo.get('notes',[])]
-        self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
+            self.town_hall = aTownHall(level=getattr(self.p,'town_hall',1),weapon=getattr(self.p,'town_hall_weapon',0))
+            self.clan_castle = sum([a.value for a in self.p.achievements if a.name=='Empire Builder'])
+            self.league = getattr(self.p,'league',None)
+            self.trophies = getattr(self.p,'trophies',0)
+            self.best_trophies = getattr(self.p,'best_trophies',0)
+            self.war_stars = getattr(self.p,'war_stars',0)
+            self.war_optin = getattr(self.p,'war_opted_in',False)
 
-        #Membership Statistics
-        self.last_update = memberStats.get('last_update',time.time())
-        self.time_in_home_clan = memberStats.get('time_in_home_clan',0)
-        self.other_clans = memberStats.get('other_clans',[])
+            self.builder_hall = getattr(self.p,'builder_hall',0)
+            self.versus_trophies = getattr(self.p,'versus_trophies',0)
+            self.best_versus_trophies = getattr(self.p,'best_versus_trophies',0)
 
-        #Basic Stats
-        self.exp_level = memberStats.get('exp_level',1)
-        self.town_hall = aTownHall(
-            level = memberStats.get('town_hall',1),
-            weapon = memberStats.get('town_hall_weapon',0))
-        self.clan_castle = memberStats.get('clan_castle',0)
+            self.heroes = []
+            hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
+            for hero_name in list(chain.from_iterable(hero_d)):
+                is_unlocked_at_this_level = False
+                if hero_name in hero_availability[self.town_hall.level]:
+                    is_unlocked_at_this_level = True
+                hero = self.p.get_hero(name=hero_name)
+                if not hero:
+                    hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
+                hero = aHero.from_data(hero,self.town_hall.level,is_unlocked_at_this_level)
+                self.heroes.append(hero)
 
-        try:
-            cTag = memberStats['current_clan']['tag']
-        except:
-            cTag = None
-        self.clan = await aClan.create(ctx,cTag)
-        self.role = memberStats.get('role','')
+            self.troops = []
+            troop_d = [troop for (th,troop) in troop_availability.items() if th<=self.town_hall.level]
+            for troop_name in list(chain.from_iterable(troop_d)):
+                is_unlocked_at_this_level = False
+                if troop_name in troop_availability[self.town_hall.level]:
+                    is_unlocked_at_this_level = True
+                troop = self.p.get_troop(name=troop_name,is_home_troop=True)
+                if not troop:
+                    troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
+                troop = aTroop.from_data(troop,self.town_hall.level,is_unlocked_at_this_level)
+                self.troops.append(troop)
 
-        if self.clan.tag:
-            self.clan_description = f"{self.role} of {self.clan.name}"
-        else:
-            self.clan_description = "No Clan"
+            self.spells = []
+            spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
+            for spell_name in list(chain.from_iterable(spell_d)):
+                is_unlocked_at_this_level = False
+                if spell_name in spell_availability[self.town_hall.level]:
+                    is_unlocked_at_this_level = True
+                spell = self.p.get_spell(name=spell_name)
+                if not spell:
+                    spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
+                spell = aSpell.from_data(spell,self.town_hall.level,is_unlocked_at_this_level)
+                self.spells.append(spell)
 
-        #Home Village Stats
-        self.league = await ctx.bot.coc_client.get_league_named(memberStats.get('league','Unranked')) 
-        self.trophies = memberStats.get('trophies',0)
-        self.best_trophies = memberStats.get('best_trophies',0)
-        self.war_stars = memberStats.get('war_stars',0)
-        self.war_optin = memberStats.get('war_optin',False)
+            self.pets = []
+            pets_d = {th:pets for (th,pets) in pet_availability.items() if th<=self.town_hall.level}
+            for th, pets in pets_d.items():
+                minlevel = 0
+                if th < self.town_hall.level:
+                    minlevel = 10
+                for pet in pets:
+                    get_pet = [p for p in self.p.hero_pets if p.name==pet]
+                    if len(get_pet) == 0:
+                        pet_object = aHeroPet.not_yet_unlocked(pet,minlevel)
+                    else:
+                        pet_object = aHeroPet.from_data(get_pet[0],minlevel)
+                    self.pets.append(pet_object)
 
-        #Builder Hall Stats
-        self.builder_hall = memberStats.get('builder_hall',0)
-        self.versus_trophies = memberStats.get('versus_trophies',0)
-        self.best_versus_trophies = memberStats.get('best_versus_trophies',0)
+            self.hero_description = ""
+            if self.town_hall.level >= 7:
+                self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
+            if self.town_hall.level >= 9:
+                self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
+            if self.town_hall.level >= 11:
+                self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
+            if self.town_hall.level >= 13:
+                self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
 
-        self.heroes = [aHero.from_json(h) for h in memberStats.get('heroes',[])]
-        self.troops = [aTroop.from_json(t) for t in memberStats.get('troops',[])]
-        self.spells = [aSpell.from_json(s) for s in memberStats.get('spells',[])]
-        self.pets = [aHeroPet.from_json(p) for p in memberStats.get('pets',[])]
+            self.hero_strength = sum([hero.level for hero in self.heroes])
+            self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
+            self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
 
-        self.hero_strength = sum([hero.level for hero in self.heroes])
-        self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
-        self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
+            rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
+            if self.min_hero_strength > 0:
+                self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,2)
+            else:
+                self.hero_rushed_pct = 0
 
-        rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
-        if self.min_hero_strength > 0:
-            self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,1)
-        else:
-            self.hero_rushed_pct = 0
+            self.troop_strength = sum([troop.level for troop in self.troops])
+            self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.pets]))
+            self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.pets]))
 
-        self.hero_description = ""
-        if self.town_hall.level >= 7:
-            self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
-        if self.town_hall.level >= 9:
-            self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
-        if self.town_hall.level >= 11:
-            self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
-        if self.town_hall.level >= 13:
-            self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
+            rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.pets if p.level < p.minlevel_for_townhall])
+            if self.min_troop_strength > 0:
+                self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,2)
+            else:
+                self.troop_rushed_pct = 0
 
-        self.troop_strength = sum([troop.level for troop in self.troops]) + sum([pet.level for pet in self.pets])
-        self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.pets]))
-        self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.pets]))
+            self.spell_strength = sum([spell.level for spell in self.spells])
+            self.max_spell_strength = (sum([spell.maxlevel_for_townhall for spell in self.spells]))
+            self.min_spell_strength = (sum([spell.minlevel_for_townhall for spell in self.spells]))
 
-        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.pets if p.level < p.minlevel_for_townhall])
-        if self.min_troop_strength > 0:
-            self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,1)
-        else:
-            self.troop_rushed_pct = 0
+            rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
+            if self.min_spell_strength > 0:
+                self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,2)
+            else:
+                self.spell_rushed_pct = 0
 
-        self.spell_strength = sum([spell.level for spell in self.spells])
-        self.max_spell_strength = sum([spell.maxlevel_for_townhall for spell in self.spells])
-        self.min_spell_strength = sum([spell.minlevel_for_townhall for spell in self.spells])
+            if self.min_hero_strength + self.min_troop_strength + self.min_spell_strength > 0:
+                rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
+                self.overall_rushed_pct = round(rushed_pct*100,2)
+            else:
+                self.overall_rushed_pct = 0
 
-        rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
-        if self.min_spell_strength > 0:
-            self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,1)
-        else:
-            self.spell_rushed_pct = 0
+            #From AriX Data File
+            if memberInfo:
+                try:
+                    home_clan_tag = memberInfo['home_clan']['tag']
+                except:
+                    home_clan_tag = None
 
-        if (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength) > 0:
-            self.overall_rushed_pct = round(((rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength))*100,1)
-        else:
-            self.overall_rushed_pct = 0
+                self.home_clan = await aClan.create(ctx,home_clan_tag)
+                self.is_member = memberInfo.get('is_member',False)
 
-        self.attack_wins = aPlayerStat(memberStats.get('attack_wins',{}))
-        self.defense_wins = aPlayerStat(memberStats.get('defense_wins',{}))
+                self.discord_user = int(memberInfo.get('discord_user',0))
 
-        self.donations_sent = aPlayerStat(memberStats.get('donations_sent',{}))
-        self.donations_rcvd = aPlayerStat(memberStats.get('donations_rcvd',{}))
-
-        self.loot_gold = aPlayerStat(memberStats.get('loot_gold',{}))
-        self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
-        self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
-
-        self.clangames = aPlayerStat(memberStats.get('clangames',{}))
-
-        self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
-
-        self.warlog = {wID:aPlayerWarLog.from_json(wID,wl) for (wID,wl) in memberStats.get('war_log',{}).items()}
-        self.raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats.get('raid_log',{}).items()}
-
-        self.war_stats = aPlayerWarStats(self.warlog)
-        self.raid_stats = aPlayerRaidStats(self.raidlog)
-
-        return self
-
-    @classmethod
-    async def create_from_data(cls,ctx,tag):
-        self = aPlayer(ctx,tag)
-        try:
-            self.p = await ctx.bot.coc_client.get_player(self.tag)
-            get_links = await ctx.bot.discordlinks.get_links(self.tag)
-            self.discord_link = get_links[0][1]
-        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
-            raise TerminateProcessing(exc) from exc
-            return None
-        return self
-
-    async def retrieve_data(self):
-        self.timestamp = time.time()
-        try:
-            self.p = await self.ctx.bot.coc_client.get_player(self.tag)
-            get_links = await self.ctx.bot.discordlinks.get_links(self.tag)
-            self.discord_link = get_links[0][1]
-        except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
-            raise TerminateProcessing(exc) from exc
-            return None
-
-        self.name = getattr(self.p,'name','')
-        self.exp_level = getattr(self.p,'exp_level',1)
-
-        clan = getattr(self.p,'clan',None)
-        self.clan = await aClan.create(self.ctx,getattr(clan,'tag',None))
-        self.role = str(getattr(self.p,'role',''))
-
-        if self.clan.tag:
-            self.clan_description = f"{self.role} of {self.clan.name}"
-        else:
-            self.clan_description = "No Clan"
-
-        self.town_hall = aTownHall(level=getattr(self.p,'town_hall',1),weapon=getattr(self.p,'town_hall_weapon',0))
-        self.clan_castle = sum([a.value for a in self.p.achievements if a.name=='Empire Builder'])
-        self.league = getattr(self.p,'league',None)
-        self.trophies = getattr(self.p,'trophies',0)
-        self.best_trophies = getattr(self.p,'best_trophies',0)
-        self.war_stars = getattr(self.p,'war_stars',0)
-        self.war_optin = getattr(self.p,'war_opted_in',0)
-
-        self.builder_hall = getattr(self.p,'builder_hall',0)
-        self.versus_trophies = getattr(self.p,'versus_trophies',0)
-        self.best_versus_trophies = getattr(self.p,'best_versus_trophies',0)
-
-        self.heroes = []
-        hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
-        for hero_name in list(chain.from_iterable(hero_d)):
-            hero = self.p.get_hero(name=hero_name)
-            if not hero:
-                hero = self.ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
-            hero = aHero.from_data(hero,self.town_hall.level)
-            self.heroes.append(hero)
-
-        self.troops = []
-        troop_d = [troop for (th,troop) in troop_availability.items() if th<=self.town_hall.level]
-        for troop_name in list(chain.from_iterable(troop_d)):
-            troop = self.p.get_troop(name=troop_name,is_home_troop=True)
-            if not troop:
-                troop = self.ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
-            troop = aTroop.from_data(troop,self.town_hall.level)
-            self.troops.append(troop)
-
-        self.spells = []
-        spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
-        for spell_name in list(chain.from_iterable(spell_d)):
-            spell = self.p.get_spell(name=spell_name)
-            if not spell:
-                spell = self.ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
-            spell = aSpell.from_data(spell,self.town_hall.level)
-            self.spells.append(spell)
-
-        self.pets = []
-        pets_d = {th:pets for (th,pets) in pet_availability.items() if th<=self.town_hall.level}
-        for th, pets in pets_d.items():
-            minlevel = 0
-            if th < self.town_hall.level:
-                minlevel = 10
-            for pet in pets:
-                get_pet = [p for p in self.p.hero_pets if p.name==pet]
-                if len(get_pet) == 0:
-                    pet_object = aHeroPet.not_yet_unlocked(pet,minlevel)
+                if self.is_member:
+                    if self.discord_user == self.home_clan.leader:
+                        self.arix_rank = 'Leader'
+                    elif self.discord_user in self.home_clan.co_leaders:
+                        self.arix_rank = 'Co-Leader'
+                    elif self.discord_user in self.home_clan.elders:
+                        self.arix_rank = 'Elder'
+                    else:
+                        self.arix_rank = 'Member'
                 else:
-                    pet_object = aHeroPet.from_data(get_pet[0],minlevel)
-                self.pets.append(pet_object)
+                    self.arix_rank = 'Non-Member'
 
-        self.hero_description = ""
-        if self.town_hall.level >= 7:
-            self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
-        if self.town_hall.level >= 9:
-            self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
-        if self.town_hall.level >= 11:
-            self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
-        if self.town_hall.level >= 13:
-            self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
+                notes = [aNote.from_json(ctx,n) for n in memberInfo.get('notes',[])]
+                self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-        self.hero_strength = sum([hero.level for hero in self.heroes])
-        self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
-        self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
 
-        rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
-        if self.min_hero_strength > 0:
-            self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,1)
-        else:
-            self.hero_rushed_pct = 0
+            if memberStats:
+                #Membership Statistics
+                self.last_update = memberStats.get('last_update',time.time())
+                self.time_in_home_clan = memberStats.get('time_in_home_clan',0)
+                self.other_clans = memberStats.get('other_clans',[])
 
-        self.troop_strength = sum([troop.level for troop in self.troops])
-        self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.pets]))
-        self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.pets]))
+                self.attack_wins = aPlayerStat(memberStats.get('attack_wins',{}))
+                self.defense_wins = aPlayerStat(memberStats.get('defense_wins',{}))
 
-        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.pets if p.level < p.minlevel_for_townhall])
-        if self.min_troop_strength > 0:
-            self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,1)
-        else:
-            self.troop_rushed_pct = 0
+                self.donations_sent = aPlayerStat(memberStats.get('donations_sent',{}))
+                self.donations_rcvd = aPlayerStat(memberStats.get('donations_rcvd',{}))
 
-        self.spell_strength = sum([spell.level for spell in self.spells])
-        self.max_spell_strength = (sum([spell.maxlevel_for_townhall for spell in self.spells]))
-        self.min_spell_strength = (sum([spell.minlevel_for_townhall for spell in self.spells]))
+                self.loot_gold = aPlayerStat(memberStats.get('loot_gold',{}))
+                self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
+                self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
 
-        rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
-        if self.min_spell_strength > 0:
-            self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,1)
-        else:
-            self.spell_rushed_pct = 0
+                self.clangames = aPlayerStat(memberStats.get('clangames',{}))
 
-        self.overall_rushed_pct = round(((rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength))*100,1)
+                self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
-    async def update_stats(self):
-        #cannot update if data not retrieved
-        if self.p:
-            if self.clan.tag == self.home_clan.tag:
-                self.time_in_home_clan += (self.timestamp - self.last_update)
-            elif self.clan.tag not in self.other_clans:
-                self.other_clans.append(self.clan.tag)
+                try:
+                    self.warlog = {wID:aPlayerWarLog.from_json(wID,wl) for (wID,wl) in memberStats.get('war_log',{}).items()}
+                except:
+                    self.warlog = {}
+                try:
+                    self.raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats.get('raid_log',{}).items()}
+                except:
+                    self.raidlog = {}
 
-            self.attack_wins.update_stat(self.p.attack_wins)
-            self.defense_wins.update_stat(self.p.defense_wins)
+                self.war_stats = aPlayerWarStats(self.warlog)
+                self.raid_stats = aPlayerRaidStats(self.raidlog)
 
-            self.donations_sent.update_stat(self.p.donations)
-            self.donations_rcvd.update_stat(self.p.received)
-            
-            for achievement in self.p.achievements:
-                if achievement.name == 'Gold Grab':
-                    self.loot_gold.update_stat(achievement.value)
-                if achievement.name == 'Elixir Escapade':
-                    self.loot_elixir.update_stat(achievement.value)
-                if achievement.name == 'Heroic Heist':
-                    self.loot_darkelixir.update_stat(achievement.value)
-                if achievement.name == 'Most Valuable Clanmate':
-                    self.capitalcontribution.update_stat(achievement.value)
-                if achievement.name == 'Games Champion':
-                    self.clangames.update_stat(achievement.value)
 
-    async def set_baselines(self):
-        if self.p:
-            if self.clan.tag not in self.other_clans:
-                self.other_clans.append(self.clan.tag)
-                
-            self.attack_wins.set_baseline(self.p.attack_wins)
-            self.defense_wins.set_baseline(self.p.defense_wins)
+            self.desc_title = f"{self.name} ({self.tag})"
 
-            self.donations_sent.set_baseline(self.p.donations)
-            self.donations_rcvd.set_baseline(self.p.received)
+            member_description = ""
+            if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
+                member_description = f"***{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}***"
+            elif self.discord_user:
+                member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
 
-            for achievement in self.p.achievements:
-                if achievement.name == 'Gold Grab':
-                    self.loot_gold.set_baseline(achievement.value)
-                if achievement.name == 'Elixir Escapade':
-                    self.loot_elixir.set_baseline(achievement.value)
-                if achievement.name == 'Heroic Heist':
-                    self.loot_darkelixir.set_baseline(achievement.value)
-                if achievement.name == 'Most Valuable Clanmate':
-                    self.capitalcontribution.set_baseline(achievement.value)
-                if achievement.name == 'Games Champion':
-                    self.clangames.set_baseline(achievement.value)
+            self.desc_full_text = f"{member_description}"
+            if member_description:
+                self.desc_full_text += "\n"
 
-    async def save_to_json(self):
+            self.desc_full_text += (
+                f"<:Exp:825654249475932170> {self.exp_level}\u3000<:Clan:825654825509322752> {self.clan_description}"
+                + f"\n{self.town_hall.emote} {self.town_hall.description}\u3000{emotes_league[self.league.name]} {self.trophies} (best: {self.best_trophies})"
+                + f"\n{self.hero_description}"
+                + f"\n[Player Link: {self.tag}]({self.share_link})")
+
+            self.desc_summary_text = f"{self.town_hall.emote} {self.town_hall.description}\u3000"
+
+            if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
+                self.desc_summary_text += member_description
+            else:
+                self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
+
+            if not self.discord_user:
+                get_links = await ctx.bot.discordlinks.get_links(self.tag)
+                self.discord_user = get_links[0][1]
+
+            return self
+
+
+    async def save_to_json(self,ctx):
         allianceJson = {
             'name':self.name,
             'is_member':self.is_member,
@@ -453,7 +373,7 @@ class aPlayer():
 
         memberJson = {
             'name': self.name,
-            'last_update': self.timestamp,
+            'last_update': self.last_update,
             'time_in_home_clan': self.time_in_home_clan,
             'role': self.role,
             'current_clan': {
@@ -490,19 +410,90 @@ class aPlayer():
             'war_log': war_log_dict,
             }
         await alliance_file_handler(
-            ctx=self.ctx,
+            ctx=ctx,
             entry_type='members',
             tag=self.tag,
             new_data=allianceJson)
 
         await data_file_handler(
-            ctx=self.ctx,
+            ctx=ctx,
             file='members',
             tag=self.tag,
             new_data=memberJson)
 
-    async def new_member(self,ctx,discord_user,home_clan=None):
 
+    async def update_stats(self,ctx):
+        #cannot update if data not retrieved
+        if self.p:
+            if self.clan.tag == self.home_clan.tag:
+                self.time_in_home_clan += (self.timestamp - self.last_update)
+            elif self.clan.tag not in self.other_clans:
+                self.other_clans.append(self.clan.tag)
+
+            self.attack_wins.update_stat(self.p.attack_wins)
+            self.defense_wins.update_stat(self.p.defense_wins)
+
+            self.donations_sent.update_stat(self.p.donations)
+            self.donations_rcvd.update_stat(self.p.received)
+
+            for achievement in self.p.achievements:
+                if achievement.name == 'Gold Grab':
+                    self.loot_gold.update_stat(achievement.value)
+                if achievement.name == 'Elixir Escapade':
+                    self.loot_elixir.update_stat(achievement.value)
+                if achievement.name == 'Heroic Heist':
+                    self.loot_darkelixir.update_stat(achievement.value)
+                if achievement.name == 'Most Valuable Clanmate':
+                    self.capitalcontribution.update_stat(achievement.value)
+                if achievement.name == 'Games Champion':
+                    self.clangames.update_stat(achievement.value)
+
+            self.last_update = self.timestamp
+
+
+    async def set_baselines(self,ctx):
+        if self.p:
+            if self.clan.tag not in self.other_clans:
+                self.other_clans.append(self.clan.tag)
+
+            self.attack_wins.set_baseline(self.p.attack_wins)
+            self.defense_wins.set_baseline(self.p.defense_wins)
+
+            self.donations_sent.set_baseline(self.p.donations)
+            self.donations_rcvd.set_baseline(self.p.received)
+
+            for achievement in self.p.achievements:
+                if achievement.name == 'Gold Grab':
+                    self.loot_gold.set_baseline(achievement.value)
+                if achievement.name == 'Elixir Escapade':
+                    self.loot_elixir.set_baseline(achievement.value)
+                if achievement.name == 'Heroic Heist':
+                    self.loot_darkelixir.set_baseline(achievement.value)
+                if achievement.name == 'Most Valuable Clanmate':
+                    self.capitalcontribution.set_baseline(achievement.value)
+                if achievement.name == 'Games Champion':
+                    self.clangames.set_baseline(achievement.value)
+
+            self.last_update = self.timestamp
+
+
+    async def update_war(self,ctx,war_entry):
+        player_log = aPlayerWarLog.from_war(war_entry)
+        wID = player_log.wID
+        self.warlog['wID'] = player_log
+
+        await self.save_to_json(ctx)
+
+
+    async def update_raidweekend(self,ctx,raid_entry):
+        player_log = aPlayerRaidLog.from_raid_member(raid_entry)
+        rID = player_log.rID
+        self.raidlog['rID'] = player_log
+
+        await self.save_to_json(ctx)
+
+
+    async def new_member(self,ctx,discord_user,home_clan=None):
         discord_member = await ctx.bot.alliance_server.fetch_member(discord_user.id)
         self.discord_user = discord_user.id
 
@@ -547,33 +538,16 @@ class aPlayer():
             self.is_member = False
             self.arix_rank = 'Non-Member'
 
-    async def remove_member(self):
+        await self.set_baselines(ctx)
+        await self.save_to_json(ctx)
+
+
+    async def remove_member(self,ctx):
+        home_clan_tag = None
+        self.home_clan = await aClan.create(ctx,home_clan_tag)
         self.arix_rank = 'Non-Member'
         self.is_member = False
-
-    async def update_rank(self,ctx,new_rank):
-        self.arix_rank = new_rank
-
-        discord_member = await ctx.bot.alliance_server.fetch_member(self.discord_user)
-
-        if discord_member:
-            if new_rank in ['Leader','Co-Leader']:
-                if ctx.bot.member_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.member_role)
-                if ctx.bot.elder_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.elder_role)
-                if ctx.bot.coleader_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.coleader_role)
-
-            elif new_rank in ['Elder']:
-                if ctx.bot.elder_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.elder_role)
-                if ctx.bot.coleader_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.coleader_role)
-
-            elif new_rank in ['Member']:
-                if ctx.bot.member_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.member_role)
+        await self.save_to_json(ctx)
 
 
     async def add_note(self,ctx,message):
@@ -583,15 +557,7 @@ class aPlayer():
         sorted_notes = sorted(self.notes,key=lambda n:(n.timestamp),reverse=False)
         self.notes = sorted_notes
 
-    async def update_war(self,war_entry):
-        player_log = aPlayerWarLog.from_war(war_entry)
-        wID = player_log.wID
-        self.warlog['wID'] = player_log
-
-    async def update_raidweekend(self,raid_entry):
-        player_log = aPlayerRaidLog.from_raid_member(raid_entry)
-        rID = player_log.rID
-        self.raidlog['rID'] = player_log
+        await self.save_to_json(ctx)
 
 class aTownHall():
     def __init__(self,level=1,weapon=0):
@@ -603,6 +569,7 @@ class aTownHall():
             self.description = f"**{self.level}**-{self.weapon}"
         else:
             self.description = f"**{self.level}**"
+
 
 class aPlayerStat():
     def __init__(self,inputJson):
@@ -662,7 +629,7 @@ class aHero():
         return self
 
     @classmethod
-    def from_data(cls,gameData,th_level):
+    def from_data(cls,gameData,th_level,is_unlocked_at_this_level):
         self = aHero()
         self.hero = gameData
 
@@ -683,6 +650,9 @@ class aHero():
             minlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level-1)
             self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
         except:
+            self.minlevel_for_townhall = 0
+
+        if is_unlocked_at_this_level:
             self.minlevel_for_townhall = 0
 
         if self.level < self.minlevel_for_townhall:
@@ -791,7 +761,7 @@ class aTroop():
         return self
 
     @classmethod
-    def from_data(cls,gameData,th_level):
+    def from_data(cls,gameData,th_level,is_unlocked_at_this_level=False):
         self = aTroop()
         self.troop = gameData
 
@@ -817,6 +787,9 @@ class aTroop():
 
         minlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level-1)
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
+
+        if is_unlocked_at_this_level:
+            self.minlevel_for_townhall = 0
 
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
@@ -873,7 +846,7 @@ class aSpell():
         return self
 
     @classmethod
-    def from_data(cls,gameData,th_level):
+    def from_data(cls,gameData,th_level,is_unlocked_at_this_level):
         self = aSpell()
         self.spell = gameData
 
@@ -893,6 +866,9 @@ class aSpell():
 
         minlevel_for_townhall = self.spell.get_max_level_for_townhall(th_level-1)
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
+
+        if is_unlocked_at_this_level:
+            self.minlevel_for_townhall = 0
 
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
@@ -923,7 +899,10 @@ class aPlayerWarStats():
         self.missed_attacks = 0
 
         for wID, war in warlog.items():
-            self.missed_attacks += (war.total_attacks - len(war.attacks))
+            if war.result == '':
+                self.missed_attacks += 0
+            else:
+                self.missed_attacks += (war.total_attacks - len(war.attacks))
             for a in war.attacks:
                 self.offense_stars += a.stars
                 self.offense_destruction += a.destruction

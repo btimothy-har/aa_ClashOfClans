@@ -8,33 +8,19 @@ from tabulate import tabulate
 
 from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
 
-from .discordutils import eclipse_embed
+from .discordutils import eclipse_embed, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from .eclipse_classes import EclipseSession, eWarBase, eWarArmy
 from .file_functions import eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
-async def eclipse_menu_emoji(ctx,options):
-    sel_list = []
-    num = 0
-    for i in options:
-        if 'emoji' not in list(i.keys()):
-            hex_str = hex(224 + (6 + num))[2:]
-            emoji = b"\\U0001f1a".replace(b"a", bytes(hex_str, "utf-8"))
-            emoji = emoji.decode("unicode-escape")
 
-            i['emoji'] = emoji
-        sel_list.append(i)
-        num += 1
-
-    return sel_list
-
-async def eclipse_menu_select(ctx, session, sel_list, timeout=60):
+async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
     def chk_select(r,u):
         if str(r.emoji) in sel_emojis and r.message.id == session.message.id and u.id == session.user.id:
             return True
         else:
             return False
-    
+
     sel_emojis = [i['emoji'] for i in sel_list]
     sel_emojis.append('<:red_cross:838461484312428575>')
 
@@ -52,34 +38,40 @@ async def eclipse_menu_select(ctx, session, sel_list, timeout=60):
             ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]
             return ms[0]
 
+
 async def eclipse_main_menu(ctx,session):
     menu_options = []
 
     personal_vault_option = {
-            'id': 'personalvault',
-            'title': f"Visit your Personal Base Vault",
-            'description': "Your personal base vault. This will open E.C.L.I.P.S.E. in your DMs."
-            }
+        'id': 'personalvault',
+        'title': f"Visit your Personal Base Vault",
+        'description': "Bases saved from our AriX Base Vault will appear in your personal vault for you to refer in future\nNote: This will open E.C.L.I.P.S.E. in your DMs."
+        }
     base_vault_option = {
-            'id': 'basevault',
-            'title': "Browse the Base Vault",
-            'description': f"We have bases covering TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
-            }
+        'id': 'basevault',
+        'title': "Browse the AriX Base Vault",
+        'description': f"We have bases covering TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+        }
     base_army_guides = {
-            'id': 'armyguides',
-            'title': "Browse the War Army Guide",
-            'description': f"We have a compilation of war armies and variations from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
-            }
+        'id': 'armyguides',
+        'title': "Browse the War Army Guide",
+        'description': f"We have a compilation of war armies and variations from TH9 {emotes_townhall[9]} to TH15 {emotes_townhall[15]}."
+        }
     strategy_guides = {
-            'id': 'strategy',
-            'title': "Browse the Strategy Guide",
-            'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
-            }
+        'id': 'strategy',
+        'title': "Browse the Strategy Guide",
+        'description': f"We have a compilation of strategies and tactics in Clash of Clans applicable to all Townhall levels."
+        }
     army_analyzer = {
-            'id': 'armyanalyze',
-            'title': "Army Analysis",
-            'description': f"Compare up to 3 army compositions side-by-side."
-            }
+        'id': 'armyanalyze',
+        'title': "Army Analysis",
+        'description': f"Compare up to 3 army compositions side-by-side."
+        }
+    troop_encyclopedia = {
+        'id': 'troopencyclopedia',
+        'title': "Troop Encyclopedia",
+        'description': f"In-game stats for all Troops, Spells, Heroes for all levels."
+        }
 
     menu_options.append(personal_vault_option)
     menu_options.append(base_vault_option)
@@ -87,7 +79,7 @@ async def eclipse_main_menu(ctx,session):
     #menu_options.append(strategy_guides)
     menu_options.append(army_analyzer)
 
-    menu_options = await eclipse_menu_emoji(ctx,menu_options)
+    menu_options = await multiple_choice_menu_generate_emoji(ctx,menu_options)
 
     menu_embed = await eclipse_embed(ctx,
         title="**Welcome to E.C.L.I.P.S.E.!**",
@@ -116,7 +108,7 @@ async def eclipse_main_menu(ctx,session):
         session.message = await ctx.send(content=session.user.mention,embed=menu_embed)
 
     await session.message.clear_reactions()
-    selection = await eclipse_menu_select(ctx,session,menu_options,timeout=180)
+    selection = await eclipse_multiple_choice_select(ctx,session,menu_options,timeout=180)
 
     if selection:
         return selection['id']
@@ -179,7 +171,7 @@ async def eclipse_base_vault(ctx,session,no_base=None):
         session.message = await ctx.send(content=session.user.mention,embed=base_menu_embed)
 
     await session.message.clear_reactions()
-    selection = await eclipse_menu_select(ctx,session,menu_options)
+    selection = await eclipse_multiple_choice_select(ctx,session,menu_options)
 
     if selection:
         return selection['id']
@@ -234,7 +226,7 @@ async def eclipse_army_analyzer(ctx,session):
         session.message = await ctx.send(content=session.user.mention,embed=army_analyzer_embed)
 
     await session.message.clear_reactions()
-    selection = await eclipse_menu_select(ctx,session,menu_options)
+    selection = await eclipse_multiple_choice_select(ctx,session,menu_options)
 
     if selection:
         return selection['id']
@@ -387,7 +379,7 @@ async def eclipse_army_analyzer_main(ctx,session,town_hall):
         session.message = await ctx.send(content=session.user.mention,embed=army_comparison_embed)
     
     while True:
-        selection = await eclipse_menu_select(ctx,session,menu_options,timeout=300)
+        selection = await eclipse_multiple_choice_select(ctx,session,menu_options,timeout=300)
 
         if selection:
             if selection['id'] == 'save':
@@ -454,7 +446,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
             }
         category_select.append(back_dict)
 
-        category_select += await eclipse_menu_emoji(ctx,category_options)
+        category_select += await multiple_choice_menu_generate_emoji(ctx,category_options)
         
         for i in category_select:
             if i['id'] != 'back':
@@ -472,7 +464,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
         else:
             session.message = await ctx.send(content=session.user.mention,embed=base_category_embed)
         await session.message.clear_reactions()
-        selection = await eclipse_menu_select(ctx,session,category_select)
+        selection = await eclipse_multiple_choice_select(ctx,session,category_select)
 
         if not selection:
             return None
@@ -601,7 +593,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             await session.message.clear_reactions()
 
         while True:
-            selection = await eclipse_menu_select(ctx,session,base_navigation,timeout=300)
+            selection = await eclipse_multiple_choice_select(ctx,session,base_navigation,timeout=300)
             if selection:
                 if selection['id'] == 'next':
                     i += 1
@@ -677,14 +669,12 @@ async def eclipse_personal_vault(ctx,session):
     menu_options.append(war_base_option)
     menu_options.append(armies_option)
 
-    menu_options = await eclipse_menu_emoji(ctx,menu_options)
+    menu_options = await multiple_choice_menu_generate_emoji(ctx,menu_options)
 
     menu_embed = await eclipse_embed(ctx,
         title=f"{session.user.display_name}'s Personal Vault",
         message=f"\nWelcome to your personal E.C.L.I.P.S.E. Vault."
-            + f"\n\nHere, you can access any of the War Bases that you've saved from the member's Vault. "
-            + f"In addition, E.C.L.I.P.S.E. also offers a personal Army Composition Database for your use."
-            + f"\n\n**All data saved in your E.C.L.I.P.S.E. Vault is only accessible by you.**\n\u200b")
+            + f"\n\nHere, you can access any of the War Bases that you've saved from the AriX Base Vault, with Base Links made available to you.\n\u200b")
 
     select_str = ""
     for i in menu_options:
@@ -704,7 +694,7 @@ async def eclipse_personal_vault(ctx,session):
         await session.message.edit(content=session.user.mention,embed=menu_embed)
     else:
         session.message = await session.channel.send(content=session.user.mention,embed=menu_embed)
-    selection = await eclipse_menu_select(ctx,session,menu_options)
+    selection = await eclipse_multiple_choice_select(ctx,session,menu_options)
 
     if selection:
         return selection['id']
@@ -775,7 +765,7 @@ async def eclipse_personal_bases(ctx,session):
         await session.message.edit(content=session.user.mention,embed=base_select_embed)
     else:
         session.message = await session.channel.send(content=session.user.mention,embed=base_select_embed)
-    selection = await eclipse_menu_select(ctx,session,menu_options)
+    selection = await eclipse_multiple_choice_select(ctx,session,menu_options)
 
     if not selection:
         return None
