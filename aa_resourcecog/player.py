@@ -362,14 +362,16 @@ class aPlayer():
             }
 
         raid_log_dict = {}
-        for rid, r in self.raidlog.items():
-            rID, rjson = r.to_json()
-            raid_log_dict[rID] = rjson
+        if len(list(self.raidlog.keys())) > 0:
+            for rid, r in self.raidlog.items():
+                rID, rjson = r.to_json()
+                raid_log_dict[rID] = rjson
 
         war_log_dict = {}
-        for wid, w in self.warlog.items():
-            wID, wjson = w.to_json()
-            war_log_dict[wID] = wjson
+        if len(list(self.warlog.keys())) > 0:
+            for wid, w in self.warlog.items():
+                wID, wjson = w.to_json()
+                war_log_dict[wID] = wjson
 
         memberJson = {
             'name': self.name,
