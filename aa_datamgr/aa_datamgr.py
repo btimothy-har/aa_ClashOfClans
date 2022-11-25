@@ -307,8 +307,9 @@ class AriXClashDataMgr(commands.Cog):
         run_time_hist = await self.config.update_runtimes()
 
         try:
-            log_channel_id = await self.config.guild(ctx.guild).logchannel()
-            log_channel = ctx.guild.get_channel(log_channel_id)
+            log_server = await ctx.bot.get_guild(int(680798075685699691))
+            log_channel_id = await self.config.guild(log_server.id).logchannel()
+            log_channel = log_server.get_channel(log_channel_id)
         except:
             pass
 
