@@ -32,7 +32,7 @@ class aPlayer():
         self.discord_link = None
 
         #Membership Attributes
-        self.home_clan = None
+        self.home_clan = aClan(ctx,None)
         self.is_member = False
         self.arix_rank = 'Non-Member'
         self.discord_user = 0
@@ -46,7 +46,7 @@ class aPlayer():
         #Player Attributes
         self.exp_level = 1
 
-        self.clan = None
+        self.clan = aClan(ctx,None)
         self.role = ''
         self.clan_description = ''
 
