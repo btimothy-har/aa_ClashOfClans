@@ -244,6 +244,18 @@ class AriXClashResources(commands.Cog):
         leader_clans = []
         home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
+        if not user_accounts:
+            if ctx.author.id == user.id:
+                end_embed = await clash_embed(ctx,
+                    message="You must be an AriX Member to use this command.",
+                    color="fail")
+            else:
+                end_embed = await clash_embed(ctx,
+                    message=f"{user.mention} is not an AriX Member.",
+                    color='fail')
+            await ctx.send(embed=end_embed)
+            return None
+
         user_accounts = [a for a in user_accounts if a.is_member]
 
         for a in user_accounts:
