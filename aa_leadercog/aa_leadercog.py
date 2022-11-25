@@ -1041,11 +1041,12 @@ class AriXLeaderCommands(commands.Cog):
                 await ctx.send(embed=c_embed)
             else:
                 previous_home_clan = p.home_clan
-                await p.new_member(ctx,user,target_clan)
+                try:
+                    await p.new_member(ctx,user,target_clan)
 
-                # except Exception as e:
-                #     err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
-                #     error_log.append(err_dict)
+                except Exception as e:
+                    err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
+                    error_log.append(err_dict)
 
                 await homeclan_msg.delete()
                 c_embed = await clash_embed(ctx,
@@ -1099,7 +1100,7 @@ class AriXLeaderCommands(commands.Cog):
 
         for tag in player_tags:
             try:
-                p = await aPlayer.create(ctx,tag)
+                p = await aPlayer.create(ctx,tag,fetch=True)
             except TerminateProcessing as e:
                 return await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for {tag}",
