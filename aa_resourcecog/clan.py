@@ -141,6 +141,7 @@ class aClan():
                 self.elders = clanInfo.get('elders',[])
                 self.member_count = clanInfo.get('member_count',0)
                 self.recruitment_level = clanInfo.get('recruitment',[])
+                self.recruitment_level.sort()
 
                 notes = [aNote.from_json(ctx,n) for n in clanInfo.get('notes',[])]
                 self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
@@ -424,6 +425,8 @@ class aClan():
         for th in th_levels:
             if int(th) not in self.recruitment_level:
                 self.recruitment_level.append(int(th))
+
+        self.recruitment_level.sort()
         await self.save_to_json(ctx)
 
     async def set_announcement_channel(self,ctx,channel_id):

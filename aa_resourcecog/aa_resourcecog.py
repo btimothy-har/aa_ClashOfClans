@@ -156,7 +156,7 @@ class AriXClashResources(commands.Cog):
                     + f"\n\u200b",
                 inline=False)
 
-        if coleader_state:
+        if coleader_state or leader_state:
             nebula_embed.add_field(
                 name="**__Leaders & Co-Leader Commands__**",
                 value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
