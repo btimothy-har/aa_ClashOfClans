@@ -1027,7 +1027,7 @@ class AriXLeaderCommands(commands.Cog):
 
             if not selected_clan:
                 not_added_embed = await clash_embed(ctx,message=f"{p.desc_title} was not added to AriX. Skipping...")
-                homeclan_msg.edit(embed=not_added_embed)
+                await homeclan_msg.edit(embed=not_added_embed)
                 continue
 
             added_count += 1

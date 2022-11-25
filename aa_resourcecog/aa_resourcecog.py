@@ -216,7 +216,8 @@ class AriXClashResources(commands.Cog):
                 + f" \n> - Read <#970239273456500736> for info about our Hierarchy"
                 + f"\n> - Read <#960096690394767380> for info about our War Rules"
                 + f"\n> - Read <#998620795116986499> for info regarding our Raid Rules"
-                + f"\n> - Take your Utility Roles from <#970394343133315192>")
+                + f"\n> - Take your Utility Roles from <#970394343133315192>"
+                + f"\n\u200b")
 
         intro_embed.add_field(
             name="**About CWLA**",
