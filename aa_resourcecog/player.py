@@ -95,11 +95,11 @@ class aPlayer():
 
         self.capitalcontribution = aPlayerStat({})
 
-        self.warlog = None
-        self.war_stats = None
+        self.warlog = {}
+        self.war_stats = aPlayerWarStats({})
  
-        self.raidlog = None
-        self.raid_stats = None
+        self.raidlog = {}
+        self.raid_stats = aPlayerRaidStats({})
 
     @classmethod
     async def create(cls,ctx,tag,fetch=False):
@@ -362,16 +362,14 @@ class aPlayer():
             }
 
         raid_log_dict = {}
-        if len(list(self.raidlog.keys())) > 0:
-            for rid, r in self.raidlog.items():
-                rID, rjson = r.to_json()
-                raid_log_dict[rID] = rjson
+        for rid, r in self.raidlog.items():
+            rID, rjson = r.to_json()
+            raid_log_dict[rID] = rjson
 
         war_log_dict = {}
-        if len(list(self.warlog.keys())) > 0:
-            for wid, w in self.warlog.items():
-                wID, wjson = w.to_json()
-                war_log_dict[wID] = wjson
+        for wid, w in self.warlog.items():
+            wID, wjson = w.to_json()
+            war_log_dict[wID] = wjson
 
         memberJson = {
             'name': self.name,
