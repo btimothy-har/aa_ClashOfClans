@@ -559,13 +559,16 @@ class AriXLeaderCommands(commands.Cog):
             try:
                 if response in ['start','menu']:
 
+                    if state_text != "":
+                        state_text_fmt = f"**{state_text}**"
+
                     th_str = ''
                     for th in c.recruitment_level:
                         th_str += emotes_townhall[th]
 
                     announcement_embed = await clash_embed(ctx,
                         title=f"Clan Settings: {c.emoji} {c.desc_title}",
-                        message=f"\n{state_text}"
+                        message=f"\n{state_text_fmt}"
                             + f"\n\nEmoji: {c.emoji}"
                             + f"\nRecruiting: {th_str}"
                             + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
