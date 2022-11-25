@@ -885,7 +885,10 @@ class AriXClashDataMgr(commands.Cog):
             await log_channel.send(embed=sEmbed,file=run_time_plot_file)
             await self.config.last_data_log.set(st)
 
-        await init_msg.delete()
+        try:
+            await init_msg.delete()
+        except:
+            pass
 
         await self.config.last_data_update.set(st)
         await self.config.update_runtimes.set(run_time_hist)
