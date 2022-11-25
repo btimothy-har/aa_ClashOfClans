@@ -87,6 +87,7 @@ class aClan():
             else:
                 self = aClan(ctx,tag)
                 ctx.bot.clan_cache[tag] = self
+                fetch = True
         else:
             self = aClan(ctx,tag)
             return self
@@ -262,8 +263,9 @@ class aClan():
         
         self.current_war = aClanWar.from_game(ctx,current_war)
         if self.current_war.state != self.war_state:
-            self.war_state = self.current_war.state
             self.war_state_change = True
+
+        self.war_state = self.current_war.state
 
         if self.current_war.state in ['inWar','warEnded']:
             self.war_log[self.current_war.wID] = self.current_war
@@ -281,8 +283,9 @@ class aClan():
         self.current_raid_weekend = aRaidWeekend.from_game(ctx,self,raid_log_gen[0])
 
         if self.current_raid_weekend.state != self.raid_weekend_state:
-            self.raid_weekend_state = self.current_raid_weekend.state
             self.raid_state_change = True
+
+        self.raid_weekend_state = self.current_raid_weekend.state
 
         self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
         await self.save_to_json(ctx)
