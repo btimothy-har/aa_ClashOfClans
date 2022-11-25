@@ -458,7 +458,7 @@ class aClan():
 
         await self.save_to_json(ctx)
 
-    async def set_war_reminder_interval(self,ctx,new_interval):
+    async def set_raid_reminder_interval(self,ctx,new_interval):
         for i in new_interval:
             i = int(i)
             if i > 48:
@@ -476,7 +476,9 @@ class aClan():
             self.send_raid_reminder = False
         else:
             self.send_raid_reminder = True
-            self.raid_reminder_intervals = [36,24,12,4]
+
+            if len(self.raid_reminder_intervals) == 0:
+                self.raid_reminder_intervals = [36,24,12,4]
         await self.save_to_json(ctx)
 
     async def add_note(self,ctx,message):
