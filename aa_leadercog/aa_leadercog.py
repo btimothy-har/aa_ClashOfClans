@@ -1028,6 +1028,7 @@ class AriXLeaderCommands(commands.Cog):
             if not selected_clan:
                 not_added_embed = await clash_embed(ctx,message=f"{p.desc_title} was not added to AriX. Skipping...")
                 await homeclan_msg.edit(embed=not_added_embed)
+                await homeclan_msg.clear_reactions()
                 continue
 
             added_count += 1
@@ -1074,7 +1075,7 @@ class AriXLeaderCommands(commands.Cog):
 
             else:
                 welcome_embed = await clash_embed(ctx,
-                    message=f"**Welcome to AriX, {user.mention}**!! I've sent you some information and instructions in your DMs. Please review them ASAP.")
+                    message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.")
 
                 await ctx.send(content=f"{user.mention}",embed=welcome_embed)
 
