@@ -522,14 +522,15 @@ class AriXLeaderCommands(commands.Cog):
             }
 
         if (ctx.author.id == c.leader or ctx.author.id in c.co_leaders) or ctx.author.id in ctx.bot.owner_ids:
-            menu_dict.append(emoji_option)
             menu_dict.append(recruit_option)
+            #menu_dict.append(description_option)
             menu_dict.append(war_reminder_toggle)
             menu_dict.append(war_reminder_interval)
             menu_dict.append(raid_reminder_toggle)
             menu_dict.append(raid_reminder_interval)
 
         if ctx.author.id in ctx.bot.owner_ids:
+            menu_dict.append(emoji_option)
             menu_dict.append(announcement_option)
             menu_dict.append(reminder_ch_option)
 
