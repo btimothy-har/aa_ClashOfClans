@@ -31,6 +31,8 @@ class aPlayer():
         self.share_link = ""
         self.discord_link = None
 
+        self.is_arix_account = False
+
         #Membership Attributes
         self.home_clan = aClan(ctx,None)
         self.is_member = False
@@ -268,6 +270,7 @@ class aPlayer():
 
                 self.home_clan = await aClan.create(ctx,home_clan_tag)
                 self.is_member = memberInfo.get('is_member',False)
+                self.is_arix_account = True
 
                 self.discord_user = int(memberInfo.get('discord_user',0))
 
@@ -325,7 +328,7 @@ class aPlayer():
             member_description = ""
             if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
                 member_description = f"***{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}***"
-            elif self.discord_user:
+            elif self.is_arix_account:
                 member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
 
             self.desc_full_text = f"{member_description}"
