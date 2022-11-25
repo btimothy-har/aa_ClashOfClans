@@ -1481,6 +1481,8 @@ class AriXLeaderCommands(commands.Cog):
 
         """
 
+        user = Discord_User
+
         if ctx.author.id == user.id:
             eEmbed = await clash_embed(ctx,message=f"Self-glorification is not allowed. Go grovel and beg for mercy.",color='fail')
             return await ctx.send(embed=eEmbed)
@@ -1506,6 +1508,8 @@ class AriXLeaderCommands(commands.Cog):
         **To change a Clan Leader, promote a Co-Leader. A Clan Leader cannot be promoted or demoted.**
         **Members cannot be demoted.**
         """
+
+        user = Discord_User
 
         if ctx.author.id == user.id:
             eEmbed = await clash_embed(ctx,message=f"Self-mutilation is strongly discouraged. You might want to seek help.",color='fail')
