@@ -134,7 +134,7 @@ class AriXMemberCommands(commands.Cog):
             return await ctx.author.send(embed=embed)
 
         try:
-            new_account = aPlayer.create(ctx,new_tag,fetch=True)
+            new_account = await aPlayer.create(ctx,new_tag,fetch=True)
         except Exception as e:
             return await error_end_processing(ctx,
                 preamble=f"Error encountered while fetching this account.",
