@@ -494,8 +494,11 @@ class aPlayer():
 
 
     async def new_member(self,ctx,discord_user,home_clan=None):
-        discord_member = await ctx.bot.alliance_server.fetch_member(discord_user.id)
         self.discord_user = discord_user.id
+        try:
+            discord_member = await ctx.bot.alliance_server.fetch_member(discord_user.id)
+        except:
+            discord_member = None
 
         if home_clan:
             coleader_role = ctx.bot.alliance_server.get_role(int(home_clan.coleader_role))
