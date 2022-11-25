@@ -84,8 +84,8 @@ class aPlayer():
         self.attack_wins = aPlayerStat({})
         self.defense_wins = aPlayerStat({})
 
-        self.donation_sent = aPlayerStat({})
-        self.donation_rcvd = aPlayerStat({})
+        self.donations_sent = aPlayerStat({})
+        self.donations_rcvd = aPlayerStat({})
 
         self.loot_gold = aPlayerStat({})
         self.loot_elixir = aPlayerStat({})

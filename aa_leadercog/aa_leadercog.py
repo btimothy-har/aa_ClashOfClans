@@ -994,8 +994,8 @@ class AriXLeaderCommands(commands.Cog):
                 existing_user = None
 
             #Discord User on file does not match new user: request confirmation.
-            if p.discord_user != 0 and p.discord_user != user.id:
-                player_notes += f"\n- This account is already linked to <@{p.discord_user}>."
+            if not p.discord_user and p.discord_user != user.id:
+                player_notes += f"\n- This account has been previously linked to <@{p.discord_user}>."
             
             #Is a current active member, but in a different clan: request confirmation.
             if p.is_member:
