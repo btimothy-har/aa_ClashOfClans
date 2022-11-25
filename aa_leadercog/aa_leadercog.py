@@ -994,6 +994,7 @@ class AriXLeaderCommands(commands.Cog):
                 existing_user = None
 
             #Discord User on file does not match new user: request confirmation.
+            await ctx.send(type(p.discord_user))
             if not p.discord_user and p.discord_user != user.id:
                 player_notes += f"\n- This account has been previously linked to <@{p.discord_user}>."
             
