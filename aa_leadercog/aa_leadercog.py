@@ -559,6 +559,7 @@ class AriXLeaderCommands(commands.Cog):
             try:
                 if response in ['start','menu']:
 
+                    state_text_fmt = ""
                     if state_text != "":
                         state_text_fmt = f"**{state_text}**"
 
