@@ -601,7 +601,7 @@ async def userprofile_notes(ctx,account,message=None):
 
     notes_embed = await clash_embed(ctx,
         title=f"Notes for: {a.name} ({a.tag})",
-        message=f"{desc_summary_text}")
+        message=f"{a.desc_summary_text}")
 
     for n in a.notes[:9]:
         dt = f"{datetime.fromtimestamp(n.timestamp).strftime('%d %b %Y')}"
