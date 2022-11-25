@@ -14,7 +14,7 @@ from .notes import aNote
 from .clan import aClan
 from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
 from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
-from .errors import TerminateProcessing, InvalidTag
+from .errors import TerminateProcessing, InvalidTag, error_end_processing
 
 class ClashPlayerError(Exception):
     def __init__(self,message):
