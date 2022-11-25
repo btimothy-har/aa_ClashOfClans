@@ -1151,8 +1151,6 @@ class AriXLeaderCommands(commands.Cog):
 
                 await ctx.send(embed=success_embed)
 
-            await confirm_remove.delete()
-
         if len(error_log) > 0:
 
             error_str = "\u200b"
