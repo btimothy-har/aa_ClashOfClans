@@ -437,7 +437,38 @@ class aClan():
             self.send_war_reminder = False
         else:
             self.send_war_reminder = True
-            self.war_reminder_intervals = [12,4,1]
+
+            if len(self.war_reminder_intervals) == 0:
+                self.war_reminder_intervals = [12,4,1]
+        await self.save_to_json(ctx)
+
+    async def set_war_reminder_interval(self,ctx,new_interval):
+        for i in new_interval:
+            i = int(i)
+            if i > 24:
+                pass
+
+            if i not in self.war_reminder_intervals:
+                self.war_reminder_intervals.append(i)
+
+        if 1 not in self.war_reminder_intervals:
+            self.war_reminder_intervals.append(1)
+
+        self.war_reminder_intervals.sort(reverse=True)
+
+        await self.save_to_json(ctx)
+
+    async def set_war_reminder_interval(self,ctx,new_interval):
+        for i in new_interval:
+            i = int(i)
+            if i > 48:
+                pass
+
+            if i not in self.raid_reminder_intervals:
+                self.raid_reminder_intervals.append(i)
+
+        self.raid_reminder_intervals.sort(reverse=True)
+
         await self.save_to_json(ctx)
 
     async def toggle_raid_reminders(self,ctx):

@@ -501,7 +501,7 @@ class AriXMemberCommands(commands.Cog):
             #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes"
 
-            if (ctx.bot.leader_role in discord_member.roles or ctx.bot.coleader_role in discord_member.roles):
+            if (ctx.bot.leader_role in discord_member.roles or ctx.bot.coleader_role in discord_member.roles) and len(a.notes)>0:
                 nav_str += f"\n\n:mag: View Member Notes ({len(a.notes)})"
 
             if len(accounts) > 1:
@@ -541,24 +541,30 @@ class AriXMemberCommands(commands.Cog):
             #start new session
             response = "start"
             session = EclipseSession(ctx)
+            tries = 10
 
             #add session to active list
             ctx.bot.clash_eclipse_sessions.append(session)
 
             while session.state:
+                tries -= 1
                 try:
                     session.add_to_path(response)
                     if response in ['start','menu']:
+                        tries = 10
                         response = await eclipse_main_menu(ctx,session)
 
                     if response == 'personalvault':
+                        tries = 10
                         response = await eclipse_personal_bases(ctx,session)
 
                     if response == 'mybases':
+                        tries = 10
                         response = await eclipse_personal_bases(ctx,session)
 
                     #Base Vault: Townhall Selection
                     if response in ['basevault','basevaultnone']:
+                        tries = 10
                         if response == 'basevaultnone':
                             response = await eclipse_base_vault(ctx,session,base_th_select)
                         else:
@@ -572,9 +578,11 @@ class AriXMemberCommands(commands.Cog):
 
                     #Base Vault: View Bases / Category Selection
                     if response in ['basevaultselect']:
+                        tries = 10
                         response = await get_eclipse_bases(ctx,session,base_th_select)
 
                     if response == 'armyanalyze':
+                        tries = 10
                         response = await eclipse_army_analyzer(ctx,session)
 
                         if not response or response in ['menu','armyanalyze']:
@@ -584,6 +592,7 @@ class AriXMemberCommands(commands.Cog):
                             response = 'armyanalyzerselect'
 
                     if response in ['armyanalyzerselect']:
+                        tries = 10
                         response = await eclipse_army_analyzer_main(ctx,session,army_analyze_th_select)
 
 
@@ -603,7 +612,7 @@ class AriXMemberCommands(commands.Cog):
                     await ctx.bot.send_to_owners(embed=err_embed)
                     response = None
 
-                if not response:
+                if tries == 0 or not response:
                     session.state = False
                     session_closed = await eclipse_embed(ctx,
                         message=f"Your **E.C.L.I.P.S.E.** session is closed. We hope to see you again!")

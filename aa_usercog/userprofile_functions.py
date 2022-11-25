@@ -85,6 +85,12 @@ rushed_dict = {
     'title': ""
     }
 
+notes_dict = {
+    'id': 'membernotes',
+    'emoji': ':mag',
+    'title': ""
+    }
+
 async def userprofile_warlog(ctx,account,message=None):
     nav_options = []
     a = account
@@ -586,6 +592,28 @@ async def userprofile_rushed(ctx,account,message=None):
     return response
 
 
+async def userprofile_notes(ctx,account,message=None):
+
+    a = account
+
+    info_embed = await clash_embed(ctx,
+        message="I've sent the Notes to your DMs.")
+
+    notes_embed = await clash_embed(ctx,
+        title=f"Notes for: {a.name} ({a.tag})",
+        message=f"{desc_summary_text}")
+
+    for n in a.notes[:9]:
+        dt = f"{datetime.fromtimestamp(n.timestamp).strftime('%d %b %Y')}"
+        notes_embed.add_field(
+            name=f"__{note.author.name} @ {dt}__",
+            value=f">>> {note.content}",
+            inline=False)
+
+    await ctx.send(embed=info_embed,delete_after=30)
+
+    await ctx.author.send(embed=notes_embed)
+
 
 async def userprofile_main(ctx,output,accounts):
 
@@ -597,6 +625,8 @@ async def userprofile_main(ctx,output,accounts):
     message = None
     userprofile_session = True
     page_index = 0
+
+    discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
 
     while userprofile_session:
 
@@ -622,6 +652,9 @@ async def userprofile_main(ctx,output,accounts):
             nav_options.append(trooplevels_dict)
             #nav_options.append(laboratory_dict)
             nav_options.append(rushed_dict)
+
+            if (ctx.bot.leader_role in discord_member.roles or ctx.bot.coleader_role in discord_member.roles) and len(accounts[page_index].notes)>0:
+                nav_options.append(notes_dict)
 
             if len(output) > 1:
                 nav_options.append(next_dict)
@@ -667,6 +700,12 @@ async def userprofile_main(ctx,output,accounts):
             tries = 10
             a = accounts[page_index]
             response = await userprofile_rushed(ctx,a,message)
+
+        if response == 'membernotes':
+            tries = 10
+            a = accounts[page_index]
+            await userprofile_notes(ctx,a,message)
+            response = 'main'
 
         if tries == 0 or response == None:
             userprofile_session = False

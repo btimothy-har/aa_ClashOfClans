@@ -512,6 +512,12 @@ class AriXClashDataMgr(commands.Cog):
 
                 if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
                     c.war_reminder_tracking = c.war_reminder_intervals
+
+                    if 24 not in c.war_reminder_tracking:
+                        c.war_reminder_tracking.append(24)
+
+                    c.war_reminder_tracking.sort(reverse=True)
+
                     str_raid_update += f"\n**Raid Weekend has begun!**"
 
                     if clan_announcement_channel:

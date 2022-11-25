@@ -86,7 +86,7 @@ class AriXLeaderCommands(commands.Cog):
                     + f"\nMembers: {c.member_count} / 50\nRecruiting: {th_str}\n\u200b",
                 thumbnail="https://i.imgur.com/TZF5r54.png")
 
-            for note in c.notes[:4]:
+            for note in c.notes[:9]:
                 dt = f"{datetime.fromtimestamp(note.timestamp).strftime('%d %b %Y')}"
 
                 clanEmbed.add_field(
@@ -500,20 +500,34 @@ class AriXLeaderCommands(commands.Cog):
         war_reminder_toggle = {
             'id': 'war_reminder',
             'title': 'Toggle War Reminders.',
-            'description': 'War reminders are sent at the 12 hour, 4 hour, and 1 hour (remaining time) mark of a War.'
+            'description': 'War reminders are by default sent at the 12 hour, 4 hour, and 1 hour (remaining time) mark of a War.'
             }
 
         raid_reminder_toggle = {
             'id': 'raid_reminder',
             'title': 'Toggle Raid Reminders.',
-            'description': 'Raid reminders are sent at the 36 hour, 24 hour, 12 hour, and 4 hour (remaining time) mark of the Raid Weekend.'
+            'description': 'Raid reminders are by default sent at the 36 hour, 24 hour, 12 hour, and 4 hour (remaining time) mark of the Raid Weekend.'
+            }
+
+        war_reminder_interval = {
+            'id': 'war_reminder_interval',
+            'title': 'Set the War Reminder Interval.',
+            'description': 'Change the time when War Reminders are sent. There will always be one reminder sent at 1 hour left.'
+            }
+
+        raid_reminder_interval = {
+            'id': 'raid_reminder_interval',
+            'title': 'Set the Raid Reminder Interval.',
+            'description': 'Change the time when Raid Reminders are sent.'
             }
 
         if (ctx.author.id == c.leader or ctx.author.id in c.co_leaders) or ctx.author.id in ctx.bot.owner_ids:
             menu_dict.append(emoji_option)
             menu_dict.append(recruit_option)
             menu_dict.append(war_reminder_toggle)
+            menu_dict.append(war_reminder_interval)
             menu_dict.append(raid_reminder_toggle)
+            menu_dict.append(raid_reminder_interval)
 
         if ctx.author.id in ctx.bot.owner_ids:
             menu_dict.append(announcement_option)
@@ -676,6 +690,52 @@ class AriXLeaderCommands(commands.Cog):
                     await c.toggle_war_reminders(ctx)
                     state_text = f"**War Reminders for {c.emoji} {c.name} is now {toggle_state[c.send_war_reminder]}.**"
                     response = 'menu'
+
+
+                if response in ['war_reminder_interval']:
+                    await message.clear_reactions()
+                    war_interval_embed = await clash_embed(ctx,
+                        message=f"Please provide the intervals for War Reminders, in **hours**. Separate intervals with a space."
+                            + f"\n\nExample: To send a reminder at the 1 hour, 3 hour, and 15 hour mark, reply with `1 3 15`."
+                            + f"\n\n> - There will always be a reminder sent at 1 hour."
+                            + f"\n> - Any intervals above 24 hours will be ignored."
+                            + f"\n\n**Changes will take effect in the next war.**")
+                    await message.edit(content=ctx.author.mention,embed=war_interval_embed)
+
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
+                    else:
+                        new_interval = response_msg.content.split()
+                        await response_msg.delete()
+                        await c.set_war_reminder_interval(ctx,new_interval)
+                        state_text = f"War Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.war_reminder_intervals)} hours."
+                        response = 'menu'
+
+                if response in ['raid_reminder_interval']:
+                    await message.clear_reactions()
+                    war_interval_embed = await clash_embed(ctx,
+                        message=f"Please provide the intervals for Raid Reminders, in **hours**. Separate intervals with a space."
+                            + f"\n\nExample: To send a reminder at the 12 hour, 1 day, and 2 day mark, reply with `12 24 48`."
+                            + f"\n\n> - Any intervals above 48 hours will be ignored."
+                            + f"\n\n**Changes will take effect in the next raid weekend.**")
+                    await message.edit(content=ctx.author.mention,embed=war_interval_embed)
+
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=60,check=response_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
+                    else:
+                        new_interval = response_msg.content.split()
+                        await response_msg.delete()
+                        await c.set_raid_reminder_interval(ctx,new_interval)
+                        state_text = f"Raid Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.raid_reminder_intervals)} hours."
+                        response = 'menu'
 
                 if response in ['raid_reminder']:
                     await message.clear_reactions()
