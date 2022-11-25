@@ -1040,13 +1040,12 @@ class AriXLeaderCommands(commands.Cog):
                     color='success')
                 await ctx.send(embed=c_embed)
             else:
-                try:
-                    previous_home_clan = p.home_clan
-                    await p.new_member(ctx,user,target_clan)
+                previous_home_clan = p.home_clan
+                await p.new_member(ctx,user,target_clan)
 
-                except Exception as e:
-                    err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
-                    error_log.append(err_dict)
+                # except Exception as e:
+                #     err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
+                #     error_log.append(err_dict)
 
                 await homeclan_msg.delete()
                 c_embed = await clash_embed(ctx,
