@@ -39,7 +39,9 @@ class AriXLeaderCommands(commands.Cog):
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {}
-        default_guild = {}
+        default_guild = {
+            'silent_member_add': False
+            }
         defaults_user = {}       
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
@@ -61,6 +63,21 @@ class AriXLeaderCommands(commands.Cog):
     ### - recruiting : leader's notes for recruiting
 
     ####################################################################################################
+
+    @commands.command(name="silentadd")
+    @commands.is_owner()
+    async def toggle_member_silent_add(self,ctx):
+
+        current_setting = await self.config.guild(ctx.guild).silent_member_add()
+
+        if current_setting:
+            await self.config.guild(ctx.guild).silent_member_add.set(False)
+        else:
+            await self.config.guild(ctx.guild).silent_member_add.set(True)
+
+        current_setting = await self.config.guild(ctx.guild).silent_member_add()
+
+        await ctx.send(f"Silent Add Mode for this server has been set to {current_setting}.")
 
 
     @commands.command(name="recruitment",aliases=["recruiting"])
@@ -898,6 +915,8 @@ class AriXLeaderCommands(commands.Cog):
             if enter_S_to_not_send_welcome.lower() == "s":
                 silent_mode = True
 
+        silent_mode = await self.config.guild(ctx.guild).silent_member_add()
+
         alliance_clans = await get_alliance_clan(ctx)
 
         if not len(alliance_clans) >= 1:
@@ -1052,6 +1071,12 @@ class AriXLeaderCommands(commands.Cog):
             except:
                 await ctx.send(content=f"{user.mention}",embed=intro_embed)
                 await ctx.send(content="https://discord.gg/tYBh3Gk")
+
+            else:
+                welcome_embed = await clash_embed(ctx,
+                    message=f"**Welcome to AriX, {user.mention}**!! I've sent you some information and instructions in your DMs. Please review them ASAP.")
+
+                await ctx.send(content=f"{user.mention}",embed=welcome_embed)
 
 
     @member_manage.command(name="remove")

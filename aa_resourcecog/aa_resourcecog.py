@@ -136,13 +136,14 @@ class AriXClashResources(commands.Cog):
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
                 + "\n\nMy commands are designed to be simple and easy to remember. "
                 + "The commands displayed below are based on your access levels."
-                + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b")
+                + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
+            thumbnail="https://i.imgur.com/TZF5r54.png")
 
         nebula_embed.add_field(
             name="**__General Commands__**",
             value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
-                + f"\n\n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
-                + f"\n\n> **player** `[optional: COC Player Tags]`\n> Gets your Clash of Clans player stats.\n> You may provide multiple player tag(s), separated by a space."
+                + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
+                + f"\n> \n> **player** `[optional: COC Player Tags]`\n> Gets your Clash of Clans player stats.\n> You may provide multiple player tag(s), separated by a space."
                 + f"\n\u200b",
             inline=False)
 
@@ -150,8 +151,8 @@ class AriXClashResources(commands.Cog):
             nebula_embed.add_field(
                 name="**__Member Commands__**",
                 value=f"> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
-                    + f"\n\n> **nickname**\n> Change your Discord nickname based on your member accounts!"
-                    + f"\n\n> **eclipse**\n> Open E.C.L.I.P.S.E."
+                    + f"\n> \n> **nickname**\n> Change your Discord nickname based on your member accounts!"
+                    + f"\n> \n> **eclipse**\n> Open E.C.L.I.P.S.E."
                     + f"\n\u200b",
                 inline=False)
 
@@ -159,11 +160,11 @@ class AriXClashResources(commands.Cog):
             nebula_embed.add_field(
                 name="**__Leaders & Co-Leader Commands__**",
                 value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
-                    + f"\n\n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
-                    + f"\n\n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
-                    + f"\n\n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
-                    + f"\n\n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
-                    + f"\n\n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
+                    + f"\n> \n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
+                    + f"\n> \n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
+                    + f"\n> \n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
+                    + f"\n> \n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
+                    + f"\n> \n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
                     + f"\n\u200b",
                 inline=False)
 
@@ -204,17 +205,28 @@ class AriXClashResources(commands.Cog):
     async def get_welcome_embed(ctx,user):
         intro_embed = await clash_embed(ctx,
             title="Congratulations! You're an AriX Member!",
-            message=f"Before going further, there are a few additional things you need to understand and do:"
+            message=f"We're really happy to have you with us. We *strongly encourage* you to review the information below, so you can understand everything that goes on in AriX."
                 + f"\n\nThe **AriX Alliance** is made up of 4 active clans:\n- ArmyOf9YearOlds (AO9)\n- Phoenix Reborn (PR)\n- Project AriX (PA)\n- Assassins (AS)"
-                + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)"
-                + f"\n\nIn turn, AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**.\n\u200b")
+                + f"\n\nWe also have 3 event-only clans:\n- DawnOfPhoenix (DOP)\n- ArmyOf2YearOlds (AO2)\n- Don (DON)\n\u200b")
+
+        intro_embed.add_field(
+            name="**Getting Started in AriX**",
+            value="We strongly encourage you to check out the following channels to get yourself set up in the community. If you have any questions, our Leaders will be around to assist."
+                + f"\n\n> - Read <#973472492222046258> for info regarding the AriX Alliance Server"
+                + f" \n> - Read <#970239273456500736> for info about our Hierarchy"
+                + f"\n> - Read <#960096690394767380> for info about our War Rules"
+                + f"\n> - Read <#998620795116986499> for info regarding our Raid Rules"
+                + f"\n> - Take your Utility Roles from <#970394343133315192>")
+
         intro_embed.add_field(
             name="**About CWLA**",
-            value=f"Through CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
+            value=f"AriX is also part of a larger alliance, the **Clash Without Limits Alliance (CWLA)**."
+                + f"\n\nThrough CWLA, our members are able to sign up for a specific league in the Clan War Leagues (CWL). During CWL week, you will be temporarily allocated a clan with which you can participate in CWL. "
                 + f"Clans are available from <:GoldLeagueII:1037033274146570360> Gold II all the way to <:ChampionLeagueI:1037033289564815430> Champions I. "
                 + f"\n\nNote: Allocations are made based on your town hall level and experience (e.g TH13 will probably let you be in Crystal 1 or Masters 3, TH12 will probably be Crystal etc.)."
                 + f"\n\u200b",
             inline=False)
+
         intro_embed.add_field(
             name="**You are required to join the CWLA Server ASAP.**",
             value=f"The server link is below. Follow the steps below to get yourself set up in CWLA:"
