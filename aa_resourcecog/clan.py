@@ -87,7 +87,6 @@ class aClan():
             else:
                 self = aClan(ctx,tag)
                 ctx.bot.clan_cache[tag] = self
-
         else:
             self = aClan(ctx,tag)
             return self
