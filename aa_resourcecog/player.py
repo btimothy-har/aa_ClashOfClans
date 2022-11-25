@@ -32,7 +32,7 @@ class aPlayer():
         self.discord_link = None
 
         #Membership Attributes
-        self.home_clan = await aClan.create(ctx,None)
+        self.home_clan = None
         self.is_member = False
         self.arix_rank = 'Non-Member'
         self.discord_user = 0
@@ -46,7 +46,7 @@ class aPlayer():
         #Player Attributes
         self.exp_level = 1
 
-        self.clan = await aClan.create(ctx,None)
+        self.clan = None
         self.role = ''
         self.clan_description = ''
 
@@ -116,6 +116,7 @@ class aPlayer():
             self = aPlayer(ctx,tag)
             #add to cache
             ctx.bot.member_cache[tag] = self
+            fetch = True
 
         self.share_link = f"https://link.clashofclans.com/en?action=OpenPlayerProfile&tag=%23{format(self.tag.strip('#'))}"
 
