@@ -101,6 +101,10 @@ class aPlayer():
         self.raidlog = {}
         self.raid_stats = aPlayerRaidStats({})
 
+        self.desc_title = ""
+        self.desc_full_text = ""
+        self.desc_summary_text = ""
+
     @classmethod
     async def create(cls,ctx,tag,fetch=False):
         tag = coc.utils.correct_tag(tag)
