@@ -911,8 +911,8 @@ class AriXLeaderCommands(commands.Cog):
         error_log = []
         added_count = 0
 
-        if enter_S_to_not_send_welcome:
-            if enter_S_to_not_send_welcome.lower() == "s":
+        if Toggle_Silent_Mode:
+            if Toggle_Silent_Mode.lower() == "s":
                 silent_mode = True
 
         silent_mode = await self.config.guild(ctx.guild).silent_member_add()
