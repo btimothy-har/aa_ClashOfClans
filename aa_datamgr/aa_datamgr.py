@@ -315,6 +315,8 @@ class AriXClashDataMgr(commands.Cog):
         if not log_channel:
             log_channel = ctx.channel
 
+        init_msg = await log_channel.send(content="Update started...")
+
         role_sync = {}
         war_reminders = {}
         success_log = []
@@ -882,6 +884,8 @@ class AriXClashDataMgr(commands.Cog):
         if send_logs or is_new_season or detected_war_change or detected_raid_change or len(err_log)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
             await log_channel.send(embed=sEmbed,file=run_time_plot_file)
             await self.config.last_data_log.set(st)
+
+        await init_msg.delete()
 
         await self.config.last_data_update.set(st)
         await self.config.update_runtimes.set(run_time_hist)
