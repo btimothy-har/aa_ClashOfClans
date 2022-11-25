@@ -303,12 +303,17 @@ class aPlayer():
 
                 self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
-                self.warlog = {wID:aPlayerWarLog.from_json(wID,wl) for (wID,wl) in memberStats.get('war_log',{}).items()}
-                self.raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats.get('raid_log',{}).items()}
+                try:
+                    self.warlog = {wID:aPlayerWarLog.from_json(wID,wl) for (wID,wl) in memberStats.get('war_log',{}).items()}
+                except:
+                    self.warlog = {}
+                try:
+                    self.raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats.get('raid_log',{}).items()}
+                except:
+                    self.raidlog = {}
 
                 self.war_stats = aPlayerWarStats(self.warlog)
                 self.raid_stats = aPlayerRaidStats(self.raidlog)
-
 
 
             self.desc_title = f"{self.name} ({self.tag})"
