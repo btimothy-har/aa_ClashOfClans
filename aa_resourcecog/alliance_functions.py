@@ -16,7 +16,7 @@ async def get_user_profile(ctx,user_id):
     member_accounts = [tag for (tag,account) in file_json['members'].items() if account['discord_user']==user_id]
 
     if len(member_accounts) == 0:
-        return None
+        return None, None
     else:
         user_home_clans = []
         user_accounts = []
@@ -27,7 +27,7 @@ async def get_user_profile(ctx,user_id):
                 await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
                     err=e)
-                return None
+                return None, None
 
             user_accounts.append(p)
             if p.home_clan.tag not in [c.tag for c in user_home_clans]:
