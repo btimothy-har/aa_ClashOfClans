@@ -1325,6 +1325,12 @@ class AriXLeaderCommands(commands.Cog):
 
         user_home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
+        if not user_home_clans:
+            not_member_embed = await clash_embed(ctx,
+                message=f"{user.mention} was not good enough to be an AriX Member and doesn't deserve your attention.",
+                color='fail')
+            return await ctx.send(content=ctx.author.mention,embed=not_member_embed)
+
         for c in user_home_clans:
             clan_accounts = [a for a in user_accounts if a.home_clan.tag == c.tag]
 
