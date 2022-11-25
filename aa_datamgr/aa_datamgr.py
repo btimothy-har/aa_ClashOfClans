@@ -40,10 +40,9 @@ class AriXClashDataMgr(commands.Cog):
             "last_data_update":0,
             "last_data_log":0,
             "update_runtimes":[],
-            }
-        default_guild = {
             "logchannel":0,
             }
+        default_guild = {}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
 
@@ -93,8 +92,8 @@ class AriXClashDataMgr(commands.Cog):
                 log_channel = "Not available in DMs."
             else:
                 try:
-                    c_log_channel = await self.config.guild(ctx.guild).logchannel()
-                    c_log_channel = ctx.guild.get_channel(c_log_channel)
+                    c_log_channel = await self.config.logchannel()
+                    c_log_channel = ctx.bot.get_channel(c_log_channel)
                     log_channel = f"<#{c_log_channel.id}>"
                 except:
                     log_channel = f"Log Channel Not Set"
@@ -255,8 +254,8 @@ class AriXClashDataMgr(commands.Cog):
 
         if not channel:
             try:
-                current_channel = await self.config.guild(ctx.guild).logchannel()
-                channel_object = ctx.guild.get_channel(current_channel)
+                current_channel = await self.config.logchannel()
+                channel_object = ctx.bot.get_channel(current_channel)
                 channel_mention = f"<#{channel_object.id}>"
             except:
                 channel_mention = f"No Channel Set"
@@ -268,13 +267,13 @@ class AriXClashDataMgr(commands.Cog):
 
         else:
             try:
-                await self.config.guild(ctx.guild).logchannel.set(channel.id)
+                await self.config.logchannel.set(channel.id)
             except:
                 return await ctx.send(content='error encountered')
             else:
-                current_channel = await self.config.guild(ctx.guild).logchannel()
+                current_channel = await self.config.logchannel()
                 try:
-                    channel_object = ctx.guild.get_channel(current_channel)
+                    channel_object = ctx.bot.get_channel(current_channel)
                     channel_mention = f"<#{channel_object.id}>"
                 except:
                     channel_mention = f"No Channel Set"
@@ -309,9 +308,8 @@ class AriXClashDataMgr(commands.Cog):
         log_channel = None
 
         try:
-            log_server = await ctx.bot.get_guild(int(680798075685699691))
-            log_channel_id = await self.config.guild(log_server).logchannel()
-            log_channel = log_server.get_channel(log_channel_id)
+            log_channel_id = await self.config.logchannel()
+            log_channel = ctx.bot.get_channel(log_channel_id)
         except:
             pass
 
