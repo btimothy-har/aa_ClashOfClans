@@ -515,24 +515,28 @@ class aPlayer():
                 self.arix_rank = 'Member'
 
             if discord_member:
-                if member_role not in discord_member.roles:
-                    await discord_member.add_roles(member_role)
-                if ctx.bot.member_role not in discord_member.roles:
-                    await discord_member.add_roles(ctx.bot.member_role)
+                try:
+                    if member_role not in discord_member.roles:
+                        await discord_member.add_roles(member_role)
+                    if ctx.bot.member_role not in discord_member.roles:
+                        await discord_member.add_roles(ctx.bot.member_role)
 
-                if self.arix_rank in ['Leader','Co-Leader']:
-                    if coleader_role not in discord_member.roles:
-                        await discord_member.add_roles(coleader_role)
+                    if self.arix_rank in ['Leader','Co-Leader']:
+                        if coleader_role not in discord_member.roles:
+                            await discord_member.add_roles(coleader_role)
 
-                    if ctx.bot.coleader_role not in discord_member.roles:
-                        await discord_member.add_roles(ctx.bot.coleader_role)
+                        if ctx.bot.coleader_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.coleader_role)
 
-                if self.arix_rank in ['Leader','Co-Leader','Elder']:
-                    if elder_role not in discord_member.roles:
-                        await discord_member.add_roles(elder_role)
+                    if self.arix_rank in ['Leader','Co-Leader','Elder']:
+                        if elder_role not in discord_member.roles:
+                            await discord_member.add_roles(elder_role)
 
-                    if ctx.bot.elder_role not in discord_member.roles:
-                        await discord_member.add_roles(ctx.bot.elder_role)
+                        if ctx.bot.elder_role not in discord_member.roles:
+                            await discord_member.add_roles(ctx.bot.elder_role)
+                except:
+                    pass
+
         else:
             self.home_clan = await aClan.create(ctx,None)
             self.is_member = False
