@@ -443,6 +443,7 @@ class aClan():
         await self.save_to_json(ctx)
 
     async def set_war_reminder_interval(self,ctx,new_interval):
+        self.war_reminder_intervals = []
         for i in new_interval:
             i = int(i)
             if i > 24:
@@ -459,6 +460,7 @@ class aClan():
         await self.save_to_json(ctx)
 
     async def set_raid_reminder_interval(self,ctx,new_interval):
+        self.raid_reminder_intervals = []
         for i in new_interval:
             i = int(i)
             if i > 48:

@@ -571,7 +571,10 @@ class AriXLeaderCommands(commands.Cog):
                             + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
                             + f"\nReminder Channel: <#{c.reminder_channel}>"
                             + f"\n\nWar Reminders: `{toggle_state[c.send_war_reminder]}`"
-                            + f"\nRaid Reminders: `{toggle_state[c.send_raid_reminder]}`\n\u200b")
+                            + f"\nReminder Interval: `{humanize_list(c.war_reminder_intervals)}`"
+                            + f"\n\nRaid Reminders: `{toggle_state[c.send_raid_reminder]}`"
+                            + f"\nReminder Interval: `{humanize_list(c.raid_reminder_intervals)}`"
+                            + f"\n\u200b")
 
                     announcement_embed.add_field(
                         name="```**What would you like to do today?**```",
@@ -714,6 +717,7 @@ class AriXLeaderCommands(commands.Cog):
                         await c.set_war_reminder_interval(ctx,new_interval)
                         state_text = f"War Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.war_reminder_intervals)} hours."
                         response = 'menu'
+
 
                 if response in ['raid_reminder_interval']:
                     await message.clear_reactions()
