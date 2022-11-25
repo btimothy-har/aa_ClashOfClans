@@ -87,7 +87,7 @@ rushed_dict = {
 
 notes_dict = {
     'id': 'membernotes',
-    'emoji': '<:mag:>',
+    'emoji': '🔍',
     'title': ""
     }
 
