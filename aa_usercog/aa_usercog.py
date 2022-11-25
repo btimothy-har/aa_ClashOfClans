@@ -357,7 +357,7 @@ class AriXMemberCommands(commands.Cog):
                     p = await aPlayer.create(ctx,tag)
                 except Exception as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
-                    return await ctx.send(eEmbed)
+                    return await ctx.send(embed=eEmbed)
                 accounts.append(p)
 
         else:
