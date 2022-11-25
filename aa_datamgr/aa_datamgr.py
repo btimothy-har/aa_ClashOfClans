@@ -178,23 +178,24 @@ class AriXClashDataMgr(commands.Cog):
         if not await user_confirmation(ctx,cMsg,confirm_method='token_only'):
             return
         
-        with ctx.bot.clash_file_lock.acquire():
-            with open(ctx.bot.clash_dir_path+'/seasons.json','w') as file:
-                season_default = json_file_defaults['seasons']
-                season_default['current'] = await get_current_season()
-                json.dump(season_default,file,indent=2)
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                with open(ctx.bot.clash_dir_path+'/seasons.json','w') as file:
+                    season_default = json_file_defaults['seasons']
+                    season_default['current'] = await get_current_season()
+                    json.dump(season_default,file,indent=2)
 
-            with open(ctx.bot.clash_dir_path+'/alliance.json','w') as file:
-                json.dump(json_file_defaults['alliance'],file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/alliance.json','w') as file:
+                    json.dump(json_file_defaults['alliance'],file,indent=2)
 
-            with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
-                json.dump({},file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
+                    json.dump({},file,indent=2)
 
-            with open(ctx.bot.clash_dir_path+'/warlog.json','w') as file:
-                json.dump({},file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/warlog.json','w') as file:
+                    json.dump({},file,indent=2)
 
-            with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
-                json.dump({},file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/capitalraid.json','w') as file:
+                    json.dump({},file,indent=2)
             
         embed = await clash_embed(ctx=ctx,
             title="All Data Files Reset.",
