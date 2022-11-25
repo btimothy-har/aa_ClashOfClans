@@ -661,7 +661,7 @@ class aHero():
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
         try:
-            minlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level-1)
+            minlevel_for_townhall = self.hero.get_max_level_for_townhall(max(th_level-1,3))
             self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
         except:
             self.minlevel_for_townhall = 0
@@ -799,7 +799,7 @@ class aTroop():
         maxlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level)
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
-        minlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level-1)
+        minlevel_for_townhall = self.troop.get_max_level_for_townhall(max(th_level-1,3))
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
 
         if is_unlocked_at_this_level:
@@ -878,7 +878,7 @@ class aSpell():
         maxlevel_for_townhall = self.spell.get_max_level_for_townhall(th_level)
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
-        minlevel_for_townhall = self.spell.get_max_level_for_townhall(th_level-1)
+        minlevel_for_townhall = self.spell.get_max_level_for_townhall(max(th_level-1,3))
         self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
 
         if is_unlocked_at_this_level:

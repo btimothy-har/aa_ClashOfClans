@@ -94,7 +94,7 @@ class AriXMemberCommands(commands.Cog):
 
         try:
             embed = await clash_embed(ctx,
-                message="Let's link your non-Member Clash accounts to AriX as Guest accounts."
+                message="Let's link your non-Member Clash accounts to AriX as Guest accounts. "
                     + "This will let you bring these accounts into our clans.\n\n"
                     + "**Please send any message to continue.**")
             await ctx.author.send(f"Hello, {ctx.author.mention}!",embed=embed)
@@ -301,7 +301,6 @@ class AriXMemberCommands(commands.Cog):
             title=f"AriX Profile: {discord_member.display_name}",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
-
 
         for a in [a for a in user_accounts if a.is_member]:
             member_accounts_embed.add_field(

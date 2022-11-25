@@ -132,7 +132,7 @@ class AriXClashResources(commands.Cog):
             member_state = True
 
         nebula_embed = await clash_embed(ctx,
-            title="Hello, I am N.E.B.U.L.A .",
+            title="Hello, I am N.E.B.U.L.A.",
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
                 + "\n\nMy commands are designed to be simple and easy to remember. "
                 + "The commands displayed below are based on your access levels."

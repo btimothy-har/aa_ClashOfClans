@@ -637,7 +637,7 @@ class AriXLeaderCommands(commands.Cog):
                 if response in ['recruit']:
                     await message.clear_reactions()
                     rectownhall_embed = await clash_embed(ctx,
-                        message=f"Please provide the Townhall Levels that {c.emoji} **{c.name}** will be recruiting for."
+                        message=f"Please provide the Townhall Levels (using numbers) that {c.emoji} **{c.name}** will be recruiting for."
                             + "\n\nYou can separate multiple Townhall Levels with spaces.")
                     await message.edit(content=ctx.author.mention,embed=rectownhall_embed)
 
