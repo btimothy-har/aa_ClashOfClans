@@ -215,12 +215,10 @@ class AriXMemberCommands(commands.Cog):
             for th in c.recruitment_level:
                 th_str += f"{emotes_townhall[th]} "
 
-            title, text, summary = await resc.clan_description(ctx,c)
-
             rEmbed.add_field(
                 name=f"{c.emoji} **{c.name}**",
                 value=f"\nLeader: <@{c.leader}>"
-                    + f"\n{text}"
+                    + f"\n{c.desc_full_text}"
                     + f"\n\n> **Recruiting: {th_str}**"
                     + f"\n\n{c.description}\n\u200b",
                 inline=False)
