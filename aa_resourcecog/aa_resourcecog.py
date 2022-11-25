@@ -69,9 +69,9 @@ class AriXClashResources(commands.Cog):
 
     @commands.command(name="setalliancerole")
     @commands.is_owner()
-    async def set_clash_alliance_server(self,ctx,role_type:str,role_id:int):
+    async def set_clash_alliance_roles(self,ctx,role_type:str,role_id:int):
         """
-        Sets the main Alliance server for use by the bot.
+        Sets Alliance roles.
         """
 
         valid_roles = ['leader','coleader','elder','member']
