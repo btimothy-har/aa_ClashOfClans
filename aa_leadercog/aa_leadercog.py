@@ -1135,7 +1135,10 @@ class AriXLeaderCommands(commands.Cog):
             if not await user_confirmation(ctx,confirm_remove):
                 return
 
+            await confirm_remove.delete()
+
             for p in remove_accounts:
+                home_clan = p.home_clan
                 try:
                     await p.remove_member(ctx)
                 except Exception as e:
@@ -1143,29 +1146,23 @@ class AriXLeaderCommands(commands.Cog):
                     error_log.append(err_dict)
                     remove_accounts.remove(p)
 
+                success_embed = await clash_embed(ctx,
+                    message=f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.")
+
+                await ctx.send(embed=success_embed)
+
             await confirm_remove.delete()
 
-        success_str = "\u200b"
-        error_str = "\u200b"
-        for p in remove_accounts:
-            home_clan = p.home_clan
-            success_str += f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
-
-        for error in error_log:
-            error_str += f"{error['tag']}: {error['reason']}\n"
-
-        aEmbed = await clash_embed(ctx=ctx,title=f"Operation: Remove Member(s)")
-
-        if len(remove_accounts) > 0 :
-            aEmbed.add_field(name=f"**__Success__**",
-                value=success_str,
-                inline=False)
-
         if len(error_log) > 0:
-            aEmbed.add_field(name=f"**__Failed__**",
-                value=error_str,
-                inline=False)
-        await ctx.send(embed=aEmbed)
+
+            error_str = "\u200b"
+
+            for error in error_log:
+                error_str += f"{error['tag']}: {error['reason']}\n"
+
+            aEmbed = await clash_embed(ctx=ctx,title=f"Error(s) Encountered",message=error_str)
+
+            await ctx.send(embed=aEmbed)
 
 
     @member_manage.command(name="addnote")
