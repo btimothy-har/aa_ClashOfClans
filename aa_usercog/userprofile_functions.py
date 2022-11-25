@@ -606,8 +606,8 @@ async def userprofile_notes(ctx,account,message=None):
     for n in a.notes[:9]:
         dt = f"{datetime.fromtimestamp(n.timestamp).strftime('%d %b %Y')}"
         notes_embed.add_field(
-            name=f"__{note.author.name} @ {dt}__",
-            value=f">>> {note.content}",
+            name=f"__{n.author.name} @ {dt}__",
+            value=f">>> {n.content}",
             inline=False)
 
     await ctx.send(embed=info_embed,delete_after=30)
