@@ -485,7 +485,7 @@ class aPlayer():
         await self.save_to_json(ctx)
 
 
-    async def update_raidweekend(self,ctx,raid_entry):
+    async def update_raid_weekend(self,ctx,raid_entry):
         player_log = aPlayerRaidLog.from_raid_member(raid_entry)
         rID = player_log.rID
         self.raidlog['rID'] = player_log
