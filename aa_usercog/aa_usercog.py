@@ -359,11 +359,17 @@ class AriXMemberCommands(commands.Cog):
         except:
             pass
 
-        if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
-            output_embed.append(member_accounts_embed)
+        try:
+            if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
+                output_embed.append(member_accounts_embed)
+        except:
+            pass
 
-        if len([a for a in other_accounts if a not in [u.tag for u in user_accounts]]) > 0:
-            output_embed.append(other_accounts_embed)
+        try:
+            if len([a for a in other_accounts if a not in [u.tag for u in user_accounts]]) > 0:
+                output_embed.append(other_accounts_embed)
+        except:
+            pass
 
         if len(output_embed) == 0:
             output_embed.append(member_accounts_embed)
