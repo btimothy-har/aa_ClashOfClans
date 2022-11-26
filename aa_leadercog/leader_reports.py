@@ -318,6 +318,13 @@ async def report_war_status(ctx,message,clan):
 
         output_pages.append(war_status_embed)
 
+    if len(output_pages) == 0:
+        war_status_embed = await clash_embed(ctx,
+            title=f" {clan.emoji} War Opt-In Status",
+            message=f"**Total Opted-In**"
+                + f"\n*In Clan:* {len(opted_in_clan)}\u3000*Not In Clan:* {len(opted_not_in_clan)}")
+        output_pages.append(war_status_embed)
+
     response = await report_paginate(ctx,message,clan,output_pages)
     return response
 
@@ -364,6 +371,12 @@ async def report_all_members(ctx,message,clan):
 
         output_pages.append(members_embed)
 
+    if len(output_pages) == 0:
+        members_embed = await clash_embed(ctx,
+            title=f"{clan.emoji} All Registered Members",
+            message=f"Total: {len(members)} members")
+        output_pages.append(members_embed)
+
     response = await report_paginate(ctx,message,clan,output_pages)
     return response
 
@@ -408,6 +421,12 @@ async def report_missing_members(ctx,message,clan):
                 value=m_str,
                 inline=False)
 
+        output_pages.append(members_not_in_clan_embed)
+
+    if len(output_pages) == 0:
+        members_not_in_clan_embed = await clash_embed(ctx,
+            title=f"{clan.emoji} Members Not in Clan",
+            message=f"Total: {len(members_not_in_clan)} members")
         output_pages.append(members_not_in_clan_embed)
 
     response = await report_paginate(ctx,message,clan,output_pages)
@@ -463,12 +482,17 @@ async def report_unrecognized_members(ctx,message,clan):
 
         output_pages.append(members_unrecognized_embed)
 
+    if len(output_pages) == 0:
+        members_unrecognized_embed = await clash_embed(ctx,
+            title=f"{clan.emoji} Non-Member Accounts in Clan",
+            message=f"Total: {len(unrecognized_members)} members")
+        output_pages.append(members_unrecognized_embed)
+
     response = await report_paginate(ctx,message,clan,output_pages)
     return response
 
 
 async def report_to_excel(ctx,clan):
-
     members = await get_clan_members(ctx,clan)
     if not members:
         return None
