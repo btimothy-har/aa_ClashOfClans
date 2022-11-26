@@ -342,7 +342,7 @@ class aPlayer():
             if self.town_hall.level >= 7:
                 self.desc_full_text += f"\n{self.hero_description}"
 
-            self.desc_full_text += f"\n[Player Link: {self.tag}]({self.share_link}"
+            self.desc_full_text += f"\n[Player Link: {self.tag}]({self.share_link})"
 
             self.desc_summary_text = f"{self.town_hall.emote} {self.town_hall.description}\u3000"
 
