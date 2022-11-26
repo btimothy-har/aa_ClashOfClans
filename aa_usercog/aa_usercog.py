@@ -124,6 +124,7 @@ class AriXMemberCommands(commands.Cog):
             timeout_embed = await clash_embed(ctx,
                 message="Sorry, you timed out. Please restart the process by re-using the `register` command from the AriX server.",
                 color='fail')
+            return await ctx.author.send(embed=timeout_embed)
 
         new_tag = coc.utils.correct_tag(msg_player_tag.content)
         if not coc.utils.is_valid_tag(new_tag):
