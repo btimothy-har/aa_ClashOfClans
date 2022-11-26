@@ -647,16 +647,10 @@ class AriXClashDataMgr(commands.Cog):
 
                             members_ranked = sorted(c.current_raid_weekend.members, key=lambda x: (x.resources_looted),reverse=True)
                             rank = 0
-                            rank_table = []
+                            rank_table = f"`{'P':^3}`\u3000`{'Player':^15}`\u3000`{'Looted':^8}`\u3000`{'Attacks':^7}`"
                             for m in members_ranked[0:5]:
                                 rank += 1
-                                m_table = {
-                                    "P": rank,
-                                    "Name": m.name,
-                                    "Looted": f"{m.resources_looted:,}",
-                                    "Attacks": m.attack_count,
-                                    }
-                                rank_table.append(m_table)
+                                rank_table += f"\n`{rank:^3}`\u3000`{m.name:<15}`\u3000`{m.resources_looted:<8,}`\u3000`{m.attack_count:^7}`"
 
                             raid_end_embed = await clash_embed(ctx=ctx,
                                 title=f"Raid Weekend Results: {c.name} ({c.tag})",
@@ -709,7 +703,7 @@ class AriXClashDataMgr(commands.Cog):
 
                             raid_end_embed.add_field(
                                 name='**Raid Leaderboard**',
-                                value=f"{box(tabulate(rank_table,headers='keys',tablefmt='pretty'))}",
+                                value=f"{rank_table}",
                                 inline=False)
 
                             channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)

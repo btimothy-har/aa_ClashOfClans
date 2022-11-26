@@ -300,8 +300,16 @@ class AriXMemberCommands(commands.Cog):
 
         profile_msg = ""
 
-        for c in home_clans:
-            profile_msg += f"{c.emoji} "
+        try:
+            for c in home_clans:
+                profile_msg += f"{c.emoji} "
+        except:
+            pass
+
+        ###
+        #achievements
+
+        ####
 
         profile_msg += "\n\n**Joined AriX (Server)**"
         profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
@@ -470,7 +478,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**War Performance**"
                         + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
                         + f"\n**Clan Games**"
-                        + f"\n<:ClanGames:834063648494190602> {a.clangames.statdisplay}",
+                        + f"\n<:ClanGames:834063648494190602> {a.clangames.statdisplay}\n\u200b",
                     inline=False)
 
             else:
@@ -507,7 +515,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**War Stats**"
                         + f"\n<:WarStars:825756777844178944> {a.p.war_stars:,}\u3000<:ClanWarLeagues:825752759948279848> {warleague_value:,}"
                         + f"\n**Clan Games**"
-                        + f"\n<:ClanGames:834063648494190602> {clangames_value:,}")
+                        + f"\n<:ClanGames:834063648494190602> {clangames_value:,}\n\u200b")
 
             nav_str = ""
             if a.is_member:
