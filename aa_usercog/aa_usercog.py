@@ -150,6 +150,8 @@ class AriXMemberCommands(commands.Cog):
             if not await user_confirmation(ctx,c_msg):
                 return
 
+            await c_msg.delete()
+
         embed = await clash_embed(ctx,
             message="Please provide your **in-game API Token.**\n\nTo locate your token, please follow the instructions in the image below.")
         embed.set_image(url='https://i.imgur.com/Q1JwMzK.png')
@@ -205,7 +207,7 @@ class AriXMemberCommands(commands.Cog):
                 player_embed = await clash_embed(ctx,
                     message=f"The account **{new_account.tag} {new_account.name}** is now linked to {ctx.author.mention}.",
                     color='success')
-
+            await waitmsg.delete()
             return await ctx.author.send(embed=player_embed)
 
     @commands.command(name="arix")
