@@ -737,8 +737,13 @@ class AriXLeaderCommands(commands.Cog):
                     else:
                         try:
                             new_interval = response_msg.content.split()
+                            new_interval_list = []
+                            [new_interval_list.append(int(i)) for i in new_interval if int(i) not in new_interval_list]
                             await response_msg.delete()
-                            await c.set_war_reminder_interval(ctx,new_interval)
+
+                            if len(new_interval_list) == 0:
+                                raise Exception
+                            await c.set_war_reminder_interval(ctx,new_interval_list)
                             state_text = f"War Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.war_reminder_intervals)} hours."
                             response = 'menu'
                         except:
@@ -766,8 +771,14 @@ class AriXLeaderCommands(commands.Cog):
                     else:
                         try:
                             new_interval = response_msg.content.split()
+                            new_interval_list = []
+                            [new_interval_list.append(int(i)) for i in new_interval if int(i) not in new_interval_list]
                             await response_msg.delete()
-                            await c.set_raid_reminder_interval(ctx,new_interval)
+
+                            if len(new_interval_list) == 0:
+                                raise Exception
+
+                            await c.set_raid_reminder_interval(ctx,new_interval_list)
                             state_text = f"Raid Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.raid_reminder_intervals)} hours."
                             response = 'menu'
                         except:
