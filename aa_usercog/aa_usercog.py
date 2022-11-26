@@ -323,42 +323,50 @@ class AriXMemberCommands(commands.Cog):
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
 
-
         other_accounts_embed = await clash_embed(ctx,
             title=f"AriX Profile: {discord_member.display_name}",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
 
-        for a in [a for a in user_accounts if a.is_member]:
-            member_accounts_embed.add_field(
-                name=f"{a.desc_title}",
-                value=f"{a.desc_full_text}\n\u200b",
-                inline=False)
+        try:
+            for a in [a for a in user_accounts if a.is_member]:
+                member_accounts_embed.add_field(
+                    name=f"{a.desc_title}",
+                    value=f"{a.desc_full_text}\n\u200b",
+                    inline=False)
 
-        for a in [a for a in user_accounts if not a.is_member]:
-            member_accounts_embed.add_field(
-                name=f"{a.desc_title}",
-                value=f"{a.desc_full_text}\n\u200b",
-                inline=False)
+            for a in [a for a in user_accounts if not a.is_member]:
+                member_accounts_embed.add_field(
+                    name=f"{a.desc_title}",
+                    value=f"{a.desc_full_text}\n\u200b",
+                    inline=False)
+        except:
+            pass
 
-        for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
-            try:
-                p = await aPlayer.create(ctx,a)
-            except Exception as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving data for Player Tag {a}.",
-                    err=e)
+        try:
+            for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
+                try:
+                    p = await aPlayer.create(ctx,a)
+                except Exception as e:
+                    return await error_end_processing(ctx,
+                        preamble=f"Error encountered while retrieving data for Player Tag {a}.",
+                        err=e)
 
-            other_accounts_embed.add_field(
-                name=f"{p.desc_title}",
-                value=f"{p.desc_full_text}\n\u200b",
-                inline=False)
+                other_accounts_embed.add_field(
+                    name=f"{p.desc_title}",
+                    value=f"{p.desc_full_text}\n\u200b",
+                    inline=False)
+            except:
+                pass
 
         if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
             output_embed.append(member_accounts_embed)
 
         if len([a for a in other_accounts if a not in [u.tag for u in user_accounts]]) > 0:
             output_embed.append(other_accounts_embed)
+
+        if len(output_embed) == 0:
+            output_embed.append(member_accounts_embed)
 
         await paginate_embed(ctx,output_embed)
 
