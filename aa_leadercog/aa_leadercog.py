@@ -724,7 +724,8 @@ class AriXLeaderCommands(commands.Cog):
                             + f"\n\nExample: To send a reminder at the 1 hour, 3 hour, and 15 hour mark, reply with `1 3 15`."
                             + f"\n\n> - There will always be a reminder sent at 1 hour."
                             + f"\n> - Any intervals above 24 hours will be ignored."
-                            + f"\n\n**Changes will take effect in the next war.**")
+                            + f"\n\n**Changes will take effect in the next war.**"
+                            + f"\n\n`Enter any non-numeric digit to return to the menu.`")
                     await message.edit(content=ctx.author.mention,embed=war_interval_embed)
 
                     try:
@@ -734,11 +735,16 @@ class AriXLeaderCommands(commands.Cog):
                         await message.edit(embed=end_embed)
                         return
                     else:
-                        new_interval = response_msg.content.split()
-                        await response_msg.delete()
-                        await c.set_war_reminder_interval(ctx,new_interval)
-                        state_text = f"War Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.war_reminder_intervals)} hours."
-                        response = 'menu'
+                        try:
+                            new_interval = response_msg.content.split()
+                            await response_msg.delete()
+                            await c.set_war_reminder_interval(ctx,new_interval)
+                            state_text = f"War Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.war_reminder_intervals)} hours."
+                            response = 'menu'
+                        except:
+                            await response_msg.delete()
+                            state_text = f"I didn't know what you were trying to do. I've brought you back to the main menu."
+                            response = 'menu'
 
 
                 if response in ['raid_reminder_interval']:
@@ -747,7 +753,8 @@ class AriXLeaderCommands(commands.Cog):
                         message=f"Please provide the intervals for Raid Reminders, in **hours**. Separate intervals with a space."
                             + f"\n\nExample: To send a reminder at the 12 hour, 1 day, and 2 day mark, reply with `12 24 48`."
                             + f"\n\n> - Any intervals above 48 hours will be ignored."
-                            + f"\n\n**Changes will take effect in the next raid weekend.**")
+                            + f"\n\n**Changes will take effect in the next raid weekend.**"
+                            + f"\n\n`Enter any non-numeric digit to return to the menu.`")
                     await message.edit(content=ctx.author.mention,embed=war_interval_embed)
 
                     try:
@@ -757,11 +764,16 @@ class AriXLeaderCommands(commands.Cog):
                         await message.edit(embed=end_embed)
                         return
                     else:
-                        new_interval = response_msg.content.split()
-                        await response_msg.delete()
-                        await c.set_raid_reminder_interval(ctx,new_interval)
-                        state_text = f"Raid Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.raid_reminder_intervals)} hours."
-                        response = 'menu'
+                        try:
+                            new_interval = response_msg.content.split()
+                            await response_msg.delete()
+                            await c.set_raid_reminder_interval(ctx,new_interval)
+                            state_text = f"Raid Reminder Intervals for {c.emoji} {c.name} have been set to {humanize_list(c.raid_reminder_intervals)} hours."
+                            response = 'menu'
+                        except:
+                            await response_msg.delete()
+                            state_text = f"I didn't know what you were trying to do. I've brought you back to the main menu."
+                            response = 'menu'
 
                 if response in ['raid_reminder']:
                     await message.clear_reactions()
