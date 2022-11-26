@@ -935,7 +935,7 @@ class AriXClashDataMgr(commands.Cog):
                 type=activity_select,
                 name=f"start of the {new_season} Season! Clash on!"))
 
-        elif (datetime.fromtimestamp(st).strftime('%M')=='00' and int(datetime.fromtimestamp(st).strftime('%-H'))%4==0):
+        elif send_logs or (datetime.fromtimestamp(st).strftime('%M')=='00' and int(datetime.fromtimestamp(st).strftime('%-H'))%4==0):
             if len(active_events) > 0:
                 event = random.choice(active_events)
                 await ctx.bot.change_presence(
