@@ -37,6 +37,7 @@ class AriXClashDataMgr(commands.Cog):
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
+            "events_watching": [],
             "last_data_update":0,
             "last_data_log":0,
             "update_runtimes":[],
@@ -305,6 +306,8 @@ class AriXClashDataMgr(commands.Cog):
         last_data_update = await self.config.last_data_update()
         run_time_hist = await self.config.update_runtimes()
 
+        status_events = await self.config.events_watching()
+
         log_channel = None
 
         try:
@@ -334,10 +337,6 @@ class AriXClashDataMgr(commands.Cog):
         member_keys = list(file_json['members'].keys())
         alliance_clans = []
         alliance_members = []
-
-        await ctx.bot.change_presence(
-            activity=discord.Activity(type=discord.ActivityType.watching,
-            name=f"{len(clan_keys)} clans, {len(member_keys)} members in AriX"))
 
         is_cwl = False
         if datetime.now(helsinkiTz).day <= 9:
@@ -462,6 +461,14 @@ class AriXClashDataMgr(commands.Cog):
 
                     str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
 
+                    status_event = f"{c.abbreviation} declared war vs {c.current_war.opponent.name}!"
+                    if status_event not in status_events:
+                        status_events.append(status_event)
+
+                elif c.war_state == 'inWar':
+                    status_event = f"{c.abbreviation} is {c.current_war.result} vs {c.current_war.opponent.name}!"
+                    if status_event not in status_events:
+                        status_events.append(status_event)
 
                 if c.send_war_reminder and clan_reminder_channel and len(c.war_reminder_tracking) > 0:
                     next_reminder = c.war_reminder_tracking[0]
@@ -473,6 +480,14 @@ class AriXClashDataMgr(commands.Cog):
 
                 if c.war_state == 'warEnded':
                     str_war_update += f"\n**War vs {c.current_war.opponent.name} was {c.current_war.result}.**"
+                    status_event = f"{c.abbreviation} {c.current_war.result} the war vs {c.current_war.opponent.name}!"
+                    if status_event not in status_events:
+                        status_events.append(status_event)
+
+                    if c.c.war_win_streak >= 3:
+                        status_event = f"{c.abbreviation} is on a {c.c.war_win_streak} war streak!"
+                        if status_event not in status_events:
+                            status_events.append(status_event)
 
                 str_war_update += f"\n- State: {c.war_state}\n- Type: {c.current_war.type} war"
 
@@ -500,7 +515,7 @@ class AriXClashDataMgr(commands.Cog):
 
                     else:
                         dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
-                        ping_str = f"Clan War ends in **{hh} hours, {mm} minutes**. You have **NOT** used all your attacks.\n\n"
+                        ping_str = f"Clan War ends in **{int(hh)} hours, {int(mm)} minutes**. You have **NOT** used all your attacks.\n\n"
 
                     ping_str += f"{humanize_list([f'<@{mid}>' for mid in war_reminder_ping])}"
 
@@ -528,13 +543,22 @@ class AriXClashDataMgr(commands.Cog):
                     if clan_announcement_channel:
                         raid_weekend_start_embed = await clash_embed(ctx,
                             message="**Raid Weekend has begun!**")
-                        
+
                         if c.member_role:
                             role = ctx.bot.alliance_server.get_role(c.member_role)
                             rm = discord.AllowedMentions(roles=True)
                             await channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
                         else:
                             await channel.send(embed=raid_weekend_start_embed)
+
+                    status_event = f"Raid Weekend has started!"
+                    if status_event not in status_events:
+                        status_events.append(status_event)
+
+                    elif c.current_raid_weekend.state == 'ongoing':
+                        status_event = f"Raid Weekend with {len(c.current_raid_weekend.members)} members in {c.abbreviation}"
+                        if status_event not in status_events:
+                            status_events.append(status_event)
 
 
                 if len(c.raid_reminder_tracking) > 0:
@@ -561,13 +585,13 @@ class AriXClashDataMgr(commands.Cog):
 
                             remaining_time_str = ""
                             if dd > 0:
-                                remaining_time_str += f"{dd} day(s)"
+                                remaining_time_str += f"{int(dd)} day(s)"
 
                             if hh > 0:
-                                remaining_time_str += f"{hh} hour(s)"
+                                remaining_time_str += f"{int(hh)} hour(s)"
 
                             if mm > 0:
-                                remaining_time_str += f"{mm} minute(s)"
+                                remaining_time_str += f"{int(mm)} minute(s)"
 
                             members_not_in_raid = [m for m in alliance_members if m.home_clan.tag == c.tag and m.tag not in [z.tag for z in c.current_raid_weekend.members]]
                             members_unfinished_raid = [m for m in alliance_members if m.tag in [z.tag for z in c.current_raid_weekend.members if z.attack_count < 6]]
@@ -666,6 +690,10 @@ class AriXClashDataMgr(commands.Cog):
                         rm = discord.AllowedMentions(roles=True)
 
                         await channel.send(embed=raid_end_embed)
+
+                    status_event = f"{c.abbreviation} get {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals."
+                    if status_event not in status_events:
+                        status_events.append(status_event)
 
                 str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
 
@@ -885,6 +913,24 @@ class AriXClashDataMgr(commands.Cog):
         if send_logs or is_new_season or detected_war_change or detected_raid_change or len(err_log)>0 or datetime.fromtimestamp(st).strftime('%M')=='00':
             await log_channel.send(embed=sEmbed,file=run_time_plot_file)
             await self.config.last_data_log.set(st)
+
+        if datetime.fromtimestamp(st).strftime('%M')=='00' and len(status_events) > 0:
+            activity_types = [
+                discord.ActivityType.playing,
+                discord.ActivityType.streaming,
+                discord.ActivityType.listening,
+                discord.ActivityType.watching,
+                discord.ActivityType.competing
+                ]
+
+            activity_select = random.choice(activity_types)
+            event = random.choice(status_events)
+
+            await ctx.bot.change_presence(
+                activity=discord.Activity(
+                    type=activity_select,
+                    name=event))
+            await self.config.events_watching.set([])
 
         try:
             await init_msg.delete()

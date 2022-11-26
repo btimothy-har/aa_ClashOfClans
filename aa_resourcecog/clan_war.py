@@ -1,6 +1,6 @@
 import time
 
-from .constants import warTypeGrid, warResultGrid
+from .constants import warTypeGrid, warResultOngoing, warResultEnded
 from .notes import aNote
 
 class aClanWar():
@@ -28,11 +28,18 @@ class aClanWar():
 
         self.type = json_data['type']
         self.state = json_data['state']
-        self.result = warResultGrid[json_data['result']]
+
+        self.result = json_data['result']
+
         self.size = json_data['size']
         self.attacks_per_member = json_data['attacks_per_member']
         self.start_time = json_data['start_time']
         self.end_time = json_data['end_time']
+
+        if self.timestamp > self.end_time:
+            self.result = warResultEnded[self.result]
+        else:
+            self.result = warResultOngoing[self.result]
 
         self.clan = aWarClan.from_json(war=self,json_data=json_data['clan'],is_opponent=False)
         self.opponent = aWarClan.from_json(war=self,json_data=json_data['opponent'],is_opponent=True)
@@ -49,12 +56,17 @@ class aClanWar():
 
         self.type = warTypeGrid[self.w.type]
         self.state = self.w.state
-        self.result = warResultGrid[self.w.status]
+        self.result = self.w.status
         self.size = self.w.team_size
         self.attacks_per_member = self.w.attacks_per_member
         self.start_time = self.w.start_time.time.timestamp()
         self.end_time = self.w.end_time.time.timestamp()
         self.wID = str(self.start_time)
+
+        if self.timestamp > self.end_time:
+            self.result = warResultEnded[self.result]
+        else:
+            self.result = warResultOngoing[self.result]
 
         self.clan = aWarClan.from_game(war=self,game_data=self.w.clan,is_opponent=False)
         self.opponent = aWarClan.from_game(war=self,game_data=self.w.opponent,is_opponent=True)
@@ -328,9 +340,13 @@ class aPlayerWarLog():
         self = aPlayerWarLog()
         self.wID = war_id
         self.type = json_data.get('type','')
-        self.result = warResultGrid[json_data.get('result','')]
+        self.result = json_data.get('result','')
         self.clan = aPlayerWarClan.from_json(json_data['clan'])
         self.opponent = aPlayerWarClan.from_json(json_data['opponent'])
+
+        #use 24 hours
+        if time.time() > (float(self.wID) + 90000):
+            self.result = warResultEnded[self.result]
         
         self.town_hall = json_data['town_hall']
         self.map_position = json_data['map_position']

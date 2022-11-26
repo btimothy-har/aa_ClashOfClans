@@ -167,12 +167,22 @@ warTypeGrid = {
     'cwl':'cwl'
     }
 
-warResultGrid = {
-    'winning':'won',
+warResultOngoing = {
+    'winning':'winning',
     'tied':'tie',
+    'losing':'losing',
+    'won':'winning',
+    'tie':'tie',
+    'lost':'losing',
+    '':'',
+    }
+
+warResultEnded = {
+    'winning':'won',
+    'tied':'tied',
     'losing':'lost',
     'won':'won',
-    'tie':'tie',
+    'tie':'tied',
     'lost':'lost',
     '':'',
     }
