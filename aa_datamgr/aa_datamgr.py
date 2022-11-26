@@ -481,12 +481,12 @@ class AriXClashDataMgr(commands.Cog):
 
                     elif c.war_state == 'inWar':
                         result_dict = {
-                            'winning':'win',
+                            'winning':'winning',
                             'tied':'tie',
-                            'losing':'lose',
-                            'won':'win',
+                            'losing':'losing',
+                            'won':'winning',
                             'tie':'tie',
-                            'lost':'lose',
+                            'lost':'losing',
                             '':'',
                             }
                         passive_events.append(f"{c.abbreviation} {result_dict[c.current_war.result]} in war!")
