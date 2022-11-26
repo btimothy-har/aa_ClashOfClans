@@ -565,8 +565,8 @@ class AriXClashDataMgr(commands.Cog):
 
                     active_event.append(f"Raid Weekend has started!")
 
-                    elif c.current_raid_weekend.state == 'ongoing':
-                        passive_event.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
+                elif c.current_raid_weekend.state == 'ongoing':
+                    passive_event.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
 
 
                 if len(c.raid_reminder_tracking) > 0:
