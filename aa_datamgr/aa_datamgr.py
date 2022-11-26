@@ -462,268 +462,274 @@ class AriXClashDataMgr(commands.Cog):
             if c.reminder_channel:
                 clan_reminder_channel = ctx.bot.alliance_server.get_channel(c.reminder_channel)
 
-            await c.update_clan_war(ctx)
+            try:
+                await c.update_clan_war(ctx)
+            except:
+                pass
+            else:
+                if c.war_state_change:
+                    detected_war_change = True
 
-            if c.war_state_change:
-                detected_war_change = True
+                if c.current_war and (c.war_state_change or c.war_state == "inWar"):
+                    str_war_update += f"__{c.tag} {c.name}__"
+                    if c.war_state_change and c.war_state == 'inWar':
+                        c.war_reminder_tracking = c.war_reminder_intervals
 
-            if c.current_war and (c.war_state_change or c.war_state == "inWar"):
-                str_war_update += f"__{c.tag} {c.name}__"
-                if c.war_state_change and c.war_state == 'inWar':
-                    c.war_reminder_tracking = c.war_reminder_intervals
+                        str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
 
-                    str_war_update += f"\n**War vs {c.current_war.opponent.name} has begun!**"
+                        active_events.append(f"{c.abbreviation} declare war!")
 
-                    active_events.append(f"{c.abbreviation} declare war!")
+                    elif c.war_state == 'inWar':
+                        result_dict = {
+                            'winning':'win',
+                            'tied':'tie',
+                            'losing':'lose',
+                            'won':'win',
+                            'tie':'tie',
+                            'lost':'lose',
+                            '':'',
+                            }
+                        passive_events.append(f"{c.abbreviation} {result_dict[c.current_war.result]} in war!")
 
-                elif c.war_state == 'inWar':
-                    result_dict = {
-                        'winning':'win',
-                        'tied':'tie',
-                        'losing':'lose',
-                        'won':'win',
-                        'tie':'tie',
-                        'lost':'lose',
-                        '':'',
-                        }
-                    passive_events.append(f"{c.abbreviation} {result_dict[c.current_war.result]} in war!")
+                    if c.send_war_reminder and clan_reminder_channel and len(c.war_reminder_tracking) > 0:
+                        next_reminder = c.war_reminder_tracking[0]
 
-                if c.send_war_reminder and clan_reminder_channel and len(c.war_reminder_tracking) > 0:
-                    next_reminder = c.war_reminder_tracking[0]
-
-                    if (c.current_war.end_time - st) <= (next_reminder*3600):
-                        war_reminder = True
-                        next_reminder = c.war_reminder_tracking.pop(0)
-
-
-                if c.war_state == 'warEnded':
-                    str_war_update += f"\n**War vs {c.current_war.opponent.name} was {c.current_war.result}.**"
-
-                    if c.current_war.result in ['winning','won']:
-                        active_events.append(f"{c.abbreviation} win {c.c.war_wins} times.")
-
-                    if c.current_war.result in ['losing','lost']:
-                        active_events.append(f"{c.abbreviation} get crushed {c.c.war_losses} times.")
-
-                    if c.c.war_win_streak >= 3:
-                        active_events.append(f"{c.abbreviation} on a {c.c.war_win_streak} streak!")
-
-                str_war_update += f"\n- State: {c.war_state}\n- Type: {c.current_war.type} war"
+                        if (c.current_war.end_time - st) <= (next_reminder*3600):
+                            war_reminder = True
+                            next_reminder = c.war_reminder_tracking.pop(0)
 
 
-                if c.war_state != "notInWar" and c.current_war.type == 'classic':
-                    war_reminder_ping = []
+                    if c.war_state == 'warEnded':
+                        str_war_update += f"\n**War vs {c.current_war.opponent.name} was {c.current_war.result}.**"
 
-                    for m in c.current_war.clan.members:
-                        member = [am for am in alliance_members if am.tag == m.tag]
-                        if len(member) > 0:
-                            war_member_count += 1
-                            member = member[0]
-                            await member.update_war(ctx,m)
+                        if c.current_war.result in ['winning','won']:
+                            active_events.append(f"{c.abbreviation} win {c.c.war_wins} times.")
 
-                            if len(m.attacks) < c.current_war.attacks_per_member and member.discord_user not in war_reminder_ping:
-                                war_reminder_ping.append(member.discord_user)
+                        if c.current_war.result in ['losing','lost']:
+                            active_events.append(f"{c.abbreviation} get crushed {c.c.war_losses} times.")
 
-                    str_war_update += f"\n- Tracking stats for {war_member_count} members in War.\n"
+                        if c.c.war_win_streak >= 3:
+                            active_events.append(f"{c.abbreviation} on a {c.c.war_win_streak} streak!")
 
-
-                if war_reminder:
-                    remaining_time = c.current_war.end_time - st
-                    if remaining_time < 3600:
-                        ping_str = f"There is **less than 1 hour** left in Clan Wars and you have **NOT** used all your attacks.\n\n"
-
-                    else:
-                        dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
-                        ping_str = f"Clan War ends in **{int(hh)} hours, {int(mm)} minutes**. You have **NOT** used all your attacks.\n\n"
-
-                    ping_str += f"{humanize_list([f'<@{mid}>' for mid in war_reminder_ping])}"
-
-                    #override to war channel for PR
-                    if c.abbreviation == 'PR':
-                        ch = ctx.bot.alliance_server.get_channel(1045978358439235584)
-                        await ch.send(ping_str)
-                    else:
-                        await clan_reminder_channel.send(ping_str)
+                    str_war_update += f"\n- State: {c.war_state}\n- Type: {c.current_war.type} war"
 
 
-            await c.update_raid_weekend(ctx)
+                    if c.war_state != "notInWar" and c.current_war.type == 'classic':
+                        war_reminder_ping = []
 
-            if c.raid_state_change:
-                detected_raid_change = True
+                        for m in c.current_war.clan.members:
+                            member = [am for am in alliance_members if am.tag == m.tag]
+                            if len(member) > 0:
+                                war_member_count += 1
+                                member = member[0]
+                                await member.update_war(ctx,m)
 
-            if c.raid_state_change or c.current_raid_weekend.state == "ongoing":
-                str_raid_update += f"__{c.tag} {c.name}__"
+                                if len(m.attacks) < c.current_war.attacks_per_member and member.discord_user not in war_reminder_ping:
+                                    war_reminder_ping.append(member.discord_user)
 
-                if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
-                    c.raid_reminder_tracking = c.raid_reminder_intervals
+                        str_war_update += f"\n- Tracking stats for {war_member_count} members in War.\n"
 
-                    if 24 not in c.war_reminder_tracking:
-                        c.raid_reminder_tracking.append(24)
 
-                    c.raid_reminder_tracking.sort(reverse=True)
+                    if war_reminder:
+                        remaining_time = c.current_war.end_time - st
+                        if remaining_time < 3600:
+                            ping_str = f"There is **less than 1 hour** left in Clan Wars and you have **NOT** used all your attacks.\n\n"
 
-                    str_raid_update += f"\n**Raid Weekend has begun!**"
-
-                    if clan_announcement_channel:
-                        raid_weekend_start_embed = await clash_embed(ctx,
-                            message="**Raid Weekend has begun!**")
-
-                        if c.member_role:
-                            role = ctx.bot.alliance_server.get_role(c.member_role)
-                            rm = discord.AllowedMentions(roles=True)
-                            await channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
                         else:
-                            await channel.send(embed=raid_weekend_start_embed)
+                            dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
+                            ping_str = f"Clan War ends in **{int(hh)} hours, {int(mm)} minutes**. You have **NOT** used all your attacks.\n\n"
 
-                    active_event.append(f"Raid Weekend has started!")
+                        ping_str += f"{humanize_list([f'<@{mid}>' for mid in war_reminder_ping])}"
 
-                elif c.current_raid_weekend.state == 'ongoing':
-                    passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
+                        #override to war channel for PR
+                        if c.abbreviation == 'PR':
+                            ch = ctx.bot.alliance_server.get_channel(1045978358439235584)
+                            await ch.send(ping_str)
+                        else:
+                            await clan_reminder_channel.send(ping_str)
 
 
-                if len(c.raid_reminder_tracking) > 0:
-                    next_reminder = c.raid_reminder_tracking[0]
+            try:
+                await c.update_raid_weekend(ctx)
+            except:
+                pass
+            else:
+                if c.raid_state_change:
+                    detected_raid_change = True
 
-                    if ((c.current_raid_weekend.end_time - st) <= (next_reminder*3600)):
-                        next_reminder = c.raid_reminder_tracking.pop(0)
+                if c.raid_state_change or c.current_raid_weekend.state == "ongoing":
+                    str_raid_update += f"__{c.tag} {c.name}__"
 
-                        if next_reminder == 24 and clan_announcement_channel:
-                            raid_weekend_1day_embed = await clash_embed(ctx,
-                                message="**There is 1 Day left in Raid Weekend.** Alternate accounts are now allowed to fill up the remaining slots.")
+                    if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
+                        c.raid_reminder_tracking = c.raid_reminder_intervals
+
+                        if 24 not in c.war_reminder_tracking:
+                            c.raid_reminder_tracking.append(24)
+
+                        c.raid_reminder_tracking.sort(reverse=True)
+
+                        str_raid_update += f"\n**Raid Weekend has begun!**"
+
+                        if clan_announcement_channel:
+                            raid_weekend_start_embed = await clash_embed(ctx,
+                                message="**Raid Weekend has begun!**")
 
                             if c.member_role:
                                 role = ctx.bot.alliance_server.get_role(c.member_role)
                                 rm = discord.AllowedMentions(roles=True)
-                                await channel.send(content=f"{role.mention}",embed=raid_weekend_1day_embed,allowed_mentions=rm)
+                                await channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
                             else:
-                                await channel.send(embed=raid_weekend_1day_embed)
+                                await channel.send(embed=raid_weekend_start_embed)
 
-                        if c.send_raid_reminder and clan_reminder_channel:
+                        active_event.append(f"Raid Weekend has started!")
 
-                            remaining_time = c.current_raid_weekend.end_time - st
-                            dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
-
-                            remaining_time_str = ""
-                            if dd > 0:
-                                remaining_time_str += f"{int(dd)} day(s)"
-
-                            if hh > 0:
-                                remaining_time_str += f"{int(hh)} hour(s)"
-
-                            if mm > 0:
-                                remaining_time_str += f"{int(mm)} minute(s)"
-
-                            members_not_in_raid = [m for m in alliance_members if m.home_clan.tag == c.tag and m.tag not in [z.tag for z in c.current_raid_weekend.members]]
-                            members_unfinished_raid = [m for m in alliance_members if m.tag in [z.tag for z in c.current_raid_weekend.members if z.attack_count < 6]]
-
-                            if (c.current_raid_weekend.end_time - st) < 3600:
-                                not_in_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you have **NOT** participated.\n\n"
-                            else:
-                                not_in_raid_str = f"Raid Weekend ends in **{remaining_time_str}** and you have **NOT** participated.\n\n"
-
-                            not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
-
-                            if (c.current_raid_weekend.end_time - st) < 3600:
-                                unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **DID NOT** use all your Raid Attacks.\n\n"
-                            else:
-                                unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
-
-                            unfinished_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_unfinished_raid])}"
-
-                            await clan_reminder_channel.send(not_in_raid_str)
-                            await clan_reminder_channel.send(unfinished_raid_str)
+                    elif c.current_raid_weekend.state == 'ongoing':
+                        passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
 
 
-                if c.current_raid_weekend.state == 'ended':
-                    str_raid_update += f"\n**Raid Weekend is now over.**"
+                    if len(c.raid_reminder_tracking) > 0:
+                        next_reminder = c.raid_reminder_tracking[0]
 
-                    if clan_announcement_channel:
+                        if ((c.current_raid_weekend.end_time - st) <= (next_reminder*3600)):
+                            next_reminder = c.raid_reminder_tracking.pop(0)
 
-                        members_ranked = sorted(c.current_raid_weekend.members, key=lambda x: (x.resources_looted),reverse=True)
-                        rank = 0
-                        rank_table = []
-                        for m in members_ranked[0:5]:
-                            rank += 1
-                            m_table = {
-                                "P": rank,
-                                "Name": m.name,
-                                "Looted": f"{m.resources_looted:,}",
-                                "Attacks": m.attack_count,
-                                }
-                            rank_table.append(m_table)
+                            if next_reminder == 24 and clan_announcement_channel:
+                                raid_weekend_1day_embed = await clash_embed(ctx,
+                                    message="**There is 1 Day left in Raid Weekend.** Alternate accounts are now allowed to fill up the remaining slots.")
 
-                        raid_end_embed = await clash_embed(ctx=ctx,
-                            title=f"Raid Weekend Results: {c.name} ({c.tag})",
-                            message=f"\n**Maximum Reward: {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,}** <:RaidMedals:983374303552753664>"
-                                + f"\n\nOffensive Rewards: {c.current_raid_weekend.offense_rewards * 6} <:RaidMedals:983374303552753664>"
-                                + f"\nDefensive Rewards: {c.current_raid_weekend.defense_rewards} <:RaidMedals:983374303552753664>"
-                                ,
-                            thumbnail=c.c.badge.url,
-                            show_author=False)
+                                if c.member_role:
+                                    role = ctx.bot.alliance_server.get_role(c.member_role)
+                                    rm = discord.AllowedMentions(roles=True)
+                                    await channel.send(content=f"{role.mention}",embed=raid_weekend_1day_embed,allowed_mentions=rm)
+                                else:
+                                    await channel.send(embed=raid_weekend_1day_embed)
 
-                        raid_end_embed.add_field(
-                            name="Start Date",
-                            value=f"{datetime.fromtimestamp(c.current_raid_weekend.start_time).strftime('%d %b %Y')}",
-                            inline=True)
+                            if c.send_raid_reminder and clan_reminder_channel:
 
-                        raid_end_embed.add_field(
-                            name="End Date",
-                            value=f"{datetime.fromtimestamp(c.current_raid_weekend.end_time).strftime('%d %b %Y')}",
-                            inline=True)
+                                remaining_time = c.current_raid_weekend.end_time - st
+                                dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
 
-                        raid_end_embed.add_field(
-                            name="Number of Participants",
-                            value=f"{len(c.current_raid_weekend.members)}",
-                            inline=False)
+                                remaining_time_str = ""
+                                if dd > 0:
+                                    remaining_time_str += f"{int(dd)} day(s)"
 
-                        raid_end_embed.add_field(
-                            name="Total Loot Gained",
-                            value=f"{c.current_raid_weekend.total_loot:,} <:CapitalGoldContributed:971012592057339954>",
-                            inline=True)
+                                if hh > 0:
+                                    remaining_time_str += f"{int(hh)} hour(s)"
 
-                        raid_end_embed.add_field(
-                            name="Number of Attacks",
-                            value=f"{c.current_raid_weekend.raid_attack_count}",
-                            inline=True)
+                                if mm > 0:
+                                    remaining_time_str += f"{int(mm)} minute(s)"
 
-                        raid_end_embed.add_field(
-                            name="Districts Destroyed",
-                            value=f"{c.current_raid_weekend.districts_destroyed}",
-                            inline=True)
+                                members_not_in_raid = [m for m in alliance_members if m.home_clan.tag == c.tag and m.tag not in [z.tag for z in c.current_raid_weekend.members]]
+                                members_unfinished_raid = [m for m in alliance_members if m.tag in [z.tag for z in c.current_raid_weekend.members if z.attack_count < 6]]
 
-                        raid_end_embed.add_field(
-                            name="Offensive Raids Completed",
-                            value=f"{c.current_raid_weekend.offense_raids_completed}",
-                            inline=True)
+                                if (c.current_raid_weekend.end_time - st) < 3600:
+                                    not_in_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you have **NOT** participated.\n\n"
+                                else:
+                                    not_in_raid_str = f"Raid Weekend ends in **{remaining_time_str}** and you have **NOT** participated.\n\n"
 
-                        raid_end_embed.add_field(
-                            name="Defensive Raids Completed",
-                            value=f"{c.current_raid_weekend.defense_raids_completed}",
-                            inline=True)
+                                not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
 
-                        raid_end_embed.add_field(
-                            name='**Raid Leaderboard**',
-                            value=f"{box(tabulate(rank_table,headers='keys',tablefmt='pretty'))}",
-                            inline=False)
+                                if (c.current_raid_weekend.end_time - st) < 3600:
+                                    unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **DID NOT** use all your Raid Attacks.\n\n"
+                                else:
+                                    unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
 
-                        channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
-                        rm = discord.AllowedMentions(roles=True)
+                                unfinished_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_unfinished_raid])}"
 
-                        await channel.send(embed=raid_end_embed)
+                                await clan_reminder_channel.send(not_in_raid_str)
+                                await clan_reminder_channel.send(unfinished_raid_str)
 
-                    active_event.append(f"{(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals in {c.abbreviation}")
 
-                str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
+                    if c.current_raid_weekend.state == 'ended':
+                        str_raid_update += f"\n**Raid Weekend is now over.**"
 
-                for m in c.current_raid_weekend.members:
-                    member = [am for am in alliance_members if am.tag == m.tag]
+                        if clan_announcement_channel:
 
-                    if len(member) > 0:
-                        raid_member_count += 1
-                        member = member[0]
-                        await member.update_raid_weekend(ctx,m)
+                            members_ranked = sorted(c.current_raid_weekend.members, key=lambda x: (x.resources_looted),reverse=True)
+                            rank = 0
+                            rank_table = []
+                            for m in members_ranked[0:5]:
+                                rank += 1
+                                m_table = {
+                                    "P": rank,
+                                    "Name": m.name,
+                                    "Looted": f"{m.resources_looted:,}",
+                                    "Attacks": m.attack_count,
+                                    }
+                                rank_table.append(m_table)
 
-                str_raid_update += f"\n- Tracking stats for {raid_member_count} members in Capital Raids.\n"
+                            raid_end_embed = await clash_embed(ctx=ctx,
+                                title=f"Raid Weekend Results: {c.name} ({c.tag})",
+                                message=f"\n**Maximum Reward: {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,}** <:RaidMedals:983374303552753664>"
+                                    + f"\n\nOffensive Rewards: {c.current_raid_weekend.offense_rewards * 6} <:RaidMedals:983374303552753664>"
+                                    + f"\nDefensive Rewards: {c.current_raid_weekend.defense_rewards} <:RaidMedals:983374303552753664>"
+                                    ,
+                                thumbnail=c.c.badge.url,
+                                show_author=False)
+
+                            raid_end_embed.add_field(
+                                name="Start Date",
+                                value=f"{datetime.fromtimestamp(c.current_raid_weekend.start_time).strftime('%d %b %Y')}",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name="End Date",
+                                value=f"{datetime.fromtimestamp(c.current_raid_weekend.end_time).strftime('%d %b %Y')}",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name="Number of Participants",
+                                value=f"{len(c.current_raid_weekend.members)}",
+                                inline=False)
+
+                            raid_end_embed.add_field(
+                                name="Total Loot Gained",
+                                value=f"{c.current_raid_weekend.total_loot:,} <:CapitalGoldContributed:971012592057339954>",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name="Number of Attacks",
+                                value=f"{c.current_raid_weekend.raid_attack_count}",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name="Districts Destroyed",
+                                value=f"{c.current_raid_weekend.districts_destroyed}",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name="Offensive Raids Completed",
+                                value=f"{c.current_raid_weekend.offense_raids_completed}",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name="Defensive Raids Completed",
+                                value=f"{c.current_raid_weekend.defense_raids_completed}",
+                                inline=True)
+
+                            raid_end_embed.add_field(
+                                name='**Raid Leaderboard**',
+                                value=f"{box(tabulate(rank_table,headers='keys',tablefmt='pretty'))}",
+                                inline=False)
+
+                            channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
+                            rm = discord.AllowedMentions(roles=True)
+
+                            await channel.send(embed=raid_end_embed)
+
+                        active_event.append(f"{(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals in {c.abbreviation}")
+
+                    str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
+
+                    for m in c.current_raid_weekend.members:
+                        member = [am for am in alliance_members if am.tag == m.tag]
+
+                        if len(member) > 0:
+                            raid_member_count += 1
+                            member = member[0]
+                            await member.update_raid_weekend(ctx,m)
+
+                    str_raid_update += f"\n- Tracking stats for {raid_member_count} members in Capital Raids.\n"
 
             await c.save_to_json(ctx)
 
