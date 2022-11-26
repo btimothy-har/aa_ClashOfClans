@@ -56,6 +56,7 @@ class AriXClashDataMgr(commands.Cog):
         alliance_coleader_role = await resource_cog.config.alliance_coleader_role()
         alliance_elder_role = await resource_cog.config.alliance_elder_role()
         alliance_member_role = await resource_cog.config.alliance_member_role()
+        base_vault_role = await resource_cog.config.alliance_base_role()
 
         try:
             bot.alliance_server = bot.get_guild(int(alliance_server_id))
@@ -81,6 +82,16 @@ class AriXClashDataMgr(commands.Cog):
             bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
         except:
             bot.member_role = None
+
+        try:
+            bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
+        except:
+            bot.member_role = None
+
+        try:
+            bot.base_vault_role = bot.alliance_server.get_role(int(base_vault_role))
+        except:
+            bot.base_vault_role = None
 
 
     @commands.group(name="data",aliases=["status"],autohelp=False)
@@ -128,6 +139,7 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> **Co-Leader Role**: {getattr(ctx.bot.coleader_role,'mention','Not Set')}"
                     + f"\n> **Elder Role**: {getattr(ctx.bot.elder_role,'mention','Not Set')}"
                     + f"\n> **Member Role**: {getattr(ctx.bot.member_role,'mention','Not Set')}",
+                    + f"\n> **Base Vault Access**: {getattr(ctx.bot.base_vault_role,'mention','Not Set')}"
                 inline=False)
 
             embed.add_field(

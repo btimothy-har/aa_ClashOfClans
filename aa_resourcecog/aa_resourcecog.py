@@ -42,6 +42,7 @@ class AriXClashResources(commands.Cog):
             "alliance_coleader_role": 0,
             "alliance_elder_role": 0,
             "alliance_member_role": 0,
+            "alliance_base_role": 0,
             }
         default_guild = {}
         defaults_user = {}
@@ -74,7 +75,7 @@ class AriXClashResources(commands.Cog):
         Sets Alliance roles.
         """
 
-        valid_roles = ['leader','coleader','elder','member']
+        valid_roles = ['leader','coleader','elder','member','base']
 
         if role_type not in valid_roles:
             return await ctx.send(f"The Role Type seems to be invalid. Acceptable types: {humanize_list(valid_roles)}")
@@ -104,6 +105,11 @@ class AriXClashResources(commands.Cog):
                 await self.config.alliance_member_role.set(int(role.id))
                 ctx.bot.member_role = role
                 return await ctx.send(f"The Alliance Member Role has been set to `{ctx.bot.member_role.name}`.")
+
+            if role_type == 'base':
+                await self.config.alliance_base_role.set(int(role.id))
+                ctx.bot.base_role = role
+                return await ctx.send(f"The Alliance Base Role has been set to `{ctx.bot.base_role.name}`.")
 
 
     @commands.command(name="nebula",aliases=["n"])

@@ -73,19 +73,24 @@ async def eclipse_main_menu(ctx,session):
         'description': f"In-game stats for all Troops, Spells, Heroes for all levels."
         }
 
-    menu_options.append(personal_vault_option)
-    menu_options.append(base_vault_option)
+    menu_options.append(army_analyzer)
+
+    if ctx.bot.base_vault_role:
+        member = await ctx.bot.alliance_server.fetch_member(ctx.author.id)
+        if ctx.bot.base_vault_role in member.roles:
+            menu_options.append(base_vault_option)
     #menu_options.append(base_army_guides)
     #menu_options.append(strategy_guides)
-    menu_options.append(army_analyzer)
+
+    menu_options.append(personal_vault_option)
 
     menu_options = await multiple_choice_menu_generate_emoji(ctx,menu_options)
 
     menu_embed = await eclipse_embed(ctx,
         title="**Welcome to E.C.L.I.P.S.E.!**",
         message=f"\nAriX's ***E**xtraordinarily **C**ool **L**ooking **I**nteractive & **P**rofessional **S**earch **E**ngine*."
-            + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, ranging from War Bases to Army Compositions and Strategies. "
-            + f"In addition, curate your own personal vault of information for your personal reference.\n\u200b")
+            + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, alongside exclusive AriX-only tools."
+            + f"\n\n**Note: To access our Base Vault, you need to have been a member for __at least 2 weeks__. If you meet this criteria, please contact a <@&733023831366697080> to get access.**\n\u200b")
 
     select_str = ""
 

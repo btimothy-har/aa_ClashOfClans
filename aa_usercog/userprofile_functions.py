@@ -81,7 +81,7 @@ laboratory_dict = {
 
 rushed_dict = {
     'id': 'rushedtroops',
-    'emoji': "<:barracks:1042336340072738847>",
+    'emoji': "💩",
     'title': ""
     }
 
