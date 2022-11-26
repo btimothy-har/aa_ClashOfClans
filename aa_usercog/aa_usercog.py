@@ -145,7 +145,7 @@ class AriXMemberCommands(commands.Cog):
                     + f"\n\nInstead, I will overwrite the Discord Link on other Clash Bots. Please confirm if I should proceed."
                     + f"\n\nYou tried to register: **{new_account.tag} {new_account.name}**")
 
-            c_msg = await ctx.send(embed=embed)
+            c_msg = await ctx.author.send(embed=embed)
 
             if not await user_confirmation(ctx,c_msg):
                 return
