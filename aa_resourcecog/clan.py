@@ -252,6 +252,7 @@ class aClan():
 
 
     async def update_clan_war(self,ctx):
+        self.war_state_change = False
         try:
             current_war = await ctx.bot.coc_client.get_clan_war(self.tag)
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
@@ -275,6 +276,7 @@ class aClan():
 
 
     async def update_raid_weekend(self,ctx):
+        self.raid_state_change = False
         try:
             raid_log_gen = await ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
