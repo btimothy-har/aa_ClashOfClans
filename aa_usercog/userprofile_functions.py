@@ -107,7 +107,7 @@ async def userprofile_warlog(ctx,account,message=None):
     #nav_options.append(laboratory_dict)
     #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
     nav_options.append(rushed_dict)
-    nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
+    nav_str += "💩 To view Rushed Levels\n"
 
     current_season = await get_current_season()
 
@@ -130,6 +130,11 @@ async def userprofile_warlog(ctx,account,message=None):
 
     for wid in war_id_sort:
         war = a.warlog[wid]
+
+        try:
+            wid = float(wid)
+        except:
+            continue
 
         if war.result != '':
             attack_str = ""
@@ -192,7 +197,7 @@ async def userprofile_raidlog(ctx,account,message=None):
     #nav_options.append(laboratory_dict)
     #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
     nav_options.append(rushed_dict)
-    nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
+    nav_str += "💩 To view Rushed Levels\n"
 
     current_season = await get_current_season()
 
@@ -260,7 +265,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
     #nav_options.append(laboratory_dict)
     #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
     nav_options.append(rushed_dict)
-    nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes\n"
+    nav_str += "💩 To view Rushed Levels\n"
 
     trooplevels_embed = await clash_embed(ctx,
         title=f"**Offense Levels: {a.name} ({a.tag})**",

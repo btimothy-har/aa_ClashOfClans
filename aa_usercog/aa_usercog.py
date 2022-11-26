@@ -496,7 +496,7 @@ class AriXMemberCommands(commands.Cog):
                 nav_str += "<:CapitalRaids:1034032234572816384> To view AriX Raid Log\n"
             nav_str += "<:laboratory:1044904659917209651> To view current Troop Levels\n"
             #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
-            nav_str += "<:barracks:1042336340072738847> To view Rushed Troops/Spells/Heroes"
+            nav_str += "💩 To view Rushed Levels"
 
             if (ctx.bot.leader_role in discord_member.roles or ctx.bot.coleader_role in discord_member.roles) and len(a.notes)>0:
                 nav_str += f"\n\n:mag: View Member Notes ({len(a.notes)})"
