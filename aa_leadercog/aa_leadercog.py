@@ -949,7 +949,8 @@ class AriXLeaderCommands(commands.Cog):
         ask_player_tags = await clash_embed(ctx,
             message=f"**Please send the Clash Player Tags for {user.mention}.**"
                 + f"\n\nSeparate multiple tags with a space in between."
-                + f"\n\nTo cancel, send `cancel`.")
+                + f"\n\nSilent mode: {silent_mode}"
+                + f"\nTo cancel, send `cancel`.")
 
         ask_tags_msg = await ctx.send(content=ctx.author.mention,embed=ask_player_tags)
 
@@ -1524,7 +1525,7 @@ class AriXLeaderCommands(commands.Cog):
             user=user)
 
     @commands.command(name="demote")
-    async def member_demote(self,ctx,user:discord.User):
+    async def member_demote(self,ctx,Discord_User:discord.User):
         """
         Demote a Member.
 
