@@ -193,6 +193,10 @@ class AriXMemberCommands(commands.Cog):
                 pass
 
             if new_account.is_member:
+                player_embed = await clash_embed(ctx,
+                    message=f"The account **{new_account.tag} {new_account.name}** is now linked to {ctx.author.mention}.",
+                    color='success')
+            else:
                 try:
                     await new_account.new_member(ctx,ctx.author)
                 except Exception as e:
@@ -203,10 +207,7 @@ class AriXMemberCommands(commands.Cog):
                 player_embed = await clash_embed(ctx,
                     message=f"You've successfully linked the account **{new_account.tag} {new_account.name}** to AriX!",
                     color='success')
-            else:
-                player_embed = await clash_embed(ctx,
-                    message=f"The account **{new_account.tag} {new_account.name}** is now linked to {ctx.author.mention}.",
-                    color='success')
+
             await waitmsg.delete()
             return await ctx.author.send(embed=player_embed)
 
@@ -383,8 +384,8 @@ class AriXMemberCommands(commands.Cog):
             member_status = ""
             if a.is_member:
                 member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
-            elif not player_tags:
-                member_status = f"***AriX Guest Account***\n"
+            elif a.is_arix_account:
+                member_status = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***\n"
 
             discord_msg = ""
             if a.discord_user:
