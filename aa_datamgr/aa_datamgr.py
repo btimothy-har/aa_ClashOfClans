@@ -519,7 +519,12 @@ class AriXClashDataMgr(commands.Cog):
 
                     ping_str += f"{humanize_list([f'<@{mid}>' for mid in war_reminder_ping])}"
 
-                    await clan_reminder_channel.send(ping_str)
+                    #override to war channel for PR
+                    if c.abbreviation == 'PR':
+                        ch = ctx.bot.alliance_server.get_channel(1045978358439235584)
+                        await ch.send(ping_str)
+                    else:
+                        await clan_reminder_channel.send(ping_str)
 
 
             await c.update_raid_weekend(ctx)
@@ -531,12 +536,12 @@ class AriXClashDataMgr(commands.Cog):
                 str_raid_update += f"__{c.tag} {c.name}__"
 
                 if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
-                    c.war_reminder_tracking = c.war_reminder_intervals
+                    c.raid_reminder_tracking = c.raid_reminder_intervals
 
                     if 24 not in c.war_reminder_tracking:
-                        c.war_reminder_tracking.append(24)
+                        c.raid_reminder_tracking.append(24)
 
-                    c.war_reminder_tracking.sort(reverse=True)
+                    c.raid_reminder_tracking.sort(reverse=True)
 
                     str_raid_update += f"\n**Raid Weekend has begun!**"
 
