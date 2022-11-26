@@ -942,8 +942,7 @@ class AriXClashDataMgr(commands.Cog):
             discord.ActivityType.playing,
             discord.ActivityType.streaming,
             discord.ActivityType.listening,
-            discord.ActivityType.watching,
-            discord.ActivityType.competing
+            discord.ActivityType.watching
             ]
         activity_select = random.choice(activity_types)
 
