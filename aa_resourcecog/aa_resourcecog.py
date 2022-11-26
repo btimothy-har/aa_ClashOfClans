@@ -315,6 +315,8 @@ class AriXClashResources(commands.Cog):
 
             selected_account = await multiple_choice_menu_select(ctx,select_msg,selection_list)
 
+            await select_msg.clear_reactions()
+
             if not selected_account:
                 return None
         
@@ -328,11 +330,8 @@ class AriXClashResources(commands.Cog):
         if len(leader_clans) > 0:
             home_clans = leader_clans
 
-        for clan in home_clans:
-            clan_ct += 1
-            if clan_ct > 1:
-                clan_str += " + "
-            clan_str += clan.abbreviation
+        abb_clans = []
+        [abb_clans.append(c.abbreviation) for c in home_clans if c.abbreviation not in abb_clans]
 
-        new_nickname += f" | {clan_str}"
+        new_nickname += f" | {' + '.join(abb_clans)}"
         return new_nickname
