@@ -108,7 +108,7 @@ class AriXClashResources(commands.Cog):
 
             if role_type == 'base':
                 await self.config.alliance_base_role.set(int(role.id))
-                ctx.bot.base_role = role
+                ctx.bot.base_vault_role = role
                 return await ctx.send(f"The Alliance Base Role has been set to `{ctx.bot.base_role.name}`.")
 
 

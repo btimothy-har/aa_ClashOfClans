@@ -105,7 +105,6 @@ class AriXMemberCommands(commands.Cog):
 
             await init_msg.edit(content=ctx.author.mention,embed=embed)
             return
-        
 
         try:
             startmsg = await ctx.bot.wait_for("message",timeout=60,check=dm_check)
@@ -142,10 +141,14 @@ class AriXMemberCommands(commands.Cog):
 
         if new_account.is_member:
             embed = await clash_embed(ctx,
-                message="I couldn't register this account as it is already a valid Member Account with AriX!"
-                    + f"\n\nYou tried to register: **{new_account.tag} {new_account.name}**",
-                color="fail")
-            return await ctx.author.send(embed=embed)
+                message="**This account is already an AriX Member** and cannot be registered as a Guest Account."
+                    + f"\n\nInstead, I will overwrite the Discord Link on other Clash Bots. Please confirm if I should proceed."
+                    + f"\n\nYou tried to register: **{new_account.tag} {new_account.name}**")
+
+            c_msg = await ctx.send(embed=embed)
+
+            if not await user_confirmation(ctx,c_msg):
+                return
 
         embed = await clash_embed(ctx,
             message="Please provide your **in-game API Token.**\n\nTo locate your token, please follow the instructions in the image below.")
@@ -180,16 +183,28 @@ class AriXMemberCommands(commands.Cog):
             await waitmsg.delete()
             return await ctx.author.send(embed=embed)
         else:
+            linked = False
             try:
-                await new_account.new_member(ctx,ctx.author)
-            except Exception as e:
-                err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
-                await ctx.author.send(embed=err_embed)
-                return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
+                await ctx.bot.discordlinks.add_link(new_account.tag,ctx.author.id)
+                linked = True
+            except:
+                pass
 
-            player_embed = await clash_embed(ctx,
-                message=f"You've successfully linked the account **{new_account.tag} {new_account.name}** to AriX!",
-                color='success')
+            if new_account.is_member:
+                try:
+                    await new_account.new_member(ctx,ctx.author)
+                except Exception as e:
+                    err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
+                    await ctx.author.send(embed=err_embed)
+                    return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
+
+                player_embed = await clash_embed(ctx,
+                    message=f"You've successfully linked the account **{new_account.tag} {new_account.name}** to AriX!",
+                    color='success')
+            else:
+                player_embed = await clash_embed(ctx,
+                    message=f"The account **{new_account.tag} {new_account.name}** is now linked to {ctx.author.mention}.",
+                    color='success')
 
             return await ctx.author.send(embed=player_embed)
 
