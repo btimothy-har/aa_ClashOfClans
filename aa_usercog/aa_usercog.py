@@ -314,8 +314,6 @@ class AriXMemberCommands(commands.Cog):
                 value=f"{a.desc_full_text}\n\u200b",
                 inline=False)
 
-        await ctx.send([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member])
-
         for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
             try:
                 p = await aPlayer.create(ctx,a)
