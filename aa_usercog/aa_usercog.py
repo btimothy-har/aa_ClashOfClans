@@ -356,8 +356,8 @@ class AriXMemberCommands(commands.Cog):
                     name=f"{p.desc_title}",
                     value=f"{p.desc_full_text}\n\u200b",
                     inline=False)
-            except:
-                pass
+        except:
+            pass
 
         if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
             output_embed.append(member_accounts_embed)
