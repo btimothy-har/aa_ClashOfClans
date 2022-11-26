@@ -657,7 +657,7 @@ class aHero():
         if self.village == '':
             self.village = 'home'
 
-        maxlevel_for_townhall = self.hero.get_max_level_for_townhall(th_level)
+        maxlevel_for_townhall = self.hero.get_max_level_for_townhall(max(th_level,3))
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
         try:
@@ -796,7 +796,7 @@ class aTroop():
         self.is_super_troop = getattr(self.troop,'is_super_troop',False)
         self.original_troop = getattr(self.troop,'original_troop',None)
 
-        maxlevel_for_townhall = self.troop.get_max_level_for_townhall(th_level)
+        maxlevel_for_townhall = self.troop.get_max_level_for_townhall(max(th_level,3))
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
         minlevel_for_townhall = self.troop.get_max_level_for_townhall(max(th_level-1,3))
@@ -875,7 +875,7 @@ class aSpell():
         self.is_elixir_spell = getattr(self.spell,'is_elixir_spell',False)
         self.is_dark_spell = getattr(self.spell,'is_dark_spell',False)
 
-        maxlevel_for_townhall = self.spell.get_max_level_for_townhall(th_level)
+        maxlevel_for_townhall = self.spell.get_max_level_for_townhall(max(th_level,3))
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
 
         minlevel_for_townhall = self.spell.get_max_level_for_townhall(max(th_level-1,3))

@@ -915,7 +915,8 @@ class AriXLeaderCommands(commands.Cog):
             if Toggle_Silent_Mode.lower() == "s":
                 silent_mode = True
 
-        silent_mode = await self.config.guild(ctx.guild).silent_member_add()
+        if not silent_mode:
+            silent_mode = await self.config.guild(ctx.guild).silent_member_add()
 
         alliance_clans = await get_alliance_clan(ctx)
 
