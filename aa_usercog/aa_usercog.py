@@ -293,7 +293,7 @@ class AriXMemberCommands(commands.Cog):
                 for th in c.recruitment_level:
                     clan_str += f"{emotes_townhall[th]} "
 
-            clan_str += f"\n\n[Clan Link: {c.tag}]({c.c.share_link})"
+            clan_str += f"\n\n**[Clan Link: {c.tag}]({c.c.share_link})**"
             clan_str += f"\n\n{c.description}"
 
             rEmbed = await clash_embed(ctx=ctx,
