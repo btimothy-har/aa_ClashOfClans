@@ -293,7 +293,7 @@ class AriXMemberCommands(commands.Cog):
             clan_str += f"\n\n{c.description}"
 
             rEmbed = await clash_embed(ctx=ctx,
-                title=f"{c.emoji} {desc_title}",
+                title=f"{c.emoji} {c.desc_title}",
                 message={clan_str},
                 thumbnail=c.c.badge.medium,
                 show_author=False)
