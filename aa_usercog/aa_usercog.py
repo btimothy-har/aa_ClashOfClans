@@ -250,12 +250,15 @@ class AriXMemberCommands(commands.Cog):
         Gets information about a specified clan.
         """
 
-        tags = []
         clans = []
         if tags:
             tags = list(tags)
+        else:
+            tags = []
 
         tags.append(ctx.invoked_with)
+
+        await ctx.send(tags)
 
         for t in tags:
             if t in ['as','pa','ao9','pr']:
@@ -282,19 +285,20 @@ class AriXMemberCommands(commands.Cog):
                 clans.append(c)
 
         for c in clans:
-            th_str = "Recruiting: "
-            for th in c.recruitment_level:
-                th_str += f"{emotes_townhall[th]} "
             clan_str = ""
-            clan_str += f"{c.desc_summary_text}"
+            clan_str += c.desc_summary_text
+
             if len(c.recruitment_level) > 0:
-                clan_str += f"\n\n{th_str}"
+                clan_str = "Recruiting: "
+                for th in c.recruitment_level:
+                    clan_str += f"{emotes_townhall[th]} "
+
             clan_str += f"\n\n[Clan Link: {c.tag}]({c.c.share_link})"
-            clan_str += f"\n\n{c.description}"
+            clan_str += c.description
 
             rEmbed = await clash_embed(ctx=ctx,
                 title=f"{c.emoji} {c.desc_title}",
-                message={clan_str},
+                message=clan_str,
                 thumbnail=c.c.badge.medium,
                 show_author=False)
 
