@@ -152,7 +152,8 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> **Co-Leader Role**: {getattr(ctx.bot.coleader_role,'mention','Not Set')}"
                     + f"\n> **Elder Role**: {getattr(ctx.bot.elder_role,'mention','Not Set')}"
                     + f"\n> **Member Role**: {getattr(ctx.bot.member_role,'mention','Not Set')}"
-                    + f"\n> **Base Vault Access**: {getattr(ctx.bot.base_vault_role,'mention','Not Set')}",
+                    + f"\n\n> **Base Vault Access**: {getattr(ctx.bot.base_channel,'name','Not Set')}"
+                    + f"\n> **Bot Updates**: {getattr(ctx.bot.update_channel,'name','Not Set')}",
                 inline=False)
 
             embed.add_field(

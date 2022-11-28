@@ -134,12 +134,12 @@ class AriXClashResources(commands.Cog):
             if channel_type == 'base':
                 await self.config.alliance_base_channel.set(int(channel.id))
                 ctx.bot.base_channel = channel
-                return await ctx.send(f"The Alliance Leader Role has been set to `{ctx.bot.base_channel.name}`.")
+                return await ctx.send(f"The Alliance Base Vault Channel has been set to `{ctx.bot.base_channel.name}`.")
 
             if channel_type == 'updates':
                 await self.config.alliance_update_channel.set(int(channel.id))
                 ctx.bot.update_channel = channel
-                return await ctx.send(f"The Alliance Co-Leader Role has been set to `{ctx.bot.update_channel.name}`.")
+                return await ctx.send(f"The Alliance Update Channel has been set to `{ctx.bot.update_channel.name}`.")
 
 
     @commands.command(name="nebula",aliases=["n"])
