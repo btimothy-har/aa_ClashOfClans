@@ -546,10 +546,10 @@ class AriXLeaderCommands(commands.Cog):
             menu_dict.append(raid_reminder_toggle)
             menu_dict.append(raid_reminder_interval)
 
-        if ctx.author.id in ctx.bot.owner_ids:
-            menu_dict.append(emoji_option)
-            menu_dict.append(announcement_option)
-            menu_dict.append(reminder_ch_option)
+        # if ctx.author.id in ctx.bot.owner_ids:
+        #     menu_dict.append(emoji_option)
+        #     menu_dict.append(announcement_option)
+        #     menu_dict.append(reminder_ch_option)
 
         if len(menu_dict) == 0:
             no_permission_embed = await clash_embed(ctx,
