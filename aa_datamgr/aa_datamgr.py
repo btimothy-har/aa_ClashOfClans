@@ -603,7 +603,7 @@ class AriXClashDataMgr(commands.Cog):
                             else:
                                 await channel.send(embed=raid_weekend_start_embed)
 
-                        active_event.append(f"Raid Weekend has started!")
+                        active_events.append(f"Raid Weekend has started!")
 
                     elif c.current_raid_weekend.state == 'ongoing':
                         passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
@@ -732,7 +732,7 @@ class AriXClashDataMgr(commands.Cog):
 
                             await channel.send(embed=raid_end_embed)
 
-                        active_event.append(f"{(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals in {c.abbreviation}")
+                        active_events.append(f"{(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals in {c.abbreviation}")
 
                     str_raid_update += f"\n- State: {c.current_raid_weekend.state}"
 
