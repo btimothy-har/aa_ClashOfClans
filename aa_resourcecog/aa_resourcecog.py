@@ -136,7 +136,7 @@ class AriXClashResources(commands.Cog):
                 ctx.bot.base_channel = channel
                 return await ctx.send(f"The Alliance Leader Role has been set to `{ctx.bot.base_channel.name}`.")
 
-            if role_type == 'updates':
+            if channel_type == 'updates':
                 await self.config.alliance_update_channel.set(int(channel.id))
                 ctx.bot.update_channel = channel
                 return await ctx.send(f"The Alliance Co-Leader Role has been set to `{ctx.bot.update_channel.name}`.")
