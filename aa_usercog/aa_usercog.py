@@ -250,7 +250,7 @@ class AriXMemberCommands(commands.Cog):
         Gets information about a specified clan.
         """
 
-        return await ctx.send(ctx.commands.invoked_parents)
+        return await ctx.send(ctx.invoked_parents)
 
         try:
             c = await aClan.create(ctx,tag)
