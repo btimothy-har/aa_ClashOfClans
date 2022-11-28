@@ -260,7 +260,7 @@ class AriXMemberCommands(commands.Cog):
         for t in tags:
             if t in ['as','pa','ao9','pr']:
                 c1 = await get_alliance_clan(ctx,ctx.invoked_with.upper())
-                clans.append(c1)
+                clans.append(c1[0])
 
             elif ctx.invoked_with in ['don','dop','ao2']:
                 tag_dict = {
