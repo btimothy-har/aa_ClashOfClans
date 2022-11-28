@@ -45,7 +45,7 @@ async def eclipse_main_menu(ctx,session):
     personal_vault_option = {
         'id': 'personalvault',
         'title': f"Visit your Personal Base Vault",
-        'description': "Bases saved from our AriX Base Vault will appear in your personal vault for you to refer in future\nNote: This will open E.C.L.I.P.S.E. in your DMs."
+        'description': "Bases saved from our AriX Base Vault will appear in your personal vault for you to refer in future.\nNote: This will open E.C.L.I.P.S.E. in your DMs."
         }
     base_vault_option = {
         'id': 'basevault',
