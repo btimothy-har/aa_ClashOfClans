@@ -244,37 +244,66 @@ class AriXMemberCommands(commands.Cog):
 
         return await ctx.send(embed=rEmbed)
 
-    # @commands.command(name="getclan")
-    # async def clan_information(self,ctx,tag):
-    #     """
-    #     Gets information about a specified clan tag.
-    #     """
-    #     try:    
-    #         c = await aClan.create(ctx,tag)
-    #     except Exception as e:
-    #         return await error_end_processing(ctx,
-    #             preamble=f"Error encountered while retrieving clan {tag}",
-    #             err=e)
+    @commands.command(name="getclan",aliases=['as','pa','ao9','pr','don','dop','ao2'])
+    async def clan_information(self,ctx,*tags):
+        """
+        Gets information about a specified clan.
+        """
 
-    #     title, text, summary = await resc.clan_description(ctx,c)
+        tag_run = []
+        tag_run.append(ctx.invoked_with)
 
-    #     th_str = "Recruiting: "
-    #     for th in c.recruitment_level:
-    #         th_str += f"{emotes_townhall[th]} "
+        if tags:
+            for tag in tags:
+                if tag not in tag_run:
+                    tag_run.append(tag)
 
-    #     clan_str = ""
-    #     clan_str += f"{text}"
-    #     if len(c.recruitment_level) > 0:
-    #         clan_str += f"\n\n{th_str}"
-    #     clan_str += f"\n\n{c.description}"
+        clans = []
 
-    #     rEmbed = await clash_embed(ctx=ctx,
-    #         title=f"{c.emoji} {title}",
-    #         message=clan_str,
-    #         thumbnail=c.c.badge.medium,
-    #         show_author=False)
+        for t in tag_run:
+            if t in ['as','pa','ao9','pr']:
+                c1 = await get_alliance_clan(ctx,t.upper())
+                clans.append(c1[0])
 
-    #     await ctx.send(embed=rEmbed)
+            elif t in ['don','dop','ao2']:
+                tag_dict = {
+                    'don': '#8089PGLQ',
+                    'dop': '#2Y0VPJUVJ',
+                    'ao2': '#2P90Y0JLP',
+                    }
+                c2 = await aClan.create(ctx,tag_dict[t])
+                clans.append(c2)
+
+            else:
+                t2 = coc.utils.correct_tag(t)
+                if not coc.utils.is_valid_tag(t2):
+                    continue
+                try:
+                    c = await aClan.create(ctx,t2)
+                except Exception as e:
+                    continue
+                clans.append(c)
+
+        for c in clans:
+            clan_str = ""
+            clan_str += c.desc_summary_text
+
+            if len(c.recruitment_level) > 0:
+                clan_str += "\n\nRecruiting: "
+                for th in c.recruitment_level:
+                    clan_str += f"{emotes_townhall[th]} "
+
+            clan_str += f"\n\n**[Clan Link: {c.tag}]({c.c.share_link})**"
+            clan_str += f"\n\n{c.description}"
+
+            rEmbed = await clash_embed(ctx=ctx,
+                title=f"{c.emoji} {c.desc_title}",
+                message=clan_str,
+                thumbnail=c.c.badge.medium,
+                show_author=False)
+
+            await ctx.send(embed=rEmbed)
+
 
     @commands.command(name="profile")
     async def arix_profile(self,ctx,Discord_User:discord.User=None):

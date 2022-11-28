@@ -565,7 +565,7 @@ class AriXClashDataMgr(commands.Cog):
 
                                 #override to war channel for PR
                                 if c.abbreviation == 'PR':
-                                    ch = ctx.bot.get_channel(1045978358439235584)
+                                    ch = ctx.bot.get_channel(733000312180441190)
                                     await ch.send(ping_str)
                                 else:
                                     await clan_reminder_channel.send(ping_str)
@@ -599,9 +599,9 @@ class AriXClashDataMgr(commands.Cog):
                                 if c.member_role:
                                     role = ctx.bot.alliance_server.get_role(c.member_role)
                                     rm = discord.AllowedMentions(roles=True)
-                                    await channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
+                                    await clan_announcement_channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
                                 else:
-                                    await channel.send(embed=raid_weekend_start_embed)
+                                    await clan_announcement_channel.send(embed=raid_weekend_start_embed)
 
                             active_events.append(f"Raid Weekend has started!")
 
@@ -621,9 +621,9 @@ class AriXClashDataMgr(commands.Cog):
                                         if c.member_role:
                                             role = ctx.bot.alliance_server.get_role(c.member_role)
                                             rm = discord.AllowedMentions(roles=True)
-                                            await channel.send(content=f"{role.mention}",embed=raid_weekend_1day_embed,allowed_mentions=rm)
+                                            await clan_announcement_channel.send(content=f"{role.mention}",embed=raid_weekend_1day_embed,allowed_mentions=rm)
                                         else:
-                                            await channel.send(embed=raid_weekend_1day_embed)
+                                            await clan_announcement_channel.send(embed=raid_weekend_1day_embed)
 
                                     if c.send_raid_reminder and clan_reminder_channel:
 
@@ -727,10 +727,8 @@ class AriXClashDataMgr(commands.Cog):
                                     value=f"{rank_table}",
                                     inline=False)
 
-                                channel = ctx.bot.get_channel(c.announcement_channel)
                                 rm = discord.AllowedMentions(roles=True)
-
-                                await channel.send(embed=raid_end_embed)
+                                await clan_announcement_channel.send(embed=raid_end_embed)
 
                             active_events.append(f"{(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals in {c.abbreviation}")
 

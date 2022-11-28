@@ -540,7 +540,7 @@ class AriXLeaderCommands(commands.Cog):
 
         if (ctx.author.id == c.leader or ctx.author.id in c.co_leaders) or ctx.author.id in ctx.bot.owner_ids:
             menu_dict.append(recruit_option)
-            #menu_dict.append(description_option)
+            menu_dict.append(description_option)
             menu_dict.append(war_reminder_toggle)
             menu_dict.append(war_reminder_interval)
             menu_dict.append(raid_reminder_toggle)
@@ -561,12 +561,15 @@ class AriXLeaderCommands(commands.Cog):
         menu_dict = await multiple_choice_menu_generate_emoji(ctx,menu_dict)
 
         select_str = ""
+        admin_str = ""
         for i in menu_dict:
-            select_str += f"{i['emoji']} **{i['title']}**"
-            select_str += f"\n{i['description']}"
-
-            if menu_dict.index(i) < (len(menu_dict)-1):
-                select_str += f"\n\n"
+            if i['id'] in ['emoji','announcement_channel','reminder_channel']:
+                admin_str += f"{i['emoji']} **{i['title']}**\n\n"
+            else:
+                select_str += f"{i['emoji']} **{i['title']}**"
+                select_str += f"\n{i['description']}"
+                if menu_dict.index(i) < (len(menu_dict)-1):
+                    select_str += f"\n\n"
 
         message = None
         response = 'start'
@@ -600,9 +603,16 @@ class AriXLeaderCommands(commands.Cog):
 
                     announcement_embed.add_field(
                         name="```**What would you like to do today?**```",
-                        value=f"\u200b\n{select_str}\n\n*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
+                        value=f"\u200b\n{select_str}*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
                         inline=False
                         )
+
+                    if admin_str:
+                        announcement_embed.add_field(
+                            name="```**Admin Options**```",
+                            value=f"\u200b\n{admin_str}\u200b",
+                            inline=False
+                            )
 
                     if message:
                         await message.edit(content=ctx.author.mention,embed=announcement_embed)
@@ -631,6 +641,23 @@ class AriXLeaderCommands(commands.Cog):
 
                     await c.set_emoji(ctx,response_msg.content)
                     state_text = f"**The emoji for {c.name} is now {c.emoji}.**"
+                    response = 'menu'
+
+
+                if response in ['description']:
+                    await message.clear_reactions()
+                    emoji_embed = await clash_embed(ctx,message=f"Please enter the new Description for **{c.name}**.\n\n**Note: When using emojis, please note that only emojis found in this server are usable.**")
+                    await message.edit(content=ctx.author.mention,embed=emoji_embed)
+
+                    try:
+                        response_msg = await ctx.bot.wait_for("message",timeout=180,check=response_check)
+                    except asyncio.TimeoutError:
+                        end_embed = await clash_embed(ctx,message=f"Operation timed out.")
+                        await message.edit(embed=end_embed)
+                        return
+
+                    await c.set_description(ctx,response_msg.content)
+                    state_text = f"**The description for {c.name} is now set as follows:**\n\n>>> {c.description}"
                     response = 'menu'
 
 
