@@ -255,9 +255,8 @@ class AriXMemberCommands(commands.Cog):
 
         if tags:
             for tag in tags:
-                tag_run.append(tag)
-
-        await ctx.send(tag_run)
+                if tag not in tag_run:
+                    tag_run.append(tag)
 
         clans = []
 
@@ -290,7 +289,7 @@ class AriXMemberCommands(commands.Cog):
             clan_str += c.desc_summary_text
 
             if len(c.recruitment_level) > 0:
-                clan_str += "Recruiting: "
+                clan_str += "\n\nRecruiting: "
                 for th in c.recruitment_level:
                     clan_str += f"{emotes_townhall[th]} "
 
