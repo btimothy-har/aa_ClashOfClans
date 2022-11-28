@@ -250,36 +250,55 @@ class AriXMemberCommands(commands.Cog):
         Gets information about a specified clan.
         """
 
-        await ctx.send(tags)
-        await ctx.send(ctx.invoked_with)
-        await ctx.send(ctx.invoked_parents)
+        tags = []
+        clans = []
+        if tags:
+            tags = list(tags)
 
-        return
+        tags.append(ctx.invoked_with)
 
-        try:
-            c = await aClan.create(ctx,tag)
-        except Exception as e:
-            return await error_end_processing(ctx,
-                preamble=f"Error encountered while retrieving clan {tag}",
-                err=e)
+        for t in tags:
+            if t in ['as','pa','ao9','pr']:
+                c1 = await get_alliance_clan(ctx,ctx.invoked_with.upper())
+                clans.append(c1)
 
-        th_str = "Recruiting: "
-        for th in c.recruitment_level:
-            th_str += f"{emotes_townhall[th]} "
-        clan_str = ""
-        clan_str += f"{c.desc_summary_text}"
-        if len(c.recruitment_level) > 0:
-            clan_str += f"\n\n{th_str}"
-        clan_str += f"\n\n[Clan Link: {c.tag}]({c.c.share_link})"
-        clan_str += f"\n\n{c.description}"
+            elif ctx.invoked_with in ['don','dop','ao2']:
+                tag_dict = {
+                    'don': '#8089PGLQ',
+                    'dop': '#2Y0VPJUVJ',
+                    'ao2': '#2P90Y0JLP',
+                    }
+                c2 = await aClan.create(ctx,tag_dict[t])
+                clans.append(c2)
 
-        rEmbed = await clash_embed(ctx=ctx,
-            title=f"{c.emoji} {title}",
-            message={clan_str},
-            thumbnail=c.c.badge.medium,
-            show_author=False)
+            else:
+                t2 = coc.utils.correct_tag(tag)
+                if not coc.utils.is_valid_tag(t2):
+                    continue
+                try:
+                    c = await aClan.create(ctx,t2)
+                except Exception as e:
+                    continue
+                clans.append(c)
 
-        await ctx.send(embed=rEmbed)
+        for c in clans:
+            th_str = "Recruiting: "
+            for th in c.recruitment_level:
+                th_str += f"{emotes_townhall[th]} "
+            clan_str = ""
+            clan_str += f"{c.desc_summary_text}"
+            if len(c.recruitment_level) > 0:
+                clan_str += f"\n\n{th_str}"
+            clan_str += f"\n\n[Clan Link: {c.tag}]({c.c.share_link})"
+            clan_str += f"\n\n{c.description}"
+
+            rEmbed = await clash_embed(ctx=ctx,
+                title=f"{c.emoji} {title}",
+                message={clan_str},
+                thumbnail=c.c.badge.medium,
+                show_author=False)
+
+            await ctx.send(embed=rEmbed)
 
 
     @commands.command(name="profile")
