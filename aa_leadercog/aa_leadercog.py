@@ -603,14 +603,14 @@ class AriXLeaderCommands(commands.Cog):
 
                     announcement_embed.add_field(
                         name="```**What would you like to do today?**```",
-                        value=f"\u200b\n{select_str}\n\n*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
+                        value=f"\u200b\n{select_str}*Exit this Menu at any time by clicking on <:red_cross:838461484312428575>.*\n\u200b",
                         inline=False
                         )
 
                     if admin_str:
                         announcement_embed.add_field(
                             name="```**Admin Options**```",
-                            value=f"\u200b\n{admin_str}",
+                            value=f"\u200b\n{admin_str}\n\u200b",
                             inline=False
                             )
 
