@@ -275,7 +275,7 @@ class AriXMemberCommands(commands.Cog):
                 clans.append(c2)
 
             else:
-                t2 = coc.utils.correct_tag(tag)
+                t2 = coc.utils.correct_tag(t)
                 if not coc.utils.is_valid_tag(t2):
                     continue
                 try:
