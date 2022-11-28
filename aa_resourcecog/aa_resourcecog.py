@@ -43,6 +43,8 @@ class AriXClashResources(commands.Cog):
             "alliance_elder_role": 0,
             "alliance_member_role": 0,
             "alliance_base_role": 0,
+            "alliance_base_channel": 0,
+            "alliance_update_channel": 0,
             }
         default_guild = {}
         defaults_user = {}
@@ -110,6 +112,34 @@ class AriXClashResources(commands.Cog):
                 await self.config.alliance_base_role.set(int(role.id))
                 ctx.bot.base_vault_role = role
                 return await ctx.send(f"The Alliance Base Role has been set to `{ctx.bot.base_role.name}`.")
+
+    @commands.command(name="setalliancechannel")
+    @commands.is_owner()
+    async def set_clash_alliance_channel(self,ctx,channel_type:str,channel_id:int):
+        """
+        Sets Alliance channels.
+        """
+
+        valid_channels = ['base','updates']
+
+        if channel_type not in valid_channels:
+            return await ctx.send(f"The Channel Type seems to be invalid. Acceptable types: {humanize_list(valid_channels)}")
+
+        try:
+            channel = ctx.bot.get_channel(int(channel_id))
+        except:
+            return await ctx.send(f"The Channel ID {channel_id} seems to be invalid.")
+
+        else:
+            if channel_type == 'base':
+                await self.config.alliance_base_channel.set(int(channel.id))
+                ctx.bot.base_channel = channel
+                return await ctx.send(f"The Alliance Leader Role has been set to `{ctx.bot.base_channel.name}`.")
+
+            if role_type == 'updates':
+                await self.config.alliance_update_channel.set(int(channel.id))
+                ctx.bot.update_channel = channel
+                return await ctx.send(f"The Alliance Co-Leader Role has been set to `{ctx.bot.update_channel.name}`.")
 
 
     @commands.command(name="nebula",aliases=["n"])

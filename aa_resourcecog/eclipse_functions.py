@@ -75,9 +75,8 @@ async def eclipse_main_menu(ctx,session):
 
     menu_options.append(army_analyzer)
 
-    if ctx.bot.base_vault_role:
-        member = await ctx.bot.alliance_server.fetch_member(ctx.author.id)
-        if ctx.bot.base_vault_role in member.roles:
+    if ctx.bot.base_channel:
+        if ctx.channel == ctx.bot.base_channel:
             menu_options.append(base_vault_option)
     #menu_options.append(base_army_guides)
     #menu_options.append(strategy_guides)
@@ -90,7 +89,7 @@ async def eclipse_main_menu(ctx,session):
         title="**Welcome to E.C.L.I.P.S.E.!**",
         message=f"\nAriX's ***E**xtraordinarily **C**ool **L**ooking **I**nteractive & **P**rofessional **S**earch **E**ngine*."
             + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, alongside exclusive AriX-only tools."
-            + f"\n\n**Note: To access our Base Vault, you need to have been a member for __at least 2 weeks__. If you meet this criteria, please contact a <@&733023831366697080> to get access.**\n\u200b")
+            + f"\n\n**Note: To access our Base Vault, you need to run E.C.L.I.P.S.E. in the `{ctx.bot.base_channel.name}` channel. To get access to this channel, you must be a member for __at least 2 weeks__. If you meet this criteria, please contact a <@&733023831366697080> to get access.**\n\u200b")
 
     select_str = ""
 

@@ -58,6 +58,9 @@ class AriXClashDataMgr(commands.Cog):
         alliance_member_role = await resource_cog.config.alliance_member_role()
         base_vault_role = await resource_cog.config.alliance_base_role()
 
+        base_channel = await resource_cog.config.alliance_base_channel()
+        update_channel = await resource_cog.config.alliance_update_channel()
+
         try:
             bot.alliance_server = bot.get_guild(int(alliance_server_id))
         except:
@@ -92,6 +95,16 @@ class AriXClashDataMgr(commands.Cog):
             bot.base_vault_role = bot.alliance_server.get_role(int(base_vault_role))
         except:
             bot.base_vault_role = None
+
+        try:
+            bot.base_channel = bot.get_channel(int(base_channel))
+        except:
+            bot.base_channel = None
+
+        try:
+            bot.update_channel = bot.get_channel(int(update_channel))
+        except:
+            bot.update_channel = None
 
 
     @commands.group(name="data",aliases=["status"],autohelp=False)
@@ -322,10 +335,16 @@ class AriXClashDataMgr(commands.Cog):
         passive_events = []
 
         log_channel = None
+        update_channel = None
 
         try:
             log_channel_id = await self.config.logchannel()
             log_channel = ctx.bot.get_channel(log_channel_id)
+        except:
+            pass
+
+        try:
+            update_channel = ctx.bot.update_channel
         except:
             pass
 
@@ -389,6 +408,8 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                 inline=False)
+
+            await update_channel.send(f"**The new season {new_season} has started!**")
 
         str_war_update = ''
         str_raid_update = ''
@@ -457,10 +478,10 @@ class AriXClashDataMgr(commands.Cog):
             c.member_count = len([a for a in alliance_members if a.home_clan.tag == c.tag])
 
             if c.announcement_channel:
-                clan_announcement_channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
+                clan_announcement_channel = ctx.bot.get_channel(c.announcement_channel)
 
             if c.reminder_channel:
-                clan_reminder_channel = ctx.bot.alliance_server.get_channel(c.reminder_channel)
+                clan_reminder_channel = ctx.bot.get_channel(c.reminder_channel)
 
             try:
                 await c.update_clan_war(ctx)
@@ -543,7 +564,7 @@ class AriXClashDataMgr(commands.Cog):
 
                             #override to war channel for PR
                             if c.abbreviation == 'PR':
-                                ch = ctx.bot.alliance_server.get_channel(1045978358439235584)
+                                ch = ctx.bot.get_channel(1045978358439235584)
                                 await ch.send(ping_str)
                             else:
                                 await clan_reminder_channel.send(ping_str)
@@ -705,7 +726,7 @@ class AriXClashDataMgr(commands.Cog):
                                 value=f"{rank_table}",
                                 inline=False)
 
-                            channel = ctx.bot.alliance_server.get_channel(c.announcement_channel)
+                            channel = ctx.bot.get_channel(c.announcement_channel)
                             rm = discord.AllowedMentions(roles=True)
 
                             await channel.send(embed=raid_end_embed)
@@ -875,14 +896,6 @@ class AriXClashDataMgr(commands.Cog):
 
                 if role_change:
                     role_count += 1
-
-        for tag,c_member in ctx.bot.member_cache.items():
-            if st - c_member.timestamp > 86400:
-                del ctx.bot.member_cache[tag]
-
-        for tag,c_clan in ctx.bot.clan_cache.items():
-            if st - c_clan.timestamp > 86400:
-                del ctx.bot.clan_cache[tag]
 
         et = time.time()
 
