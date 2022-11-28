@@ -246,9 +246,9 @@ class AriXMemberCommands(commands.Cog):
 
     @commands.command(name="getclan",aliases=['as','pa','ao9','pr','don','dop','ao2'])
     async def clan_information(self,ctx,*tags):
-    """
-    Gets information about a specified clan.
-    """
+        """
+        Gets information about a specified clan.
+        """
 
         return await ctx.send(ctx.commands.invoked_parents)
 
