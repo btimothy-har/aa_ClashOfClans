@@ -260,6 +260,8 @@ class AriXMemberCommands(commands.Cog):
 
         clans = []
 
+        await ctx.send(tag_run)
+
         for t in tag_run:
             if t in ['as','pa','ao9','pr']:
                 c1 = await get_alliance_clan(ctx,t.upper())
