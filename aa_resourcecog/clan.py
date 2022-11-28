@@ -99,7 +99,7 @@ class aClan():
             self.timestamp = time.time()
             try:
                 self.c = await ctx.bot.coc_client.get_clan(self.tag)
-            except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
+            except Exception as exc:
                 raise TerminateProcessing(exc) from exc
                 return None
 
