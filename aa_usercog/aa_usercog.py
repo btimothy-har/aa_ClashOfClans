@@ -244,37 +244,39 @@ class AriXMemberCommands(commands.Cog):
 
         return await ctx.send(embed=rEmbed)
 
-    # @commands.command(name="getclan")
-    # async def clan_information(self,ctx,tag):
-    #     """
-    #     Gets information about a specified clan tag.
-    #     """
-    #     try:    
-    #         c = await aClan.create(ctx,tag)
-    #     except Exception as e:
-    #         return await error_end_processing(ctx,
-    #             preamble=f"Error encountered while retrieving clan {tag}",
-    #             err=e)
+    @commands.command(name="getclan",aliases=['as','pa','ao9','pr','don','dop','ao2'])
+    async def clan_information(self,ctx,*tags):
+    """
+    Gets information about a specified clan.
+    """
 
-    #     title, text, summary = await resc.clan_description(ctx,c)
+        return await ctx.send(ctx.commands.invoked_parents)
 
-    #     th_str = "Recruiting: "
-    #     for th in c.recruitment_level:
-    #         th_str += f"{emotes_townhall[th]} "
+        try:
+            c = await aClan.create(ctx,tag)
+        except Exception as e:
+            return await error_end_processing(ctx,
+                preamble=f"Error encountered while retrieving clan {tag}",
+                err=e)
 
-    #     clan_str = ""
-    #     clan_str += f"{text}"
-    #     if len(c.recruitment_level) > 0:
-    #         clan_str += f"\n\n{th_str}"
-    #     clan_str += f"\n\n{c.description}"
+        th_str = "Recruiting: "
+        for th in c.recruitment_level:
+            th_str += f"{emotes_townhall[th]} "
+        clan_str = ""
+        clan_str += f"{c.desc_summary_text}"
+        if len(c.recruitment_level) > 0:
+            clan_str += f"\n\n{th_str}"
+        clan_str += f"\n\n[Clan Link: {c.tag}]({c.c.share_link})"
+        clan_str += f"\n\n{c.description}"
 
-    #     rEmbed = await clash_embed(ctx=ctx,
-    #         title=f"{c.emoji} {title}",
-    #         message=clan_str,
-    #         thumbnail=c.c.badge.medium,
-    #         show_author=False)
+        rEmbed = await clash_embed(ctx=ctx,
+            title=f"{c.emoji} {title}",
+            message={clan_str},
+            thumbnail=c.c.badge.medium,
+            show_author=False)
 
-    #     await ctx.send(embed=rEmbed)
+        await ctx.send(embed=rEmbed)
+
 
     @commands.command(name="profile")
     async def arix_profile(self,ctx,Discord_User:discord.User=None):
