@@ -610,7 +610,7 @@ class AriXLeaderCommands(commands.Cog):
                     if admin_str:
                         announcement_embed.add_field(
                             name="```**Admin Options**```",
-                            value=f"\u200b\n{admin_str}\n\u200b",
+                            value=f"\u200b\n{admin_str}\u200b",
                             inline=False
                             )
 
