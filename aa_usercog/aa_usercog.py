@@ -260,14 +260,12 @@ class AriXMemberCommands(commands.Cog):
 
         clans = []
 
-        await ctx.send(tag_run)
-
         for t in tag_run:
             if t in ['as','pa','ao9','pr']:
                 c1 = await get_alliance_clan(ctx,t.upper())
                 clans.append(c1[0])
 
-            elif ctx.invoked_with in ['don','dop','ao2']:
+            elif t in ['don','dop','ao2']:
                 tag_dict = {
                     'don': '#8089PGLQ',
                     'dop': '#2Y0VPJUVJ',
