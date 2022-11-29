@@ -646,8 +646,8 @@ class AriXLeaderCommands(commands.Cog):
 
                 if response in ['description']:
                     await message.clear_reactions()
-                    emoji_embed = await clash_embed(ctx,message=f"Please enter the new Description for **{c.name}**.\n\n**Note: When using emojis, please note that only emojis found in this server are usable.**")
-                    await message.edit(content=ctx.author.mention,embed=emoji_embed)
+                    desc_embed = await clash_embed(ctx,message=f"Please enter the new Description for **{c.name}**.\n\n**Note: When using emojis, please note that only emojis found in this server are usable.**")
+                    await message.edit(content=ctx.author.mention,embed=desc_embed)
 
                     try:
                         response_msg = await ctx.bot.wait_for("message",timeout=180,check=response_check)
@@ -657,7 +657,8 @@ class AriXLeaderCommands(commands.Cog):
                         return
 
                     await c.set_description(ctx,response_msg.content)
-                    state_text = f"**The description for {c.name} is now set as follows:**\n\n>>> {c.description}"
+                    await response_msg.delete
+                    state_text = f"**The description for {c.name} is now set as follows:**\n\n`\u200b`{c.description}`\u200b`"
                     response = 'menu'
 
 
