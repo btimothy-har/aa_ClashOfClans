@@ -223,5 +223,8 @@ async def paginate_embed(ctx,output,add_instructions=True):
             response = None
             paginate_state = False
 
-    await message.clear_reactions()
+    try:
+        await message.clear_reactions()
+    except:
+        pass
     return response
