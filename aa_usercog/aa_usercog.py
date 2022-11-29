@@ -374,7 +374,13 @@ class AriXMemberCommands(commands.Cog):
         if discord_member.premium_since:
             profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since *{discord_member.premium_since.strftime('%d %b %Y')}*"
 
-        embed_color = [r for r in roles_sorted if r.color][0].color
+        embed_color_role = [r for r in roles_sorted if r.color.value]
+
+        if len(embed_color_role)>0:
+            embed_color = embed_color_role[0].color
+        else:
+            embed_color = None
+
 
         member_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
