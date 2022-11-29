@@ -375,7 +375,7 @@ class AriXMemberCommands(commands.Cog):
             profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since *{discord_member.premium_since.strftime('%d %b %Y')}*"
 
         for r in roles_sorted:
-            await ctx.send(f"{r.name} {r.color}")
+            await ctx.send(f"{r.name} {r.color.value}")
         return
 
         member_accounts_embed = await clash_embed(ctx,
