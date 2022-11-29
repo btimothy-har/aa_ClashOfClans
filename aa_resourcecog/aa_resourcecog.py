@@ -367,7 +367,7 @@ class AriXClashResources(commands.Cog):
             home_clans = leader_clans
 
         abb_clans = []
-        [abb_clans.append(c.abbreviation) for c in home_clans if c.abbreviation not in abb_clans]
+        [abb_clans.append(c.abbreviation) for c in home_clans if c.abbreviation not in abb_clans and c.abbreviation!='']
 
         new_nickname += f" | {' + '.join(abb_clans)}"
         return new_nickname
