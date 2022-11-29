@@ -6,6 +6,7 @@ from datetime import datetime
 from .constants import clanRanks
 from .player import aPlayer
 from .clan import aClan
+from .errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 
 async def get_user_profile(ctx,user_id):

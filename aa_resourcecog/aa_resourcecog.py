@@ -179,7 +179,7 @@ class AriXClashResources(commands.Cog):
             name="**__General Commands__**",
             value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
                 + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
-                + f"\n> \n> **player** `[optional: COC Player Tags]`\n> Gets your Clash of Clans player stats.\n> You may provide multiple player tag(s), separated by a space."
+                + f"\n> \n> **player** `[optional: @Discord User or COC Player Tags]`\n> Gets your Clash of Clans player stats. You may provide multiple player tag(s), separated by a space.\n> If searching by User, only 1 Discord User can be provided."
                 + f"\n\u200b",
             inline=False)
 

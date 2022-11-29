@@ -668,10 +668,10 @@ class AriXClashDataMgr(commands.Cog):
 
                                 members_ranked = sorted(c.current_raid_weekend.members, key=lambda x: (x.resources_looted),reverse=True)
                                 rank = 0
-                                rank_table = f"`{'P':^3}`\u3000`{'Player':^15}`\u3000`{'Looted':^8}`\u3000`{'Attacks':^7}`"
+                                rank_table = f"`{'P':^3}`\u3000`{'Player':^18}`\u3000`{'Looted':^8}`"
                                 for m in members_ranked[0:5]:
                                     rank += 1
-                                    rank_table += f"\n`{rank:^3}`\u3000`{m.name:<15}`\u3000`{m.resources_looted:<8,}`\u3000`{m.attack_count:^7}`"
+                                    rank_table += f"\n`{rank:^3}`\u3000`{m.name:<18}`\u3000`{m.resources_looted:>8,}`"
 
                                 raid_end_embed = await clash_embed(ctx=ctx,
                                     title=f"Raid Weekend Results: {c.name} ({c.tag})",
@@ -699,7 +699,7 @@ class AriXClashDataMgr(commands.Cog):
 
                                 raid_end_embed.add_field(
                                     name="Total Loot Gained",
-                                    value=f"{c.current_raid_weekend.total_loot:,} <:CapitalGoldContributed:971012592057339954>",
+                                    value=f"{c.current_raid_weekend.total_loot:,} <:CapitalGoldLooted:1045200974094028821>",
                                     inline=True)
 
                                 raid_end_embed.add_field(

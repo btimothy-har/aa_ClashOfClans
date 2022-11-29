@@ -26,7 +26,7 @@ from .userprofile_functions import userprofile_main
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
-from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize
+from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize, badge_emotes, xp_rank_roles
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
@@ -311,69 +311,98 @@ class AriXMemberCommands(commands.Cog):
         Gets a User's AriX Profile.
         """
 
-        user = Discord_User
-
         output_embed = []
 
+        user = Discord_User
         if not user:
             user = ctx.author
-
         discord_member = ctx.bot.alliance_server.get_member(user.id)
-
         if not discord_member:
             discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
 
+        alliance_clans = await get_alliance_clan(ctx)
         home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
-
         other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
-        profile_msg = ""
+        is_staff = False
+        staff_msg = ""
+        for c in alliance_clans:
+            try:
+                if user.id == c.leader:
+                    is_staff = True
+                    staff_msg += f"\n{c.emoji} **Leader of {c.name}**"
+                if user.id in c.co_leaders:
+                    is_staff = True
+                    staff_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
+                if user.id in c.elders:
+                    is_staff = True
+                    staff_msg += f"\n{c.emoji} Elder of {c.name}"
+            except:
+                pass
 
+        has_badge = False
+        badge_msg = ""
         try:
             for c in home_clans:
-                profile_msg += f"{c.emoji} "
+                has_badge = True
+                badge_msg += f"{c.emoji} "
         except:
             pass
 
-        ###
-        #achievements
+        for role in discord_member.roles:
+            if role.id in list(badge_emotes.keys()):
+                has_badge = True
+                badge_msg += f"{badge_emotes[role.id]} "
 
-        ####
+        profile_msg = ""
+        if has_badge:
+            profile_msg += f"{badge_msg}"
 
-        profile_msg += "\n\n**Joined AriX (Server)**"
-        profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
+        if is_staff:
+            profile_msg += f"\n{staff_msg}"
+
+        #profile_msg += "\n\n**Joined AriX (Server)**"
+        #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
         if discord_member.premium_since:
-            profile_msg += "\n\n**Server Boosting Since**"
-            profile_msg += f"\n<:nitro:1044199686451515523> {discord_member.premium_since.strftime('%d %b %Y')}"
+            profile_msg += f"\n\n'<:ServerBooster:1047016978759553056>' Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
+
+        rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
+        if len(rank_role) > 0:
+            profile_msg += f"\n\n**AriX Rank** {rank_role[0].mention}\n"
 
         member_accounts_embed = await clash_embed(ctx,
-            title=f"AriX Profile: {discord_member.display_name}",
+            title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
 
         other_accounts_embed = await clash_embed(ctx,
-            title=f"AriX Profile: {discord_member.display_name}",
-            message=f"{profile_msg}\n\u200b",
+            title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
+            message=f"**Other Non-AriX Accounts\n\u200b**",
             thumbnail=discord_member.avatar_url)
 
         try:
+            accounts_ct = 0
             for a in [a for a in user_accounts if a.is_member]:
+                accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.desc_full_text}\n\u200b",
+                    value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
 
             for a in [a for a in user_accounts if not a.is_member]:
+                accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.desc_full_text}\n\u200b",
+                    value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
         except:
             pass
 
         try:
+            other_accounts_ct = 0
             for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
+                other_accounts_ct += 1
                 try:
                     p = await aPlayer.create(ctx,a)
                 except Exception as e:
@@ -383,22 +412,16 @@ class AriXMemberCommands(commands.Cog):
 
                 other_accounts_embed.add_field(
                     name=f"{p.desc_title}",
-                    value=f"{p.desc_full_text}\n\u200b",
+                    value=f"{p.desc_summary_text}\n{p.hero_description}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
                     inline=False)
         except:
             pass
 
-        try:
-            if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
-                output_embed.append(member_accounts_embed)
-        except:
-            pass
+        if accounts_ct > 0:
+            output_embed.append(member_accounts_embed)
 
-        try:
-            if len([a for a in other_accounts if a not in [u.tag for u in user_accounts]]) > 0:
-                output_embed.append(other_accounts_embed)
-        except:
-            pass
+        if other_accounts_ct > 0:
+            output_embed.append(other_accounts_embed)
 
         if len(output_embed) == 0:
             output_embed.append(member_accounts_embed)
@@ -407,7 +430,7 @@ class AriXMemberCommands(commands.Cog):
 
 
     @commands.command(name="player")
-    async def arix_player(self,ctx,*player_tags:str):
+    async def arix_player(self,ctx,*tags_or_user_mention):
         """
         Get Player Stats for yourself or for a Clash of Clans account.
 
@@ -415,10 +438,24 @@ class AriXMemberCommands(commands.Cog):
         If no tags are provided, will return all of your accounts registered with AriX.
         """
 
-        discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
-
+        author = ctx.bot.alliance_server.get_member(ctx.author.id)
+        discord_member = None
+        player_tags = []
         output_embed = []
         accounts = []
+
+        if len(tags_or_user_mention) == 0:
+            discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
+        else:
+            try:
+                check_for_discord_mention = int(re.search('@(.*)>',tags_or_user_mention[0]).group(1))
+                discord_member = ctx.bot.alliance_server.get_member(check_for_discord_mention)
+            except:
+                for t in tags_or_user_mention:
+                    t = coc.utils.correct_tag(t)
+                    if not coc.utils.is_valid_tag(t):
+                        continue
+                    player_tags.append(t)
 
         if player_tags:
             for tag in player_tags:
@@ -430,7 +467,7 @@ class AriXMemberCommands(commands.Cog):
                 accounts.append(p)
 
         else:
-            home_clans, accounts = await get_user_profile(ctx,ctx.author.id)
+            home_clans, accounts = await get_user_profile(ctx,discord_member.id)
 
         for a in accounts:
             member_status = ""
@@ -568,7 +605,7 @@ class AriXMemberCommands(commands.Cog):
             #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_str += "💩 To view Rushed Levels"
 
-            if (ctx.bot.leader_role in discord_member.roles or ctx.bot.coleader_role in discord_member.roles) and len(a.notes)>0:
+            if (ctx.bot.leader_role in author.roles or ctx.bot.coleader_role in author.roles) and len(a.notes)>0:
                 nav_str += f"\n\n:mag: View Member Notes ({len(a.notes)})"
 
             if len(accounts) > 1:
