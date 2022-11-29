@@ -331,8 +331,8 @@ class aPlayer():
             elif self.is_arix_account:
                 self.member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
 
-            self.desc_full_text = f"{member_description}"
-            if member_description:
+            self.desc_full_text = f"{self.member_description}"
+            if self.member_description:
                 self.desc_full_text += "\n"
 
             self.desc_full_text += (
@@ -347,7 +347,7 @@ class aPlayer():
             self.desc_summary_text = f"{self.town_hall.emote} {self.town_hall.description}\u3000"
 
             if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
-                self.desc_summary_text += member_description
+                self.desc_summary_text += self.member_description
             else:
                 self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
 
