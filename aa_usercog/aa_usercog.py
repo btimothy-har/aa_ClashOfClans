@@ -378,7 +378,7 @@ class AriXMemberCommands(commands.Cog):
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url,
-            color=discord.member.top_role.colour.value)
+            color=discord_member.top_role.colour)
 
         other_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
