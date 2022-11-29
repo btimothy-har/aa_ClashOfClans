@@ -359,7 +359,7 @@ class AriXMemberCommands(commands.Cog):
             profile_msg += f"{badge_msg}"
 
         if is_staff:
-            profile_msg += f"\n\n{staff_msg}"
+            profile_msg += f"\n{staff_msg}"
 
         #profile_msg += "\n\n**Joined AriX (Server)**"
         #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
@@ -373,12 +373,12 @@ class AriXMemberCommands(commands.Cog):
 
         member_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
-            message=f"{profile_msg}\u200b",
+            message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
 
         other_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
-            message=f"{profile_msg}\u200b",
+            message=f"**Other Non-AriX Accounts\n\u200b**",
             thumbnail=discord_member.avatar_url)
 
         try:
@@ -412,7 +412,7 @@ class AriXMemberCommands(commands.Cog):
 
                 other_accounts_embed.add_field(
                     name=f"{p.desc_title}",
-                    value=f"{p.desc_summary_text}\n{a.hero_description}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
+                    value=f"{p.desc_summary_text}\n{p.hero_description}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
                     inline=False)
         except:
             pass
