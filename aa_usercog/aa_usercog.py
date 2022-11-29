@@ -340,6 +340,8 @@ class AriXMemberCommands(commands.Cog):
 
         ####
 
+        member_accounts_embed = None
+
         profile_msg += "\n\n**Joined AriX (Server)**"
         profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
@@ -358,13 +360,16 @@ class AriXMemberCommands(commands.Cog):
             thumbnail=discord_member.avatar_url)
 
         try:
+            accounts = 0
             for a in [a for a in user_accounts if a.is_member]:
+                accounts += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
                     value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
 
             for a in [a for a in user_accounts if not a.is_member]:
+                accounts += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
                     value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
@@ -373,7 +378,9 @@ class AriXMemberCommands(commands.Cog):
             pass
 
         try:
+            other_accounts = 0
             for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
+                other_accounts += 1
                 try:
                     p = await aPlayer.create(ctx,a)
                 except Exception as e:
@@ -388,17 +395,11 @@ class AriXMemberCommands(commands.Cog):
         except:
             pass
 
-        try:
-            if len([a for a in user_accounts if a.is_member] + [a for a in user_accounts if not a.is_member]) > 0:
-                output_embed.append(member_accounts_embed)
-        except:
-            pass
+        if accounts > 0:
+            output_embed.append(member_accounts_embed)
 
-        try:
-            if len([a for a in other_accounts if a not in [u.tag for u in user_accounts]]) > 0:
-                output_embed.append(other_accounts_embed)
-        except:
-            pass
+        if other_accounts > 0:
+            output_embed.append(other_accounts_embed)
 
         if len(output_embed) == 0:
             output_embed.append(member_accounts_embed)
