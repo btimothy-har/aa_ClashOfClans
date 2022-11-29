@@ -361,13 +361,13 @@ class AriXMemberCommands(commands.Cog):
             for a in [a for a in user_accounts if a.is_member]:
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.desc_summary_text}\n{a.hero_description}\n\u200b",
+                    value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
 
             for a in [a for a in user_accounts if not a.is_member]:
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.desc_full_text}\n\u200b",
+                    value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
         except:
             pass
@@ -383,7 +383,7 @@ class AriXMemberCommands(commands.Cog):
 
                 other_accounts_embed.add_field(
                     name=f"{p.desc_title}",
-                    value=f"{p.desc_full_text}\n\u200b",
+                    value=f"{p.desc_summary_text}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
         except:
             pass
