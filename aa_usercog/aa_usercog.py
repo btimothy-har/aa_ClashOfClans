@@ -390,7 +390,7 @@ class AriXMemberCommands(commands.Cog):
 
                 other_accounts_embed.add_field(
                     name=f"{p.desc_title}",
-                    value=f"{p.desc_summary_text}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
+                    value=f"{p.desc_summary_text}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
                     inline=False)
         except:
             pass
