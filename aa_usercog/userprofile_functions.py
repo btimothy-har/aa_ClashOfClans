@@ -460,7 +460,7 @@ async def userprofile_rushed(ctx,account,message=None):
             + f"\n\n**Rushed Percentage**"
             + f"\nTroops: {a.troop_rushed_pct}%"
             + f"\nSpells: {a.spell_rushed_pct}%"
-            + f"\nHeroes: {a.spell_rushed_pct}%"
+            + f"\nHeroes: {a.hero_rushed_pct}%"
             + f"\n\nOverall: **{a.overall_rushed_pct}%**"
             + f"\n*Percentages exclude Pets.*")
 
