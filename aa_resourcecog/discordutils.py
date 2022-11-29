@@ -23,6 +23,8 @@ async def clash_embed(ctx, title=None, message=None, url=None, show_author=True,
         color = 0x00FF00
     elif color == "fail":
         color = 0xFF0000
+    elif color:
+        color = color
     else:
         color = await ctx.embed_color()
     if url:
