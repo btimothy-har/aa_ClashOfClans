@@ -353,7 +353,7 @@ class AriXMemberCommands(commands.Cog):
         for i in list(badge_emotes.keys()):
             if i in [role.id for role in roles_sorted]:
                 has_badge = True
-                badge_msg += badge_msg += f"{badge_emotes[i]} "
+                badge_msg += f"{badge_emotes[i]} "
 
         try:
             for c in home_clans:
