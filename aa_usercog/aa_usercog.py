@@ -343,7 +343,9 @@ class AriXMemberCommands(commands.Cog):
         has_badge = False
         badge_msg = ""
 
-        for role in discord_member.roles:
+        roles_sorted = sorted(discord_member.roles,key=lambda x:(x.position),reverse=True)
+
+        for role in roles_sorted:
             if role.id in list(badge_emotes.keys()):
                 has_badge = True
                 badge_msg += f"{badge_emotes[role.id]} "
@@ -375,12 +377,14 @@ class AriXMemberCommands(commands.Cog):
         member_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"{profile_msg}\n\u200b",
-            thumbnail=discord_member.avatar_url)
+            thumbnail=discord_member.avatar_url,
+            color=discord.member.top_role.colour.value)
 
         other_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"**Other Non-AriX Accounts\n\u200b**",
-            thumbnail=discord_member.avatar_url)
+            thumbnail=discord_member.avatar_url,
+            color=discord.member.top_role.colour.value)
 
         try:
             accounts_ct = 0
