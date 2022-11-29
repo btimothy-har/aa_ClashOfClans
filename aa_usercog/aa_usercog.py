@@ -325,20 +325,25 @@ class AriXMemberCommands(commands.Cog):
         other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
         is_staff = False
-        staff_msg = ""
+
+        leader_msg = ""
+        coleader_msg = ""
+        elder_msg = ""
         for c in alliance_clans:
             try:
                 if user.id == c.leader:
                     is_staff = True
-                    staff_msg += f"\n{c.emoji} **Leader of {c.name}**"
+                    leader_msg += f"\n{c.emoji} **Leader of {c.name}**"
                 if user.id in c.co_leaders:
                     is_staff = True
-                    staff_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
+                    coleader_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
                 if user.id in c.elders:
                     is_staff = True
-                    staff_msg += f"\n{c.emoji} Elder of {c.name}"
+                    elder_msg += f"\n{c.emoji} Elder of {c.name}"
             except:
                 pass
+
+        staff_msg = leader_msg + coleader_msg + elder_msg
 
         has_badge = False
         badge_msg = ""
