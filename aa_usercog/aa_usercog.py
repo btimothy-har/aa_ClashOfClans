@@ -384,7 +384,7 @@ class AriXMemberCommands(commands.Cog):
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"**Other Non-AriX Accounts\n\u200b**",
             thumbnail=discord_member.avatar_url,
-            color=discord.member.top_role.colour.value)
+            color=discord_member.top_role.colour)
 
         try:
             accounts_ct = 0
