@@ -19,7 +19,7 @@ from discord.utils import get
 from datetime import datetime
 from string import ascii_letters, digits
 
-from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
+from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
 from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
 from .alliance_functions import get_user_profile, get_alliance_clan
@@ -148,6 +148,8 @@ class AriXClashResources(commands.Cog):
         Custom help command for N.E.B.U.L.A.
         """
 
+        output_embed = []
+
         leader_state = False
         coleader_state = False
         elder_state = False
@@ -170,10 +172,11 @@ class AriXClashResources(commands.Cog):
         nebula_embed = await clash_embed(ctx,
             title="Hello, I am N.E.B.U.L.A.",
             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
-                + "\n\nMy commands are designed to be simple and easy to remember. "
-                + "The commands displayed below are based on your access levels."
+                + "\n\nThe commands displayed below are based on your access level."
                 + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
             thumbnail="https://i.imgur.com/TZF5r54.png")
+
+        leader_embed = None
 
         nebula_embed.add_field(
             name="**__General Commands__**",
@@ -195,6 +198,19 @@ class AriXClashResources(commands.Cog):
 
         if coleader_state or leader_state:
             nebula_embed.add_field(
+                name="**__Navigation__**",
+                value=f"Use the reaction arrows to view more commands."
+                    + f"\n\u200b",
+                inline=False)
+
+            leader_embed = await clash_embed(ctx,
+                title="Hello, I am N.E.B.U.L.A.",
+                message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
+                    + "\n\nThe commands displayed below are based on your access level."
+                    + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
+                thumbnail="https://i.imgur.com/TZF5r54.png")
+
+            leader_embed.add_field(
                 name="**__Leaders & Co-Leader Commands__**",
                 value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
                     + f"\n> \n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
@@ -205,38 +221,18 @@ class AriXClashResources(commands.Cog):
                     + f"\n\u200b",
                 inline=False)
 
-        await ctx.send(embed=nebula_embed)
+            leader_embed.add_field(
+                name="**__Navigation__**",
+                value=f"Use the reaction arrows to view more commands."
+                    + f"\n\u200b",
+                inline=False)
 
-    async def player_description(ctx,p):
-        #build title
-        title = ""
-        text_full = ""
-        text_summary = ""
-        title += f"{p.name}"
+        output_embed.append(nebula_embed)
 
-        m_description = ""
-        if p.is_member:
-            if p.arix_rank not in ['Guest']:
-                m_description = f"***{p.home_clan.emoji} {p.arix_rank} of {p.home_clan.name}***"
-            else:
-                m_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
+        if leader_embed:
+            output_embed.append(leader_embed)
 
-        text_full += f"{m_description}"
-        if m_description:
-            text_full += "\n"
-        text_full += f"<:Exp:825654249475932170> {p.exp_level}\u3000<:Clan:825654825509322752> {p.clan_description}"
-        text_full += f"\n{p.town_hall.emote} {p.town_hall.description}\u3000{emotes_league[p.league.name]} {p.trophies} (best: {p.best_trophies})"
-        text_full += f"\n{p.hero_description}"
-        text_full += f"\n[Player Link: {p.tag}]({p.share_link})"
-        
-        text_summary += f"{p.town_hall.emote} {p.town_hall.description}\u3000"
-        if p.is_member and p.arix_rank not in ['Guest']:
-            text_summary += f"{m_description}"
-        else:
-            text_summary += f"<:Clan:825654825509322752> {p.clan_description}"
-        text_summary += f"\u3000{emotes_league[p.league.name]} {p.trophies}"
-
-        return title, text_full, text_summary
+        await paginate_embed(ctx,output_embed)
 
 
     async def get_welcome_embed(ctx,user):
