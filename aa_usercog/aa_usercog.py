@@ -244,7 +244,7 @@ class AriXMemberCommands(commands.Cog):
 
         return await ctx.send(embed=rEmbed)
 
-    @commands.command(name="getclan",aliases=['as','pa','ao9','pr','don','dop','ao2'])
+    @commands.command(name="getclan",aliases=['as','pa','ao9','pr','don','dop','ao2','ae'])
     async def clan_information(self,ctx,*tags):
         """
         Gets information about a specified clan.
@@ -265,11 +265,12 @@ class AriXMemberCommands(commands.Cog):
                 c1 = await get_alliance_clan(ctx,t.upper())
                 clans.append(c1[0])
 
-            elif t in ['don','dop','ao2']:
+            elif t in ['don','dop','ao2','ae']:
                 tag_dict = {
                     'don': '#8089PGLQ',
                     'dop': '#2Y0VPJUVJ',
                     'ao2': '#2P90Y0JLP',
+                    'ae': '#2QGGRUPYU',
                     }
                 c2 = await aClan.create(ctx,tag_dict[t])
                 clans.append(c2)
