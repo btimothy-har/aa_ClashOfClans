@@ -377,16 +377,18 @@ class AriXMemberCommands(commands.Cog):
         embed_color = [r for r in roles_sorted if r.color][0].color
 
         member_accounts_embed = await clash_embed(ctx,
-            title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
+            title=f"{discord_member.display_name}",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url,
             color=embed_color)
+        member_accounts_embed.set_author(name=f"{discord_member.name}#{discord_member.discriminator}",icon_url=discord_member.avatar_url)
 
         other_accounts_embed = await clash_embed(ctx,
-            title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
+            title=f"{discord_member.display_name}",
             message=f"**Other Non-AriX Accounts\n\u200b**",
             thumbnail=discord_member.avatar_url,
             color=embed_color)
+        other_accounts_embed.set_author(name=f"{discord_member.name}#{discord_member.discriminator}",icon_url=discord_member.avatar_url)
 
         try:
             accounts_ct = 0
