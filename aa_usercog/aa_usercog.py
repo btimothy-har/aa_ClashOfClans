@@ -397,7 +397,7 @@ class AriXMemberCommands(commands.Cog):
 
         other_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name}",
-            message=f"**Other Non-AriX Accounts\n\u200b**",
+            message=f"**Non-AriX Accounts\n\u200b**",
             thumbnail=discord_member.avatar_url,
             color=embed_color)
         other_accounts_embed.set_author(name=f"{discord_member.name}#{discord_member.discriminator}",icon_url=discord_member.avatar_url)
