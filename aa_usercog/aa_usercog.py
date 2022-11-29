@@ -311,51 +311,69 @@ class AriXMemberCommands(commands.Cog):
         Gets a User's AriX Profile.
         """
 
-        user = Discord_User
-
         output_embed = []
 
+        user = Discord_User
         if not user:
             user = ctx.author
-
         discord_member = ctx.bot.alliance_server.get_member(user.id)
-
         if not discord_member:
             discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
 
+        alliance_clans = await get_alliance_clan(ctx)
         home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
-
         other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
 
-        profile_msg = ""
+        is_staff = False
+        staff_msg = ""
+        for c in alliance_clans:
+            try:
+                if user.id == c.leader:
+                    is_staff = True
+                    staff_msg += f"{c.emoji} **Leader of {c.name}**\n"
+                if user.id in c.co_leaders:
+                    is_staff = True
+                    staff_msg += f"{c.emoji} **Co-Leader of {c.name}**\n"
+                if user.id in c.elders:
+                    is_staff = True
+                    staff_msg += f"{c.emoji} **Elder of {c.name}**\n"
+            except:
+                pass
 
+        has_badge = False
+        badge_msg = ""
         try:
             for c in home_clans:
-                profile_msg += f"{c.emoji} "
+                has_badge = True
+                badge_msg += f"{c.emoji} "
         except:
             pass
 
-        ###
-        #achievements
+        for role in discord_member.roles:
+            if role.id in list(badge_emotes.keys()):
+                has_badge = True
+                badge_msg += f"{badge_emotes[role.id]} "
 
-        ####
+        profile_msg = ""
+        if has_badge:
+            profile_msg += f"{badge_msg}\n\n"
 
-        member_accounts_embed = None
+        if is_staff:
+            profile_msg += f"{staff_msg}\n"
 
-        profile_msg += "\n\n**Joined AriX (Server)**"
-        profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
+        #profile_msg += "\n\n**Joined AriX (Server)**"
+        #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
         if discord_member.premium_since:
-            profile_msg += "\n\n**Server Boosting Since**"
-            profile_msg += f"\n<:nitro:1044199686451515523> {discord_member.premium_since.strftime('%d %b %Y')}"
+            profile_msg += f"\n'<:ServerBooster:1047016978759553056>' Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
 
         member_accounts_embed = await clash_embed(ctx,
-            title=f"AriX Profile: {discord_member.display_name}",
+            title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
 
         other_accounts_embed = await clash_embed(ctx,
-            title=f"AriX Profile: {discord_member.display_name}",
+            title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
             message=f"{profile_msg}\n\u200b",
             thumbnail=discord_member.avatar_url)
 
@@ -365,14 +383,14 @@ class AriXMemberCommands(commands.Cog):
                 accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
+                    value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
 
             for a in [a for a in user_accounts if not a.is_member]:
                 accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
+                    value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
         except:
             pass
@@ -390,7 +408,7 @@ class AriXMemberCommands(commands.Cog):
 
                 other_accounts_embed.add_field(
                     name=f"{p.desc_title}",
-                    value=f"{p.desc_summary_text}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
+                    value=f"{p.desc_summary_text}\n{a.hero_description}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
                     inline=False)
         except:
             pass
