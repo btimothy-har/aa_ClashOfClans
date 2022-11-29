@@ -657,7 +657,7 @@ class AriXLeaderCommands(commands.Cog):
                         return
 
                     await c.set_description(ctx,response_msg.content)
-                    await response_msg.delete
+                    await response_msg.delete()
                     state_text = f"**The description for {c.name} is now set as follows:**\n\n`\u200b`{c.description}`\u200b`"
                     response = 'menu'
 
