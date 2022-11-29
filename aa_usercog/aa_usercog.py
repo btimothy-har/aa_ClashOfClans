@@ -333,7 +333,7 @@ class AriXMemberCommands(commands.Cog):
             try:
                 if user.id == c.leader:
                     is_staff = True
-                    leader_msg += f"\n{c.emoji} **Leader of {c.name}**"
+                    leader_msg += f"\n<:Leader:1047060798192754688> **Leader of {c.name}**"
                 if user.id in c.co_leaders:
                     is_staff = True
                     coleader_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
@@ -350,10 +350,10 @@ class AriXMemberCommands(commands.Cog):
 
         roles_sorted = sorted(discord_member.roles,key=lambda x:(x.position),reverse=True)
 
-        for role in roles_sorted:
-            if role.id in list(badge_emotes.keys()):
+        for i in list(badge_emotes.keys()):
+            if i in [role.id for role in roles_sorted]:
                 has_badge = True
-                badge_msg += f"{badge_emotes[role.id]} "
+                badge_msg += badge_msg += f"{badge_emotes[i]} "
 
         try:
             for c in home_clans:
