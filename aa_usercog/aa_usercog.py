@@ -407,14 +407,14 @@ class AriXMemberCommands(commands.Cog):
                 accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
+                    value=f"{a.home_clan.emoji} {a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
 
             for a in [a for a in user_accounts if not a.is_member]:
                 accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
-                    value=f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
+                    value=f"<a:aa_AriX:1031773589231374407> {a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
         except:
             pass
