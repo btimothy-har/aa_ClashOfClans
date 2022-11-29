@@ -415,6 +415,7 @@ class AriXMemberCommands(commands.Cog):
         If no tags are provided, will return all of your accounts registered with AriX.
         """
 
+        discord_member = None
         player_tags = []
         output_embed = []
         accounts = []
