@@ -351,7 +351,7 @@ class AriXClashResources(commands.Cog):
 
             selected_account = await multiple_choice_menu_select(ctx,select_msg,selection_list)
 
-            await select_msg.clear_reactions()
+            await select_msg.delete()
 
             if not selected_account:
                 return None
