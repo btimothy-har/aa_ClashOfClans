@@ -26,7 +26,7 @@ from .userprofile_functions import userprofile_main
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
-from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize
+from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize, badge_emotes, xp_rank_roles
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
 from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
@@ -366,6 +366,10 @@ class AriXMemberCommands(commands.Cog):
 
         if discord_member.premium_since:
             profile_msg += f"\n'<:ServerBooster:1047016978759553056>' Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
+
+        rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
+        if len(rank_role) > 0:
+            profile_msg += f"\n\n**AriX Rank** {rank_role[0].mention}"
 
         member_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
