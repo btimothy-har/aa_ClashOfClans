@@ -197,12 +197,6 @@ class AriXClashResources(commands.Cog):
                 inline=False)
 
         if coleader_state or leader_state:
-            nebula_embed.add_field(
-                name="**__Navigation__**",
-                value=f"Use the reaction arrows to view more commands."
-                    + f"\n\u200b",
-                inline=False)
-
             leader_embed = await clash_embed(ctx,
                 title="Hello, I am N.E.B.U.L.A.",
                 message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
@@ -218,12 +212,6 @@ class AriXClashResources(commands.Cog):
                     + f"\n> \n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
                     + f"\n> \n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
                     + f"\n> \n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
-                    + f"\n\u200b",
-                inline=False)
-
-            leader_embed.add_field(
-                name="**__Navigation__**",
-                value=f"Use the reaction arrows to view more commands."
                     + f"\n\u200b",
                 inline=False)
 
