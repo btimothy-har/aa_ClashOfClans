@@ -359,6 +359,10 @@ class AriXMemberCommands(commands.Cog):
         if has_badge:
             profile_msg += f"{badge_msg}"
 
+        rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
+        if len(rank_role) > 0:
+            profile_msg += f"\n{rank_role[0].mention}"
+
         if is_staff:
             profile_msg += f"\n{staff_msg}"
 
@@ -366,11 +370,7 @@ class AriXMemberCommands(commands.Cog):
         #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
         if discord_member.premium_since:
-            profile_msg += f"\n\n<:ServerBooster:1047016978759553056> **Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}**"
-
-        rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
-        if len(rank_role) > 0:
-            profile_msg += f"\n\n**AriX Rank** {rank_role[0].mention}\n"
+            profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since *{discord_member.premium_since.strftime('%d %b %Y')}*"
 
         member_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
