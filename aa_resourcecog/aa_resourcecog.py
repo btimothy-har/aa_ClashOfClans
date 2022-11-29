@@ -178,7 +178,7 @@ class AriXClashResources(commands.Cog):
         nebula_embed.add_field(
             name="**__General Commands__**",
             value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
-                + f"\n> \n> **ao9 as pr pa**\n> Bring up the Clan Invite for the respective Alliance clan. Acronyms must be in lower-case.\n> You may use this in any combination\n(e.g. `$as` `$pa pr` `$ao9 don pr as`)"
+                + f"\n> \n> **ao9 as pr pa**\n> Bring up the Clan Invite for the respective Alliance clan. Acronyms must be in lower-case. You may use this in any combination\n> (e.g. `$as` `$pa pr` `$ao9 don pr as`)"
                 + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
                 + f"\n> \n> **player** `[optional: @Discord User or COC Player Tags]`\n> Gets your Clash of Clans player stats. You may provide multiple player tag(s), separated by a space.\n> If searching by User, only 1 Discord User can be provided."
                 + f"\n\u200b",
