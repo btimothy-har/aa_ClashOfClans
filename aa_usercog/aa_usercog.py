@@ -407,7 +407,7 @@ class AriXMemberCommands(commands.Cog):
 
 
     @commands.command(name="player")
-    async def arix_player(self,ctx,*player_tags:str):
+    async def arix_player(self,ctx,*tags_or_user_mention):
         """
         Get Player Stats for yourself or for a Clash of Clans account.
 
@@ -415,10 +415,22 @@ class AriXMemberCommands(commands.Cog):
         If no tags are provided, will return all of your accounts registered with AriX.
         """
 
-        discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
-
+        player_tags = []
         output_embed = []
         accounts = []
+
+        if len(tags_or_user_mention) == 0:
+            discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
+        else:
+            try:
+                check_for_discord_mention = int(re.search('@(.*)>',tags_or_user_mention[0]).group(1))
+                discord_member = ctx.bot.alliance_server.get_member(check_for_discord_mention)
+            except:
+                for t in tags_or_user_mention:
+                    t = coc.utils.correct_tag(t)
+                    if not coc.utils.is_valid_tag(t):
+                        continue
+                    player_tags.append(t)
 
         if player_tags:
             for tag in player_tags:
@@ -430,7 +442,7 @@ class AriXMemberCommands(commands.Cog):
                 accounts.append(p)
 
         else:
-            home_clans, accounts = await get_user_profile(ctx,ctx.author.id)
+            home_clans, accounts = await get_user_profile(ctx,discord_member.id)
 
         for a in accounts:
             member_status = ""
