@@ -37,7 +37,7 @@ class AriXClashDataMgr(commands.Cog):
     def __init__(self):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
-            "events_watching": [],
+            "last_status_update": 0,
             "last_data_update":0,
             "last_data_log":0,
             "update_runtimes":[],
@@ -328,6 +328,7 @@ class AriXClashDataMgr(commands.Cog):
             detected_war_change = False
             detected_raid_change = False
 
+            last_status_update = await self.config.last_status_update()
             last_log_sent = await self.config.last_data_log()
             last_data_update = await self.config.last_data_update()
             run_time_hist = await self.config.update_runtimes()
@@ -569,7 +570,6 @@ class AriXClashDataMgr(commands.Cog):
                                     await ch.send(ping_str)
                                 else:
                                     await clan_reminder_channel.send(ping_str)
-
 
                 try:
                     await c.update_raid_weekend(ctx)
@@ -957,7 +957,8 @@ class AriXClashDataMgr(commands.Cog):
                     type=activity_select,
                     name=f"start of the {new_season} Season! Clash on!"))
 
-            elif send_logs or (len(active_events) > 0) or (datetime.fromtimestamp(st).strftime('%M')=='00' and int(datetime.fromtimestamp(st).strftime('%-H'))%4==0):
+            #update after 3 hours
+            elif send_logs or ((st - last_status_update) > 10800 and (len(active_events)>0 or (datetime.fromtimestamp(st).strftime('%M')=='00' and int(datetime.fromtimestamp(st).strftime('%-H'))%4==0))):
                 if len(active_events) > 0:
                     event = random.choice(active_events)
                     await ctx.bot.change_presence(
@@ -975,7 +976,6 @@ class AriXClashDataMgr(commands.Cog):
                         activity=discord.Activity(
                             type=activity_select,
                             name=f"{len(alliance_members)} AriX members"))
-
             try:
                 await init_msg.delete()
             except:

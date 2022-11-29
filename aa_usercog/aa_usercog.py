@@ -365,11 +365,11 @@ class AriXMemberCommands(commands.Cog):
 
         profile_msg = ""
         if has_badge:
-            profile_msg += f"{badge_msg}"
+            profile_msg += f"{badge_msg}\n"
 
         rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
         if len(rank_role) > 0:
-            profile_msg += f"\n{rank_role[0].mention}"
+            profile_msg += f" \n`{rank_role[0].name}`"
 
         if is_staff:
             profile_msg += f"\n{staff_msg}"
@@ -378,7 +378,7 @@ class AriXMemberCommands(commands.Cog):
         #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
         if discord_member.premium_since:
-            profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since *{discord_member.premium_since.strftime('%d %b %Y')}*"
+            profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
 
         embed_color_role = [r for r in roles_sorted if r.color.value]
 
