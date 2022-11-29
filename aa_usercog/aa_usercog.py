@@ -333,10 +333,10 @@ class AriXMemberCommands(commands.Cog):
                     staff_msg += f"{c.emoji} **Leader of {c.name}**\n"
                 if user.id in c.co_leaders:
                     is_staff = True
-                    staff_msg += f"{c.emoji} **Co-Leader of {c.name}**\n"
+                    staff_msg += f"{c.emoji} *Co-Leader of {c.name}*\n"
                 if user.id in c.elders:
                     is_staff = True
-                    staff_msg += f"{c.emoji} **Elder of {c.name}**\n"
+                    staff_msg += f"{c.emoji} Elder of {c.name}\n"
             except:
                 pass
 
@@ -369,16 +369,16 @@ class AriXMemberCommands(commands.Cog):
 
         rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
         if len(rank_role) > 0:
-            profile_msg += f"\n\n**AriX Rank** {rank_role[0].mention}"
+            profile_msg += f"\n\n**AriX Rank** {rank_role[0].mention}\n"
 
         member_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
-            message=f"{profile_msg}\n\u200b",
+            message=f"{profile_msg}\u200b",
             thumbnail=discord_member.avatar_url)
 
         other_accounts_embed = await clash_embed(ctx,
             title=f"{discord_member.display_name} ({discord_member.name}#{discord_member.discriminator})",
-            message=f"{profile_msg}\n\u200b",
+            message=f"{profile_msg}\u200b",
             thumbnail=discord_member.avatar_url)
 
         try:
