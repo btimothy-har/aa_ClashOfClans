@@ -330,13 +330,13 @@ class AriXMemberCommands(commands.Cog):
             try:
                 if user.id == c.leader:
                     is_staff = True
-                    staff_msg += f"{c.emoji} **Leader of {c.name}**\n"
+                    staff_msg += f"\n{c.emoji} **Leader of {c.name}**"
                 if user.id in c.co_leaders:
                     is_staff = True
-                    staff_msg += f"{c.emoji} *Co-Leader of {c.name}*\n"
+                    staff_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
                 if user.id in c.elders:
                     is_staff = True
-                    staff_msg += f"{c.emoji} Elder of {c.name}\n"
+                    staff_msg += f"\n{c.emoji} Elder of {c.name}"
             except:
                 pass
 
@@ -356,16 +356,16 @@ class AriXMemberCommands(commands.Cog):
 
         profile_msg = ""
         if has_badge:
-            profile_msg += f"{badge_msg}\n\n"
+            profile_msg += f"{badge_msg}"
 
         if is_staff:
-            profile_msg += f"{staff_msg}\n"
+            profile_msg += f"\n\n{staff_msg}"
 
         #profile_msg += "\n\n**Joined AriX (Server)**"
         #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
         if discord_member.premium_since:
-            profile_msg += f"\n'<:ServerBooster:1047016978759553056>' Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
+            profile_msg += f"\n\n'<:ServerBooster:1047016978759553056>' Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
 
         rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
         if len(rank_role) > 0:
