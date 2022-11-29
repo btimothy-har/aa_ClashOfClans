@@ -323,7 +323,7 @@ class aPlayer():
                 self.raid_stats = aPlayerRaidStats(self.raidlog)
 
 
-            self.desc_title = f"{self.name} ({self.tag})"
+            self.desc_title = f"{self.name}"
 
             self.member_description = ""
             if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
