@@ -360,16 +360,16 @@ class AriXMemberCommands(commands.Cog):
             thumbnail=discord_member.avatar_url)
 
         try:
-            accounts = 0
+            accounts_ct = 0
             for a in [a for a in user_accounts if a.is_member]:
-                accounts += 1
+                accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
                     value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
 
             for a in [a for a in user_accounts if not a.is_member]:
-                accounts += 1
+                accounts_ct += 1
                 member_accounts_embed.add_field(
                     name=f"{a.desc_title}",
                     value=f"{a.member_description}\n{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
@@ -378,9 +378,9 @@ class AriXMemberCommands(commands.Cog):
             pass
 
         try:
-            other_accounts = 0
+            other_accounts_ct = 0
             for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
-                other_accounts += 1
+                other_accounts_ct += 1
                 try:
                     p = await aPlayer.create(ctx,a)
                 except Exception as e:
@@ -395,10 +395,10 @@ class AriXMemberCommands(commands.Cog):
         except:
             pass
 
-        if accounts > 0:
+        if accounts_ct > 0:
             output_embed.append(member_accounts_embed)
 
-        if other_accounts > 0:
+        if other_accounts_ct > 0:
             output_embed.append(other_accounts_embed)
 
         if len(output_embed) == 0:
