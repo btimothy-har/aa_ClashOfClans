@@ -342,17 +342,18 @@ class AriXMemberCommands(commands.Cog):
 
         has_badge = False
         badge_msg = ""
+
+        for role in discord_member.roles:
+            if role.id in list(badge_emotes.keys()):
+                has_badge = True
+                badge_msg += f"{badge_emotes[role.id]} "
+
         try:
             for c in home_clans:
                 has_badge = True
                 badge_msg += f"{c.emoji} "
         except:
             pass
-
-        for role in discord_member.roles:
-            if role.id in list(badge_emotes.keys()):
-                has_badge = True
-                badge_msg += f"{badge_emotes[role.id]} "
 
         profile_msg = ""
         if has_badge:
@@ -365,7 +366,7 @@ class AriXMemberCommands(commands.Cog):
         #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
         if discord_member.premium_since:
-            profile_msg += f"\n\n'<:ServerBooster:1047016978759553056>' Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
+            profile_msg += f"\n\n<:ServerBooster:1047016978759553056> **Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}**"
 
         rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
         if len(rank_role) > 0:
