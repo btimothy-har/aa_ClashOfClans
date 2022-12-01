@@ -280,7 +280,7 @@ class AriXClashDataMgr(commands.Cog):
             embed = await clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
             return await ctx.send(embed=embed)
 
-        if not channel_type and channel:
+        if not channel_type and not channel:
             try:
                 current_log_channel = await self.config.logchannel()
                 log_channel_object = ctx.bot.get_channel(current_log_channel)
