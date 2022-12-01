@@ -1178,11 +1178,10 @@ class AriXLeaderCommands(commands.Cog):
                 title=f"I found the below accounts to be removed. Please confirm this action.")
 
             for p in remove_accounts:
-                title, text, summary = await resc.player_description(ctx,p)
                 cEmbed.add_field(
-                    name=f"{title}",
+                    name=f"{p.desc_title}",
                     value=f"> <:Discord:1040423151760314448> <@{p.discord_user}>"
-                        + f"\n> {summary}",
+                        + f"\n> {p.desc_summary_text}",
                     inline=False)
 
             confirm_remove = await ctx.send(embed=cEmbed)

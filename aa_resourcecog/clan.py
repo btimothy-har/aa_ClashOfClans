@@ -60,8 +60,8 @@ class aClan():
         self.raid_weekend_state = ''
         self.raid_state_change = False
 
-        self.war_log = None
-        self.raid_log = None
+        self.war_log = {}
+        self.raid_log = {}
 
         self.current_war = None
         self.current_raid_weekend = None
@@ -74,7 +74,7 @@ class aClan():
         return f"Clan {self.tag} {self.name} generated on {datetime.fromtimestamp(self.timestamp).strftime('%m%d%Y%H%M%S')}"
 
     @classmethod
-    async def create(cls,ctx,tag=None,fetch=False):
+    async def create(cls,ctx,tag=None,fetch=False,reset=False):
 
         if tag:
             tag = coc.utils.correct_tag(tag)
@@ -82,7 +82,7 @@ class aClan():
                 raise InvalidTag(tag)
                 return None
 
-            if tag in list(ctx.bot.clan_cache.keys()):
+            if not reset and tag in list(ctx.bot.clan_cache.keys()):
                 self = ctx.bot.clan_cache[tag]
             else:
                 self = aClan(ctx,tag)
@@ -251,7 +251,7 @@ class aClan():
         await self.save_to_json(ctx)
 
 
-    async def update_clan_war(self,ctx):
+    async def update_clan_war(self,ctx,season):
         self.war_state_change = False
         try:
             current_war = await ctx.bot.coc_client.get_clan_war(self.tag)
@@ -259,10 +259,15 @@ class aClan():
             raise TerminateProcessing(exc) from exc
             return None
 
-        if current_war.state == 'notInWar':
+        if current_war.state == 'notInWar' or current_war.start_time:
             self.war_state = current_war.state
             return None
-        
+
+        helsinkiTz = pytz.timezone("Europe/Helsinki")
+        war_start_time_helsinki = pytz.utc.localize(datetime.fromtimestamp(current_war.start_time.time.timestamp())).astimezone(helsinkiTz)
+        if season != f"{war_start_time_helsinki.month}-{war_start_time_helsinki.year}":
+            return None
+
         self.current_war = aClanWar.from_game(ctx,current_war)
         if self.current_war.state != self.war_state:
             self.war_state_change = True
@@ -274,13 +279,18 @@ class aClan():
 
         await self.save_to_json(ctx)
 
-
-    async def update_raid_weekend(self,ctx):
+    async def update_raid_weekend(self,ctx,season):
         self.raid_state_change = False
         try:
             raid_log_gen = await ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
+            raid_log = raid_log_gen[0]
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
             raise TerminateProcessing(exc) from exc
+            return None
+
+        helsinkiTz = pytz.timezone("Europe/Helsinki")
+        raid_start_time_helsinki = pytz.utc.localize(datetime.fromtimestamp(raid_log.start_time.time.timestamp())).astimezone(helsinkiTz)
+        if season != f"{raid_start_time_helsinki.month}-{raid_start_time_helsinki.year}":
             return None
             
         self.current_raid_weekend = aRaidWeekend.from_game(ctx,self,raid_log_gen[0])
@@ -292,7 +302,6 @@ class aClan():
 
         self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
         await self.save_to_json(ctx)
-
 
     async def add_to_alliance(self,ctx,leader:discord.User,abbreviation,emoji,coleader_role,elder_role,member_role):
         self.is_alliance_clan = True

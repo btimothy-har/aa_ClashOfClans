@@ -108,7 +108,7 @@ class aPlayer():
         self.desc_summary_text = ""
 
     @classmethod
-    async def create(cls,ctx,tag,fetch=False):
+    async def create(cls,ctx,tag,fetch=False,reset=False):
         tag = coc.utils.correct_tag(tag)
 
         if not coc.utils.is_valid_tag(tag):
@@ -116,7 +116,7 @@ class aPlayer():
             return None
 
         #get from cache
-        if tag in list(ctx.bot.member_cache.keys()):
+        if not reset and tag in list(ctx.bot.member_cache.keys()):
             self = ctx.bot.member_cache[tag]
         else:
             self = aPlayer(ctx,tag)

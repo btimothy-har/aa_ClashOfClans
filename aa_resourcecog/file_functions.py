@@ -1,3 +1,7 @@
+import os
+import sys
+import shutil
+
 import json
 import pytz
 
@@ -18,7 +22,6 @@ async def season_file_handler(ctx,season,clans):
             s_json = json.load(file)
             current_season = s_json['current']
 
-
     if season != current_season:
 
         update_season = True
@@ -38,26 +41,26 @@ async def season_file_handler(ctx,season,clans):
                 with ctx.bot.clash_file_lock.write_lock():
                     with open(ctx.bot.clash_dir_path+'/seasons.json','r+') as file:
                         s_json = json.load(file)
-                        s_json['tracked'].append(currrent_season)
+                        s_json['tracked'].append(current_season)
                         s_json['current'] = new_season
                         file.seek(0)
                         json.dump(s_json,file,indent=2)
                         file.truncate()
 
-                new_path = ctx.bot.clash_dir_path+'/'+new_season
-                os.makedirs(new_path)
+                    new_path = ctx.bot.clash_dir_path+'/'+current_season
+                    os.makedirs(new_path)
 
-                shutil.copy2(ctx.bot.clash_dir_path+'/members.json',new_path)
-                with open(ctx.bot.clash_dir_path+'/members.json','w+') as file:
-                    json.dump({},file,indent=2)
+                    shutil.copy2(ctx.bot.clash_dir_path+'/members.json',new_path)
+                    with open(ctx.bot.clash_dir_path+'/members.json','w+') as file:
+                        json.dump({},file,indent=2)
 
-                shutil.copy2(ctx.bot.clash_dir_path+'/warlog.json',new_path)
-                with open(ctx.bot.clash_dir_path+'/warlog.json','w+') as file:
-                    json.dump({},file,indent=2)
+                    shutil.copy2(ctx.bot.clash_dir_path+'/warlog.json',new_path)
+                    with open(ctx.bot.clash_dir_path+'/warlog.json','w+') as file:
+                        json.dump({},file,indent=2)
 
-                shutil.copy2(ctx.bot.clash_dir_path+'/capitalraid.json',new_path)
-                with open(ctx.bot.clash_dir_path+'/capitalraid.json','w+') as file:
-                    json.dump({},file,indent=2)
+                    shutil.copy2(ctx.bot.clash_dir_path+'/capitalraid.json',new_path)
+                    with open(ctx.bot.clash_dir_path+'/capitalraid.json','w+') as file:
+                        json.dump({},file,indent=2)
 
     return is_new_season, current_season, new_season
 

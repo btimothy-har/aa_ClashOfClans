@@ -19,6 +19,7 @@ from discord.utils import get
 from datetime import datetime
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
+from art import text2art
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
@@ -46,6 +47,16 @@ class AriXClashDataMgr(commands.Cog):
         default_guild = {}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
+
+
+    @commands.command(name="arttest")
+    async def art_int(self,ctx,value:int):
+
+        art = text2art(f"{value}", font='tarty3')
+
+        embed = await clash_embed(ctx,message=f"```{art}```")
+
+        await ctx.send(embed=embed)
 
 
     async def initialize_config(self,bot):
@@ -316,7 +327,7 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
         helsinkiTz = pytz.timezone("Europe/Helsinki")
-        try:
+        if True:
             sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
@@ -376,9 +387,34 @@ class AriXClashDataMgr(commands.Cog):
             if datetime.now(helsinkiTz).day <= 9:
                 is_cwl = True
 
+            ## SEASON UPDATE
+            is_new_season, current_season, new_season = await season_file_handler(ctx,season,alliance_clans)
+
+            if is_new_season:
+                sEmbed.add_field(
+                    name=f"**New Season Initialized: {new_season}**",
+                    value=f"__Files Saved__"
+                        + f"\n**{current_season}/members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+current_season+'/members.json')}"
+                        + f"\n**{current_season}/warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+current_season+'/warlog.json')}"
+                        + f"\n**{current_season}/capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+current_season+'/capitalraid.json')}"
+                        + f"\n"
+                        + f"__Files Created__"
+                        + f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                        + f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
+                        + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+                    inline=False)
+
+                #await update_channel.send(f"**The new season {new_season} has started!**")
+
+            str_war_update = ''
+            str_raid_update = ''
+
             for key in clan_keys:
                 try:
-                    c = await aClan.create(ctx,key,fetch=True)
+                    if is_new_season:
+                        c = await aClan.create(ctx,key,fetch=True,reset=True)
+                    else:
+                        c = await aClan.create(ctx,key,fetch=True,reset=False)
                 except TerminateProcessing as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
                     eEmbed.set_footer(
@@ -393,33 +429,13 @@ class AriXClashDataMgr(commands.Cog):
 
                 alliance_clans.append(c)
 
-
-            ## SEASON UPDATE
-            is_new_season, current_season, new_season = await season_file_handler(ctx,season,alliance_clans)
-
-            if is_new_season:
-                sEmbed.add_field(
-                    name=f"**New Season Initialized: {new_season}**",
-                    value=f"__Files Saved__"
-                        + f"\n**{new_season}/members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/members.json')}"
-                        + f"\n**{new_season}/warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/warlog.json')}"
-                        + f"\n**{new_season}/capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/'+new_season+'/capitalraid.json')}"
-                        + f"\n\u200b\n"
-                        + f"__Files Created__"
-                        + f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
-                        + f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
-                        + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
-                    inline=False)
-
-                await update_channel.send(f"**The new season {new_season} has started!**")
-
-            str_war_update = ''
-            str_raid_update = ''
-
             ## MEMBER UPDATE
             for mtag in member_keys:
                 try:
-                    p = await aPlayer.create(ctx,mtag,fetch=True)
+                    if is_new_season:
+                        p = await aPlayer.create(ctx,mtag,fetch=True,reset=True)
+                    else:
+                        p = await aPlayer.create(ctx,mtag,fetch=True,reset=False)
                 except TerminateProcessing as e:
                      eEmbed = await clash_embed(ctx,message=e,color='fail')
                      eEmbed.set_footer(
@@ -965,17 +981,20 @@ class AriXClashDataMgr(commands.Cog):
                         activity=discord.Activity(
                             type=activity_select,
                             name=event))
+                    await self.config.last_status_update.set(st)
                 elif len(passive_events) > 0:
                     event = random.choice(passive_events)
                     await ctx.bot.change_presence(
                         activity=discord.Activity(
                             type=activity_select,
                             name=event))
+                    await self.config.last_status_update.set(st)
                 else:
                     await ctx.bot.change_presence(
                         activity=discord.Activity(
                             type=activity_select,
                             name=f"{len(alliance_members)} AriX members"))
+                    await self.config.last_status_update.set(st)
             try:
                 await init_msg.delete()
             except:
@@ -984,5 +1003,5 @@ class AriXClashDataMgr(commands.Cog):
             await self.config.last_data_update.set(st)
             await self.config.update_runtimes.set(run_time_hist)
 
-        except Exception as e:
-            return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")
+        #except Exception as e:
+            #return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")
