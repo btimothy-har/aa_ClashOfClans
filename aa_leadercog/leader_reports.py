@@ -80,8 +80,11 @@ async def report_paginate(ctx,message,clan,output):
         else:
             message = await ctx.send(content=ctx.author.mention,embed=output[browse_index])
 
-        await message.clear_reactions()
-        selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
+        try:
+            await message.clear_reactions()
+            selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
+        except:
+            selection = None
 
         if selection:
             response = selection['id']
