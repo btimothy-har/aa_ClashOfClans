@@ -478,9 +478,9 @@ async def userprofile_rushed(ctx,account,message=None):
         ct = 0
         for h in heroes:
             if ct % 2 == 0:
-                hero_str += " "
-            else:
                 hero_str += "\n"
+            else:
+                hero_str += "  "
             hero_str += f"{emotes_army[h.name]} `{str(h.level) + ' / ' + str(h.maxlevel_for_townhall): ^7}`"
             ct += 1
 
@@ -494,9 +494,9 @@ async def userprofile_rushed(ctx,account,message=None):
         ct = 0
         for p in pets:
             if ct % 2 == 0:
-                pets_str += " "
-            else:
                 pets_str += "\n"
+            else:
+                pets_str += " "
             pets_str += f"{emotes_army[p.name]} `{str(p.level) + ' / ' + str(p.maxlevel_for_townhall): ^7}`"
             ct += 1
 
