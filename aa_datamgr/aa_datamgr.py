@@ -48,17 +48,6 @@ class AriXClashDataMgr(commands.Cog):
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
 
-
-    @commands.command(name="arttest")
-    async def art_int(self,ctx,value:int):
-
-        art = text2art(f"{value}", font='tarty3')
-
-        embed = await clash_embed(ctx,message=f"```{art}```")
-
-        await ctx.send(embed=embed)
-
-
     async def initialize_config(self,bot):
         resource_cog = bot.get_cog("AriXClashResources")
 
@@ -327,7 +316,7 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
         helsinkiTz = pytz.timezone("Europe/Helsinki")
-        if True:
+        try:
             sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
@@ -403,8 +392,9 @@ class AriXClashDataMgr(commands.Cog):
                         + f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                         + f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                     inline=False)
+                season = new_season
 
-                #await update_channel.send(f"**The new season {new_season} has started!**")
+                #await update_channel.send(f"**The new season {season} has started!**")
 
             str_war_update = ''
             str_raid_update = ''
@@ -502,7 +492,7 @@ class AriXClashDataMgr(commands.Cog):
                     clan_reminder_channel = ctx.bot.get_channel(c.reminder_channel)
 
                 try:
-                    await c.update_clan_war(ctx)
+                    await c.update_clan_war(ctx,season)
                 except:
                     pass
                 else:
@@ -588,7 +578,7 @@ class AriXClashDataMgr(commands.Cog):
                                     await clan_reminder_channel.send(ping_str)
 
                 try:
-                    await c.update_raid_weekend(ctx)
+                    await c.update_raid_weekend(ctx,season)
                 except:
                     pass
                 else:
@@ -691,7 +681,7 @@ class AriXClashDataMgr(commands.Cog):
 
                                 raid_end_embed = await clash_embed(ctx=ctx,
                                     title=f"Raid Weekend Results: {c.name} ({c.tag})",
-                                    message=f"\n**Maximum Reward: {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,}** <:RaidMedals:983374303552753664>"
+                                    message=f"\n<:RaidMedals:983374303552753664> **Maximum Reward: {(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,}** <:RaidMedals:983374303552753664>"
                                         + f"\n\nOffensive Rewards: {c.current_raid_weekend.offense_rewards * 6} <:RaidMedals:983374303552753664>"
                                         + f"\nDefensive Rewards: {c.current_raid_weekend.defense_rewards} <:RaidMedals:983374303552753664>"
                                         ,
@@ -1003,5 +993,5 @@ class AriXClashDataMgr(commands.Cog):
             await self.config.last_data_update.set(st)
             await self.config.update_runtimes.set(run_time_hist)
 
-        #except Exception as e:
-            #return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")
+        except Exception as e:
+            return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")

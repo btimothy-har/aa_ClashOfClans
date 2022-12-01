@@ -1202,6 +1202,20 @@ class AriXLeaderCommands(commands.Cog):
                 success_embed = await clash_embed(ctx,
                     message=f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.")
 
+                if p.discord_user:
+                    user_home_clans, user_accounts = await get_user_profile(ctx,p.discord_user)
+                    member_accounts = [a for a in user_accounts if a.is_member]
+
+                    if len(member_accounts) == 0:
+                        discord_member = await ctx.bot.alliance_server.fetch_member(discord_user.id)
+
+                        if discord_member:
+                            ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
+                            await discord_member.add_roles(ex_member_role)
+
+                            success_embed = await clash_embed(ctx,
+                                message=f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n\n{ex_member_role.mention} assigned.")
+
                 await ctx.send(embed=success_embed)
 
         if len(error_log) > 0:

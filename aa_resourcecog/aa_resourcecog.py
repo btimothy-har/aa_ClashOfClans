@@ -157,17 +157,18 @@ class AriXClashResources(commands.Cog):
 
         discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
 
-        if ctx.bot.leader_role in discord_member.roles:
-            leader_state = True
+        if discord_member:
+            if ctx.bot.leader_role in discord_member.roles:
+                leader_state = True
 
-        if ctx.bot.coleader_role in discord_member.roles:
-            coleader_state = True
+            if ctx.bot.coleader_role in discord_member.roles:
+                coleader_state = True
 
-        if ctx.bot.elder_role in discord_member.roles:
-            elder_state = True
+            if ctx.bot.elder_role in discord_member.roles:
+                elder_state = True
 
-        if ctx.bot.member_role in discord_member.roles:
-            member_state = True
+            if ctx.bot.member_role in discord_member.roles:
+                member_state = True
 
         nebula_embed = await clash_embed(ctx,
             title="Hello, I am N.E.B.U.L.A.",
