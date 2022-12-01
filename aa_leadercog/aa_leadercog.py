@@ -1207,7 +1207,7 @@ class AriXLeaderCommands(commands.Cog):
                     member_accounts = [a for a in user_accounts if a.is_member]
 
                     if len(member_accounts) == 0:
-                        discord_member = await ctx.bot.alliance_server.fetch_member(discord_user.id)
+                        discord_member = await ctx.bot.alliance_server.fetch_member(p.discord_user.id)
 
                         if discord_member:
                             ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
