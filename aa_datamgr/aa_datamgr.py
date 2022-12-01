@@ -977,7 +977,7 @@ class AriXClashDataMgr(commands.Cog):
                         role_count += 1
 
                         role_change_log = await clash_embed(ctx,
-                            name=f"Role(s) Changed for: {discord_member.name}#{discord_member.discriminator}",
+                            title=f"Role(s) Changed for: {discord_member.name}#{discord_member.discriminator}",
                             message=f"Discord ID: `{discord_member.id}`"
                                 + f"\n\n**Roles Added:** {'.'.join(roles_added)}"
                                 + f"\n\n**Roles Removed:** {'.'.join(roles_removed)}")
