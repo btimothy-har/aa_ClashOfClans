@@ -1852,10 +1852,10 @@ class AriXLeaderCommands(commands.Cog):
         end_embed = await clash_embed(ctx,
             message="Report Hub closed.")
 
-        if message:
+        try:
             await message.edit(content=ctx.author.mention,embed=end_embed)
             await message.clear_reactions()
-        else:
+        except:
             await ctx.send(content=ctx.author.mention,embed=end_embed)
 
 
