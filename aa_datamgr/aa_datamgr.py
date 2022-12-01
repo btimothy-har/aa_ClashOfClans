@@ -43,6 +43,7 @@ class AriXClashDataMgr(commands.Cog):
             "last_data_log":0,
             "update_runtimes":[],
             "logchannel":0,
+            "memberlog":0,
             }
         default_guild = {}
         self.config.register_global(**default_global)
@@ -270,44 +271,78 @@ class AriXClashDataMgr(commands.Cog):
         return await ctx.send(embed=embed)
 
 
-    @commands.command(name="logchannel")
+    @commands.command(name="setlogchannel")
     @commands.is_owner()
-    async def log_channel(self, ctx, channel:discord.TextChannel=None):
+    async def log_channel(self, ctx, channel_type=None, channel:discord.TextChannel=None):
         """Configure channel to send log messages in."""
 
         if ctx.channel.type == discord.ChannelType.private:
             embed = await clash_embed(ctx=ctx,message=f"This command cannot be used in DMs.",color="fail")
             return await ctx.send(embed=embed)
 
-        if not channel:
+        if not channel_type and channel:
             try:
-                current_channel = await self.config.logchannel()
-                channel_object = ctx.bot.get_channel(current_channel)
-                channel_mention = f"<#{channel_object.id}>"
+                current_log_channel = await self.config.logchannel()
+                log_channel_object = ctx.bot.get_channel(current_log_channel)
+                log_channel_mention = f"<#{log_channel_object.id}>"
+
+                current_mlog_channel = await self.config.memberlog()
+                mlog_channel_object = ctx.bot.get_channel(current_mlog_channel)
+                mlog_channel_mention = f"<#{mlog_channel_object.id}>"
+
             except:
-                channel_mention = f"No Channel Set"
+                embed = await clash_embed(ctx=ctx,
+                    message=f"Error retrieving configuration.",
+                    color='fail')
+                return await ctx.send(embed=embed)
 
             embed = await clash_embed(ctx=ctx,
-                message=f"Logs are currently being sent in {channel_mention}.")
-
+                message=f"Logs are currently being sent in:\n> Data Logs: {log_channel_mention}\n> Member Logs: {mlog_channel_mention}")
             return await ctx.send(embed=embed)
 
         else:
-            try:
-                await self.config.logchannel.set(channel.id)
-            except:
-                return await ctx.send(content='error encountered')
-            else:
-                current_channel = await self.config.logchannel()
-                try:
-                    channel_object = ctx.bot.get_channel(current_channel)
-                    channel_mention = f"<#{channel_object.id}>"
-                except:
-                    channel_mention = f"No Channel Set"
+            valid_channels = ['data','member']
+            if channel_type not in valid_channels:
+                return await ctx.send(f"The Channel Type seems to be invalid. Acceptable types: {humanize_list(valid_channels)}")
 
-                embed = await clash_embed(ctx=ctx,
-                    message=f"Logs will now be sent in {channel_mention}.",color='success')
-                return await ctx.send(embed=embed)
+            try:
+                channel = ctx.bot.get_channel(int(channel.id))
+            except:
+                return await ctx.send(f"The Channel ID {channel.id} seems to be invalid.")
+            else:
+                if channel_type == 'data':
+                    try:
+                        await self.config.logchannel.set(channel.id)
+                    except:
+                        return await ctx.send(content='error encountered')
+                    else:
+                        current_channel = await self.config.logchannel()
+                        try:
+                            channel_object = ctx.bot.get_channel(current_channel)
+                            channel_mention = f"<#{channel_object.id}>"
+                        except:
+                            channel_mention = f"No Channel Set"
+
+                    embed = await clash_embed(ctx=ctx,
+                        message=f"Data Logs will now be sent in {channel_mention}.",color='success')
+                    return await ctx.send(embed=embed)
+
+                if channel_type == 'member':
+                    try:
+                        await self.config.memberlog.set(channel.id)
+                    except:
+                        return await ctx.send(content='error encountered')
+                    else:
+                        current_channel = await self.config.memberlog()
+                        try:
+                            channel_object = ctx.bot.get_channel(current_channel)
+                            channel_mention = f"<#{channel_object.id}>"
+                        except:
+                            channel_mention = f"No Channel Set"
+
+                    embed = await clash_embed(ctx=ctx,
+                        message=f"Data Logs will now be sent in {channel_mention}.",color='success')
+                    return await ctx.send(embed=embed)
 
 
     @commands.is_owner()
@@ -337,11 +372,18 @@ class AriXClashDataMgr(commands.Cog):
             passive_events = []
 
             log_channel = None
+            mlog_channel = None
             update_channel = None
 
             try:
                 log_channel_id = await self.config.logchannel()
                 log_channel = ctx.bot.get_channel(log_channel_id)
+            except:
+                pass
+
+            try:
+                mlog_channel_id = await self.config.memberlog()
+                mlog_channel = ctx.bot.get_channel(mlog_channel_id)
             except:
                 pass
 
@@ -352,6 +394,8 @@ class AriXClashDataMgr(commands.Cog):
 
             if not log_channel:
                 log_channel = ctx.channel
+            if not mlog_channel:
+                mlog_channel = ctx.channel
 
             if send_logs:
                 init_msg = await log_channel.send(content="Update started...")
@@ -776,6 +820,9 @@ class AriXClashDataMgr(commands.Cog):
 
                 if discord_member:
                     role_change = False
+                    roles_added = []
+                    roles_removed = []
+
                     try:
                         for clan_tag, rank_info in rank_info.items():
 
@@ -791,45 +838,57 @@ class AriXClashDataMgr(commands.Cog):
                             if rank_info['rank'] in ['Leader','Co-Leader']:
                                 if member_role not in discord_member.roles:
                                     await discord_member.add_roles(member_role)
+                                    roles_added.append(member_role.name)
                                     role_change = True
                                 if elder_role not in discord_member.roles:
                                     await discord_member.add_roles(elder_role)
+                                    roles_added.append(elder_role.name)
                                     role_change = True
                                 if coleader_role not in discord_member.roles:
                                     await discord_member.add_roles(coleader_role)
+                                    roles_added.append(coleader_role.name)
                                     role_change = True
 
                             elif rank_info['rank'] in ['Elder']:
                                 if member_role not in discord_member.roles:
                                     await discord_member.add_roles(member_role)
+                                    roles_added.append(member_role.name)
                                     role_change = True
                                 if elder_role not in discord_member.roles:
                                     await discord_member.add_roles(elder_role)
+                                    roles_added.append(elder_role.name)
                                     role_change = True
                                 if coleader_role in discord_member.roles:
                                     await discord_member.remove_roles(coleader_role)
+                                    roles_removed.append(coleader_role.name)
                                     role_change = True
 
                             elif rank_info['rank'] in ['Member']:
                                 if member_role not in discord_member.roles:
                                     await discord_member.add_roles(member_role)
+                                    roles_added.append(member_role.name)
                                     role_change = True
                                 if elder_role in discord_member.roles:
                                     await discord_member.remove_roles(elder_role)
+                                    roles_removed.append(elder_role.name)
                                     role_change = True
                                 if coleader_role in discord_member.roles:
                                     await discord_member.remove_roles(coleader_role)
+                                    roles_removed.append(coleader_role.name)
                                     role_change = True
 
                             else:
                                 if member_role in discord_member.roles:
                                     await discord_member.remove_roles(member_role)
+                                    roles_removed.append(member_role.name)
                                     role_change = True
                                 if elder_role in discord_member.roles:
                                     await discord_member.remove_roles(elder_role)
+                                    roles_removed.append(elder_role.name)
                                     role_change = True
                                 if coleader_role in discord_member.roles:
                                     await discord_member.remove_roles(coleader_role)
+                                    roles_removed.append(coleader_role.name)
                                     role_change = True
 
                         if len(role_clan_tags) > 0:
@@ -840,58 +899,73 @@ class AriXClashDataMgr(commands.Cog):
 
                                 if member_role in discord_member.roles:
                                     await discord_member.remove_roles(member_role)
+                                    roles_removed.append(member_role.name)
                                     role_change = True
                                 if elder_role in discord_member.roles:
                                     await discord_member.remove_roles(elder_role)
+                                    roles_removed.append(elder_role.name)
                                     role_change = True
                                 if coleader_role in discord_member.roles:
                                     await discord_member.remove_roles(coleader_role)
+                                    roles_removed.append(coleader_role.name)
                                     role_change = True
 
                         if 'Leader' in alliance_ranks or 'Co-Leader' in alliance_ranks:
                             if ctx.bot.member_role not in discord_member.roles:
                                 await discord_member.add_roles(ctx.bot.member_role)
+                                roles_added.append(ctx.bot.member_role.name)
                                 role_change = True
                             if ctx.bot.elder_role not in discord_member.roles:
                                 await discord_member.add_roles(ctx.bot.elder_role)
+                                roles_added.append(ctx.bot.elder_role.name)
                                 role_change = True
                             if ctx.bot.coleader_role not in discord_member.roles:
                                 await discord_member.add_roles(ctx.bot.coleader_role)
+                                roles_added.append(ctx.bot.coleader_role.name)
                                 role_change = True
 
                         elif 'Elder' in alliance_ranks:
                             if ctx.bot.member_role not in discord_member.roles:
                                 await discord_member.add_roles(ctx.bot.member_role)
+                                roles_added.append(ctx.bot.member_role.name)
                                 role_change = True
                             if ctx.bot.elder_role not in discord_member.roles:
                                 await discord_member.add_roles(ctx.bot.elder_role)
+                                roles_added.append(ctx.bot.elder_role.name)
                                 role_change = True
                             if ctx.bot.coleader_role in discord_member.roles:
                                 await discord_member.remove_roles(ctx.bot.coleader_role)
+                                roles_removed.append(ctx.bot.coleader_role.name)
                                 role_change = True
 
                         elif 'Member' in alliance_ranks:
                             if ctx.bot.member_role not in discord_member.roles:
                                 await discord_member.add_roles(ctx.bot.member_role)
+                                roles_added.append(ctx.bot.member_role.name)
                                 role_change = True
                             if ctx.bot.elder_role in discord_member.roles:
                                 await discord_member.remove_roles(ctx.bot.elder_role)
+                                roles_removed.append(ctx.bot.elder_role.name)
                                 role_change = True
                             if ctx.bot.coleader_role in discord_member.roles:
                                 await discord_member.remove_roles(ctx.bot.coleader_role)
+                                roles_removed.append(ctx.bot.coleader_role.name)
                                 role_change = True
 
                         else:
                             if ctx.bot.member_role in discord_member.roles:
                                 await discord_member.remove_roles(ctx.bot.member_role)
+                                roles_removed.append(ctx.bot.member_role.name)
                                 role_change = True
 
                             if ctx.bot.elder_role in discord_member.roles:
                                 await discord_member.remove_roles(ctx.bot.elder_role)
+                                roles_removed.append(ctx.bot.elder_role.name)
                                 role_change = True
 
                             if ctx.bot.coleader_role in discord_member.roles:
                                 await discord_member.remove_roles(ctx.bot.coleader_role)
+                                roles_removed.append(ctx.bot.coleader_role.name)
                                 role_change = True
 
                     except Exception as e:
@@ -901,6 +975,18 @@ class AriXClashDataMgr(commands.Cog):
 
                     if role_change:
                         role_count += 1
+
+                        role_change_log = await clash_embed(ctx,
+                            name=f"Role(s) Changed for: {discord_member.name}#{discord_member.discriminator}",
+                            message=f"Discord ID: `{discord_member.id}`"
+                                + f"\n\n**Roles Added:** {'.'.join(roles_added)}"
+                                + f"\n\n**Roles Removed:** {'.'.join(roles_removed)}")
+
+                        role_change_log.add_field(
+                            name="**Supplied Data**",
+                            value=rank_info)
+
+                        await mlog_channel.send(embed=role_change_log)
 
             et = time.time()
 

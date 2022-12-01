@@ -141,7 +141,6 @@ class AriXClashResources(commands.Cog):
                 ctx.bot.update_channel = channel
                 return await ctx.send(f"The Alliance Update Channel has been set to `{ctx.bot.update_channel.name}`.")
 
-
     @commands.command(name="nebula",aliases=["n"])
     async def help_nebula(self,ctx):
         """
