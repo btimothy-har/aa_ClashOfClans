@@ -867,18 +867,29 @@ class AriXMemberCommands(commands.Cog):
                 'description': None
                 }
             ]
+
+        base_supplier_str = ""
+        for i in base_supplier_list:
+            base_supplier_str += f"{i['emoji']} {i['title']}\n\n"
+
         base_source_embed = await eclipse_embed(ctx,
             title="Add Base -- Step 2/7",
-            message=f"Where is this Base from?")
+            message=f"Where is this Base from?\n\u200b")
 
-        select_source = await multiple_choice_select(
+        base_source_embed.add_field(
+            name="Select from the options below.",
+            value=base_supplier_str)
+
+        source_msg = await ctx.send(embed=base_source_embed)
+        select_source = await multiple_choice_menu_select(
             ctx=ctx,
-            sEmbed=base_source_embed,
-            selection_list=base_supplier_list)
+            smsg=source_msg,
+            sel_list=base_supplier_list)
+
+        await source_msg.delete()
         if not select_source:
             return
         base_source = f"{select_source['emoji']} {select_source['title']}"
-
 
         # BASE BUILDER
         base_builder_embed = await eclipse_embed(ctx,
@@ -924,15 +935,27 @@ class AriXMemberCommands(commands.Cog):
                 'emoji': '<:HomeTrophies:825589905651400704>'
                 },
             ]
+
+        base_type_str = ""
+        for i in base_type_list:
+            base_type_str += f"{i['emoji']} {i['title']}\n\n"
+
         base_type_embed = await eclipse_embed(ctx,
             title="Add Base -- Step 4/7",
-            message=f"Select the type of base this is.")
+            message=f"Select the type of base this is.\n\u200b")
 
-        select_type = await multiple_choice_select(
+        base_type_embed.add_field(
+            name="Select from the options below.",
+            value=base_type_str)
+
+        base_type_msg = await ctx.send(embed=base_type_embed)
+
+        select_type = await multiple_choice_menu_select(
             ctx=ctx,
-            sEmbed=base_type_embed,
-            selection_list=base_type_list)
+            smsg=base_type_msg,
+            sel_list=base_type_list)
 
+        await base_type_msg.delete()
         if not select_type:
             return
         base_type = f"{select_type['title']}"
