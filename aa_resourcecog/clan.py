@@ -2,6 +2,7 @@ import coc
 import discord
 import time
 import json
+import pytz
 
 from datetime import datetime
 
@@ -265,43 +266,46 @@ class aClan():
 
         helsinkiTz = pytz.timezone("Europe/Helsinki")
         war_start_time_helsinki = pytz.utc.localize(datetime.fromtimestamp(current_war.start_time.time.timestamp())).astimezone(helsinkiTz)
-        if season != f"{war_start_time_helsinki.month}-{war_start_time_helsinki.year}":
+        if datetime.now(helsinkiTz).month == war_start_time_helsinki.month and datetime.now(helsinkiTz).year == war_start_time_helsinki.year:
+            self.current_war = aClanWar.from_game(ctx,current_war)
+            if self.current_war.state != self.war_state:
+                self.war_state_change = True
+
+            self.war_state = self.current_war.state
+
+            if self.current_war.state in ['inWar','warEnded']:
+                self.war_log[self.current_war.wID] = self.current_war
+
+            await self.save_to_json(ctx)
+            return self.current_war
+        else:
             return None
-
-        self.current_war = aClanWar.from_game(ctx,current_war)
-        if self.current_war.state != self.war_state:
-            self.war_state_change = True
-
-        self.war_state = self.current_war.state
-
-        if self.current_war.state in ['inWar','warEnded']:
-            self.war_log[self.current_war.wID] = self.current_war
-
-        await self.save_to_json(ctx)
 
     async def update_raid_weekend(self,ctx,season):
         self.raid_state_change = False
         try:
             raid_log_gen = await ctx.bot.coc_client.get_raidlog(clan_tag=self.tag,page=False,limit=1)
-            raid_log = raid_log_gen[0]
         except (coc.HTTPException, coc.InvalidCredentials, coc.Maintenance, coc.GatewayError) as exc:
             raise TerminateProcessing(exc) from exc
             return None
 
         helsinkiTz = pytz.timezone("Europe/Helsinki")
-        raid_start_time_helsinki = pytz.utc.localize(datetime.fromtimestamp(raid_log.start_time.time.timestamp())).astimezone(helsinkiTz)
-        if season != f"{raid_start_time_helsinki.month}-{raid_start_time_helsinki.year}":
+        raid_start_time_helsinki = pytz.utc.localize(datetime.fromtimestamp(raid_log_gen[0].start_time.time.timestamp())).astimezone(helsinkiTz)
+
+        if datetime.now(helsinkiTz).month == raid_start_time_helsinki.month and datetime.now(helsinkiTz).year == raid_start_time_helsinki.year:
+            self.current_raid_weekend = aRaidWeekend.from_game(ctx,self,raid_log_gen[0])
+
+            if self.current_raid_weekend.state != self.raid_weekend_state:
+                self.raid_state_change = True
+
+            self.raid_weekend_state = self.current_raid_weekend.state
+
+            self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
+            await self.save_to_json(ctx)
+            return self.current_raid_weekend
+        else:
             return None
-            
-        self.current_raid_weekend = aRaidWeekend.from_game(ctx,self,raid_log_gen[0])
 
-        if self.current_raid_weekend.state != self.raid_weekend_state:
-            self.raid_state_change = True
-
-        self.raid_weekend_state = self.current_raid_weekend.state
-
-        self.raid_log[self.current_raid_weekend.rID] = self.current_raid_weekend
-        await self.save_to_json(ctx)
 
     async def add_to_alliance(self,ctx,leader:discord.User,abbreviation,emoji,coleader_role,elder_role,member_role):
         self.is_alliance_clan = True

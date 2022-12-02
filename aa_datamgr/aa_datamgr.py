@@ -351,7 +351,7 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
         helsinkiTz = pytz.timezone("Europe/Helsinki")
-        try:
+        if True:
             sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
                 show_author=False)
@@ -536,9 +536,10 @@ class AriXClashDataMgr(commands.Cog):
                     clan_reminder_channel = ctx.bot.get_channel(c.reminder_channel)
 
                 try:
-                    await c.update_clan_war(ctx,season)
-                except:
-                    pass
+                    clan_war = await c.update_clan_war(ctx,season)
+                except Exception as e:
+                    err_dict = {'tag':f'c{c.tag}','reason':e}
+                    err_log.append(err_dict)
                 else:
                     if c.war_state_change:
                         detected_war_change = True
@@ -621,10 +622,12 @@ class AriXClashDataMgr(commands.Cog):
                                 else:
                                     await clan_reminder_channel.send(ping_str)
 
+
                 try:
-                    await c.update_raid_weekend(ctx,season)
-                except:
-                    pass
+                    raid_weekend = await c.update_raid_weekend(ctx,season)
+                except Exception as e:
+                    err_dict = {'tag':f'c{c.tag}','reason':e}
+                    err_log.append(err_dict)
                 else:
                     if c.raid_state_change:
                         detected_raid_change = True
@@ -643,15 +646,13 @@ class AriXClashDataMgr(commands.Cog):
                             str_raid_update += f"\n**Raid Weekend has begun!**"
 
                             if clan_announcement_channel:
-                                raid_weekend_start_embed = await clash_embed(ctx,
-                                    message="**Raid Weekend has begun!**")
 
                                 if c.member_role:
                                     role = ctx.bot.alliance_server.get_role(c.member_role)
                                     rm = discord.AllowedMentions(roles=True)
-                                    await clan_announcement_channel.send(content=f"{role.mention}",embed=raid_weekend_start_embed,allowed_mentions=rm)
+                                    await clan_announcement_channel.send(content=f"{role.mention} Raid Weekend has begun!",allowed_mentions=rm)
                                 else:
-                                    await clan_announcement_channel.send(embed=raid_weekend_start_embed)
+                                    await clan_announcement_channel.send(content=f"Raid Weekend has begun!")
 
                             active_events.append(f"Raid Weekend has started!")
 
@@ -1079,5 +1080,5 @@ class AriXClashDataMgr(commands.Cog):
             await self.config.last_data_update.set(st)
             await self.config.update_runtimes.set(run_time_hist)
 
-        except Exception as e:
-            return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")
+        #except Exception as e:
+        #    return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")
