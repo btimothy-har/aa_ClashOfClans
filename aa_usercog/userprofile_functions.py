@@ -722,7 +722,10 @@ async def userprofile_main(ctx,output,accounts):
 
 
     if message:
-        await message.clear_reactions()
+        try:
+            await message.clear_reactions()
+        except:
+            pass
 
 
 
