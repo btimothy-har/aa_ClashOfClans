@@ -645,14 +645,14 @@ class AriXClashDataMgr(commands.Cog):
 
                             str_raid_update += f"\n**Raid Weekend has begun!**"
 
-                            if clan_announcement_channel:
+                            # if clan_announcement_channel:
 
-                                if c.member_role:
-                                    role = ctx.bot.alliance_server.get_role(c.member_role)
-                                    rm = discord.AllowedMentions(roles=True)
-                                    await clan_announcement_channel.send(content=f"{role.mention} Raid Weekend has begun!",allowed_mentions=rm)
-                                else:
-                                    await clan_announcement_channel.send(content=f"Raid Weekend has begun!")
+                            #     if c.member_role:
+                            #         role = ctx.bot.alliance_server.get_role(c.member_role)
+                            #         rm = discord.AllowedMentions(roles=True)
+                            #         await clan_announcement_channel.send(content=f"{role.mention} Raid Weekend has begun!",allowed_mentions=rm)
+                            #     else:
+                            #         await clan_announcement_channel.send(content=f"Raid Weekend has begun!")
 
                             active_events.append(f"Raid Weekend has started!")
 
