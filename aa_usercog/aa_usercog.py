@@ -677,7 +677,7 @@ class AriXMemberCommands(commands.Cog):
 
             while session.state:
                 tries -= 1
-                try:
+                if True:
                     session.add_to_path(response)
                     if response in ['start','menu']:
                         tries = 10
@@ -729,17 +729,17 @@ class AriXMemberCommands(commands.Cog):
                     #    await ctx.send("This bit doesn't exist yet.")
                     #    response = "menu"
                 
-                except Exception as e:
-                    err_embed = await eclipse_embed(ctx,
-                        message=f"**Error encountered during E.C.L.I.P.S.E. session.**"
-                            + f"\n\nError: {e}"
-                            + f"\n\nSession User: {session.user.mention}"
-                            + f"\nSession ID: {session.channel.id}"
-                            + f"\nResponse Path: {session.response_path}"
-                            + f"\nLast Response: {response}")
+                # except Exception as e:
+                #     err_embed = await eclipse_embed(ctx,
+                #         message=f"**Error encountered during E.C.L.I.P.S.E. session.**"
+                #             + f"\n\nError: {e}"
+                #             + f"\n\nSession User: {session.user.mention}"
+                #             + f"\nSession ID: {session.channel.id}"
+                #             + f"\nResponse Path: {session.response_path}"
+                #             + f"\nLast Response: {response}")
 
-                    await ctx.bot.send_to_owners(embed=err_embed)
-                    response = None
+                #     await ctx.bot.send_to_owners(embed=err_embed)
+                #     response = None
 
                 if tries == 0 or not response:
                     session.state = False

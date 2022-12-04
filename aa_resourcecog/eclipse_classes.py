@@ -26,8 +26,6 @@ class EclipseSession():
 
 class eWarBase():
     def __init__(self,ctx,base_link,defensive_cc_link):
-        self.ctx = ctx
-
         link_parse = urllib.parse.urlparse(base_link)
         cc_parse = urllib.parse.urlparse(defensive_cc_link)
         
@@ -107,15 +105,18 @@ class eWarBase():
 
         return self
 
-    def add_claim(self,ctx,session):
+    async def add_claim(self,ctx,session):
         if session.user.id not in self.claims:
             self.claims.append(session.user.id)
 
-    def remove_claim(self,ctx,session):
+        await self.save_to_json(ctx)
+
+    async def remove_claim(self,ctx,session):
         if session.user.id in self.claims:
             self.claims.remove(session.user.id)
+        await self.save_to_json(ctx)
 
-    async def save_to_json(self):
+    async def save_to_json(self,ctx):
         baseJson = {
             'id': self.id,
             'townhall': self.town_hall,

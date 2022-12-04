@@ -527,13 +527,15 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
     if len(bases) > 5 and not vault_mode:
         base_navigation.append(refresh_bases)
+        display_bases = random.sample(bases, 5)
+    elif not vault_mode:
+        display_bases = bases
+    else:
+        display_bases = [b for b in bases if session.user.id in b.claims]
 
     i = 0
-    display_bases = random.shuffle(bases)[:4]
-    while browse_bases:
-        if vault_mode:
-            display_bases = [b for b in bases if session.user.id in b.claims]
 
+    while browse_bases:
         if len(display_bases) == 0:
             return 'personalvault'
         
@@ -620,13 +622,12 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     break
                 elif selection['id'] == 'refresh':
                     i = 0
-                    display_bases = random.shuffle(bases)[:4]
+                    display_bases = random.sample(bases, 5)
+                    break
 
                 elif selection['id'] == 'save':
-                    display_bases[i].add_claim(ctx,session)
-                    async with ctx.bot.async_eclipse_lock:
-                        with ctx.bot.clash_eclipse_lock.write_lock():
-                            await display_bases[i].save_to_json()
+                    await ctx.send('...')
+                    await display_bases[i].add_claim(ctx,session)
 
                     dm_embed, image = await display_bases[i].base_embed(ctx)
                     dm_embed.add_field(
