@@ -595,10 +595,10 @@ class AriXLeaderCommands(commands.Cog):
                             + f"\nRecruiting: {th_str}"
                             + f"\n\nAnnouncement Channel: <#{c.announcement_channel}>"
                             + f"\nReminder Channel: <#{c.reminder_channel}>"
-                            + f"\n\nWar Reminders: `{toggle_state[c.send_war_reminder]}`"
-                            + f"\nReminder Interval: `{humanize_list(c.war_reminder_intervals)}`"
-                            + f"\n\nRaid Reminders: `{toggle_state[c.send_raid_reminder]}`"
-                            + f"\nReminder Interval: `{humanize_list(c.raid_reminder_intervals)}`"
+                            + f"\n\nWar Reminders: ` {toggle_state[c.send_war_reminder]} `"
+                            + f"\nReminder Interval: ` {humanize_list(c.war_reminder_intervals)} `"
+                            + f"\n\nRaid Reminders: ` {toggle_state[c.send_raid_reminder]} `"
+                            + f"\nReminder Interval: ` {humanize_list(c.raid_reminder_intervals)} `"
                             + f"\n\u200b")
 
                     announcement_embed.add_field(
