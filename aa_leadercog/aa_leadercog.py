@@ -785,7 +785,8 @@ class AriXLeaderCommands(commands.Cog):
                     war_interval_embed = await clash_embed(ctx,
                         message=f"Please provide the intervals for Raid Reminders, in **hours**. Separate intervals with a space."
                             + f"\n\nExample: To send a reminder at the 12 hour, 1 day, and 2 day mark, reply with `12 24 48`."
-                            + f"\n\n> - Any intervals above 48 hours will be ignored."
+                            + f"\n\n> - There will always be a reminder sent at 24 hours."
+                            + f"\n> - Any intervals above 48 hours will be ignored."
                             + f"\n\n**Changes will take effect in the next raid weekend.**"
                             + f"\n\n`Enter any non-numeric digit to return to the menu.`")
                     await message.edit(content=ctx.author.mention,embed=war_interval_embed)

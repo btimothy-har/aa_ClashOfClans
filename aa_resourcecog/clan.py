@@ -489,6 +489,9 @@ class aClan():
             if i not in self.raid_reminder_intervals:
                 self.raid_reminder_intervals.append(i)
 
+        if 24 not in self.raid_reminder_intervals:
+            self.raid_reminder_intervals.append(24)
+
         self.raid_reminder_intervals.sort(reverse=True)
 
         await self.save_to_json(ctx)

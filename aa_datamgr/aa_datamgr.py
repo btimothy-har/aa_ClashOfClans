@@ -638,11 +638,6 @@ class AriXClashDataMgr(commands.Cog):
                         if c.raid_state_change and c.current_raid_weekend.state == 'ongoing':
                             c.raid_reminder_tracking = c.raid_reminder_intervals
 
-                            if 24 not in c.war_reminder_tracking:
-                                c.raid_reminder_tracking.append(24)
-
-                            c.raid_reminder_tracking.sort(reverse=True)
-
                             str_raid_update += f"\n**Raid Weekend has begun!**"
 
                             # if clan_announcement_channel:
@@ -684,13 +679,13 @@ class AriXClashDataMgr(commands.Cog):
 
                                         remaining_time_str = ""
                                         if dd > 0:
-                                            remaining_time_str += f"{int(dd)} day(s)"
+                                            remaining_time_str += f"{int(dd)} day(s) "
 
                                         if hh > 0:
-                                            remaining_time_str += f"{int(hh)} hour(s)"
+                                            remaining_time_str += f"{int(hh)} hour(s) "
 
                                         if mm > 0:
-                                            remaining_time_str += f"{int(mm)} minute(s)"
+                                            remaining_time_str += f"{int(mm)} minute(s) "
 
                                         members_not_in_raid = [m for m in alliance_members if m.home_clan.tag == c.tag and m.tag not in [z.tag for z in c.current_raid_weekend.members]]
                                         members_unfinished_raid = [m for m in alliance_members if m.tag in [z.tag for z in c.current_raid_weekend.members if z.attack_count < 6]]

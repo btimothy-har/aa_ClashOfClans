@@ -490,7 +490,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
 
 async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
     browse_bases = True
-    display_bases = bases
+    display_bases = []
     response = None
 
     base_navigation = []
@@ -515,19 +515,24 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
         'id': 'unsave',
         'emoji': '<:trashcan:1042829064345497742>'
         }
+    refresh_bases = {
+        'id': 'refresh',
+        'emoji': '<:refresh:1048916418466426941>',
+        }
 
     base_navigation.append(back_dict)
     if len(bases) > 1:
         base_navigation.append(prev_dict)
         base_navigation.append(next_dict)
 
+    if len(bases) > 5 and not vault_mode:
+        base_navigation.append(refresh_bases)
+
     i = 0
-    random.shuffle(bases)
+    display_bases = random.shuffle(bases)[:4]
     while browse_bases:
         if vault_mode:
             display_bases = [b for b in bases if session.user.id in b.claims]
-        else:
-            display_bases = bases
 
         if len(display_bases) == 0:
             return 'personalvault'
@@ -576,7 +581,15 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 inline=False)
             base_navigation.append(save_navigation)
 
-        if len(bases) > 1:
+        if len(bases) > 5 and not vault_mode:
+            base_embed.add_field(
+                name="Navigation",
+                value="<:backwards:1041976602420060240> back to the previous menu"
+                    + "\n<:to_previous:1041988094943035422> for the previous base"
+                    + "\n<:to_next:1041988114308137010> for the next base"
+                    + "\n<:refresh:1048916418466426941> get more bases",
+                inline=False)
+        elif len(bases) > 1:
             base_embed.add_field(
                 name="Navigation",
                 value="<:backwards:1041976602420060240> back to the previous menu"
@@ -605,6 +618,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 elif selection['id'] == 'previous':
                     i -= 1
                     break
+                elif selection['id'] == 'refresh':
+                    i = 0
+                    display_bases = random.shuffle(bases)[:4]
+
                 elif selection['id'] == 'save':
                     display_bases[i].add_claim(ctx,session)
                     async with ctx.bot.async_eclipse_lock:
