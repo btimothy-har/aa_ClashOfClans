@@ -1431,6 +1431,35 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=final_embed)
 
 
+    @member_manage.command(name="setname")
+    async def member_manage_setreadablename(self,ctx,player_tag,name):
+
+        try:
+            p = await aPlayer.create(ctx,player_tag)
+        except Exception as e:
+            await error_end_processing(ctx,
+                preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
+                err=e)
+            return
+
+        if not p.is_member:
+            cembed = await clash_embed(ctx,
+                message=f"{p.tag} {p.name} is not an AriX Member.")
+            return await ctx.send(embed=cembed)
+
+        try:
+            await p.set_readable_name(ctx,name)
+        except Exception as e:
+            await error_end_processing(ctx,
+                preamble=f"Error encountered while setting name {tag}.",
+                err=e)
+            return
+
+        cembed = await clash_embed(ctx,
+            message=f"The name for {p.tag} {p.name} has been overridden to `{p.readable_name}`.")
+        return await ctx.send(embed=cembed)
+
+
     @member_manage.command(name="setnick")
     async def member_manage_setnickname(self,ctx,Discord_User:discord.User):
         """

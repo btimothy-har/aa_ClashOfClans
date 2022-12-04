@@ -269,6 +269,7 @@ class aPlayer():
                     home_clan_tag = None
 
                 self.home_clan = await aClan.create(ctx,home_clan_tag)
+                self.readable_name = memberInfo.get('readable_name',self.name)
                 self.is_member = memberInfo.get('is_member',False)
                 self.is_arix_account = True
 
@@ -361,6 +362,7 @@ class aPlayer():
     async def save_to_json(self,ctx):
         allianceJson = {
             'name':self.name,
+            'readable_name': self.readable_name,
             'is_member':self.is_member,
             'home_clan': {
                 'tag': self.home_clan.tag,
@@ -485,6 +487,10 @@ class aPlayer():
                     self.clangames.set_baseline(achievement.value)
 
             self.last_update = self.timestamp
+
+    async def set_readable_name(self,ctx,name):
+        self.readable_name = name
+        await self.save_to_json(ctx)
 
 
     async def update_war(self,ctx,war_entry):

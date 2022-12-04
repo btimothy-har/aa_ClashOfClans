@@ -341,7 +341,7 @@ class AriXClashResources(commands.Cog):
             if not selected_account:
                 return None
         
-        new_nickname = [a.name for a in user_accounts if a.tag == selected_account['id']][0]
+        new_nickname = [a.readable_name for a in user_accounts if a.tag == selected_account['id']][0]
 
         new_nickname = new_nickname.replace('[AriX]','')
         new_nickname = new_nickname.strip()
