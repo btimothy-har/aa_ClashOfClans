@@ -626,7 +626,6 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     break
 
                 elif selection['id'] == 'save':
-                    await ctx.send('...')
                     await display_bases[i].add_claim(ctx,session)
 
                     dm_embed, image = await display_bases[i].base_embed(ctx)
