@@ -667,7 +667,8 @@ class AriXClashDataMgr(commands.Cog):
 
                                     if next_reminder == 24 and clan_announcement_channel:
                                         raid_weekend_1day_embed = await clash_embed(ctx,
-                                            message="**There is 1 Day left in Raid Weekend.** Alternate accounts are now allowed to fill up the remaining slots.")
+                                            message="**There is 1 Day left in Raid Weekend.** Alternate accounts are now allowed to fill up the remaining slots.",
+                                            show_author=False)
 
                                         if c.member_role:
                                             role = ctx.bot.alliance_server.get_role(c.member_role)
@@ -694,22 +695,24 @@ class AriXClashDataMgr(commands.Cog):
                                         members_not_in_raid = [m for m in alliance_members if m.home_clan.tag == c.tag and m.tag not in [z.tag for z in c.current_raid_weekend.members]]
                                         members_unfinished_raid = [m for m in alliance_members if m.tag in [z.tag for z in c.current_raid_weekend.members if z.attack_count < 6]]
 
-                                        if (c.current_raid_weekend.end_time - st) < 3600:
-                                            not_in_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you have **NOT** participated.\n\n"
-                                        else:
-                                            not_in_raid_str = f"Raid Weekend ends in **{remaining_time_str}** and you have **NOT** participated.\n\n"
+                                        if len(members_not_in_raid) > 0:
+                                            if (c.current_raid_weekend.end_time - st) < 3600:
+                                                not_in_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you have **NOT** participated.\n\n"
+                                            else:
+                                                not_in_raid_str = f"Raid Weekend ends in **{remaining_time_str}** and you have **NOT** participated.\n\n"
 
-                                        not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
+                                            not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
+                                            await clan_reminder_channel.send(not_in_raid_str)
 
-                                        if (c.current_raid_weekend.end_time - st) < 3600:
-                                            unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **DID NOT** use all your Raid Attacks.\n\n"
-                                        else:
-                                            unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
+                                        if len(members_unfinished_raid) > 0:
+                                            if (c.current_raid_weekend.end_time - st) < 3600:
+                                                unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **DID NOT** use all your Raid Attacks.\n\n"
+                                            else:
+                                                unfinished_raid_str = f"You started your Raid Weekend but **DID NOT** use all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
 
-                                        unfinished_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_unfinished_raid])}"
+                                            unfinished_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_unfinished_raid])}"
+                                            await clan_reminder_channel.send(unfinished_raid_str)
 
-                                        await clan_reminder_channel.send(not_in_raid_str)
-                                        await clan_reminder_channel.send(unfinished_raid_str)
 
 
                         if c.current_raid_weekend.state == 'ended':
