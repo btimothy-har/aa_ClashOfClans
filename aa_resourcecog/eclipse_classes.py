@@ -98,7 +98,7 @@ class eWarBase():
         self.base_type = base_type
 
         image_filename = self.id + '.' + image_attachment.filename.split('.')[-1]
-        image_filepath = self.ctx.bot.eclipse_path + "/base_images/" + image_filename
+        image_filepath = ctx.bot.eclipse_path + "/base_images/" + image_filename
 
         await image_attachment.save(image_filepath)
         self.base_image = image_filename
@@ -131,13 +131,13 @@ class eWarBase():
             }
 
         await eclipse_base_handler(
-            ctx=self.ctx,
+            ctx=ctx,
             base_town_hall=self.town_hall,
             base_json=baseJson
             )
 
     async def base_embed(self,ctx):
-        image_file_path = f"{self.ctx.bot.eclipse_path}/base_images/{self.base_image}"
+        image_file_path = f"{ctx.bot.eclipse_path}/base_images/{self.base_image}"
         image_file = discord.File(image_file_path,'image.png')
 
         base_text = (f"Date Added: {datetime.fromtimestamp(self.added_on).strftime('%d %b %Y')}"
@@ -159,7 +159,6 @@ class eWarBase():
 
 class eWarArmy():
     def __init__(self,ctx,army_link,town_hall):
-        self.ctx = ctx
 
         self.army_link = army_link
 
