@@ -31,7 +31,7 @@ async def get_user_profile(ctx,user_id):
                 return None, None
 
             user_accounts.append(p)
-            if p.home_clan.tag not in [c.tag for c in user_home_clans]:
+            if p.home_clan.tag and p.home_clan.tag not in [c.tag for c in user_home_clans]:
                 user_home_clans.append(p.home_clan)
 
         user_home_clans = sorted(user_home_clans,key=lambda c:(c.level,c.capital_hall),reverse=True)

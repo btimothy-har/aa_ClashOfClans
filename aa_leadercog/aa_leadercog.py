@@ -906,6 +906,7 @@ class AriXLeaderCommands(commands.Cog):
     ### - whois
     ### - getmissing
     ### - getunrecognized
+    ### - transfer
 
     ####################################################################################################
 
@@ -1087,26 +1088,18 @@ class AriXLeaderCommands(commands.Cog):
             added_count += 1
             target_clan = [c for c in alliance_clans if c.tag == selected_clan['id']][0]
 
-            if target_clan.tag == p.home_clan.tag and p.is_member:
-                await homeclan_msg.delete()
-                c_embed = await clash_embed(ctx,
-                    message=f"**{p.tag} {p.name}** is already a **{p.arix_rank}** in **{p.home_clan.emoji} {p.home_clan.name}**.",
-                    color='success')
-                await ctx.send(embed=c_embed)
-            else:
-                previous_home_clan = p.home_clan
-                try:
-                    await p.new_member(ctx,user,target_clan)
+            previous_home_clan = p.home_clan
+            try:
+                await p.new_member(ctx,user,target_clan)
+            except Exception as e:
+                err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
+                error_log.append(err_dict)
 
-                except Exception as e:
-                    err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
-                    error_log.append(err_dict)
-
-                await homeclan_msg.delete()
-                c_embed = await clash_embed(ctx,
-                    message=f"**{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.",
-                    color='success')
-                await ctx.send(embed=c_embed)
+            await homeclan_msg.delete()
+            c_embed = await clash_embed(ctx,
+                message=f"**{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.",
+                color='success')
+            await ctx.send(embed=c_embed)
 
         if len(error_log) > 0:
             error_str = "\u200b"
@@ -1134,7 +1127,7 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @member_manage.command(name="remove")
-    async def member_manage_remove(self,ctx,*player_tags):
+    async def member_manage_remove(self,ctx,*tags_or_user_mention):
         """
         Remove Members from the Alliance.
 
@@ -1143,52 +1136,136 @@ class AriXLeaderCommands(commands.Cog):
         You can provide multiple player tags, separated by a space in between.
         """
 
-        remove_accounts = []
+        user = None
+        player_tags = []
+        accounts = []
         error_log = []
 
-        if len(player_tags) == 0:
-            eEmbed = await clash_embed(ctx=ctx,
-                message=f"Please provide Player Tags to be added. Separate multiple tags with a space.",
-                color="fail")
-            return await ctx.send(embed=eEmbed)
+        def response_check(m):
+            if m.author.id == ctx.author.id and m.channel.type == discord.ChannelType.private:
+                return True
+            else:
+                return False
 
-        for tag in player_tags:
+        if len(tags_or_user_mention) == 0:
+            embed = await clash_embed(ctx,
+                message="Provide either 1 Discord User (through mention) or 1 or more Clash Tags, separated by spaces.")
+            return await ctx.send(embed=embed)
+
+        else:
             try:
-                p = await aPlayer.create(ctx,tag,fetch=True)
-            except TerminateProcessing as e:
-                return await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving data for {tag}",
-                    err=e)
-            except Exception as e:
-                p = None
-                err_dict = {'tag':tag,'reason':e}
-                error_log.append(err_dict)
-                continue
+                check_for_discord_mention = int(re.search('@(.*)>',tags_or_user_mention[0]).group(1))
+                user = ctx.bot.alliance_server.get_member(check_for_discord_mention)
+            except:
+                for t in tags_or_user_mention:
+                    t = coc.utils.correct_tag(t)
+                    if not coc.utils.is_valid_tag(t):
+                        continue
+                    player_tags.append(t)
 
-            if not p.is_member:
-                err_dict = {'tag':tag,'reason':'This player is currently not an active member.'}
-                error_log.append(err_dict)
-                continue
+        if user:
+            home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
-            remove_accounts.append(p)
+            accounts = [a for a in user_accounts if a.is_member]
+            accounts = sorted(accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
-        if len(remove_accounts) > 0:
-            remove_accounts = sorted(remove_accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
-            cEmbed = await clash_embed(ctx,
-                title=f"I found the below accounts to be removed. Please confirm this action.")
+        else:
+            for tag in player_tags:
+                try:
+                    p = await aPlayer.create(ctx,tag)
+                except Exception as e:
+                    eEmbed = await clash_embed(ctx,message=e,color='fail')
+                    return await ctx.send(embed=eEmbed)
+                if p.is_member:
+                    accounts.append(p)
 
-            for p in remove_accounts:
-                cEmbed.add_field(
+        if len(accounts) == 0:
+            embed = await clash_embed(ctx,
+                message=f"I couldn't find any accounts to remove. The user/account(s) you provided may not be active AriX Members.")
+            return await ctx.send(embed=embed)
+
+        if user:
+            account_selection = []
+            s_dict = {
+                'id': 'all_accounts',
+                'title': 'Remove all Accounts',
+                'description': f"This will remove the Member from all AriX clans."
+                }
+            account_selection.append(s_dict)
+
+            if len(home_clans) > 1:
+                for clan in home_clans:
+                    s_dict = {
+                        'id': clan.tag,
+                        'title': f'Only {clan.emoji} {clan.name}',
+                        'description': f"Remove only accounts in {clan.name}."
+                        }
+                    account_selection.append(s_dict)
+
+            for p in accounts:
+                s_dict = {
+                    'id': p.tag,
+                    'title': f"{p.desc_title}",
+                    'description': f"{p.desc_summary_text}"
+                    }
+                account_selection.append(s_dict)
+
+            account_selection = await multiple_choice_menu_generate_emoji(ctx,account_selection)
+
+            selection_str = ""
+            for i in account_selection:
+                selection_str += f"{i['emoji']} **{i['title']}**\n{i['description']}"
+                if account_selection.index(i) < (len(account_selection)-1):
+                    selection_str += "\n\n"
+
+            select_embed = await clash_embed(ctx,
+                title=f"Remove Member: {user.name}#{user.discriminator}",
+                message=f"**Select account(s) to remove.**"
+                    + f"\n\n{selection_str}")
+
+            select_msg = await ctx.send(content=ctx.author.mention,embed=select_embed)
+
+            selected_account = await multiple_choice_menu_select(ctx,select_msg,account_selection)
+            if not selected_account:
+                cancel_embed = await clash_embed(ctx,
+                    message="Operation cancelled.",
+                    color="fail")
+                await select_msg.edit(embed=cancel_embed)
+                await select_msg.clear_reactions()
+                return
+
+            if selected_account['id'] == 'all_accounts':
+                remove_accounts = accounts
+            elif selected_account['id'] in [c.tag for c in home_clans]:
+                remove_accounts = [a for a in accounts if a.home_clan.tag == selected_account['id']]
+            else:
+                remove_accounts = [a for a in accounts if a.tag == selected_account['id']]
+
+        else:
+            confirm_remove = await clash_embed(ctx,
+                title="I found the below accounts to be removed. Please confirm.")
+
+            for p in accounts:
+                confirm_remove.add_field(
                     name=f"{p.desc_title}",
                     value=f"> <:Discord:1040423151760314448> <@{p.discord_user}>"
                         + f"\n> {p.desc_summary_text}",
                     inline=False)
 
-            confirm_remove = await ctx.send(embed=cEmbed)
-            if not await user_confirmation(ctx,confirm_remove):
+            confirm_remove_msg = await ctx.send(embed=confirm_remove)
+            if not await user_confirmation(ctx,confirm_remove_msg):
                 return
+            await confirm_remove_msg.delete()
 
-            await confirm_remove.delete()
+            remove_accounts = accounts
+
+        if len(remove_accounts) == 0:
+            cEmbed = await clash_embed(ctx,
+                message="I didn't find any accounts to be removed. Please try again.")
+            return await ctx.send(embed=cEmbed)
+
+        if len(remove_accounts) > 0:
+            summary_str = ""
 
             for p in remove_accounts:
                 home_clan = p.home_clan
@@ -1199,8 +1276,7 @@ class AriXLeaderCommands(commands.Cog):
                     error_log.append(err_dict)
                     remove_accounts.remove(p)
 
-                success_embed = await clash_embed(ctx,
-                    message=f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.")
+                summary_str += f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
 
                 if p.discord_user:
                     user_home_clans, user_accounts = await get_user_profile(ctx,p.discord_user)
@@ -1217,10 +1293,11 @@ class AriXLeaderCommands(commands.Cog):
                             await discord_member.add_roles(ex_member_role)
                             await discord_member.edit(nick=discord_member.name)
 
-                            success_embed = await clash_embed(ctx,
-                                message=f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n\n{ex_member_role.mention} assigned to {discord_member.mention}.")
+                            summary_str += f"\n{ex_member_role.mention} assigned to {discord_member.mention}."
 
-                await ctx.send(embed=success_embed)
+            success_embed = await clash_embed(ctx,
+                message=summary_str)
+            await ctx.send(embed=success_embed)
 
         if len(error_log) > 0:
 
@@ -1260,6 +1337,11 @@ class AriXLeaderCommands(commands.Cog):
 
         user_accounts = [a for a in user_accounts if a.is_member]
         user_accounts = sorted(user_accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
+
+        if len(user_accounts) == 0:
+            embed = await clash_embed(ctx,
+                message=f"{user.mention} is currently not on AriX Member.")
+            return await ctx.send(embed=embed)
 
         account_selection = []
         s_dict = {
@@ -1347,6 +1429,7 @@ class AriXLeaderCommands(commands.Cog):
         final_embed = await clash_embed(ctx,message=f"{ctx.author.mention} just added a note to **{user.mention}**.")
 
         await ctx.send(embed=final_embed)
+
 
     @member_manage.command(name="setnick")
     async def member_manage_setnickname(self,ctx,Discord_User:discord.User):
