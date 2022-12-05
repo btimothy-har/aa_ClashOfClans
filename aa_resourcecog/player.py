@@ -35,6 +35,7 @@ class aPlayer():
 
         #Membership Attributes
         self.home_clan = aClan(ctx,None)
+        self.readable_name = self.name
         self.is_member = False
         self.arix_rank = 'Non-Member'
         self.discord_user = 0
