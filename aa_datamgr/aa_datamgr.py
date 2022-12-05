@@ -697,7 +697,7 @@ class AriXClashDataMgr(commands.Cog):
                                                 not_in_raid_str = f"Raid Weekend ends in **{remaining_time_str}** and you have **NOT** participated.\n\n"
 
                                             not_in_raid_str += f"{humanize_list([f'<@{m.discord_user}>' for m in members_not_in_raid])}"
-                                            await clan_reminder_channel.send(not_in_raid_str)
+                                            #await clan_reminder_channel.send(not_in_raid_str)
 
                                         if len(members_unfinished_raid) > 0:
                                             if (c.current_raid_weekend.end_time - st) < 3600:
