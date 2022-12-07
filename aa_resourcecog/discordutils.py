@@ -104,9 +104,13 @@ async def user_confirmation(ctx, cMsg, confirm_method=None) -> bool:
         for e in confirmation_emotes:
             try:
                 emoji_id = int(''.join([str(i) for i in e if i.isdigit()]))
-                e = ctx.bot.get_emoji(emoji_id)
             except:
                 pass
+            else:
+                e = ctx.bot.get_emoji(emoji_id)
+                if not e:
+                    e = await ctx.bot.fetch_emoji(emoji_id)
+
             await cMsg.add_reaction(emoji)
 
         try:
@@ -157,9 +161,12 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
     for e in sel_emojis:
         try:
             emoji_id = int(''.join([str(i) for i in e if i.isdigit()]))
-            e = ctx.bot.get_emoji(emoji_id)
         except:
             pass
+        else:
+            e = ctx.bot.get_emoji(emoji_id)
+            if not e:
+                e = await ctx.bot.fetch_emoji(emoji_id)
         await smsg.add_reaction(e)
 
     try:

@@ -27,9 +27,12 @@ async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
     for e in sel_emojis:
         try:
             emoji_id = int(''.join([str(i) for i in e if i.isdigit()]))
-            e = ctx.bot.get_emoji(emoji_id)
         except:
             pass
+        else:
+            e = ctx.bot.get_emoji(emoji_id)
+            if not e:
+                e = await ctx.bot.fetch_emoji(emoji_id)
 
         await session.message.add_reaction(e)
 
