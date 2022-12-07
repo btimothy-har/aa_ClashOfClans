@@ -22,7 +22,7 @@ async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
             return False
 
     sel_emojis = [i['emoji'] for i in sel_list]
-    sel_emojis.append('<:red_cross:838461484312428575>')
+    sel_emojis.append(':red_cross:838461484312428575')
 
     for e in sel_emojis:
         await session.message.add_reaction(e)
@@ -32,7 +32,7 @@ async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
     except asyncio.TimeoutError:
         return None
     else:
-        if str(reaction.emoji) == '<:red_cross:838461484312428575>':
+        if int(reaction.emoji.id) == 838461484312428575:
             return None
         else:
             ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]
@@ -127,7 +127,7 @@ async def eclipse_base_vault(ctx,session,no_base=None):
     menu_options = []
     back_dict = {
         'id': 'menu',
-        'emoji': "<:backwards:1041976602420060240>",
+        'emoji': ":backwards:1041976602420060240",
         'title': "",
         }
     menu_options.append(back_dict)
@@ -445,7 +445,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
         category_select = []
         back_dict = {
             'id': 'back',
-            'emoji': '<:backwards:1041976602420060240>',
+            'emoji': ':backwards:1041976602420060240',
             'title': 'Back to Townhall selection'
             }
         category_select.append(back_dict)
@@ -497,27 +497,27 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
     back_dict = {
         'id': 'back',
-        'emoji': '<:backwards:1041976602420060240>'
+        'emoji': ':backwards:1041976602420060240'
         }
     prev_dict = {
         'id': 'previous',
-        'emoji': '<:to_previous:1041988094943035422>'
+        'emoji': ':to_previous:1041988094943035422'
         }
     next_dict = {
         'id': 'next',
-        'emoji': '<:to_next:1041988114308137010>'
+        'emoji': ':to_next:1041988114308137010'
         }
     save_navigation = {
         'id': 'save',
-        'emoji': '<:download:1040800550373044304>'
+        'emoji': ':download:1040800550373044304'
         }
     remove_navigation = {
         'id': 'unsave',
-        'emoji': '<:trashcan:1042829064345497742>'
+        'emoji': ':trashcan:1042829064345497742'
         }
     refresh_bases = {
         'id': 'refresh',
-        'emoji': '<:refresh:1048916418466426941>',
+        'emoji': ':refresh:1048916418466426941',
         }
 
     base_navigation.append(back_dict)

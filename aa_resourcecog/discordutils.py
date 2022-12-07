@@ -170,11 +170,11 @@ async def paginate_embed(ctx,output,add_instructions=True):
 
     prev_dict = {
         'id': 'previous',
-        'emoji': '<:to_previous:1041988094943035422>'
+        'emoji': ':to_previous:1041988094943035422'
         }
     next_dict = {
         'id': 'next',
-        'emoji': '<:to_next:1041988114308137010>'
+        'emoji': ':to_next:1041988114308137010'
         }
 
     if len(output) == 0:

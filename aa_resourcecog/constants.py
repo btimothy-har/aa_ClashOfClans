@@ -1,4 +1,4 @@
-confirmation_emotes = ['<:green_check:838461472324583465>','<:red_cross:838461484312428575>']
+confirmation_emotes = [':green_check:838461472324583465',':red_cross:838461484312428575']
 
 selection_emotes = [":one:",":two:",":three:"]
 
