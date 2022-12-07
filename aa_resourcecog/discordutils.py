@@ -152,7 +152,7 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
             return False
 
     sel_emojis = [i['emoji'] for i in sel_list]
-    sel_emojis.append(':red_cross:838461484312428575')
+    sel_emojis.append('<:red_cross:838461484312428575>')
 
     for e in sel_emojis:
         try:
@@ -167,7 +167,7 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
     except asyncio.TimeoutError:
         return None
     else:
-        if str(reaction.emoji) == ':red_cross:838461484312428575':
+        if str(reaction.emoji) == '<:red_cross:838461484312428575>':
             return None
         else:
             ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]
@@ -181,11 +181,11 @@ async def paginate_embed(ctx,output,add_instructions=True):
 
     prev_dict = {
         'id': 'previous',
-        'emoji': ':to_previous:1041988094943035422'
+        'emoji': '<:to_previous:1041988094943035422>'
         }
     next_dict = {
         'id': 'next',
-        'emoji': ':to_next:1041988114308137010'
+        'emoji': '<:to_next:1041988114308137010>'
         }
 
     if len(output) == 0:
