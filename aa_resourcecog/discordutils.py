@@ -101,8 +101,14 @@ async def user_confirmation(ctx, cMsg, confirm_method=None) -> bool:
                 await token_msg.edit(content="The response received was not valid. Please try again.")
                 return False
     else:
-        for emoji in confirmation_emotes:
+        for e in confirmation_emotes:
+            try:
+                emoji_id = int(''.join([str(i) for i in e if i.isdigit()]))
+                e = ctx.bot.get_emoji(emoji_id)
+            except:
+                pass
             await cMsg.add_reaction(emoji)
+
         try:
             reaction, user = await ctx.bot.wait_for("reaction_add",timeout=20,check=chk_reaction)
         except asyncio.TimeoutError:
@@ -146,9 +152,14 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
             return False
 
     sel_emojis = [i['emoji'] for i in sel_list]
-    sel_emojis.append('<:red_cross:838461484312428575>')
+    sel_emojis.append(':red_cross:838461484312428575')
 
     for e in sel_emojis:
+        try:
+            emoji_id = int(''.join([str(i) for i in e if i.isdigit()]))
+            e = ctx.bot.get_emoji(emoji_id)
+        except:
+            pass
         await smsg.add_reaction(e)
 
     try:
@@ -156,7 +167,7 @@ async def multiple_choice_menu_select(ctx, smsg, sel_list, timeout=60):
     except asyncio.TimeoutError:
         return None
     else:
-        if str(reaction.emoji) == '<:red_cross:838461484312428575>':
+        if str(reaction.emoji) == ':red_cross:838461484312428575':
             return None
         else:
             ms = [i for i in sel_list if i['emoji'] == str(reaction.emoji)]

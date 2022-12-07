@@ -25,6 +25,12 @@ async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
     sel_emojis.append(':red_cross:838461484312428575')
 
     for e in sel_emojis:
+        try:
+            emoji_id = int(''.join([str(i) for i in e if i.isdigit()]))
+            e = ctx.bot.get_emoji(emoji_id)
+        except:
+            pass
+
         await session.message.add_reaction(e)
 
     try:
