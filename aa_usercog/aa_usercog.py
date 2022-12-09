@@ -685,10 +685,12 @@ class AriXMemberCommands(commands.Cog):
 
                     if response == 'personalvault':
                         tries = 10
+                        await ctx.message.delete()
                         response = await eclipse_personal_bases(ctx,session)
 
                     if response == 'mybases':
                         tries = 10
+                        await ctx.message.delete()
                         response = await eclipse_personal_bases(ctx,session)
 
                     #Base Vault: Townhall Selection
