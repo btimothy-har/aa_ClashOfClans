@@ -667,9 +667,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                         no_dm_embed = await eclipse_embed(ctx,
                             message="I couldn't send you a DM! Please ensure your DM's are open.")
                         await session.channel.send(content=session.user.mention,embed=no_dm_embed,delete_after=40)
-                    else:
-                        base_navigation.remove(save_navigation)
-                        await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
+
                     await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
                     try:
                         await claim_msg.delete()
@@ -694,9 +692,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
                 elif selection['id'] == 'unsave':
                     display_bases[i].remove_claim(ctx,session)
-                    async with ctx.bot.async_eclipse_lock:
-                        with ctx.bot.clash_eclipse_lock.write_lock():
-                            await display_bases[i].save_to_json()
+
                     delete_embed = await eclipse_embed(ctx,
                         message="You have removed your claim from this base.")
                     await session.channel.send(embed=delete_embed,delete_after=40)
