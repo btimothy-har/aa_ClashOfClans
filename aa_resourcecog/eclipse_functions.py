@@ -674,7 +674,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                                 + "\n*This message will self-destruct in 40 seconds.*")
 
                     await ctx.send(embed=claim_embed,delete_after=40)
-                    await session.message.remove_reaction(🔍, session.user)
+                    await session.message.remove_reaction('🔍', session.user)
 
                 elif selection['id'] == 'unsave':
                     display_bases[i].remove_claim(ctx,session)
