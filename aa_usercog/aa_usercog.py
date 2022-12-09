@@ -753,6 +753,11 @@ class AriXMemberCommands(commands.Cog):
                     session_closed = await eclipse_embed(ctx,
                         message=f"Your **E.C.L.I.P.S.E.** session is closed. We hope to see you again!")
 
+                    try:
+                        ctx.bot.clash_eclipse_sessions.remove(session)
+                    except:
+                        pass
+
                     if session.guild and session.message:
                         await session.message.clear_reactions()
                         await session.message.edit(content=ctx.author.mention,embed=session_closed)
