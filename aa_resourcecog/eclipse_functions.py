@@ -703,7 +703,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     await session.message.remove_reaction('🔍', session.user)
 
                 elif selection['id'] == 'unsave':
-                    display_bases[i].remove_claim(ctx,session)
+                    await display_bases[i].remove_claim(ctx,session)
                     refresh_rxn = True
 
                     delete_embed = await eclipse_embed(ctx,
