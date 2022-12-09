@@ -724,7 +724,6 @@ class AriXMemberCommands(commands.Cog):
                         tries = 10
                         response = await eclipse_army_analyzer_main(ctx,session,army_analyze_th_select)
 
-
                     #if response == 'strategy':
                     #    await ctx.send("This bit doesn't exist yet.")
                     #    response = "menu"
@@ -759,6 +758,7 @@ class AriXMemberCommands(commands.Cog):
 
             try:
                 ctx.bot.clash_eclipse_sessions.remove(session)
+                await ctx.message.delete()
             except:
                 pass
 

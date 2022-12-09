@@ -149,7 +149,7 @@ class AriXClashResources(commands.Cog):
         """
 
         base_embed = await clash_embed(ctx,
-            title="**E.C.L.I.P.S.E. Base Vault",
+            title="**E.C.L.I.P.S.E. Base Vault**",
             message=f"Need to refresh your base collection and get a brand new OP defense? The E.C.L.I.P.S.E. Base Vault contains bases from **TH9 to TH15**, covering a wide range of your needs."
                 + f"\n\nTo get access to the Base Vault, run the `/eclipse` command in <#{ctx.bot.base_channel.id}>. *You need to be a member of our clans for at least 2 weeks to view this channel*"
                 + f"\n\nIf you already meet the above condition but are unable to view the base vault, please contact a <@&733023831366697080>.",
