@@ -592,7 +592,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
-                    + "\n🔍 to view current base claims",
+                    + "\n🔍 to view current base claims"
                     + f"\n\nTo get the Base Link, first claim this base by clicking on <:download:1040800550373044304>. You will receive the Base Link in your DMs."
                     + f"\n*Your claimed bases will be accessible from your personal vault.*",
                 inline=False)
