@@ -134,7 +134,7 @@ async def eclipse_base_vault(ctx,session,no_base=None):
     menu_options = []
     back_dict = {
         'id': 'menu',
-        'emoji': ":backwards:1041976602420060240",
+        'emoji': "<:backwards:1041976602420060240>",
         'title': "",
         }
     menu_options.append(back_dict)
@@ -452,7 +452,7 @@ async def get_eclipse_bases(ctx,session,townhall_level):
         category_select = []
         back_dict = {
             'id': 'back',
-            'emoji': ':backwards:1041976602420060240',
+            'emoji': '<:backwards:1041976602420060240>',
             'title': 'Back to Townhall selection'
             }
         category_select.append(back_dict)
