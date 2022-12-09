@@ -1291,10 +1291,12 @@ class AriXLeaderCommands(commands.Cog):
 
                         if discord_member:
                             ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
-                            await discord_member.add_roles(ex_member_role)
-                            await discord_member.edit(nick=discord_member.name)
-
-                            summary_str += f"\n{ex_member_role.mention} assigned to {discord_member.mention}."
+                            try:
+                                await discord_member.add_roles(ex_member_role)
+                                await discord_member.edit(nick=discord_member.name)
+                                summary_str += f"\n{ex_member_role.mention} assigned to {discord_member.mention}."
+                            except:
+                                pass
 
             success_embed = await clash_embed(ctx,
                 message=summary_str)
