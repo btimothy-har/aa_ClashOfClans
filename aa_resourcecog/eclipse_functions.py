@@ -571,8 +571,8 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
-                    + f"\n\n**You have claimed this base.** To remove your claim, click on <:trashcan:1042829064345497742>."
-                    + "\n🔍 to view all base claims",
+                    + "\n🔍 to view all base claims"
+                    + f"\n\n**You have claimed this base.** To remove your claim, click on <:trashcan:1042829064345497742>.",
                 inline=False)
             base_navigation.append(remove_navigation)
             base_navigation.append(view_claims)
@@ -581,9 +581,9 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
+                    + "\n🔍 to view all base claims"
                     + "\n\n**You have claimed this base.** To get the Base Link, click on <:download:1040800550373044304>. "
-                    + f"The Base Link will be sent to your DMs."
-                    + "\n🔍 to view all base claims",
+                    + f"\nThe Base Link will be sent to your DMs.",
                 inline=False)
             base_navigation.append(save_navigation)
             base_navigation.append(view_claims)
@@ -592,7 +592,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
-                    + "\n🔍 to view current base claims"
+                    + "\n🔍 to view all base claims"
                     + f"\n\nTo get the Base Link, first claim this base by clicking on <:download:1040800550373044304>. You will receive the Base Link in your DMs."
                     + f"\n*Your claimed bases will be accessible from your personal vault.*",
                 inline=False)
@@ -662,14 +662,14 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
                 elif selection['id'] == 'viewclaims':
                     if len(display_bases[i].claims) == 0:
-                        claim_embed = await clash_embed(ctx,
+                        claim_embed = await eclipse_embed(ctx,
                             message="This base hasn't been claimed by anyone.\n\n*This message will self-destruct in 40 seconds.*")
                     else:
                         member_str = ''
                         for c in display_bases[i].claims:
                             member_str += f"<@{c}>\n"
 
-                        claim_embed = await clash_embed(ctx,
+                        claim_embed = await eclipse_embed(ctx,
                             message=f"This base hasn't been claimed by {len(display_bases[i].claims)} members: {member_str}"
                                 + "\n\n*This message will self-destruct in 40 seconds.*")
 
