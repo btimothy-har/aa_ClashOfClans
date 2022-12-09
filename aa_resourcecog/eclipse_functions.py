@@ -14,7 +14,7 @@ from .file_functions import eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league
 
 
-async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
+async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60, refresh_rxn=True):
     def chk_select(r,u):
         if str(r.emoji) in sel_emojis and r.message.id == session.message.id and u.id == session.user.id:
             return True
@@ -24,14 +24,15 @@ async def eclipse_multiple_choice_select(ctx, session, sel_list, timeout=60):
     sel_emojis = [i['emoji'] for i in sel_list]
     sel_emojis.append('<:red_cross:838461484312428575>')
 
-    for e in sel_emojis:
-        try:
-            get_id = e.split(':')[-1]
-            emoji_id = int(''.join([str(i) for i in get_id if i.isdigit()]))
-            e = ctx.bot.get_emoji(emoji_id)
-        except:
-            pass
-        await session.message.add_reaction(e)
+    if refresh_rxn:
+        for e in sel_emojis:
+            try:
+                get_id = e.split(':')[-1]
+                emoji_id = int(''.join([str(i) for i in get_id if i.isdigit()]))
+                e = ctx.bot.get_emoji(emoji_id)
+            except:
+                pass
+            await session.message.add_reaction(e)
 
     try:
         reaction, user = await ctx.bot.wait_for("reaction_add",timeout=timeout,check=chk_select)
@@ -545,6 +546,8 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
     i = 0
 
+    refresh_rxn = True
+
     while browse_bases:
         if len(display_bases) == 0:
             return 'personalvault'
@@ -625,13 +628,16 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             session.message = await session.channel.send(content=session.user.mention,embed=base_embed)
         else:
             await session.message.edit(content=session.user.mention,embed=base_embed)
-            await session.message.clear_reactions()
+            if refresh_rxn:
+                await session.message.clear_reactions()
 
         while True:
-            selection = await eclipse_multiple_choice_select(ctx,session,base_navigation,timeout=300)
+            selection = await eclipse_multiple_choice_select(ctx,session,base_navigation,timeout=300,refresh_rxn=refresh_rxn)
             if selection:
                 if selection['id'] == 'next':
                     i += 1
+                    await session.message.remove_reaction("<:to_next:1041988114308137010>",session.user)
+                    refresh_rxn = False
                     try:
                         await claim_msg.delete()
                     except:
@@ -639,6 +645,8 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     break
                 elif selection['id'] == 'previous':
                     i -= 1
+                    await session.message.remove_reaction("<:to_previous:1041988094943035422>",session.user)
+                    refresh_rxn = False
                     try:
                         await claim_msg.delete()
                     except:
@@ -701,7 +709,6 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                         await claim_msg.delete()
                     except:
                         pass
-
                     break
 
                 else:
