@@ -663,9 +663,12 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                             message="This base hasn't been claimed by anyone.\n\n*This message will self-destruct in 40 seconds.*")
 
                     else:
-                        member_str = [f'<@{claim}>' for claim in display_bases[i].claims]
+                        member_str = ''
+                        for c in display_bases[i].claims:
+                            member_str += f"<@{c}>\n"
+
                         claim_embed = await clash_embed(ctx,
-                            message=f"This base hasn't been claimed by {len(display_bases[i].claims)} members: {'\n'.join(member_str)}"
+                            message=f"This base hasn't been claimed by {len(display_bases[i].claims)} members: {member_str}"
                                 + "\n\n*This message will self-destruct in 40 seconds.*")
 
                     await ctx.send(embed=claim_embed,delete_after=40)

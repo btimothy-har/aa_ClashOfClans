@@ -155,6 +155,9 @@ class AriXClashResources(commands.Cog):
                 + f"\n\nIf you already meet the above condition but are unable to view the base vault, please contact a <@&733023831366697080>.",
             show_author=False)
 
+        await ctx.send(embed=base_embed)
+        await ctx.message.delete()
+
     # @commands.command(name="nebula",aliases=["n"])
     # async def help_nebula(self,ctx):
     #     """
