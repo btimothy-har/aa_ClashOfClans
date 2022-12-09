@@ -503,27 +503,27 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
     back_dict = {
         'id': 'back',
-        'emoji': ':backwards:1041976602420060240'
+        'emoji': '<:backwards:1041976602420060240>'
         }
     prev_dict = {
         'id': 'previous',
-        'emoji': ':to_previous:1041988094943035422'
+        'emoji': '<:to_previous:1041988094943035422>'
         }
     next_dict = {
         'id': 'next',
-        'emoji': ':to_next:1041988114308137010'
+        'emoji': '<:to_next:1041988114308137010>'
         }
     save_navigation = {
         'id': 'save',
-        'emoji': ':download:1040800550373044304'
+        'emoji': '<:download:1040800550373044304>'
         }
     remove_navigation = {
         'id': 'unsave',
-        'emoji': ':trashcan:1042829064345497742'
+        'emoji': '<:trashcan:1042829064345497742>'
         }
     refresh_bases = {
         'id': 'refresh',
-        'emoji': ':refresh:1048916418466426941',
+        'emoji': '<:refresh:1048916418466426941>',
         }
     view_claims = {
         'id': 'viewclaims',
@@ -571,27 +571,33 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
-                    + f"\n\n**You have claimed this base.** To remove your claim, click on <:trashcan:1042829064345497742>.",
+                    + f"\n\n**You have claimed this base.** To remove your claim, click on <:trashcan:1042829064345497742>."
+                    + "\n🔍 to view all base claims",
                 inline=False)
             base_navigation.append(remove_navigation)
+            base_navigation.append(view_claims)
 
         elif session.user.id in display_bases[i].claims and session.guild:
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
                     + "\n\n**You have claimed this base.** To get the Base Link, click on <:download:1040800550373044304>. "
-                    + f"The Base Link will be sent to your DMs.",
+                    + f"The Base Link will be sent to your DMs."
+                    + "\n🔍 to view all base claims",
                 inline=False)
             base_navigation.append(save_navigation)
+            base_navigation.append(view_claims)
             
         else:
             base_embed.add_field(
                 name="Base Claim Status",
                 value=f"Claimed by: {len(display_bases[i].claims)} member(s)"
+                    + "\n🔍 to view current base claims",
                     + f"\n\nTo get the Base Link, first claim this base by clicking on <:download:1040800550373044304>. You will receive the Base Link in your DMs."
                     + f"\n*Your claimed bases will be accessible from your personal vault.*",
                 inline=False)
             base_navigation.append(save_navigation)
+            base_navigation.append(view_claims)
 
         if len(bases) > 5 and not vault_mode:
             base_embed.add_field(
@@ -599,7 +605,6 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 value="<:backwards:1041976602420060240> back to the previous menu"
                     + "\n<:to_previous:1041988094943035422> for the previous base"
                     + "\n<:to_next:1041988114308137010> for the next base"
-                    + "\n🔍 to view base claims"
                     + "\n<:refresh:1048916418466426941> get more bases",
                 inline=False)
         elif len(bases) > 1:
@@ -607,14 +612,12 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 name="Navigation",
                 value="<:backwards:1041976602420060240> back to the previous menu"
                     + "\n<:to_previous:1041988094943035422> for the previous base"
-                    + "\n<:to_next:1041988114308137010> for the next base"
-                    + "\n🔍 to view base claims",
+                    + "\n<:to_next:1041988114308137010> for the next base",
                 inline=False)
         else:
             base_embed.add_field(
                 name="Navigation",
-                value="<:backwards:1041976602420060240> back to the previous menu"
-                    + "\n🔍 to view base claims",
+                value="<:backwards:1041976602420060240> back to the previous menu",
             inline=False)
         
         if not session.guild:
@@ -661,7 +664,6 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     if len(display_bases[i].claims) == 0:
                         claim_embed = await clash_embed(ctx,
                             message="This base hasn't been claimed by anyone.\n\n*This message will self-destruct in 40 seconds.*")
-
                     else:
                         member_str = ''
                         for c in display_bases[i].claims:
@@ -672,7 +674,6 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                                 + "\n\n*This message will self-destruct in 40 seconds.*")
 
                     await ctx.send(embed=claim_embed,delete_after=40)
-
 
                 elif selection['id'] == 'unsave':
                     display_bases[i].remove_claim(ctx,session)
