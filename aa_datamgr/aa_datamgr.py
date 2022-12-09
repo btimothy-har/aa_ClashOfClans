@@ -185,7 +185,8 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Refresh Status__",
-                value=f"> **Last Updated**: {update_str} ago"
+                value=f"> **Current State**: {ctx.bot.refresh_status}"
+                    + f"\n> **Last Updated**: {update_str} ago"
                     + f"\n> **Average Run Time**: {average_run_time} seconds",
                     inline=False)
             await ctx.send(embed=embed)
@@ -351,6 +352,9 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
         helsinkiTz = pytz.timezone("Europe/Helsinki")
+
+        ctx.bot.refresh_status = True
+
         if True:
             sEmbed = await clash_embed(ctx,
                 title="Data Update Report",
@@ -1077,6 +1081,8 @@ class AriXClashDataMgr(commands.Cog):
 
             await self.config.last_data_update.set(st)
             await self.config.update_runtimes.set(run_time_hist)
+
+        ctx.bot.refresh_status = False
 
         #except Exception as e:
         #    return await ctx.bot.send_to_owners(f"**Data Refresh Error**\n\n**Exception**: {e}\n**Arguments**: {e.args}\n**Timestamp**: <t:{st}:f>")
