@@ -141,86 +141,100 @@ class AriXClashResources(commands.Cog):
                 ctx.bot.update_channel = channel
                 return await ctx.send(f"The Alliance Update Channel has been set to `{ctx.bot.update_channel.name}`.")
 
-    @commands.command(name="nebula",aliases=["n"])
-    async def help_nebula(self,ctx):
+    @commands.command(name="showembed")
+    @commands.is_owner()
+    async def show_static_embed(self,ctx):
         """
-        Custom help command for N.E.B.U.L.A.
+        Prints a static embed in the current channel.
         """
 
-        output_embed = []
+        base_embed = await clash_embed(ctx,
+            title="**E.C.L.I.P.S.E. Base Vault",
+            message=f"Need to refresh your base collection and get a brand new OP defense? The E.C.L.I.P.S.E. Base Vault contains bases from **TH9 to TH15**, covering a wide range of your needs."
+                + f"\n\nTo get access to the Base Vault, run the `/eclipse` command in <#{ctx.bot.base_channel.id}>. *You need to be a member of our clans for at least 2 weeks to view this channel*"
+                + f"\n\nIf you already meet the above condition but are unable to view the base vault, please contact a <@&733023831366697080>.",
+            show_author=False)
 
-        leader_state = False
-        coleader_state = False
-        elder_state = False
-        member_state = False
+    # @commands.command(name="nebula",aliases=["n"])
+    # async def help_nebula(self,ctx):
+    #     """
+    #     Custom help command for N.E.B.U.L.A.
+    #     """
 
-        discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
+    #     output_embed = []
 
-        if discord_member:
-            if ctx.bot.leader_role in discord_member.roles:
-                leader_state = True
+    #     leader_state = False
+    #     coleader_state = False
+    #     elder_state = False
+    #     member_state = False
 
-            if ctx.bot.coleader_role in discord_member.roles:
-                coleader_state = True
+    #     discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
 
-            if ctx.bot.elder_role in discord_member.roles:
-                elder_state = True
+    #     if discord_member:
+    #         if ctx.bot.leader_role in discord_member.roles:
+    #             leader_state = True
 
-            if ctx.bot.member_role in discord_member.roles:
-                member_state = True
+    #         if ctx.bot.coleader_role in discord_member.roles:
+    #             coleader_state = True
 
-        nebula_embed = await clash_embed(ctx,
-            title="Hello, I am N.E.B.U.L.A.",
-            message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
-                + "\n\nThe commands displayed below are based on your access level."
-                + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
-            thumbnail="https://i.imgur.com/TZF5r54.png")
+    #         if ctx.bot.elder_role in discord_member.roles:
+    #             elder_state = True
 
-        leader_embed = None
+    #         if ctx.bot.member_role in discord_member.roles:
+    #             member_state = True
 
-        nebula_embed.add_field(
-            name="**__General Commands__**",
-            value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
-                + f"\n> \n> **ao9 as pr pa don dop ao2 ae**\n> Bring up the Clan Invite for the respective Alliance clan. Acronyms must be in lower-case. You may use this in any combination\n> (e.g. `$as` `$pa pr` `$ao9 don pr as`)"
-                + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
-                + f"\n> \n> **player** `[optional: @Discord User or COC Player Tags]`\n> Gets your Clash of Clans player stats. You may provide multiple player tag(s), separated by a space.\n> If searching by User, only 1 Discord User can be provided."
-                + f"\n\u200b",
-            inline=False)
+    #     nebula_embed = await clash_embed(ctx,
+    #         title="Hello, I am N.E.B.U.L.A.",
+    #         message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
+    #             + "\n\nThe commands displayed below are based on your access level."
+    #             + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
+    #         thumbnail="https://i.imgur.com/TZF5r54.png")
 
-        if member_state:
-            nebula_embed.add_field(
-                name="**__Member Commands__**",
-                value=f"> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
-                    + f"\n> \n> **nickname**\n> Change your Discord nickname based on your member accounts!"
-                    + f"\n> \n> **eclipse**\n> Open E.C.L.I.P.S.E."
-                    + f"\n\u200b",
-                inline=False)
+    #     leader_embed = None
 
-        if coleader_state or leader_state:
-            leader_embed = await clash_embed(ctx,
-                title="Hello, I am N.E.B.U.L.A.",
-                message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
-                    + "\n\nThe commands displayed below are based on your access level."
-                    + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
-                thumbnail="https://i.imgur.com/TZF5r54.png")
+    #     nebula_embed.add_field(
+    #         name="**__General Commands__**",
+    #         value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
+    #             + f"\n> \n> **ao9 as pr pa don dop ao2 ae**\n> Bring up the Clan Invite for the respective Alliance clan. Acronyms must be in lower-case. You may use this in any combination\n> (e.g. `$as` `$pa pr` `$ao9 don pr as`)"
+    #             + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
+    #             + f"\n> \n> **player** `[optional: @Discord User or COC Player Tags]`\n> Gets your Clash of Clans player stats. You may provide multiple player tag(s), separated by a space.\n> If searching by User, only 1 Discord User can be provided."
+    #             + f"\n\u200b",
+    #         inline=False)
 
-            leader_embed.add_field(
-                name="**__Leaders & Co-Leader Commands__**",
-                value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
-                    + f"\n> \n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
-                    + f"\n> \n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
-                    + f"\n> \n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
-                    + f"\n> \n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
-                    + f"\n> \n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
-                    + f"\n\u200b",
-                inline=False)
+    #     if member_state:
+    #         nebula_embed.add_field(
+    #             name="**__Member Commands__**",
+    #             value=f"> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
+    #                 + f"\n> \n> **nickname**\n> Change your Discord nickname based on your member accounts!"
+    #                 + f"\n> \n> **eclipse**\n> Open E.C.L.I.P.S.E."
+    #                 + f"\n\u200b",
+    #             inline=False)
 
-        output_embed.append(nebula_embed)
+    #     if coleader_state or leader_state:
+    #         leader_embed = await clash_embed(ctx,
+    #             title="Hello, I am N.E.B.U.L.A.",
+    #             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
+    #                 + "\n\nThe commands displayed below are based on your access level."
+    #                 + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
+    #             thumbnail="https://i.imgur.com/TZF5r54.png")
 
-        if leader_embed:
-            output_embed.append(leader_embed)
+    #         leader_embed.add_field(
+    #             name="**__Leaders & Co-Leader Commands__**",
+    #             value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
+    #                 + f"\n> \n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
+    #                 + f"\n> \n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
+    #                 + f"\n> \n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
+    #                 + f"\n> \n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
+    #                 + f"\n> \n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
+    #                 + f"\n\u200b",
+    #             inline=False)
 
-        await paginate_embed(ctx,output_embed)
+    #     output_embed.append(nebula_embed)
+
+    #     if leader_embed:
+    #         output_embed.append(leader_embed)
+
+    #     await paginate_embed(ctx,output_embed)
 
 
     async def get_welcome_embed(ctx,user):

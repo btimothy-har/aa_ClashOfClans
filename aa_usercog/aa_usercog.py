@@ -749,6 +749,8 @@ class AriXMemberCommands(commands.Cog):
                     if session.guild and session.message:
                         await session.message.clear_reactions()
                         await session.message.edit(content=ctx.author.mention,embed=session_closed)
+                        await asyncio.sleep(60)
+                        await session.message.delete()
 
                     else:
                         if session.message:

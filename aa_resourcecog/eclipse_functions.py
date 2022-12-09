@@ -525,6 +525,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
         'id': 'refresh',
         'emoji': ':refresh:1048916418466426941',
         }
+    view_claims = {
+        'id': 'viewclaims',
+        'emoji': '🔍',
+        }
 
     base_navigation.append(back_dict)
     if len(bases) > 1:
@@ -595,6 +599,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 value="<:backwards:1041976602420060240> back to the previous menu"
                     + "\n<:to_previous:1041988094943035422> for the previous base"
                     + "\n<:to_next:1041988114308137010> for the next base"
+                    + "\n🔍 to view base claims"
                     + "\n<:refresh:1048916418466426941> get more bases",
                 inline=False)
         elif len(bases) > 1:
@@ -602,12 +607,14 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 name="Navigation",
                 value="<:backwards:1041976602420060240> back to the previous menu"
                     + "\n<:to_previous:1041988094943035422> for the previous base"
-                    + "\n<:to_next:1041988114308137010> for the next base",
+                    + "\n<:to_next:1041988114308137010> for the next base"
+                    + "\n🔍 to view base claims",
                 inline=False)
         else:
             base_embed.add_field(
                 name="Navigation",
-                value="<:backwards:1041976602420060240> back to the previous menu",
+                value="<:backwards:1041976602420060240> back to the previous menu"
+                    + "\n🔍 to view base claims",
             inline=False)
         
         if not session.guild:
@@ -649,6 +656,20 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                         base_navigation.remove(save_navigation)
                         await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
                     await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+
+                elif selection['id'] == 'viewclaims':
+                    if len(display_bases[i].claims) == 0:
+                        claim_embed = await clash_embed(ctx,
+                            message="This base hasn't been claimed by anyone.\n\n*This message will self-destruct in 40 seconds.*")
+
+                    else:
+                        member_str = [f'<@{claim}>' for claim in display_bases[i].claims]
+                        claim_embed = await clash_embed(ctx,
+                            message=f"This base hasn't been claimed by {len(display_bases[i].claims)} members: {'\n'.join(member_str)}"
+                                + "\n\n*This message will self-destruct in 40 seconds.*")
+
+                    await ctx.send(embed=claim_embed,delete_after=40)
+
 
                 elif selection['id'] == 'unsave':
                     display_bases[i].remove_claim(ctx,session)
