@@ -467,7 +467,9 @@ async def get_eclipse_bases(ctx,session,townhall_level):
 
         base_category_embed = await eclipse_embed(ctx,
             title="**E.C.L.I.P.S.E. Base Vault**",
-            message=f"I found the following base types for **{emotes_townhall[base_th]} Townhall {base_th}**. Select a category to view."
+            message=f"I found the following base types for **{emotes_townhall[base_th]} Townhall {base_th}**."
+                + f"For performance reasons, bases are only shown in blocks of 5. Use the <:refresh:1048916418466426941> button to get the next block of 5.*"
+                + f"\n\n**Select a category to view bases.**"
                 + f"\n\n{category_str}\n\n<:backwards:1041976602420060240> Back to Townhall selection\n\u200b")
 
         if session.message:
