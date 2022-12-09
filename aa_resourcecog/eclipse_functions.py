@@ -655,6 +655,8 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 elif selection['id'] == 'refresh':
                     i = 0
                     display_bases = random.sample(bases, 5)
+                    await session.message.remove_reaction("<:refresh:1048916418466426941>",session.user)
+                    refresh_rxn = False
                     try:
                         await claim_msg.delete()
                     except:
@@ -700,6 +702,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
                 elif selection['id'] == 'unsave':
                     display_bases[i].remove_claim(ctx,session)
+                    refresh_rxn = True
 
                     delete_embed = await eclipse_embed(ctx,
                         message="You have removed your claim from this base.")
@@ -713,6 +716,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
 
                 else:
                     browse_bases = False
+                    refresh_rxn = True
                     try:
                         await claim_msg.delete()
                     except:
@@ -721,6 +725,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     break
             else:
                 browse_bases = False
+                refresh_rxn = True
                 try:
                     await claim_msg.delete()
                 except:
