@@ -541,18 +541,18 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
     if len(bases) > 5 and not vault_mode:
         base_navigation.append(refresh_bases)
         display_bases = random.sample(bases, 5)
-    elif not vault_mode:
-        display_bases = bases
     else:
-        display_bases = [b for b in bases if session.user.id in b.claims]
+        display_bases = bases
 
     i = 0
-
     refresh_rxn = True
 
     while browse_bases:
         if len(display_bases) == 0:
             return 'personalvault'
+
+        if vault_mode:
+            display_bases = [b for b in bases if session.user.id in b.claims]
         
         if i < 0:
             i = (len(display_bases) - 1)
