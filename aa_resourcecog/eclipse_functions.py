@@ -96,7 +96,7 @@ async def eclipse_main_menu(ctx,session):
         title="**Welcome to E.C.L.I.P.S.E.!**",
         message=f"\nAriX's ***E**xtraordinarily **C**ool **L**ooking **I**nteractive & **P**rofessional **S**earch **E**ngine*."
             + f"\n\nWith E.C.L.I.P.S.E., you'll find an infinite source of Clash data, alongside exclusive AriX-only tools."
-            + f"\n\n**To access the E.C.L.I.P.S.E. Base Vault, run `/eclipse` in the `{ctx.bot.base_channel.name}` channel.** To get access to this channel, you must be a member for __at least 2 weeks__. If you meet this criteria, please contact a <@&733023831366697080>.\n\u200b")
+            + f"\n\n**To access the E.C.L.I.P.S.E. Base Vault, run `/eclipse` in the `{ctx.bot.base_channel.name}` channel (<#{ctx.bot.base_channel.id}>).** To get access to this channel, you must be a member for __at least 2 weeks__. If you meet this criteria, please contact a <@&733023831366697080>.\n\u200b")
 
     select_str = ""
 
