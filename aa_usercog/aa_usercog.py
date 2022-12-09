@@ -766,6 +766,9 @@ class AriXMemberCommands(commands.Cog):
 
             try:
                 ctx.bot.clash_eclipse_sessions.remove(session)
+            except:
+                pass
+            try:
                 await ctx.message.delete()
             except:
                 pass
