@@ -143,6 +143,7 @@ class aPlayer():
             memberStats = await data_file_handler(ctx,'members',self.tag)
 
             self.name = self.p.name
+            self.readable_name = self.name
             self.exp_level = self.p.exp_level
 
             clan = getattr(self.p,'clan',None)
