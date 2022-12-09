@@ -632,13 +632,25 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             if selection:
                 if selection['id'] == 'next':
                     i += 1
+                    try:
+                        await claim_msg.delete()
+                    except:
+                        pass
                     break
                 elif selection['id'] == 'previous':
                     i -= 1
+                    try:
+                        await claim_msg.delete()
+                    except:
+                        pass
                     break
                 elif selection['id'] == 'refresh':
                     i = 0
                     display_bases = random.sample(bases, 5)
+                    try:
+                        await claim_msg.delete()
+                    except:
+                        pass
                     break
 
                 elif selection['id'] == 'save':
@@ -659,6 +671,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                         base_navigation.remove(save_navigation)
                         await session.message.remove_reaction("<:download:1040800550373044304>",ctx.bot.user)
                     await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+                    try:
+                        await claim_msg.delete()
+                    except:
+                        pass
 
                 elif selection['id'] == 'viewclaims':
                     if len(display_bases[i].claims) == 0:
@@ -673,7 +689,7 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                             message=f"This base has been claimed by **{len(display_bases[i].claims)} members**:\n{member_str}"
                                 + "\n*This message will self-destruct in 40 seconds.*")
 
-                    await ctx.send(embed=claim_embed,delete_after=40)
+                    claim_msg = await ctx.send(embed=claim_embed,delete_after=40)
                     await session.message.remove_reaction('🔍', session.user)
 
                 elif selection['id'] == 'unsave':
@@ -685,15 +701,32 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                         message="You have removed your claim from this base.")
                     await session.channel.send(embed=delete_embed,delete_after=40)
                     i = 0
+                    try:
+                        await claim_msg.delete()
+                    except:
+                        pass
+
                     break
 
                 else:
                     browse_bases = False
+                    try:
+                        await claim_msg.delete()
+                    except:
+                        pass
+
                     break
             else:
                 browse_bases = False
+                try:
+                    await claim_msg.delete()
+                except:
+                    pass
                 break
-        await dump_message.delete()
+        try:
+            await dump_message.delete()
+        except:
+            pass
 
     if selection:
         response = True
