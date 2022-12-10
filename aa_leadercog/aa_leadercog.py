@@ -963,6 +963,7 @@ class AriXLeaderCommands(commands.Cog):
         report_str = ""
         cleanup_msgs = []
         silent_mode = False
+        sent_welcome = False
         error_log = []
         added_count = 0
 
@@ -1158,6 +1159,7 @@ class AriXLeaderCommands(commands.Cog):
                 await ctx.send(content="https://discord.gg/tYBh3Gk")
 
             else:
+                sent_welcome = True
                 welcome_embed = await clash_embed(ctx,
                     message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.",
                     show_author=False)
@@ -1180,10 +1182,8 @@ class AriXLeaderCommands(commands.Cog):
 
         await ctx.send(embed=result_embed)
 
-        try:
-            await ctx.send(content=f"{user.mention}",embed=welcome_embed)
-        except:
-            pass
+        if sent_welcome:
+            await ctx.send(content=f"**Welcome to AriX, {user.mention}!**\n\nTo get you set up, I've sent you some information and instructions in your DMs. Please do review them ASAP!")
 
 
     @member_manage.command(name="remove")
