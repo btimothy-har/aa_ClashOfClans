@@ -1086,7 +1086,7 @@ class AriXLeaderCommands(commands.Cog):
 
             if not selected_clan:
                 not_added_embed = await clash_embed(ctx,message=f"{p.desc_title} was not added to AriX. Skipping...")
-                await ctx.send(embed=not_added_embed,delete_after=30)
+                await ctx.send(embed=not_added_embed,delete_after=20)
 
                 report_str += f"<a:animated_Cross:1050931677033140294> **{p.tag} {p.name}** not added to AriX.\n"
                 continue
@@ -1104,7 +1104,7 @@ class AriXLeaderCommands(commands.Cog):
             c_embed = await clash_embed(ctx,
                 message=f"**{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.",
                 color='success')
-            await ctx.send(embed=c_embed,delete_after=30)
+            await ctx.send(embed=c_embed,delete_after=20)
 
             report_str += f"<a:check_black:1050969577556811876> **{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.\n"
 
@@ -1158,7 +1158,8 @@ class AriXLeaderCommands(commands.Cog):
 
         result_embed = await clash_embed(ctx,
             title=f"Member Add: {user.name}#{user.discriminator}",
-            message=f"{report_str}\u200b")
+            message=f"{report_str}\u200b",
+            thumbnail=user.avatar_url)
 
         if len(error_log) > 0:
             error_str = "\u200b"
