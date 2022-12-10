@@ -158,86 +158,14 @@ class AriXClashResources(commands.Cog):
         await ctx.send(embed=base_embed)
         await ctx.message.delete()
 
-    # @commands.command(name="nebula",aliases=["n"])
-    # async def help_nebula(self,ctx):
-    #     """
-    #     Custom help command for N.E.B.U.L.A.
-    #     """
 
-    #     output_embed = []
+    @commands.command(name="bakkuhelp")
+    async def help_nebula(self,ctx,thing_to_get_help_for: str = None):
+        """
+        Custom help command for N.E.B.U.L.A.
+        """
 
-    #     leader_state = False
-    #     coleader_state = False
-    #     elder_state = False
-    #     member_state = False
-
-    #     discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
-
-    #     if discord_member:
-    #         if ctx.bot.leader_role in discord_member.roles:
-    #             leader_state = True
-
-    #         if ctx.bot.coleader_role in discord_member.roles:
-    #             coleader_state = True
-
-    #         if ctx.bot.elder_role in discord_member.roles:
-    #             elder_state = True
-
-    #         if ctx.bot.member_role in discord_member.roles:
-    #             member_state = True
-
-    #     nebula_embed = await clash_embed(ctx,
-    #         title="Hello, I am N.E.B.U.L.A.",
-    #         message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
-    #             + "\n\nThe commands displayed below are based on your access level."
-    #             + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
-    #         thumbnail="https://i.imgur.com/TZF5r54.png")
-
-    #     leader_embed = None
-
-    #     nebula_embed.add_field(
-    #         name="**__General Commands__**",
-    #         value=f"> **arix**\n> Lists all the Clans in the AriX Alliance."
-    #             + f"\n> \n> **ao9 as pr pa don dop ao2 ae**\n> Bring up the Clan Invite for the respective Alliance clan. Acronyms must be in lower-case. You may use this in any combination\n> (e.g. `$as` `$pa pr` `$ao9 don pr as`)"
-    #             + f"\n> \n> **profile** `[optional: @Discord User]`\n> View the AriX Profile of yourself, or another Discord Member."
-    #             + f"\n> \n> **player** `[optional: @Discord User or COC Player Tags]`\n> Gets your Clash of Clans player stats. You may provide multiple player tag(s), separated by a space.\n> If searching by User, only 1 Discord User can be provided."
-    #             + f"\n\u200b",
-    #         inline=False)
-
-    #     if member_state:
-    #         nebula_embed.add_field(
-    #             name="**__Member Commands__**",
-    #             value=f"> **register**\n> Register a non-member account with AriX, so you can bring it into our clans to visit."
-    #                 + f"\n> \n> **nickname**\n> Change your Discord nickname based on your member accounts!"
-    #                 + f"\n> \n> **eclipse**\n> Open E.C.L.I.P.S.E."
-    #                 + f"\n\u200b",
-    #             inline=False)
-
-    #     if coleader_state or leader_state:
-    #         leader_embed = await clash_embed(ctx,
-    #             title="Hello, I am N.E.B.U.L.A.",
-    #             message="**N**anotech **E**nhanced **B**ot **U**nit and **L**eader's **A**ssistant."
-    #                 + "\n\nThe commands displayed below are based on your access level."
-    #                 + "\n\n**We don't use Slash commands yet. All commands must be prefixed with `$`.**\n\u200b",
-    #             thumbnail="https://i.imgur.com/TZF5r54.png")
-
-    #         leader_embed.add_field(
-    #             name="**__Leaders & Co-Leader Commands__**",
-    #             value=f"> **recruitment**\n> Open the Recruiting Hub. This is where you can check the recruitment statuses of our clans."
-    #                 + f"\n> \n> **getreport** `[clan abbreviation]`\n> Open the Report Hub. Get all sorts of data on Clans and/or Members."
-    #                 + f"\n> \n> **promote** `[Discord User]`\n> Promote a Member. Use this command without mentioning a user to get additional instructions."
-    #                 + f"\n> \n> **demote** `[Discord User]`\n> Demote a Member. Use this command without mentioning a user to get additional instructions."
-    #                 + f"\n> \n> **clan**\n> Command group to manage Alliance clans. Use the command to get more information."
-    #                 + f"\n> \n> **member**\n> Command group to manage Alliance members. Use the command to get more information."
-    #                 + f"\n\u200b",
-    #             inline=False)
-
-    #     output_embed.append(nebula_embed)
-
-    #     if leader_embed:
-    #         output_embed.append(leader_embed)
-
-    #     await paginate_embed(ctx,output_embed)
+        await ctx.bot.send_help_for(ctx,thing_to_get_help_for,from_help_command=True)
 
 
     async def get_welcome_embed(ctx,user):
