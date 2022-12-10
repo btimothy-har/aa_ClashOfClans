@@ -724,11 +724,11 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                             message=f"This base has been claimed by **{len(display_bases[i].claims)} members**:\n{member_str}"
                                 + "\n*This message will self-destruct in 40 seconds.*")
 
-                    claim_msg = await ctx.send(embed=claim_embed,delete_after=40)
                     if not vault_mode:
                         await session.message.remove_reaction('🔍', session.user)
+                        claim_msg = await session.channel.send(embed=claim_embed,delete_after=40)
                     else:
-                        break
+                        claim_msg = await session.channel.send(embed=claim_embed)
 
                 elif selection['id'] == 'unsave':
                     await display_bases[i].remove_claim(ctx,session)
