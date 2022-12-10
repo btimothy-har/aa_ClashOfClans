@@ -1106,7 +1106,7 @@ class AriXLeaderCommands(commands.Cog):
                 color='success')
             await ctx.send(embed=c_embed,delete_after=30)
 
-            report_str += f"\n<a:animated_Check:1050931611627180125> **{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**."
+            report_str += f"<a:check_black:1050969577556811876> **{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.\n"
 
         new_nickname = await resc.user_nickname_handler(ctx,user,selection=False)
         ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
@@ -1120,23 +1120,23 @@ class AriXLeaderCommands(commands.Cog):
         if discord_member:
             try:
                 await discord_member.edit(nick=new_nickname)
-                report_str += f"<a:animated_Check:1050931611627180125> Nickname set to {new_nickname}.\n"
+                report_str += f"<a:check_black:1050969577556811876> Nickname set to {new_nickname}.\n"
             except Exception as e:
-                report_str += f"<a:animated_Cross:1050931677033140294> Could not change nicknames: {e}\n"
+                report_str += f"<a:aa_warning:1050970131863453746> Could not change nicknames: {e}\n"
 
             if ex_member_role in discord_member.roles:
                 try:
                     await discord_member.remove_roles(ex_member_role)
-                    report_str += f"<a:animated_Check:1050931611627180125> Removed {ex_member_role.mention}.\n"
+                    report_str += f"<a:check_black:1050969577556811876> Removed {ex_member_role.mention}.\n"
                 except Exception as e:
-                    report_str += f"<a:animated_Cross:1050931677033140294> Could not remove {ex_member_role.mention}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not remove {ex_member_role.mention}: {e}\n"
 
             if visitor_role in discord_member.roles:
                 try:
                     await discord_member.remove_roles(visitor_role)
-                    report_str += f"<a:animated_Check:1050931611627180125> Removed {visitor_role.mention}.\n"
+                    report_str += f"<a:check_black:1050969577556811876> Removed {visitor_role.mention}.\n"
                 except Exception as e:
-                    report_str += f"<a:animated_Cross:1050931677033140294> Could not remove {visitor_role.mention}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not remove {visitor_role.mention}: {e}\n"
 
         if not silent_mode and added_count > 0:
             intro_embed = await resc.get_welcome_embed(ctx,user)
@@ -1152,7 +1152,7 @@ class AriXLeaderCommands(commands.Cog):
                 welcome_embed = await clash_embed(ctx,
                     message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.")
 
-                report_str += f"<a:animated_Check:1050931611627180125> Welcome DM sent.\n"
+                report_str += f"<a:check_black:1050969577556811876> Welcome DM sent.\n"
 
                 await ctx.send(content=f"{user.mention}",embed=welcome_embed)
 
@@ -1324,7 +1324,7 @@ class AriXLeaderCommands(commands.Cog):
                     error_log.append(err_dict)
                     remove_accounts.remove(p)
 
-                report_str += f"<a:animated_Check:1050931611627180125> **{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
+                report_str += f"<a:check_black:1050969577556811876> **{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
 
                 if p.discord_user and p.discord_user not in discord_users:
                     discord_users.append(p.discord_user)
@@ -1342,23 +1342,23 @@ class AriXLeaderCommands(commands.Cog):
                 ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
                 try:
                     await discord_member.add_roles(ex_member_role)
-                    report_str += f"<a:animated_Check:1050931611627180125> {ex_member_role.mention} assigned to {discord_member.mention}.\n"
+                    report_str += f"<a:check_black:1050969577556811876> {ex_member_role.mention} assigned to {discord_member.mention}.\n"
                 except Exception as e:
-                    report_str += f"\n<a:animated_Cross:1050931677033140294> Could not add {ex_member_role.mention} to {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"\n<a:aa_warning:1050970131863453746> Could not add {ex_member_role.mention} to {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
                 try:
                     await discord_member.edit(nick=discord_member.name)
-                    report_str += f"<a:animated_Check:1050931611627180125> Nickname removed for {discord_member.mention}.\n"
+                    report_str += f"<a:check_black:1050969577556811876> Nickname removed for {discord_member.mention}.\n"
                 except Exception as e:
-                    report_str += f"\n<a:animated_Cross:1050931677033140294> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"\n<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
             elif discord_member and len(member_accounts) > 0:
                 new_nickname = await resc.user_nickname_handler(ctx,discord_member,selection=False)
                 try:
                     await discord_member.edit(nick=new_nickname)
-                    report_str += f"<a:animated_Check:1050931611627180125> Nickname changed for {discord_member.mention}.\n"
+                    report_str += f"<a:check_black:1050969577556811876> Nickname changed for {discord_member.mention}.\n"
                 except Exception as e:
-                    report_str += f"\n<a:animated_Cross:1050931677033140294> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"\n<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
         result_embed = await clash_embed(ctx,
             title="**Remove Members**",
