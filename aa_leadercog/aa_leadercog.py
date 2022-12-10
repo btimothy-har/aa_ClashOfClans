@@ -960,6 +960,8 @@ class AriXLeaderCommands(commands.Cog):
                             tag_check = False
             return tag_check
 
+        report_str = ""
+        cleanup_msgs = []
         silent_mode = False
         error_log = []
         added_count = 0
@@ -1080,10 +1082,13 @@ class AriXLeaderCommands(commands.Cog):
                 smsg = homeclan_msg,
                 sel_list=clan_selection)
 
+            await homeclan_msg.delete()
+
             if not selected_clan:
                 not_added_embed = await clash_embed(ctx,message=f"{p.desc_title} was not added to AriX. Skipping...")
-                await homeclan_msg.edit(embed=not_added_embed)
-                await homeclan_msg.clear_reactions()
+                await ctx.send(embed=not_added_embed,delete_after=30)
+
+                report_str += f"<a:animated_Cross:1050931677033140294> **{p.tag} {p.name}** not added to AriX.\n"
                 continue
 
             added_count += 1
@@ -1096,21 +1101,44 @@ class AriXLeaderCommands(commands.Cog):
                 err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
                 error_log.append(err_dict)
 
-            await homeclan_msg.delete()
             c_embed = await clash_embed(ctx,
                 message=f"**{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.",
                 color='success')
-            await ctx.send(embed=c_embed)
+            await ctx.send(embed=c_embed,delete_after=30)
 
-        if len(error_log) > 0:
-            error_str = "\u200b"
-            for error in error_log:
-                error_str += f"{error['tag']}: {error['reason']}\n"
+            report_str += f"\n<a:animated_Check:1050931611627180125> **{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**."
 
-            error_embed = await clash_embed(ctx=ctx,title=f"Errors Encountered",message=error_str)
-            await ctx.send(embed=error_embed)
+        new_nickname = await resc.user_nickname_handler(ctx,user,selection=False)
+        ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
+        visitor_role = ctx.bot.alliance_server.get_role(733362618647183531)
 
-        if not silent_mode and added_count >0:
+        try:
+            discord_member = ctx.guild.get_member(user.id)
+        except:
+            discord_member = None
+
+        if discord_member:
+            try:
+                await discord_member.edit(nick=new_nickname)
+                report_str += f"<a:animated_Check:1050931611627180125> Nickname set to {new_nickname}.\n"
+            except Exception as e:
+                report_str += f"<a:animated_Cross:1050931677033140294> Could not change nicknames: {e}\n"
+
+            if ex_member_role in discord_member.roles:
+                try:
+                    await discord_member.remove_roles(ex_member_role)
+                    report_str += f"<a:animated_Check:1050931611627180125> Removed {ex_member_role.mention}.\n"
+                except Exception as e:
+                    report_str += f"<a:animated_Cross:1050931677033140294> Could not remove {ex_member_role.mention}: {e}\n"
+
+            if visitor_role in discord_member.roles:
+                try:
+                    await discord_member.remove_roles(visitor_role)
+                    report_str += f"<a:animated_Check:1050931611627180125> Removed {visitor_role.mention}.\n"
+                except Exception as e:
+                    report_str += f"<a:animated_Cross:1050931677033140294> Could not remove {visitor_role.mention}: {e}\n"
+
+        if not silent_mode and added_count > 0:
             intro_embed = await resc.get_welcome_embed(ctx,user)
 
             try:
@@ -1124,7 +1152,24 @@ class AriXLeaderCommands(commands.Cog):
                 welcome_embed = await clash_embed(ctx,
                     message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.")
 
+                report_str += f"<a:animated_Check:1050931611627180125> Welcome DM sent.\n"
+
                 await ctx.send(content=f"{user.mention}",embed=welcome_embed)
+
+        result_embed = await clash_embed(ctx,
+            title=f"Member Add: {user.name}#{user.discriminator}",
+            message=f"{report_str}\u200b")
+
+        if len(error_log) > 0:
+            error_str = "\u200b"
+            for error in error_log:
+                error_str += f"{error['tag']}: {error['reason']}\n"
+
+            result_embed.add_field(
+                name="__**Errors Encountered**__",
+                value=error_str)
+
+        await ctx.send(embed=result_embed)
 
 
     @member_manage.command(name="remove")
@@ -1138,7 +1183,9 @@ class AriXLeaderCommands(commands.Cog):
         """
 
         user = None
+        report_str = ""
         player_tags = []
+        discord_users = []
         accounts = []
         error_log = []
 
@@ -1235,6 +1282,8 @@ class AriXLeaderCommands(commands.Cog):
                 await select_msg.clear_reactions()
                 return
 
+            await select_msg.delete()
+
             if selected_account['id'] == 'all_accounts':
                 remove_accounts = accounts
             elif selected_account['id'] in [c.tag for c in home_clans]:
@@ -1266,8 +1315,6 @@ class AriXLeaderCommands(commands.Cog):
             return await ctx.send(embed=cEmbed)
 
         if len(remove_accounts) > 0:
-            summary_str = ""
-
             for p in remove_accounts:
                 home_clan = p.home_clan
                 try:
@@ -1277,42 +1324,56 @@ class AriXLeaderCommands(commands.Cog):
                     error_log.append(err_dict)
                     remove_accounts.remove(p)
 
-                summary_str += f"**{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
+                report_str += f"<a:animated_Check:1050931611627180125> **{p.tag} {p.name}** removed from {home_clan.emoji} {home_clan.name}.\n"
 
-                if p.discord_user:
-                    user_home_clans, user_accounts = await get_user_profile(ctx,p.discord_user)
-                    member_accounts = [a for a in user_accounts if a.is_member]
+                if p.discord_user and p.discord_user not in discord_users:
+                    discord_users.append(p.discord_user)
 
-                    if len(member_accounts) == 0:
-                        try:
-                            discord_member = await ctx.bot.alliance_server.fetch_member(p.discord_user)
-                        except:
-                            discord_member = None
+        for u in discord_users:
+            user_home_clans, user_accounts = await get_user_profile(ctx,u)
+            member_accounts = [a for a in user_accounts if a.is_member]
 
-                        if discord_member:
-                            ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
-                            try:
-                                await discord_member.add_roles(ex_member_role)
-                                await discord_member.edit(nick=discord_member.name)
-                                summary_str += f"\n{ex_member_role.mention} assigned to {discord_member.mention}."
-                            except:
-                                pass
+            try:
+                discord_member = await ctx.bot.alliance_server.fetch_member(p.discord_user)
+            except:
+                discord_member = None
 
-            success_embed = await clash_embed(ctx,
-                message=summary_str)
-            await ctx.send(embed=success_embed)
+            if discord_member and len(member_accounts) == 0:
+                ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
+                try:
+                    await discord_member.add_roles(ex_member_role)
+                    report_str += f"<a:animated_Check:1050931611627180125> {ex_member_role.mention} assigned to {discord_member.mention}.\n"
+                except Exception as e:
+                    report_str += f"\n<a:animated_Cross:1050931677033140294> Could not add {ex_member_role.mention} to {discord_member.name}#{discord_member.discriminator}: {e}\n"
+
+                try:
+                    await discord_member.edit(nick=discord_member.name)
+                    report_str += f"<a:animated_Check:1050931611627180125> Nickname removed for {discord_member.mention}.\n"
+                except Exception as e:
+                    report_str += f"\n<a:animated_Cross:1050931677033140294> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+
+            elif discord_member and len(member_accounts) > 0:
+                new_nickname = await resc.user_nickname_handler(ctx,discord_member,selection=False)
+                try:
+                    await discord_member.edit(nick=new_nickname)
+                    report_str += f"<a:animated_Check:1050931611627180125> Nickname changed for {discord_member.mention}.\n"
+                except Exception as e:
+                    report_str += f"\n<a:animated_Cross:1050931677033140294> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+
+        result_embed = await clash_embed(ctx,
+            title="**Remove Members**",
+            message=f"{report_str}\u200b")
 
         if len(error_log) > 0:
-
             error_str = "\u200b"
-
             for error in error_log:
                 error_str += f"{error['tag']}: {error['reason']}\n"
 
-            aEmbed = await clash_embed(ctx=ctx,title=f"Error(s) Encountered",message=error_str)
+            result_embed.add_field(
+                name="__**Errors Encountered**__",
+                value=error_str)
 
-            await ctx.send(embed=aEmbed)
-
+        await ctx.send(embed=result_embed)
 
     @member_manage.command(name="addnote")
     async def member_manage_addnote(self,ctx,Discord_User:discord.User):

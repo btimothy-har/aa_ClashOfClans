@@ -279,7 +279,7 @@ class AriXClashResources(commands.Cog):
         return intro_embed
 
 
-    async def user_nickname_handler(ctx,user):
+    async def user_nickname_handler(ctx,user,selection=True):
         leader_clans = []
         home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
@@ -313,7 +313,7 @@ class AriXClashResources(commands.Cog):
             await ctx.send(embed=end_embed)
             return None
 
-        elif len(user_accounts) == 1:
+        elif len(user_accounts) == 1 or not selection:
             a = user_accounts[0]
             selected_account = {
                 'id': f"{a.tag}",
@@ -321,7 +321,7 @@ class AriXClashResources(commands.Cog):
                 'description': f"{a.town_hall.emote} {a.town_hall.description}\u3000{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\u3000{emotes_league[a.league.name]} {a.trophies}"
                 }
         
-        else:
+        else selection:
             selection_list = []
             selection_str = ""
             for a in user_accounts:
