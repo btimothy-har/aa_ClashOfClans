@@ -714,15 +714,14 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 elif selection['id'] == 'viewclaims':
                     if len(display_bases[i].claims) == 0:
                         claim_embed = await eclipse_embed(ctx,
-                            message="This base hasn't been claimed by anyone.\n\n*This message will self-destruct in 40 seconds.*")
+                            message="This base hasn't been claimed by anyone.")
                     else:
                         member_str = ''
                         for c in display_bases[i].claims:
                             member_str += f"<@{c}>\n"
 
                         claim_embed = await eclipse_embed(ctx,
-                            message=f"This base has been claimed by **{len(display_bases[i].claims)} members**:\n{member_str}"
-                                + "\n*This message will self-destruct in 40 seconds.*")
+                            message=f"This base has been claimed by **{len(display_bases[i].claims)} members**:\n{member_str}")
 
                     if not vault_mode:
                         await session.message.remove_reaction('🔍', session.user)
