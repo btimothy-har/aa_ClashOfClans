@@ -1159,11 +1159,10 @@ class AriXLeaderCommands(commands.Cog):
 
             else:
                 welcome_embed = await clash_embed(ctx,
-                    message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.")
+                    message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.",
+                    show_author=False)
 
                 report_str += f"<a:check_black:1050969577556811876> Welcome DM sent.\n"
-
-                await ctx.send(content=f"{user.mention}",embed=welcome_embed)
 
         result_embed = await clash_embed(ctx,
             title=f"Member Add: {user.name}#{user.discriminator}",
@@ -1180,6 +1179,11 @@ class AriXLeaderCommands(commands.Cog):
                 value=error_str)
 
         await ctx.send(embed=result_embed)
+
+        try:
+            await ctx.send(content=f"{user.mention}",embed=welcome_embed)
+        except:
+            pass
 
 
     @member_manage.command(name="remove")
