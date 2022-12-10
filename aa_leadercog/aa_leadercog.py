@@ -1113,38 +1113,39 @@ class AriXLeaderCommands(commands.Cog):
         visitor_role = ctx.bot.alliance_server.get_role(733362618647183531)
         new_applicant_role = ctx.bot.alliance_server.get_role(811204363263410187)
 
-        try:
-            discord_member = ctx.guild.get_member(user.id)
-        except:
-            discord_member = None
-
-        if discord_member:
+        if added_count > 0:
             try:
-                await discord_member.edit(nick=new_nickname)
-                report_str += f"<a:check_black:1050969577556811876> Nickname set to {new_nickname}.\n"
-            except Exception as e:
-                report_str += f"<a:aa_warning:1050970131863453746> Could not change nicknames: {e}\n"
+                discord_member = ctx.guild.get_member(user.id)
+            except:
+                discord_member = None
 
-            if ex_member_role in discord_member.roles:
+            if discord_member:
                 try:
-                    await discord_member.remove_roles(ex_member_role)
-                    report_str += f"<a:check_black:1050969577556811876> Removed {ex_member_role.mention}.\n"
+                    await discord_member.edit(nick=new_nickname)
+                    report_str += f"<a:check_black:1050969577556811876> Nickname set to {new_nickname}.\n"
                 except Exception as e:
-                    report_str += f"<a:aa_warning:1050970131863453746> Could not remove {ex_member_role.mention}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not change nicknames: {e}\n"
 
-            if new_applicant_role in discord_member.roles:
-                try:
-                    await discord_member.remove_roles(new_applicant_role)
-                    report_str += f"<a:check_black:1050969577556811876> Removed {new_applicant_role.mention}.\n"
-                except Exception as e:
-                    report_str += f"<a:aa_warning:1050970131863453746> Could not remove {new_applicant_role.mention}: {e}\n"
+                if ex_member_role in discord_member.roles:
+                    try:
+                        await discord_member.remove_roles(ex_member_role)
+                        report_str += f"<a:check_black:1050969577556811876> Removed {ex_member_role.mention}.\n"
+                    except Exception as e:
+                        report_str += f"<a:aa_warning:1050970131863453746> Could not remove {ex_member_role.mention}: {e}\n"
 
-            if visitor_role in discord_member.roles:
-                try:
-                    await discord_member.remove_roles(visitor_role)
-                    report_str += f"<a:check_black:1050969577556811876> Removed {visitor_role.mention}.\n"
-                except Exception as e:
-                    report_str += f"<a:aa_warning:1050970131863453746> Could not remove {visitor_role.mention}: {e}\n"
+                if new_applicant_role in discord_member.roles:
+                    try:
+                        await discord_member.remove_roles(new_applicant_role)
+                        report_str += f"<a:check_black:1050969577556811876> Removed {new_applicant_role.mention}.\n"
+                    except Exception as e:
+                        report_str += f"<a:aa_warning:1050970131863453746> Could not remove {new_applicant_role.mention}: {e}\n"
+
+                if visitor_role in discord_member.roles:
+                    try:
+                        await discord_member.remove_roles(visitor_role)
+                        report_str += f"<a:check_black:1050969577556811876> Removed {visitor_role.mention}.\n"
+                    except Exception as e:
+                        report_str += f"<a:aa_warning:1050970131863453746> Could not remove {visitor_role.mention}: {e}\n"
 
         if not silent_mode and added_count > 0:
             intro_embed = await resc.get_welcome_embed(ctx,user)
