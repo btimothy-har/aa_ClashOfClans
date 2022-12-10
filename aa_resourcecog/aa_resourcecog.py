@@ -321,7 +321,7 @@ class AriXClashResources(commands.Cog):
                 'description': f"{a.town_hall.emote} {a.town_hall.description}\u3000{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\u3000{emotes_league[a.league.name]} {a.trophies}"
                 }
         
-        else selection:
+        else:
             selection_list = []
             selection_str = ""
             for a in user_accounts:
