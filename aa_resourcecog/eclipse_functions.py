@@ -653,8 +653,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
             if selection:
                 if selection['id'] == 'next':
                     i += 1
-                    await session.message.remove_reaction("<:to_next:1041988114308137010>",session.user)
-                    refresh_rxn = False
+                    if not vault_mode:
+                        await session.message.remove_reaction("<:to_next:1041988114308137010>",session.user)
+                        refresh_rxn = False
+
                     try:
                         await claim_msg.delete()
                     except:
@@ -662,8 +664,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                     break
                 elif selection['id'] == 'previous':
                     i -= 1
-                    await session.message.remove_reaction("<:to_previous:1041988094943035422>",session.user)
-                    refresh_rxn = False
+                    if not vault_mode:
+                        await session.message.remove_reaction("<:to_previous:1041988094943035422>",session.user)
+                        refresh_rxn = False
+
                     try:
                         await claim_msg.delete()
                     except:
@@ -672,8 +676,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                 elif selection['id'] == 'refresh':
                     i = 0
                     display_bases = random.sample(bases, 5)
-                    await session.message.remove_reaction("<:refresh:1048916418466426941>",session.user)
-                    refresh_rxn = False
+                    if not vault_mode:
+                        await session.message.remove_reaction("<:refresh:1048916418466426941>",session.user)
+                        refresh_rxn = False
+
                     try:
                         await claim_msg.delete()
                     except:
@@ -695,11 +701,15 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                             message="I couldn't send you a DM! Please ensure your DM's are open.")
                         await session.channel.send(content=session.user.mention,embed=no_dm_embed,delete_after=40)
 
-                    await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+                    if not vault_mode:
+                        await session.message.remove_reaction("<:download:1040800550373044304>",session.user)
+                        refresh_rxn = False
+
                     try:
                         await claim_msg.delete()
                     except:
                         pass
+                    break
 
                 elif selection['id'] == 'viewclaims':
                     if len(display_bases[i].claims) == 0:
@@ -715,7 +725,10 @@ async def show_eclipse_bases(ctx,session,bases,vault_mode=False):
                                 + "\n*This message will self-destruct in 40 seconds.*")
 
                     claim_msg = await ctx.send(embed=claim_embed,delete_after=40)
-                    await session.message.remove_reaction('🔍', session.user)
+                    if not vault_mode:
+                        await session.message.remove_reaction('🔍', session.user)
+                    else:
+                        break
 
                 elif selection['id'] == 'unsave':
                     await display_bases[i].remove_claim(ctx,session)
