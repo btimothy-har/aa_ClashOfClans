@@ -1353,13 +1353,13 @@ class AriXLeaderCommands(commands.Cog):
                     await discord_member.add_roles(ex_member_role)
                     report_str += f"<a:check_black:1050969577556811876> {ex_member_role.mention} assigned to {discord_member.mention}.\n"
                 except Exception as e:
-                    report_str += f"\n<a:aa_warning:1050970131863453746> Could not add {ex_member_role.mention} to {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not add {ex_member_role.mention} to {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
                 try:
                     await discord_member.edit(nick=discord_member.name)
                     report_str += f"<a:check_black:1050969577556811876> Nickname removed for {discord_member.mention}.\n"
                 except Exception as e:
-                    report_str += f"\n<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
             elif discord_member and len(member_accounts) > 0:
                 new_nickname = await resc.user_nickname_handler(ctx,discord_member,selection=False)
@@ -1367,7 +1367,7 @@ class AriXLeaderCommands(commands.Cog):
                     await discord_member.edit(nick=new_nickname)
                     report_str += f"<a:check_black:1050969577556811876> Nickname changed for {discord_member.mention}.\n"
                 except Exception as e:
-                    report_str += f"\n<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
         result_embed = await clash_embed(ctx,
             title="**Remove Members**",
