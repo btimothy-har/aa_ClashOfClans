@@ -1111,6 +1111,7 @@ class AriXLeaderCommands(commands.Cog):
         new_nickname = await resc.user_nickname_handler(ctx,user,selection=False)
         ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
         visitor_role = ctx.bot.alliance_server.get_role(733362618647183531)
+        new_applicant_role = ctx.bot.alliance_server.get_role(811204363263410187)
 
         try:
             discord_member = ctx.guild.get_member(user.id)
@@ -1130,6 +1131,13 @@ class AriXLeaderCommands(commands.Cog):
                     report_str += f"<a:check_black:1050969577556811876> Removed {ex_member_role.mention}.\n"
                 except Exception as e:
                     report_str += f"<a:aa_warning:1050970131863453746> Could not remove {ex_member_role.mention}: {e}\n"
+
+            if new_applicant_role in discord_member.roles:
+                try:
+                    await discord_member.remove_roles(new_applicant_role)
+                    report_str += f"<a:check_black:1050969577556811876> Removed {new_applicant_role.mention}.\n"
+                except Exception as e:
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not remove {new_applicant_role.mention}: {e}\n"
 
             if visitor_role in discord_member.roles:
                 try:
