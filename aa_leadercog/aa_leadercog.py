@@ -1366,7 +1366,7 @@ class AriXLeaderCommands(commands.Cog):
                         await discord_member.add_roles(ex_member_role)
                         report_str += f"<a:check_black:1050969577556811876> {ex_member_role.mention} assigned to {discord_member.mention}.\n"
                     except Exception as e:
-                        report_str += f"<a:aa_warning:1050970131863453746> Could not add {ex_member_role.mention} to {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                        report_str += f"<a:aa_warning:1050970131863453746> Could not add Ex-Member Role to {discord_member.name}#{discord_member.discriminator}: {e}\n"
 
         result_embed = await clash_embed(ctx,
             title="**Remove Members**",
