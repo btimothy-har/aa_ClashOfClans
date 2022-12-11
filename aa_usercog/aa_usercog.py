@@ -487,7 +487,7 @@ class AriXMemberCommands(commands.Cog):
                     return await ctx.send(embed=eEmbed)
                 accounts.append(p)
 
-        else:
+        elif discord_member:
             home_clans, accounts = await get_user_profile(ctx,discord_member.id)
 
         if len(accounts) == 0:
