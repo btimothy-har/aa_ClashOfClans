@@ -214,45 +214,35 @@ class AriXClashResources(commands.Cog):
         if not user_accounts:
             if ctx.author.id == user.id:
                 end_embed = await clash_embed(ctx,
-                    message="You must be an AriX Member to use this command.",
+                    message="You must have registered accounts with AriX to use this command.",
                     color="fail")
             else:
                 end_embed = await clash_embed(ctx,
-                    message=f"{user.mention} is not an AriX Member.",
+                    message=f"{user.mention} does not have accounts registered with AriX.",
                     color='fail')
             await ctx.send(embed=end_embed)
             return None
 
-        user_accounts = [a for a in user_accounts if a.is_member]
+        p_user_accounts = [a for a in user_accounts if a.is_member]
 
-        for a in user_accounts:
+        for a in p_user_accounts:
             if a.arix_rank == 'Leader' and a.home_clan.tag not in [c.tag for c in leader_clans]:
                 leader_clans.append(a.home_clan)
 
-        if len(user_accounts) < 1:
-            if ctx.author.id == user.id:
-                end_embed = await clash_embed(ctx,
-                    message="You must be an AriX Member to use this command.",
-                    color="fail")
-            else:
-                end_embed = await clash_embed(ctx,
-                    message=f"{user.mention} is not an AriX Member.",
-                    color='fail')
-            await ctx.send(embed=end_embed)
-            return None
+        if len(p_user_accounts) == 0:
+            p_user_accounts = user_accounts
 
-        elif len(user_accounts) == 1 or not selection:
-            a = user_accounts[0]
+        if len(p_user_accounts) == 1 or not selection:
+            a = p_user_accounts[0]
             selected_account = {
                 'id': f"{a.tag}",
                 'title': f"{a.name} {a.tag}",
                 'description': f"{a.town_hall.emote} {a.town_hall.description}\u3000{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\u3000{emotes_league[a.league.name]} {a.trophies}"
                 }
-        
         else:
             selection_list = []
             selection_str = ""
-            for a in user_accounts:
+            for a in p_user_accounts:
                 a_dict = {
                     'id': f"{a.tag}",
                     'title': f"{a.name} ({a.tag})",
@@ -286,7 +276,7 @@ class AriXClashResources(commands.Cog):
             if not selected_account:
                 return None
         
-        new_nickname_account = [a for a in user_accounts if a.tag == selected_account['id']][0]
+        new_nickname_account = [a for a in p_user_accounts if a.tag == selected_account['id']][0]
 
         if new_nickname_account.readable_name:
             new_nickname = new_nickname_account.readable_name
@@ -301,8 +291,9 @@ class AriXClashResources(commands.Cog):
         if len(leader_clans) > 0:
             home_clans = leader_clans
 
-        abb_clans = []
-        [abb_clans.append(c.abbreviation) for c in home_clans if c.abbreviation not in abb_clans and c.abbreviation!='']
+        if home_clans:
+            abb_clans = []
+            [abb_clans.append(c.abbreviation) for c in home_clans if c.abbreviation not in abb_clans and c.abbreviation!='']
+            new_nickname += f" | {' + '.join(abb_clans)}"
 
-        new_nickname += f" | {' + '.join(abb_clans)}"
         return new_nickname
