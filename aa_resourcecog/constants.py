@@ -157,6 +157,7 @@ emotes_army = {
     "Super Witch": "<:SuperWitch:1037032273909915648>",
     "Ice Hound": "<:IceHound:1043101384284848199>",
     "Super Bowler": "<:SuperBowler:1043101396196671538>",
+    "Super Miner": "<:Miner:1036998357127798794>",
     }
 
 clanRanks = ['Non-Member','Guest','Member','Elder','Co-Leader','Leader']
@@ -347,6 +348,7 @@ army_campsize = {
     "Super Witch": 40,
     "Ice Hound": 40,
     "Super Bowler": 30,
+    "Super Miner": 24,
     }
 
 badge_emotes = {
