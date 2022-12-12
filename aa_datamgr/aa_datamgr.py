@@ -461,7 +461,7 @@ class AriXClashDataMgr(commands.Cog):
                     return await log_channel.send(embed=eEmbed)
                 except Exception as e:
                     c = None
-                    err_dict = {'tag':f'c{ctag}','reason':e}
+                    err_dict = {'tag':f'c{key}','reason':e}
                     err_log.append(err_dict)
                     continue
 

@@ -70,7 +70,7 @@ async def get_alliance_clan(ctx,abbreviation=None):
                 ret_clans.append(clan)
             except Exception as e:
                 await error_end_processing(ctx,
-                    preamble=f"Error encountered while retrieving clan {clan_abbreviation}",
+                    preamble=f"Error encountered while retrieving clan {tag}",
                     err=e)
                 return None
 
