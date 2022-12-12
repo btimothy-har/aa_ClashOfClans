@@ -173,7 +173,7 @@ class aClan():
 
                 war_league_str = ""
                 if self.c.war_league:
-                    war_league_str = {emotes_league[self.c.war_league.name]} {self.c.war_league.name}
+                    war_league_str = f"{emotes_league[self.c.war_league.name]} {self.c.war_league.name}"
 
                 self.desc_full_text = (
                         f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {self.member_count}"
