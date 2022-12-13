@@ -490,7 +490,7 @@ class AriXMemberCommands(commands.Cog):
         elif discord_member:
             home_clans, accounts = await get_user_profile(ctx,discord_member.id)
 
-        if len(accounts) == 0:
+        if not accounts:
             no_account_embed = await clash_embed(ctx,message="I couldn't find any accounts to show. Check your input, maybe?")
             return await ctx.send(no_account_embed)
 
