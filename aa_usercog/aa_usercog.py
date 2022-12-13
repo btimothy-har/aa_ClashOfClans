@@ -492,7 +492,7 @@ class AriXMemberCommands(commands.Cog):
 
         if not accounts:
             no_account_embed = await clash_embed(ctx,message="I couldn't find any accounts to show. Check your input, maybe?")
-            return await ctx.send(no_account_embed)
+            return await ctx.send(embed=no_account_embed)
 
         for a in accounts:
             member_status = ""
