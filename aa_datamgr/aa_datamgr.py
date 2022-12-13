@@ -544,6 +544,7 @@ class AriXClashDataMgr(commands.Cog):
                 except Exception as e:
                     err_dict = {'tag':f'c{c.tag}','reason':e}
                     err_log.append(err_dict)
+
                 else:
                     if c.war_state_change:
                         detected_war_change = True

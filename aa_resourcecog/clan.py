@@ -264,12 +264,13 @@ class aClan():
             raise TerminateProcessing(exc) from exc
             return None
 
-        if current_war.state == 'notInWar' or current_war.start_time:
+        if current_war.state == 'notInWar':
             self.war_state = current_war.state
             return None
 
         helsinkiTz = pytz.timezone("Europe/Helsinki")
         war_start_time_helsinki = pytz.utc.localize(datetime.fromtimestamp(current_war.start_time.time.timestamp())).astimezone(helsinkiTz)
+
         if datetime.now(helsinkiTz).month == war_start_time_helsinki.month and datetime.now(helsinkiTz).year == war_start_time_helsinki.year:
             self.current_war = aClanWar.from_game(ctx,current_war)
             if self.current_war.state != self.war_state:
