@@ -158,6 +158,10 @@ class aPlayer():
             self.town_hall = aTownHall(level=getattr(self.p,'town_hall',1),weapon=getattr(self.p,'town_hall_weapon',0))
             self.clan_castle = sum([a.value for a in self.p.achievements if a.name=='Empire Builder'])
             self.league = getattr(self.p,'league',None)
+
+            if not self.league:
+                self.league = await ctx.bot.coc_client.get_league_named('Unranked')
+
             self.trophies = getattr(self.p,'trophies',0)
             self.best_trophies = getattr(self.p,'best_trophies',0)
             self.war_stars = getattr(self.p,'war_stars',0)
