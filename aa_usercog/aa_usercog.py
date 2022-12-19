@@ -682,14 +682,14 @@ class AriXMemberCommands(commands.Cog):
         navigation = []
         navigation_str = ""
         warlord_dict = {
-            'id': 'warlords',
+            'id': 'warlord',
             'emoji': "<:Warlords:1047016981066436628>",
             'title': "",
             }
         navigation_str += f"<:Warlords:1047016981066436628> Warlord Leaderboard\n"
 
         heistlord_dict = {
-            'id': 'heistlords',
+            'id': 'heistlord',
             'emoji': "<:Heistlord:1047018048088965150>",
             'title': "",
             }
@@ -698,36 +698,38 @@ class AriXMemberCommands(commands.Cog):
         navigation.append(warlord_dict)
         navigation.append(heistlord_dict)
 
-        warlord = await leaderboard_warlord(ctx)
-        warlord.add_field(
-            name="**Navigation**",
-            value=navigation_str)
-
-        heistlord = await leaderboard_heistlord(ctx)
-        heistlord.add_field(
-            name="**Navigation**",
-            value=navigation_str)
-
         menu_state = True
         menu_option = 'start'
         menu_message = None
 
         while menu_state:
-            if menu_option in ['warlords','start']:
-                if not menu_message:
-                    menu_message = await ctx.send(embed=warlord)
-                else:
+            if menu_option in ['warlord','start']:
+                warlord = await leaderboard_warlord(ctx)
+                warlord.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
                     await menu_message.edit(embed=warlord)
+                else:
+                    menu_message = await ctx.send(embed=warlord)
+
                 try:
                     await menu_message.remove_reaction("<:Warlords:1047016981066436628>",ctx.author)
                 except:
                     pass
 
-            if menu_option in ['heistlords']:
-                if not menu_message:
-                    menu_message = await ctx.send(embed=heistlord)
-                else:
+            if menu_option in ['heistlord']:
+                heistlord = await leaderboard_heistlord(ctx)
+                heistlord.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
                     await menu_message.edit(embed=heistlord)
+                else:
+                    menu_message = await ctx.send(embed=heistlord)
+
                 try:
                     await menu_message.remove_reaction("<:Heistlord:1047018048088965150>",ctx.author)
                 except:
