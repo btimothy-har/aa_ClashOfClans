@@ -566,6 +566,21 @@ class AriXMemberCommands(commands.Cog):
                 if last_update_str == "":
                     last_update_str = "a few seconds "
 
+                clangames_str = f"<:ClanGames:834063648494190602> {a.clangames.score:,}"
+
+                if a.clangames.score >= 4000:
+                    clangames_str += " (:stopwatch:"
+
+                    cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.clangames.ending_time-a.clangames.starting_time))
+                    if cd > 0:
+                        clangames_str += f" {int(cd)}d"
+                    if ch > 0:
+                        clangames_str += f" {int(ch)}h"
+                    if cm > 0:
+                        clangames_str += f" {int(cm)}m"
+
+                    clangames_str += ")"
+
                 pEmbed.add_field(
                     name=f"**Current Season Stats with AriX**",
                     value=f":stopwatch: Last updated: {last_update_str}ago"
@@ -583,7 +598,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**War Performance**"
                         + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
                         + f"\n**Clan Games**"
-                        + f"\n<:ClanGames:834063648494190602> {a.clangames.statdisplay}\n\u200b",
+                        + f"\n{clangames_str}\n\u200b",
                     inline=False)
 
             else:

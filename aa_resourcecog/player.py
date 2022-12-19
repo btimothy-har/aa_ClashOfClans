@@ -1,9 +1,11 @@
 import coc
 import discord
 import time
+import pytz
 
 from numerize import numerize
 from itertools import chain
+from datetime import datetime
 
 from coc.ext import discordlinks
 
@@ -94,7 +96,7 @@ class aPlayer():
         self.loot_elixir = aPlayerStat({})
         self.loot_darkelixir = aPlayerStat({})
         
-        self.clangames = aPlayerStat({})
+        self.clangames = aPlayerClanGames()
 
         self.capitalcontribution = aPlayerStat({})
 
@@ -313,7 +315,7 @@ class aPlayer():
                 self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
                 self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
 
-                self.clangames = aPlayerStat(memberStats.get('clangames',{}))
+                self.clangames = await aPlayerClanGames(self.p,memberStats.get('clangames',{}))
 
                 self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
@@ -454,6 +456,8 @@ class aPlayer():
             self.donations_sent.update_stat(self.p.donations)
             self.donations_rcvd.update_stat(self.p.received)
 
+            await self.clangames.calculate_clangames(self,self.timestamp)
+
             for achievement in self.p.achievements:
                 if achievement.name == 'Gold Grab':
                     self.loot_gold.update_stat(achievement.value)
@@ -463,8 +467,6 @@ class aPlayer():
                     self.loot_darkelixir.update_stat(achievement.value)
                 if achievement.name == 'Most Valuable Clanmate':
                     self.capitalcontribution.update_stat(achievement.value)
-                if achievement.name == 'Games Champion':
-                    self.clangames.update_stat(achievement.value)
 
             self.last_update = self.timestamp
 
@@ -480,6 +482,8 @@ class aPlayer():
             self.donations_sent.set_baseline(self.p.donations)
             self.donations_rcvd.set_baseline(self.p.received)
 
+            self.clangames.set_baseline(self)
+
             for achievement in self.p.achievements:
                 if achievement.name == 'Gold Grab':
                     self.loot_gold.set_baseline(achievement.value)
@@ -489,8 +493,6 @@ class aPlayer():
                     self.loot_darkelixir.set_baseline(achievement.value)
                 if achievement.name == 'Most Valuable Clanmate':
                     self.capitalcontribution.set_baseline(achievement.value)
-                if achievement.name == 'Games Champion':
-                    self.clangames.set_baseline(achievement.value)
 
             self.last_update = self.timestamp
 
@@ -599,7 +601,6 @@ class aTownHall():
         else:
             self.description = f"**{self.level}**"
 
-
 class aPlayerStat():
     def __init__(self,inputJson):
         self.season = inputJson.get('season',0)
@@ -629,6 +630,61 @@ class aPlayerStat():
             'lastUpdate': self.lastupdate
             }
         return statJson
+
+class aPlayerClanGames():
+    def __init__(self):
+        self.score = 0
+        self.clan = None
+        self.starting_time = 0
+        self.ending_time = 0
+        self.last_updated = 0
+
+    @classmethod
+    async def from_json(cls,player,inputJson):
+        self = aPlayerClanGames(player)
+
+        self.score = inputJson.get('score',0)
+        self.clan = await aClan.create(ctx,inputJson.get('clan',None))
+        self.starting_time = inputJson.get('starting_time',0)
+        self.ending_time = inputJson.get('ending_time',0)
+        self.last_updated = inputJson.get('last_updated',0)
+
+        return self
+
+    async def set_baseline(self,player):
+        self.last_updated = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
+
+    async def calculate_clangames(self,player,time):
+        cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
+        cg_end = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 28, 8, 0, 0, 0, tzinfo=pytz.utc)
+
+        if time >= cg_start.timestamp() and time < cg_end.timestamp():
+            new_score = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
+
+            if (new_score - self.last_updated) > 0:
+
+                if self.score == 0:
+                    self.clan = player.clan
+                    self.starting_time = time
+
+                self.score += (new_score - self.last_updated)
+                self.last_updated = new_score
+
+                if self.score >= 4000:
+                    self.ending_time = time
+
+        else:
+            self.last_updated = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
+
+    def to_json(self):
+        clangamesJson = {
+            'clan': self.clan.tag,
+            'score': self.score,
+            'last_updated': self.last_updated,
+            'starting_time': self.starting_time,
+            'ending_time': self.ending_time
+            }
+        return clangamesJson
 
 class aHero():
     def __init__(self):

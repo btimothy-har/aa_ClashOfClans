@@ -98,6 +98,7 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
         'members':'members.json',
         'warlog':'warlog.json',
         'capitalraid':'capitalraid.json',
+        'clangames':'clangames.json'
         }
     if season:
         file_path = ctx.bot.clash_dir_path + '/' + season + '/' + file_name[file]
