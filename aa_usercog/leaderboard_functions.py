@@ -176,7 +176,7 @@ async def leaderboard_clangames(ctx):
 
     cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
 
-    if time.time() < cg_start:
+    if time.time() < cg_start.timestamp():
         clangames_leaderboard_embed.add_field(
             name=f"Clan Games has not started yet for this season.",
             value=f"Clan Games start on the 22nd of every month, at 8:00AM UTC.",

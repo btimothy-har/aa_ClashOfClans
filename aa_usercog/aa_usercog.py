@@ -705,7 +705,7 @@ class AriXMemberCommands(commands.Cog):
         navigation.append(heistlord_dict)
 
         cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
-        if time.time() >= cg_start:
+        if time.time() >= cg_start.timestamp():
             clangames_dict = {
                 'id': 'clangames',
                 'emoji': "<:ClanGames:834063648494190602>",
