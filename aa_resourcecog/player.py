@@ -315,7 +315,7 @@ class aPlayer():
                 self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
                 self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
 
-                self.clangames = await aPlayerClanGames(self.p,memberStats.get('clangames',{}))
+                self.clangames = await aPlayerClanGames.from_json(self.p,memberStats.get('clangames',{}))
 
                 self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
