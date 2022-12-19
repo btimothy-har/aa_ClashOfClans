@@ -676,8 +676,6 @@ class AriXMemberCommands(commands.Cog):
         await ctx.send(embed=lb)
 
 
-
-
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):
         """
