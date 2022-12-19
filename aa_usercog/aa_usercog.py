@@ -681,6 +681,10 @@ class AriXMemberCommands(commands.Cog):
             heistlord = await leaderboard_warlord(ctx)
             return await ctx.send(embed=heistlord)
 
+        if param == 'clangames':
+            clangames = await leaderboard_clangames(ctx)
+            return await ctx.send(embed=clangames)
+
         navigation = []
         navigation_str = ""
         warlord_dict = {
