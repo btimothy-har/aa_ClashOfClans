@@ -171,14 +171,21 @@ async def leaderboard_clangames(ctx):
             + f"\n> Reward(s): `4,000XP`"
             + f"\n\n**Due Diligence**"
             + f"\n> Achieve 1,000 Clan Games Points."
-            + f"\n> Reward(s): `1,000XP`"
-            + f"\n\n`{'':<25}{'Score':^6}{'Time':^10}`")
+            + f"\n> Reward(s): `1,000XP`\n\u200b")
+
+    cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
+
+    if time.time() < cg_start:
+        clangames_leaderboard_embed.add_field(
+            name=f"Clan Games has not started yet for this season.",
+            value=f"Clan Games start on the 22nd of every month, at 8:00AM UTC.",
+            inline=False)
 
     for c in alliance_clans:
         leaderboard_participants = [m for m in cg_participants if m.clangames.clan.tag == c.tag]
         leaderboard_sorted = sorted(leaderboard_participants,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1)),reverse=True)
 
-        leaderboard_str = ""
+        leaderboard_str = f"`{'':<24}{'Score':^6}{'Time':^10}`"
 
         lb_rank = 0
         prev_ts = 0
@@ -214,7 +221,7 @@ async def leaderboard_clangames(ctx):
             leaderboard_str += f"{ct:^10}`"
 
         clangames_leaderboard_embed.add_field(
-            name=f"**{c.name}** ({c.tag})",
+            name=f"**{c.name}**",
             value=f"{leaderboard_str}\u200b",
             inline=False)
 

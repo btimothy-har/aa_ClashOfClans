@@ -11,6 +11,7 @@ import time
 import re
 import fasteners
 import urllib
+import pytz
 
 from coc.ext import discordlinks
 from redbot.core import Config, commands
@@ -693,6 +694,7 @@ class AriXMemberCommands(commands.Cog):
             'title': "",
             }
         navigation_str += f"<:Warlords:1047016981066436628> Warlord Leaderboard\n"
+        navigation.append(warlord_dict)
 
         heistlord_dict = {
             'id': 'heistlord',
@@ -700,9 +702,17 @@ class AriXMemberCommands(commands.Cog):
             'title': "",
             }
         navigation_str += f"<:Heistlord:1047018048088965150> Heistlord Leaderboard\n"
-
-        navigation.append(warlord_dict)
         navigation.append(heistlord_dict)
+
+        cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
+        if time.time() >= cg_start:
+            clangames_dict = {
+                'id': 'clangames',
+                'emoji': "<:ClanGames:834063648494190602>",
+                'title': "",
+                }
+            navigation_str += f"<:ClanGames:834063648494190602> Clan Games Leaderboard\n"
+            navigation.append(clangames_dict)
 
         menu_state = True
         menu_option = 'start'
@@ -738,6 +748,22 @@ class AriXMemberCommands(commands.Cog):
 
                 try:
                     await menu_message.remove_reaction("<:Heistlords:1054422607933493270>",user)
+                except:
+                    pass
+
+            if menu_option in ['clangames']:
+                clangames = await leaderboard_clangames(ctx)
+                clangames.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
+                    await menu_message.edit(embed=clangames)
+                else:
+                    menu_message = await ctx.send(embed=clangames)
+
+                try:
+                    await menu_message.remove_reaction("<:ClanGames:834063648494190602>",user)
                 except:
                     pass
 
