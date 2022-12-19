@@ -65,7 +65,7 @@ class WarLord_Player():
                         self.total_triples += 1
 
         if self.total_attacks > 0:
-            self.hit_rate = round((self.total_triples / self.total_attacks) * 100,2)
+            self.hit_rate = round((self.total_triples / self.total_attacks) * 100,0)
         else:
             self.hit_rate = 0
 
@@ -76,31 +76,35 @@ async def leaderboard_warlord(ctx):
 
     all_participants = [m for m in all_members if m.war_stats.wars_participated > 0]
 
-    th_leaderboard = [9,10,11,12,13,14,15]
+    th_leaderboard = [15,14,13,12,11,10,9]
 
     warlord_leaderboard_embed = await clash_embed(ctx,
-        title=f"AriX Warlord Leaderboard: {current_season}",
+        title=f"**AriX Warlord Leaderboard: {current_season}**",
         message=f"The AriX Member with the most triples against higher or equal Townhalls during the AriX Season is annointed with the **Warlord** title."
             + f"\n\n> - Only regular Clan Wars are counted (friendly & CWL wars excluded)."
             + f"\n> - Warlords reset every month."
-            + f"\n\nWarlords receive `10,000XP` per title, in addition to the TH Warlord role.")
+            + f"\n\nWarlords receive `10,000XP` per title, in addition to the TH Warlord role."
+            + f"\n\n`{'':<5}{'Player':<18}{'':<2}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<4}`<:HitRate:1054325756618088498>`{'':<2}`")
 
     for th in th_leaderboard:
 
         leaderboard_members = [wp for wp in [WarLord_Player(ctx,m,th) for m in all_participants] if wp.wars_participated > 0]
         leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.total_triples,x.hit_rate),reverse=True)
 
-        leaderboard_str = f"<:spacer:1054328465136037888> <:spacer:1054328465136037888>\u3000`{'Player':^17}`\u3000<:NoOfTriples:1034033279411687434>\u3000<:TotalAttacks:827845123596746773>\u3000\u3000<:HitRate:1054325756618088498>"
-
         lb_rank = 0
         for m in leaderboard_sorted:
             lb_rank += 1
             if lb_rank > 5:
                 break
-            leaderboard_str += f"\n{emotes_townhall[th]} {m.player.home_clan.emoji}\u3000`{m.player.name:<17}`\u3000`{m.total_triples:^2}`\u3000`{m.total_attacks:^2}`\u3000`{m.hit_rate:^6}%`"
+            leaderboard_str += f"\n"
+            leaderboard_str += f"{emotes_townhall[th]} {m.player.home_clan.emoji}"
+            leaderboard_str += f"`{m.player.name:<18}{'':<2}"
+            leaderboard_str += f"{m.total_triples:>2}{'':<2}"
+            leaderboard_str += f"{m.total_attacks:>2}{'':<2}"
+            leaderboard_str += f"{m.hit_rate:>5}%`"
 
         warlord_leaderboard_embed.add_field(
-            name=f"TH{th} Warlords",
+            name=f"**TH{th}**",
             value=f"{leaderboard_str}\n\u200b",
             inline=False)
 
