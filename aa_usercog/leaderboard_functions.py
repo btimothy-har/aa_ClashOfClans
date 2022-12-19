@@ -182,7 +182,7 @@ async def leaderboard_clangames(ctx):
             value=f"Clan Games start on the 22nd of every month, at 8:00AM UTC.",
             inline=False)
 
-        return await clangames_leaderboard_embed
+        return clangames_leaderboard_embed
 
     for c in alliance_clans:
         leaderboard_participants = [m for m in cg_participants if m.clangames.clan.tag == c.tag]
