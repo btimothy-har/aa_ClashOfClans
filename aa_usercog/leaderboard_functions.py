@@ -172,7 +172,7 @@ async def leaderboard_clangames(ctx):
             + f"\n\n**Due Diligence**"
             + f"\n> Achieve 1,000 Clan Games Points."
             + f"\n> Reward(s): `1,000XP`"
-            + f"\n\n`{'':<18}{'Score':^6}{'Time':^10}`")
+            + f"\n\n`{'':<21}{'Score':^6}{'Time':^10}`")
 
     for c in alliance_clans:
         leaderboard_participants = [m for m in cg_participants if m.clangames.clan.tag == c.tag]
@@ -207,7 +207,7 @@ async def leaderboard_clangames(ctx):
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[th]}"
-            leaderboard_str += f"`{m.name:<15}"
+            leaderboard_str += f"`{lb_rank:<3}{m.name:<15}"
             leaderboard_str += f"{sc:^6}"
             leaderboard_str += f"{ct:^10}"
 
