@@ -671,12 +671,79 @@ class AriXMemberCommands(commands.Cog):
         if len(command_params) > 0:
             param = command_params[0]
 
-        #lb = await leaderboard_warlord(ctx)
+        if param == 'warlords':
+            warlord = await leaderboard_warlord(ctx)
+            return await ctx.send(embed=warlord)
 
-        lb = await leaderboard_heistlord(ctx)
+        if param == 'heistlord':
+            heistlord = await leaderboard_warlord(ctx)
+            return await ctx.send(embed=heistlord)
 
-        await ctx.send(embed=lb)
+        navigation = []
+        navigation_str = ""
+        warlord_dict = {
+            'id': 'warlords',
+            'emoji': "<:Warlords:1047016981066436628>",
+            'title': "",
+            }
+        navigation_str += f"<:Warlords:1047016981066436628> Warlord Leaderboard\n"
 
+        heistlord_dict = {
+            'id': 'heistlords',
+            'emoji': "<:Heistlord:1047018048088965150>",
+            'title': "",
+            }
+        navigation_str += f"<:Heistlord:1047018048088965150> Heistlord Leaderboard\n"
+
+        navigation.append(warlord_dict)
+        navigation.append(heistlord_dict)
+
+        warlord = await leaderboard_warlord(ctx)
+        warlord.add_field(
+            name="**Navigation**",
+            value=navigation_str)
+
+        heistlord = await leaderboard_heistlord(ctx)
+        heistlord.add_field(
+            name="**Navigation**",
+            value=navigation_str)
+
+        menu_state = True
+        menu_option = 'start'
+        menu_message = None
+
+        while menu_state:
+            if menu_option in ['warlords','start']:
+                if not menu_message:
+                    menu_message = await ctx.send(embed=warlord)
+                else:
+                    menu_message.edit(embed=warlord)
+                await menu_message.clear_reactions()
+
+                try:
+                    await menu_message.remove_reaction("<:Warlords:1047016981066436628>",ctx.author)
+                except:
+                    pass
+
+            if menu_option in ['heistlords']:
+                if not menu_message:
+                    menu_message = await ctx.send(embed=heistlord)
+                else:
+                    menu_message.edit(embed=heistlord)
+
+                try:
+                    await menu_message.remove_reaction("<:Heistlord:1047018048088965150>",ctx.author)
+                except:
+                    pass
+
+            selection = await multiple_choice_menu_select(ctx,menu_message,navigation,300)
+            if selection:
+                menu_option == selection['id']
+            else:
+                menu_state = False
+
+        if menu_message:
+            await menu_message.clear_reactions()
 
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):

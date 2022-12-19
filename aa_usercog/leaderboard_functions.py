@@ -78,7 +78,7 @@ async def leaderboard_warlord(ctx):
     warlord_leaderboard_embed = await clash_embed(ctx,
         title=f"**AriX Warlord Leaderboard: {current_season}**",
         message=f"The AriX Member with the most triples against higher or equal Townhalls during the AriX Season is rewarded with the **Warlord** title."
-            + f"\n\n> - Only regular Clan Wars are counted (friendly & CWL wars excluded)."
+            + f"\n\n> - Only regular Clan Wars with our Arix Clans are counted (friendly & CWL wars excluded)."
             + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
             + f"\n> - TH levels are taken from the specific War you participated in."
             + f"\n\nWarlords receive `10,000XP` per title, in addition to the TH Warlord role."
@@ -120,7 +120,8 @@ async def leaderboard_heistlord(ctx):
     heistlord_leaderboard_embed = await clash_embed(ctx,
         title=f"**AriX Heistlord Leaderboard: {current_season}**",
         message=f"The AriX Member with most Dark Elixir <:DarkElixir:825640568973033502> looted during the AriX Season is rewarded with the **Heistlord** title."
-            + f"\n\n> - Each AriX Season runs from the 10th to the last day of every month."
+            + f"\n\n> - Only activity while you're in our AriX Clans are counted."
+            + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
             + f"\n> - TH levels are based on your current TH level."
             + f"\n\nHeistlords receive `10,000XP` per title, in addition to the TH Heistlord role.")
 
