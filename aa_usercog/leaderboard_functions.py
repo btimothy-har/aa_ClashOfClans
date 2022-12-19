@@ -11,6 +11,7 @@ import time
 import re
 import fasteners
 import urllib
+import pytz
 
 from coc.ext import discordlinks
 from redbot.core import Config, commands
@@ -180,6 +181,8 @@ async def leaderboard_clangames(ctx):
             name=f"Clan Games has not started yet for this season.",
             value=f"Clan Games start on the 22nd of every month, at 8:00AM UTC.",
             inline=False)
+
+        return await clangames_leaderboard_embed
 
     for c in alliance_clans:
         leaderboard_participants = [m for m in cg_participants if m.clangames.clan.tag == c.tag]
