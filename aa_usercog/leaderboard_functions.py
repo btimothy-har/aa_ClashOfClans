@@ -70,21 +70,19 @@ class WarLord_Player():
             self.hit_rate = 0
 
 async def leaderboard_warlord(ctx):
-    current_season = await get_current_season()
-
+    current_season = await get_current_season(params='readable')
     all_members = await get_clan_members(ctx)
-
     all_participants = [m for m in all_members if m.war_stats.wars_participated > 0]
-
     th_leaderboard = [15,14,13,12,11,10,9]
 
     warlord_leaderboard_embed = await clash_embed(ctx,
         title=f"**AriX Warlord Leaderboard: {current_season}**",
-        message=f"The AriX Member with the most triples against higher or equal Townhalls during the AriX Season is annointed with the **Warlord** title."
+        message=f"The AriX Member with the most triples against higher or equal Townhalls during the AriX Season is rewarded with the **Warlord** title."
             + f"\n\n> - Only regular Clan Wars are counted (friendly & CWL wars excluded)."
-            + f"\n> - Warlords reset every month."
+            + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
+            + f"\n> - TH levels are taken from the specific War you participated in."
             + f"\n\nWarlords receive `10,000XP` per title, in addition to the TH Warlord role."
-            + f"\n\n`{'':<8}{'PLAYER':<15}{'':<2}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<4}`<:HitRate:1054325756618088498>`{'':<2}`")
+            + f"\n\n`{'':<21}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<1}{'':<2}`<:HitRate:1054325756618088498>`{'':<2}`")
 
     for th in th_leaderboard:
 
@@ -99,11 +97,11 @@ async def leaderboard_warlord(ctx):
             if lb_rank > 5:
                 break
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}`{'':<1}"
-            leaderboard_str += f"{m.player.name:<17}{'':<2}"
-            leaderboard_str += f"{m.total_triples:>2}{'':<2}"
-            leaderboard_str += f"{m.total_attacks:>2}{'':<2}"
-            leaderboard_str += f"{m.hit_rate:>5}%`"
+            leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}"
+            leaderboard_str += f"`{m.player.name:<15}"
+            leaderboard_str += f"{m.total_triples:^5}"
+            leaderboard_str += f"{m.total_attacks:^5}"
+            leaderboard_str += f"{'':<1}{str(m.hit_rate)+'%':>5}{'':<2}`\u3000"
 
         warlord_leaderboard_embed.add_field(
             name=f"**TH{th}**",
@@ -112,8 +110,46 @@ async def leaderboard_warlord(ctx):
 
     return warlord_leaderboard_embed
 
+
 async def leaderboard_heistlord(ctx):
-    pass
+    current_season = await get_current_season(params='readable')
+    all_members = await get_clan_members(ctx)
+    all_participants = [m for m in all_members if m.loot_darkelixir.season > 0]
+    th_leaderboard = [15,14,13,12,11,10,9]
+
+    heistlord_leaderboard_embed = await clash_embed(ctx,
+        title=f"**AriX Heistlord Leaderboard: {current_season}**",
+        message=f"The AriX Member with most Dark Elixir <:DarkElixir:825640568973033502> looted during the AriX Season is rewarded with the **Heistlord** title."
+            + f"\n\n> - Each AriX Season runs from the 10th to the last day of every month."
+            + f"\n> - TH levels are based on your current TH level."
+            + f"\n\nHeistlords receive `10,000XP` per title, in addition to the TH Heistlord role.")
+
+    for th in th_leaderboard:
+
+        leaderboard_members = [hp for hp in all_participants if hp.town_hall.level==th]
+        leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.loot_darkelixir.season),reverse=True)
+
+        leaderboard_str = ""
+
+        lb_rank = 0
+        for m in leaderboard_sorted:
+            lb_rank += 1
+            if lb_rank > 5:
+                break
+
+            value = f"{m.loot_darkelixir.season:,}"
+
+            leaderboard_str += f"\n"
+            leaderboard_str += f"{emotes_townhall[th]}{m.home_clan.emoji}"
+            leaderboard_str += f"`{m.name:<15}"
+            leaderboard_str += f"{value:>9}`<:DarkElixir:825640568973033502>"
+
+        heistlord_leaderboard_embed.add_field(
+            name=f"**TH{th}**",
+            value=f"{leaderboard_str}\u200b",
+            inline=False)
+
+    return heistlord_leaderboard_embed
 
 async def leaderboard_clangames(ctx):
     pass

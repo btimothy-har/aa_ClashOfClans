@@ -671,7 +671,9 @@ class AriXMemberCommands(commands.Cog):
         if len(command_params) > 0:
             param = command_params[0]
 
-        lb = await leaderboard_warlord(ctx)
+        #lb = await leaderboard_warlord(ctx)
+
+        lb = await leaderboard_heistlord(ctx)
 
         await ctx.send(embed=lb)
 
