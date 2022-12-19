@@ -4,14 +4,18 @@ import shutil
 
 import json
 import pytz
+import calendar
 
 from datetime import datetime
 
-async def get_current_season():
+async def get_current_season(params=None):
     helsinkiTz = pytz.timezone("Europe/Helsinki")
     current_season = f"{datetime.now(helsinkiTz).month}-{datetime.now(helsinkiTz).year}"
-    return current_season
 
+    if params == 'readable':
+        current_season = f"{calendar.month_name[datetime.now(helsinkiTz).month]} {datetime.now(helsinkiTz).year}"
+
+    return current_season
 
 async def season_file_handler(ctx,season,clans):
     is_new_season = False
@@ -98,6 +102,7 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
         'members':'members.json',
         'warlog':'warlog.json',
         'capitalraid':'capitalraid.json',
+        'clangames':'clangames.json'
         }
     if season:
         file_path = ctx.bot.clash_dir_path + '/' + season + '/' + file_name[file]

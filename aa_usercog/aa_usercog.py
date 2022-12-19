@@ -11,6 +11,7 @@ import time
 import re
 import fasteners
 import urllib
+import pytz
 
 from coc.ext import discordlinks
 from redbot.core import Config, commands
@@ -23,6 +24,7 @@ from tabulate import tabulate
 from numerize import numerize
 
 from .userprofile_functions import userprofile_main
+from .leaderboard_functions import leaderboard_warlord, leaderboard_heistlord, leaderboard_clangames
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
@@ -566,6 +568,21 @@ class AriXMemberCommands(commands.Cog):
                 if last_update_str == "":
                     last_update_str = "a few seconds "
 
+                clangames_str = f"<:ClanGames:834063648494190602> {a.clangames.score:,}"
+
+                if a.clangames.score >= 4000:
+                    clangames_str += " (:stopwatch:"
+
+                    cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.clangames.ending_time-a.clangames.starting_time))
+                    if cd > 0:
+                        clangames_str += f" {int(cd)}d"
+                    if ch > 0:
+                        clangames_str += f" {int(ch)}h"
+                    if cm > 0:
+                        clangames_str += f" {int(cm)}m"
+
+                    clangames_str += ")"
+
                 pEmbed.add_field(
                     name=f"**Current Season Stats with AriX**",
                     value=f":stopwatch: Last updated: {last_update_str}ago"
@@ -583,7 +600,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**War Performance**"
                         + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
                         + f"\n**Clan Games**"
-                        + f"\n<:ClanGames:834063648494190602> {a.clangames.statdisplay}\n\u200b",
+                        + f"\n{clangames_str}\n\u200b",
                     inline=False)
 
             else:
@@ -645,6 +662,119 @@ class AriXMemberCommands(commands.Cog):
 
         await userprofile_main(ctx,output_embed,accounts)
 
+    @commands.command(name="leaderboard",aliases=['leaderboards','lb'])
+    async def arix_leaderboard(self,ctx,*command_params):
+        """
+        Alliance Leaderboards for Warlords, Heistlords, and Clan Games.
+        """
+
+        user = ctx.bot.get_user(ctx.author.id)
+
+        param = None
+        if len(command_params) > 0:
+            param = command_params[0]
+
+        if param == 'warlords':
+            warlord = await leaderboard_warlord(ctx)
+            return await ctx.send(embed=warlord)
+
+        if param == 'heistlord':
+            heistlord = await leaderboard_warlord(ctx)
+            return await ctx.send(embed=heistlord)
+
+        if param == 'clangames':
+            clangames = await leaderboard_clangames(ctx)
+            return await ctx.send(embed=clangames)
+
+        navigation = []
+        navigation_str = ""
+        warlord_dict = {
+            'id': 'warlord',
+            'emoji': "<:Warlords:1054422701793611856>",
+            'title': "",
+            }
+        navigation_str += f"<:Warlords:1047016981066436628> Warlord Leaderboard\n"
+        navigation.append(warlord_dict)
+
+        heistlord_dict = {
+            'id': 'heistlord',
+            'emoji': "<:Heistlords:1054422607933493270>",
+            'title': "",
+            }
+        navigation_str += f"<:Heistlord:1047018048088965150> Heistlord Leaderboard\n"
+        navigation.append(heistlord_dict)
+
+        cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
+        if time.time() >= cg_start.timestamp():
+            clangames_dict = {
+                'id': 'clangames',
+                'emoji': "<:ClanGames:834063648494190602>",
+                'title': "",
+                }
+            navigation_str += f"<:ClanGames:834063648494190602> Clan Games Leaderboard\n"
+            navigation.append(clangames_dict)
+
+        menu_state = True
+        menu_option = 'start'
+        menu_message = None
+
+        while menu_state:
+            if menu_option in ['warlord','start']:
+                warlord = await leaderboard_warlord(ctx)
+                warlord.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
+                    await menu_message.edit(embed=warlord)
+                else:
+                    menu_message = await ctx.send(embed=warlord)
+
+                try:
+                    await menu_message.remove_reaction("<:Warlords:1054422701793611856>",user)
+                except:
+                    pass
+
+            if menu_option in ['heistlord']:
+                heistlord = await leaderboard_heistlord(ctx)
+                heistlord.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
+                    await menu_message.edit(embed=heistlord)
+                else:
+                    menu_message = await ctx.send(embed=heistlord)
+
+                try:
+                    await menu_message.remove_reaction("<:Heistlords:1054422607933493270>",user)
+                except:
+                    pass
+
+            if menu_option in ['clangames']:
+                clangames = await leaderboard_clangames(ctx)
+                clangames.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
+                    await menu_message.edit(embed=clangames)
+                else:
+                    menu_message = await ctx.send(embed=clangames)
+
+                try:
+                    await menu_message.remove_reaction("<:ClanGames:834063648494190602>",user)
+                except:
+                    pass
+
+            selection = await multiple_choice_menu_select(ctx,menu_message,navigation,300)
+            if selection:
+                menu_option = selection['id']
+            else:
+                menu_state = False
+
+        if menu_message:
+            await menu_message.clear_reactions()
 
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):
