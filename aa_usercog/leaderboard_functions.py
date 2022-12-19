@@ -87,12 +87,12 @@ async def leaderboard_warlord(ctx):
         leaderboard_members = [wp for wp in [WarLord_Player(ctx,m,th) for m in all_participants] if wp.wars_participated >= 0]
         leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.total_triples,x.hit_rate),reverse=True)
 
-        leaderboard_str = f"`{'\u200b':^10}`\u3000<:NoOfTriples:1034033279411687434>\u3000<:TotalAttacks:827845123596746773>\u3000<:HitRate:1054325756618088498>"
+        leaderboard_str = f"<:spacer:1054328465136037888> <:spacer:1054328465136037888>\u3000{'player':^15}\u3000<:NoOfTriples:1034033279411687434>\u3000<:TotalAttacks:827845123596746773>\u3000<:HitRate:1054325756618088498>"
 
         lb_rank = 0
         for m in leaderboard_sorted:
             lb_rank += 1
-            leaderboard_str += f"\n{lb_rank} {emotes_townhall[th]} {m.player.home_clan.emoji}\u3000{m.total_triples}\u3000{m.total_attacks}\u3000{m.hit_rate}%"
+            leaderboard_str += f"\n{emotes_townhall[th]} {m.player.home_clan.emoji}\u3000{m.player.name}\u3000{m.total_triples}\u3000{m.total_attacks}\u3000{m.hit_rate}%"
 
         warlord_leaderboard_embed.add_field(
             name=f"TH{th} Warlords",
