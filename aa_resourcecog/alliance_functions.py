@@ -78,14 +78,17 @@ async def get_alliance_clan(ctx,abbreviation=None):
         return ret_clans
 
 
-async def get_clan_members(ctx,clan):
+async def get_clan_members(ctx,clan=None):
     with ctx.bot.clash_file_lock.read_lock():
         with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
             file_json = json.load(file)
 
     members = file_json['members']
 
-    clan_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==clan.tag]
+    if clan:
+        clan_members = [tag for (tag,member) in members.items() if member['is_member']==True and member['home_clan']['tag']==clan.tag]
+    else:
+        clan_members = [tag for (tag,member) in members.items() if member['is_member']==True]
 
     ret_members = []
     for tag in clan_members:

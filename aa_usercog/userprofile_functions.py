@@ -130,7 +130,6 @@ async def userprofile_warlog(ctx,account,message=None):
 
     for wid in war_id_sort:
         war = a.warlog[wid]
-
         try:
             wid = float(wid)
         except:

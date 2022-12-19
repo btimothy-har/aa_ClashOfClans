@@ -225,7 +225,11 @@ class aWarAttack():
 
         self.order = None
         self.attacker = ''
+        self.attacker_townhall = 0
+        self.attacker_position = 0
         self.defender = ''
+        self.defender_townhall = 0
+        self.defender_position = 0
         self.stars = 0
         self.destruction = 0
         self.duration = 0

@@ -23,6 +23,7 @@ from tabulate import tabulate
 from numerize import numerize
 
 from .userprofile_functions import userprofile_main
+from .leaderboard_functions import leaderboard_warlord, leaderboard_heistlord, leaderboard_clangames
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
@@ -659,6 +660,22 @@ class AriXMemberCommands(commands.Cog):
             output_embed.append(pEmbed)
 
         await userprofile_main(ctx,output_embed,accounts)
+
+    @commands.command(name="profile")
+    async def arix_leaderboard(self,ctx,*command_params):
+        """
+        Alliance Leaderboards for Warlords, Heistlords, and Clan Games.
+        """
+
+        param = None
+        if len(command_params) > 0:
+            param = command_params[0]
+
+        lb = await leaderboard_warlord(ctx)
+
+        await ctx.send(embed=lb)
+
+
 
 
     @commands.group(name="eclipse",autohelp=False)
