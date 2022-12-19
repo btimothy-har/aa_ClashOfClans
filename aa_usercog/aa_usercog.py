@@ -661,7 +661,7 @@ class AriXMemberCommands(commands.Cog):
 
         await userprofile_main(ctx,output_embed,accounts)
 
-    @commands.command(name="profile")
+    @commands.command(name="leaderboard")
     async def arix_leaderboard(self,ctx,*command_params):
         """
         Alliance Leaderboards for Warlords, Heistlords, and Clan Games.
