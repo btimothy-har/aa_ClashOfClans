@@ -686,7 +686,7 @@ class AriXMemberCommands(commands.Cog):
             clangames = await leaderboard_clangames(ctx)
             return await ctx.send(embed=clangames)
 
-        navigation = []|
+        navigation = []
         navigation_str = ""
         warlord_dict = {
             'id': 'warlord',
