@@ -667,6 +667,8 @@ class AriXMemberCommands(commands.Cog):
         Alliance Leaderboards for Warlords, Heistlords, and Clan Games.
         """
 
+        user = ctx.bot.get_user(ctx.author.id)
+
         param = None
         if len(command_params) > 0:
             param = command_params[0]
@@ -715,7 +717,7 @@ class AriXMemberCommands(commands.Cog):
                     menu_message = await ctx.send(embed=warlord)
 
                 try:
-                    await menu_message.remove_reaction("<:Warlords:1047016981066436628>",ctx.author)
+                    await menu_message.remove_reaction("<:Warlords:1047016981066436628>",user)
                 except:
                     pass
 
@@ -731,7 +733,7 @@ class AriXMemberCommands(commands.Cog):
                     menu_message = await ctx.send(embed=heistlord)
 
                 try:
-                    await menu_message.remove_reaction("<:Heistlord:1047018048088965150>",ctx.author)
+                    await menu_message.remove_reaction("<:Heistlord:1047018048088965150>",user)
                 except:
                     pass
 
