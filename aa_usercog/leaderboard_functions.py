@@ -95,6 +95,8 @@ async def leaderboard_warlord(ctx):
         lb_rank = 0
         for m in leaderboard_sorted:
             lb_rank += 1
+            if lb_rank > 5:
+                break
             leaderboard_str += f"\n{emotes_townhall[th]} {m.player.home_clan.emoji}\u3000{m.player.name}\u3000{m.total_triples}\u3000{m.total_attacks}\u3000{m.hit_rate}%"
 
         warlord_leaderboard_embed.add_field(
