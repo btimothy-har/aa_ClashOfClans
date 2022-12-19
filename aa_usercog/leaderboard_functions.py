@@ -64,7 +64,10 @@ class WarLord_Player():
                     if att.is_triple:
                         self.total_triples += 1
 
-        self.hit_rate = round((self.total_triples / self.total_attacks) * 100,2)
+        if self.total_attacks > 0:
+            self.hit_rate = round((self.total_triples / self.total_attacks) * 100,2)
+        else:
+            self.hit_rate = 0
 
 async def leaderboard_warlord(ctx):
     current_season = await get_current_season()
