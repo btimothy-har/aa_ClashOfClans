@@ -87,7 +87,7 @@ async def leaderboard_warlord(ctx):
         leaderboard_members = [wp for wp in [WarLord_Player(ctx,m,th) for m in all_participants] if wp.wars_participated >= 0]
         leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.total_triples,x.hit_rate),reverse=True)
 
-        leaderboard_str = f"`{:^10}`\u3000<:NoOfTriples:1034033279411687434>\u3000<:TotalAttacks:827845123596746773>\u3000<:HitRate:1054325756618088498>"
+        leaderboard_str = f"`{'\u200b':^10}`\u3000<:NoOfTriples:1034033279411687434>\u3000<:TotalAttacks:827845123596746773>\u3000<:HitRate:1054325756618088498>"
 
         lb_rank = 0
         for m in leaderboard_sorted:
