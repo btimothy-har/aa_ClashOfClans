@@ -315,7 +315,7 @@ class aPlayer():
                 self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
                 self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
 
-                self.clangames = await aPlayerClanGames.from_json(self.p,memberStats.get('clangames',{}))
+                self.clangames = await aPlayerClanGames.from_json(ctx,self.p,memberStats.get('clangames',{}))
 
                 self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
@@ -640,7 +640,7 @@ class aPlayerClanGames():
         self.last_updated = 0
 
     @classmethod
-    async def from_json(cls,player,inputJson):
+    async def from_json(cls,ctx,player,inputJson):
         self = aPlayerClanGames()
 
         self.score = inputJson.get('score',0)
