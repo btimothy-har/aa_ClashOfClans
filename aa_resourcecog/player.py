@@ -456,8 +456,6 @@ class aPlayer():
             self.donations_sent.update_stat(self.p.donations)
             self.donations_rcvd.update_stat(self.p.received)
 
-            await self.clangames.calculate_clangames(self.p,self.timestamp)
-
             for achievement in self.p.achievements:
                 if achievement.name == 'Gold Grab':
                     self.loot_gold.update_stat(achievement.value)

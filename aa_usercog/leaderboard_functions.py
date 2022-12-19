@@ -153,6 +153,68 @@ async def leaderboard_heistlord(ctx):
     return heistlord_leaderboard_embed
 
 async def leaderboard_clangames(ctx):
-    pass
+    current_season = await get_current_season(params='readable')
 
+    alliance_clans = await get_alliance_clan(ctx)
+    all_members = await get_clan_members(ctx)
+
+    cg_participants = [m for m in all_members if m.clangames.score > 0]
+
+    clangames_leaderboard_embed = await clash_embed(ctx,
+        title=f"**AriX Clan Games Leaderboard: {current_season}**",
+        message=f"Win one of the following awards by participating in the Clan Games!"
+            + f"\n\n**Speedrunner**"
+            + f"\n> Be the first to finish Clan Games for your Clan."
+            + f"\n> Reward(s): `9,000XP` for 1st, `8,000XP` for 2nd, `7,000XP` for 3rd."
+            + f"\n\n**Going the extra mile!**"
+            + f"\n> Achieve 4,000 Clan Games Points."
+            + f"\n> Reward(s): `4,000XP`"
+            + f"\n\n**Due Diligence**"
+            + f"\n> Achieve 1,000 Clan Games Points."
+            + f"\n> Reward(s): `1,000XP`"
+            + f"\n\n`{'':<18}{'Score':^6}{'Time':^10}`")
+
+    for c in alliance_clans:
+        leaderboard_participants = [m for m in cg_participants if m.clangames.clan.tag == c.tag]
+        leaderboard_sorted = sorted(leaderboard_participants,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1)),reverse=True)
+
+        leaderboard_str = ""
+
+        lb_rank = 0
+        prev_ts = 0
+
+        for m in leaderboard_sorted:
+
+            if m.clangames.ending_time > 0:
+                if m.clangames.ending_time != prev_ts:
+                    lb_rank += 1
+            else:
+                lb_rank += 1
+
+            if lb_rank > 5:
+                break
+
+            sc = f"{m.clangames.score:,}"
+            ct = ""
+
+            if m.clangames.score >= 4000:
+                cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.clangames.ending_time-a.clangames.starting_time))
+                if cd > 0:
+                    ct += f"{int(cd)}d "
+                if ch > 0:
+                    ct += f"{int(ch)}h "
+                ct += f"{int(cm)}m"
+
+            leaderboard_str += f"\n"
+            leaderboard_str += f"{emotes_townhall[th]}"
+            leaderboard_str += f"`{m.name:<15}"
+            leaderboard_str += f"{sc:^6}"
+            leaderboard_str += f"{ct:^10}"
+
+        clangames_leaderboard_embed.add_field(
+            name=f"**{c.name}** ({c.tag})",
+            value=f"{leaderboard_str}\u200b",
+            inline=False)
+
+    return clangames_leaderboard_embed
 

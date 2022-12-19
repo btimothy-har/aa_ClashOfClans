@@ -497,12 +497,13 @@ class AriXClashDataMgr(commands.Cog):
                     success_log.append(p)
 
                 else:
-                    if p.is_member and p.clan.is_alliance_clan:
-                        await p.update_stats(ctx)
-                        success_log.append(p)
+                    if p.is_member:
+                        await p.clangames.calculate_clangames(p.p,st)
+                        if p.clan.is_alliance_clan:
+                            await p.update_stats(ctx)
                     else:
                         await p.set_baselines(ctx)
-                        success_log.append(p)
+                    success_log.append(p)
 
                 await p.save_to_json(ctx)
 
