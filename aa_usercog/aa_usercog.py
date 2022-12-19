@@ -738,7 +738,7 @@ class AriXMemberCommands(commands.Cog):
 
             selection = await multiple_choice_menu_select(ctx,menu_message,navigation,300)
             if selection:
-                menu_option == selection['id']
+                menu_option = selection['id']
             else:
                 menu_state = False
 
