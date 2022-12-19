@@ -91,7 +91,7 @@ async def leaderboard_warlord(ctx):
         leaderboard_members = [wp for wp in [WarLord_Player(ctx,m,th) for m in all_participants] if wp.wars_participated > 0]
         leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.total_triples,x.hit_rate),reverse=True)
 
-        leaderboard_str = "\u200b"
+        leaderboard_str = ""
 
         lb_rank = 0
         for m in leaderboard_sorted:
@@ -100,14 +100,14 @@ async def leaderboard_warlord(ctx):
                 break
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}`{'':<1}"
-            leaderboard_str += f"{m.player.name:<18}{'.':<2}"
-            leaderboard_str += f"{m.total_triples:>2}{',':<2}"
-            leaderboard_str += f"{m.total_attacks:>2}{'/':<2}"
+            leaderboard_str += f"{m.player.name:<17}{'':<2}"
+            leaderboard_str += f"{m.total_triples:>2}{'':<2}"
+            leaderboard_str += f"{m.total_attacks:>2}{'':<2}"
             leaderboard_str += f"{m.hit_rate:>5}%`"
 
         warlord_leaderboard_embed.add_field(
             name=f"**TH{th}**",
-            value=f"{leaderboard_str}",
+            value=f"{leaderboard_str}\u200b",
             inline=False)
 
     return warlord_leaderboard_embed
