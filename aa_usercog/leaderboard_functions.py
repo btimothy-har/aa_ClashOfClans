@@ -91,7 +91,7 @@ async def leaderboard_warlord(ctx):
         leaderboard_members = [wp for wp in [WarLord_Player(ctx,m,th) for m in all_participants] if wp.wars_participated > 0]
         leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.total_triples,x.hit_rate),reverse=True)
 
-        leaderboard_str = ""
+        leaderboard_str = "\u200b"
 
         lb_rank = 0
         for m in leaderboard_sorted:
