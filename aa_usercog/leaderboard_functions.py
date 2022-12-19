@@ -180,7 +180,7 @@ async def leaderboard_clangames(ctx):
         clangames_leaderboard_embed.add_field(
             name=f"Leaderboard Unavailable",
             value=f"The Clan Games Leaderboard is only available once the games begin!"
-                + f"\n\nThe next Clan Games will start on <t:{cg_start.timestamp()}:f>. Time shown in your local timezone.",
+                + f"\n\nThe next Clan Games will start on <t:{int(cg_start.timestamp())}:f>. Time shown in your local timezone.",
             inline=False)
 
         return clangames_leaderboard_embed
