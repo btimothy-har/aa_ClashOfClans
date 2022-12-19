@@ -683,14 +683,14 @@ class AriXMemberCommands(commands.Cog):
         navigation_str = ""
         warlord_dict = {
             'id': 'warlord',
-            'emoji': "<:Warlords:1047016981066436628>",
+            'emoji': "<:Warlords:1054422701793611856>",
             'title': "",
             }
         navigation_str += f"<:Warlords:1047016981066436628> Warlord Leaderboard\n"
 
         heistlord_dict = {
             'id': 'heistlord',
-            'emoji': "<:Heistlord:1047018048088965150>",
+            'emoji': "<:Heistlords:1054422607933493270>",
             'title': "",
             }
         navigation_str += f"<:Heistlord:1047018048088965150> Heistlord Leaderboard\n"
