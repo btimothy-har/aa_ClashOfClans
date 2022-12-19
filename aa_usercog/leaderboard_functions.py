@@ -101,7 +101,8 @@ async def leaderboard_warlord(ctx):
 
         warlord_leaderboard_embed.add_field(
             name=f"TH{th} Warlords",
-            value=f"{leaderboard_str}\n\u200b")
+            value=f"{leaderboard_str}\n\u200b",
+            inline=False)
 
     return warlord_leaderboard_embed
 
