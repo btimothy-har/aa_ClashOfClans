@@ -65,7 +65,7 @@ class WarLord_Player():
                         self.total_triples += 1
 
         if self.total_attacks > 0:
-            self.hit_rate = round((self.total_triples / self.total_attacks) * 100,0)
+            self.hit_rate = int(round((self.total_triples / self.total_attacks) * 100,0))
         else:
             self.hit_rate = 0
 
@@ -84,7 +84,7 @@ async def leaderboard_warlord(ctx):
             + f"\n\n> - Only regular Clan Wars are counted (friendly & CWL wars excluded)."
             + f"\n> - Warlords reset every month."
             + f"\n\nWarlords receive `10,000XP` per title, in addition to the TH Warlord role."
-            + f"\n\n`{'':<5}{'Player':<18}{'':<2}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<4}`<:HitRate:1054325756618088498>`{'':<2}`")
+            + f"\n\n`{'':<8}{'PLAYER':<15}{'':<2}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<4}`<:HitRate:1054325756618088498>`{'':<2}`")
 
     for th in th_leaderboard:
 
@@ -99,15 +99,15 @@ async def leaderboard_warlord(ctx):
             if lb_rank > 5:
                 break
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[th]} {m.player.home_clan.emoji}"
-            leaderboard_str += f"`{m.player.name:<18}{'':<2}"
-            leaderboard_str += f"{m.total_triples:>2}{'':<2}"
-            leaderboard_str += f"{m.total_attacks:>2}{'':<2}"
+            leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}`{'':<1}"
+            leaderboard_str += f"{m.player.name:<18}{'.':<2}"
+            leaderboard_str += f"{m.total_triples:>2}{',':<2}"
+            leaderboard_str += f"{m.total_attacks:>2}{'/':<2}"
             leaderboard_str += f"{m.hit_rate:>5}%`"
 
         warlord_leaderboard_embed.add_field(
             name=f"**TH{th}**",
-            value=f"{leaderboard_str}\n\u200b",
+            value=f"{leaderboard_str}",
             inline=False)
 
     return warlord_leaderboard_embed
