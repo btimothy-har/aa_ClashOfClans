@@ -717,7 +717,7 @@ class AriXMemberCommands(commands.Cog):
                 if not menu_message:
                     menu_message = await ctx.send(embed=warlord)
                 else:
-                    menu_message.edit(embed=warlord)
+                    await menu_message.edit(embed=warlord)
                 try:
                     await menu_message.remove_reaction("<:Warlords:1047016981066436628>",ctx.author)
                 except:
@@ -727,7 +727,7 @@ class AriXMemberCommands(commands.Cog):
                 if not menu_message:
                     menu_message = await ctx.send(embed=heistlord)
                 else:
-                    menu_message.edit(embed=heistlord)
+                    await menu_message.edit(embed=heistlord)
                 try:
                     await menu_message.remove_reaction("<:Heistlord:1047018048088965150>",ctx.author)
                 except:
