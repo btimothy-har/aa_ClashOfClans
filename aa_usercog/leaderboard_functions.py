@@ -206,7 +206,7 @@ async def leaderboard_clangames(ctx):
                 ct += f"{int(cm)}m"
 
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[th]}"
+            leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
             leaderboard_str += f"`{lb_rank:<3}{m.name:<15}"
             leaderboard_str += f"{sc:^6}"
             leaderboard_str += f"{ct:^10}"
