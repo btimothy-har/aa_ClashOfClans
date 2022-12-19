@@ -198,7 +198,7 @@ async def leaderboard_clangames(ctx):
             ct = ""
 
             if m.clangames.score >= 4000:
-                cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.clangames.ending_time-a.clangames.starting_time))
+                cd, ch, cm, cs = await convert_seconds_to_str(ctx,(m.clangames.ending_time-m.clangames.starting_time))
                 if cd > 0:
                     ct += f"{int(cd)}d "
                 if ch > 0:
