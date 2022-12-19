@@ -774,7 +774,10 @@ class AriXMemberCommands(commands.Cog):
                 menu_state = False
 
         if menu_message:
-            await menu_message.clear_reactions()
+            try:
+                await menu_message.clear_reactions()
+            except:
+                pass
 
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):
