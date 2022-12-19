@@ -717,7 +717,7 @@ class AriXMemberCommands(commands.Cog):
                     menu_message = await ctx.send(embed=warlord)
 
                 try:
-                    await menu_message.remove_reaction("<:Warlords:1047016981066436628>",user)
+                    await menu_message.remove_reaction("<:Warlords:1054422701793611856>",user)
                 except:
                     pass
 
@@ -733,7 +733,7 @@ class AriXMemberCommands(commands.Cog):
                     menu_message = await ctx.send(embed=heistlord)
 
                 try:
-                    await menu_message.remove_reaction("<:Heistlord:1047018048088965150>",user)
+                    await menu_message.remove_reaction("<:Heistlords:1054422607933493270>",user)
                 except:
                     pass
 
