@@ -641,7 +641,7 @@ class aPlayerClanGames():
 
     @classmethod
     async def from_json(cls,player,inputJson):
-        self = aPlayerClanGames(player)
+        self = aPlayerClanGames()
 
         self.score = inputJson.get('score',0)
         self.clan = await aClan.create(ctx,inputJson.get('clan',None))
