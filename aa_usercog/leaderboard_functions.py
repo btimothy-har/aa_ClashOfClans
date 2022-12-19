@@ -178,8 +178,9 @@ async def leaderboard_clangames(ctx):
 
     if time.time() < cg_start.timestamp():
         clangames_leaderboard_embed.add_field(
-            name=f"Clan Games has not started yet for this season.",
-            value=f"Clan Games start on the 22nd of every month, at 8:00AM UTC.",
+            name=f"Leaderboard Unavailable",
+            value=f"The Clan Games Leaderboard is only available once the games begin!"
+                + f"\n\nThe next Clan Games will start on <t:{cg_start.timestamp()}:f>. Time shown in your local timezone.",
             inline=False)
 
         return clangames_leaderboard_embed
