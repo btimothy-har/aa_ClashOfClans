@@ -50,6 +50,10 @@ class AriXClashDataMgr(commands.Cog):
         self.config.register_guild(**default_guild)
 
     async def initialize_config(self,bot):
+        class EmptyContext(commands.Context):
+            def __init__(self,**attrs):
+                self.bot = bot
+
         resource_cog = bot.get_cog("AriXClashResources")
 
         alliance_server_id = await resource_cog.config.alliance_server()
@@ -106,6 +110,10 @@ class AriXClashDataMgr(commands.Cog):
             bot.update_channel = bot.get_channel(int(update_channel))
         except:
             bot.update_channel = None
+
+        c = EmptyContext()
+
+        l = await aPlayer.create(c,'LJC8v0GCJ')
 
 
     @commands.group(name="data",aliases=["status"],autohelp=False)
