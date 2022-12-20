@@ -570,7 +570,7 @@ class AriXMemberCommands(commands.Cog):
 
                 clangames_str = f"<:ClanGames:834063648494190602> {a.clangames.score:,}"
 
-                if a.clangames.score >= 4000:
+                if a.clangames.ending_time > 0:
                     clangames_str += " (:stopwatch:"
 
                     cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.clangames.ending_time-a.clangames.starting_time))

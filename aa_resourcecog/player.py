@@ -631,6 +631,8 @@ class aPlayerStat():
 
 class aPlayerClanGames():
     def __init__(self):
+        self.games_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+        self.games_end = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 28, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.score = 0
         self.clan = None
         self.starting_time = 0
@@ -653,10 +655,7 @@ class aPlayerClanGames():
         self.last_updated = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
 
     async def calculate_clangames(self,player,time):
-        cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
-        cg_end = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 28, 8, 0, 0, 0, tzinfo=pytz.utc)
-
-        if time >= cg_start.timestamp() and time < cg_end.timestamp():
+        if time >= self.games_start and time < self.games_end:
             new_score = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
 
             if (new_score - self.last_updated) > 0:
@@ -668,9 +667,8 @@ class aPlayerClanGames():
                 self.score += (new_score - self.last_updated)
                 self.last_updated = new_score
 
-                if self.score >= 4000:
+                if self.score >= 5000:
                     self.ending_time = time
-
         else:
             self.last_updated = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
 
