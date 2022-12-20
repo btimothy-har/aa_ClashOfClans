@@ -708,6 +708,14 @@ class AriXMemberCommands(commands.Cog):
         navigation_str += f"<:Heistlord:1047018048088965150> Heistlord Leaderboard\n"
         navigation.append(heistlord_dict)
 
+        donations_dict = {
+            'id': 'donations',
+            'emoji': '<:clancastle:1054612010840641536>',
+            'title': ''
+            }
+        navigation_str += f"<:clancastle:1054612010840641536> Donations\n"
+        navigation.append(donations_dict)
+
         cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
         if time.time() >= cg_start.timestamp():
             clangames_dict = {
@@ -768,6 +776,22 @@ class AriXMemberCommands(commands.Cog):
 
                 try:
                     await menu_message.remove_reaction("<:ClanGames:834063648494190602>",user)
+                except:
+                    pass
+
+            if menu_option in ['donations']:
+                donations = await leaderboard_donations(ctx)
+                donations.add_field(
+                    name="**Navigation**",
+                    value=navigation_str)
+
+                if menu_message:
+                    await menu_message.edit(embed=donations)
+                else:
+                    menu_message = await ctx.send(embed=donations)
+
+                try:
+                    await menu_message.remove_reaction("<:clancastle:1054612010840641536>",user)
                 except:
                     pass
 

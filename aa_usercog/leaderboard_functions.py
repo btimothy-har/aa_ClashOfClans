@@ -240,20 +240,24 @@ async def leaderboard_donations(ctx):
 
     donations_leaderboard_embed = await clash_embed(ctx,
         title=f"**AriX Donations Leaderboard: {current_season}**",
-        message=f"Donate troops, spells and sieges to your Clan mates!"
-            + f"\nXP will be given only to the users that have 1,000+ donations across their accounts."
-            + f"\nReward(s): The amount of XP awarded will be determined by the sum of the donations rounded up to the nearest multiple of 100 across every account owned by the user inside one of the AriX Clans."
-            + f"\n\n")
+        message=f"**Donate troops, spells and sieges to your Clan mates!**"
+            + f"\n> XP will be given only to the users that have 1,000+ donations across their accounts."
+            + f"\n> **Reward(s):** The amount of XP awarded will be determined by the sum of the donations rounded up to the nearest multiple of 100 across every account owned by the user inside one of the AriX Clans."
+            + f"\n\u200b")
 
     for c in alliance_clans:
         donation_participants = [m for m in all_members if m.home_clan.tag == c.tag]
         leaderboard_sorted = sorted(donation_participants,key=lambda x:(x.donations_sent.season),reverse=True)
 
-        leaderboard_str = f"`{'':<21}{'Sent':^8}{'Rcvd':^8}`"
+        leaderboard_str = f"`{'':<21}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
 
         lb_rank = 0
 
         for m in leaderboard_sorted:
+            lb_rank += 1
+
+            if lb_rank > 5:
+                break
 
             sent = f"{m.donations_sent.season:,}"
             rcvd = f"{m.donations_rcvd.season:,}"
@@ -261,8 +265,8 @@ async def leaderboard_donations(ctx):
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
             leaderboard_str += f"`{m.name:<18}"
-            leaderboard_str += f"{sent:^8}"
-            leaderboard_str += f"{rcvd:^8}`"
+            leaderboard_str += f"{sent:>8}{'':^2}"
+            leaderboard_str += f"{rcvd:>8}{'':^2}`"
 
         donations_leaderboard_embed.add_field(
             name=f"**{c.name}**",
