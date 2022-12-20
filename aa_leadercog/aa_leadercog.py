@@ -1634,7 +1634,6 @@ class AriXLeaderCommands(commands.Cog):
 
             return await ctx.send(content=ctx.author.mention,embed=ineligible_embed)
 
-
         if len(eligible_ranks) == 1:
             handle_rank = eligible_ranks[0]
 
@@ -1662,11 +1661,11 @@ class AriXLeaderCommands(commands.Cog):
             selection_list = ""
             selection_str = ""
             for i in eligible_ranks:
-                new_rank = handle_rank['rank']
+                new_rank = i['rank']
                 if action == 'demote':
-                    new_rank = clanRanks[clanRanks.index(handle_rank['rank'])-1]
+                    new_rank = clanRanks[clanRanks.index(i['rank'])-1]
                 if action == 'promote':
-                    new_rank = clanRanks[clanRanks.index(handle_rank['rank'])+1]
+                    new_rank = clanRanks[clanRanks.index(i['rank'])+1]
                 d = {
                     'id': i['clan'].tag,
                     'title': i['clan'].desc_title,
