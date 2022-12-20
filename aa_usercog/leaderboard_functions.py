@@ -216,7 +216,8 @@ async def leaderboard_clangames(ctx):
                     ct += f"{int(cd)}d "
                 if ch > 0:
                     ct += f"{int(ch)}h "
-                ct += f"{int(cm)}m"
+                if cm > 0:
+                    ct += f"{int(cm)}m"
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
@@ -230,4 +231,45 @@ async def leaderboard_clangames(ctx):
             inline=False)
 
     return clangames_leaderboard_embed
+
+async def leaderboard_donations(ctx):
+    current_season = await get_current_season(params='readable')
+
+    alliance_clans = await get_alliance_clan(ctx)
+    all_members = await get_clan_members(ctx)
+
+    donations_leaderboard_embed = await clash_embed(ctx,
+        title=f"**AriX Donations Leaderboard: {current_season}**",
+        message=f"Donate troops, spells and sieges to your Clan mates!"
+            + f"\nXP will be given only to the users that have 1,000+ donations across their accounts."
+            + f"\nReward(s): The amount of XP awarded will be determined by the sum of the donations rounded up to the nearest multiple of 100 across every account owned by the user inside one of the AriX Clans."
+            + f"\n\n")
+
+    for c in alliance_clans:
+        donation_participants = [m for m in all_members if m.home_clan.tag == c.tag]
+        leaderboard_sorted = sorted(donation_participants,key=lambda x:(x.donations_sent.season),reverse=True)
+
+        leaderboard_str = f"`{'':<21}{'Sent':^8}{'Rcvd':^8}`"
+
+        lb_rank = 0
+
+        for m in leaderboard_sorted:
+
+            sent = f"{m.donations_sent.season:,}"
+            rcvd = f"{m.donations_rcvd.season:,}"
+
+            leaderboard_str += f"\n"
+            leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
+            leaderboard_str += f"`{m.name:<18}"
+            leaderboard_str += f"{sent:^8}"
+            leaderboard_str += f"{rcvd:^8}`"
+
+        donations_leaderboard_embed.add_field(
+            name=f"**{c.name}**",
+            value=f"{leaderboard_str}\u200b",
+            inline=False)
+
+    return donations_leaderboard_embed
+
+
 
