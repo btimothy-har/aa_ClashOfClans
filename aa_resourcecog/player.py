@@ -676,7 +676,7 @@ class aPlayerClanGames():
 
     def to_json(self):
         clangamesJson = {
-            'clan': self.clan.tag,
+            'clan': getattr(self.clan,'tag',None),
             'score': self.score,
             'last_updated': self.last_updated,
             'starting_time': self.starting_time,
