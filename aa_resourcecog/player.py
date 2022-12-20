@@ -655,6 +655,8 @@ class aPlayerClanGames():
         self.last_updated = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
 
     async def calculate_clangames(self,player,time):
+
+        max_score = 5000
         if time >= self.games_start and time < self.games_end:
             new_score = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
 
@@ -667,8 +669,9 @@ class aPlayerClanGames():
                 self.score += (new_score - self.last_updated)
                 self.last_updated = new_score
 
-                if self.score >= 5000:
+                if self.score >= max_score:
                     self.ending_time = time
+                    self.score = max_score
         else:
             self.last_updated = [a.value for a in player.achievements if a.name == 'Games Champion'][0]
 
