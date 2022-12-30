@@ -30,8 +30,8 @@ class aClanWar():
             self.war_tag = json_data.get('war_tag',None)
             self.league_group = json_data.get('league_group',None)
 
-            clan_1 = aWarClan(self,json=json_data.get('clan_1'),json_data.get('clan',{}))
-            clan_2 = aWarClan(self,json=json_data.get('clan_2'),json_data.get('opponent',{}))
+            clan_1 = aWarClan(self,json=json_data.get('clan_1',json_data.get('clan',{})))
+            clan_2 = aWarClan(self,json=json_data.get('clan_2',json_data.get('opponent',{})))
 
             if clan and clan.tag == clan_2.tag:
                 self.clan = clan_2
