@@ -956,8 +956,9 @@ class aClan(coc.Clan):
     def __init__(self,**kwargs):
 
         tag = kwargs.get('tag',None)
+        load = kwargs.get('load',False)
 
-        if tag:
+        if tag or load:
             super().__init__(**kwargs)
         else:
             self.tag = None
@@ -1052,7 +1053,7 @@ class aClan(coc.Clan):
             return self
 
         try:
-            self = await ctx.bot.coc_client.get_clan(tag,cls=aClan)
+            self = await ctx.bot.coc_client.get_clan(tag=tag,cls=aClan,load=True)
         except Exception as exc:
             raise TerminateProcessing(exc) from exc
             return None
