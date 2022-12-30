@@ -156,17 +156,17 @@ class AriXClashDataMgr(commands.Cog):
 
         msg = await ctx.send("Initializing...")
 
-        bot.user_cache = {}
-        bot.member_cache = {}
-        bot.clan_cache = {}
-        bot.pass_cache = {}
+        ctx.bot.user_cache = {}
+        ctx.bot.member_cache = {}
+        ctx.bot.clan_cache = {}
+        ctx.bot.pass_cache = {}
 
         with ctx.bot.clash_file_lock.read_lock():
             with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
 
-        bot.current_season = s_json['current']
-        bot.tracked_seasons = s_json['tracked']
+        ctx.bot.current_season = s_json['current']
+        ctx.bot.tracked_seasons = s_json['tracked']
 
         alliance_clans_json = await alliance_file_handler(
             ctx=ctx,
@@ -181,7 +181,7 @@ class AriXClashDataMgr(commands.Cog):
         [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
         [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
 
-        bot.refresh_loop = 0
+        ctx.bot.refresh_loop = 0
 
         await msg.delete()
 
