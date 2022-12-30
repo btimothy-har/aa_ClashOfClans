@@ -439,7 +439,7 @@ class aPlayer(coc.Player):
         self.current_season.donations_sent.set_baseline(self.donations)
         self.current_season.donations_rcvd.set_baseline(self.received)
 
-        self.current_season.clangames.set_baseline(self)
+        self.current_season.clangames.set_baseline()
 
         for achievement in self.achievements:
             if achievement.name == 'Gold Grab':
