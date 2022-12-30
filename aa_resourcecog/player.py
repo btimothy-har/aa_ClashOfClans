@@ -186,6 +186,9 @@ class aPlayer(coc.Player):
             try:
                 hero = self.get_hero(name=hero_name)
             except:
+                hero = None
+
+            if not hero:
                 hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
             hero = aHero(hero,self.town_hall.level,is_unlocked_at_this_level)
             self.heroes.append(hero)
@@ -199,6 +202,9 @@ class aPlayer(coc.Player):
             try:
                 troop = self.get_troop(name=troop_name,is_home_troop=True)
             except:
+                troop = None
+
+            if not troop:
                 troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
             troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
             self.troops.append(troop)
@@ -212,6 +218,9 @@ class aPlayer(coc.Player):
             try:
                 spell = self.get_spell(name=spell_name)
             except:
+                spell = None
+
+            if not spell:
                 spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
             spell = aSpell(spell,self.town_hall.level,is_unlocked_at_this_level)
             self.spells.append(spell)
