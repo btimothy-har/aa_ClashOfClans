@@ -299,6 +299,10 @@ class AriXClashDataMgr(commands.Cog):
     @tasks.loop(seconds=60.0)
     async def loop_data_update(self):
 
+        test_ch = self.bot.get_channel(856433806142734346)
+
+        await test_ch.send('hello')
+
         class DataError():
             def __init__(self,**kwargs):
                 self.category = kwargs.get('category',None)
@@ -310,9 +314,12 @@ class AriXClashDataMgr(commands.Cog):
                 self.bot = bot
 
         if not self.bot.refresh_status:
+            await test_ch.send(f'bye {self.bot.refresh_status}')
             return
 
         else:
+            await test_ch.send(f'hi again')
+
             ctx = EmptyContext()
 
             st = time.time()
