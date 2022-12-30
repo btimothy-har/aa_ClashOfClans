@@ -37,7 +37,7 @@ class aPlayer(coc.Player):
         super().__init__(**kwargs)
         self.timestamp = time.time()
 
-        self.discord_user = getattr(cache,'discord_user',None)
+        self.discord_user = getattr(cache,'discord_user',0)
 
         self.clan_castle = getattr(cache,'clan_castle',0)
 
@@ -291,7 +291,7 @@ class aPlayer(coc.Player):
             self.is_member = memberInfo.get('is_member',False)
             self.is_arix_account = True
 
-            self.discord_user = await aMember.create(ctx,user_id=int(memberInfo.get('discord_user',0)))
+            self.discord_user = int(memberInfo.get('discord_user',0))
 
             if self.is_member:
                 if self.discord_user == self.home_clan.leader:
@@ -345,11 +345,11 @@ class aPlayer(coc.Player):
         else:
             self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
 
-        if not self.discord_user.user_id:
+        if not self.discord_user:
             get_links = await ctx.bot.discordlinks.get_links(self.tag)
 
             if len(get_links) > 0:
-                self.discord_user = await aMember.create(ctx,user_id=get_links[0][1])
+                self.discord_user = get_links[0][1]
         return self
 
     async def save_to_json(self,ctx):
@@ -358,9 +358,9 @@ class aPlayer(coc.Player):
             'readable_name': self.readable_name,
             'is_member': self.is_member,
             'home_clan': self.home_clan.tag,
-            'rank':self.arix_rank,
-            'discord_user':self.discord_user.user_id,
-            'notes':[n.to_json() for n in self.notes],
+            'rank': self.arix_rank,
+            'discord_user': self.discord_user,
+            'notes': [n.to_json() for n in self.notes],
             }
 
         memberJson = {
@@ -502,7 +502,7 @@ class aPlayer(coc.Player):
             self.is_member = False
             self.arix_rank = 'Non-Member'
 
-        self.discord_user = await aMember.create(ctx,user_id=discord_user)
+        self.discord_user = discord_user
 
         await self.set_baselines(ctx)
         await self.save_to_json(ctx)
@@ -1224,14 +1224,17 @@ class aClan(coc.Clan):
                     next_reminder = self.war_reminder_tracking.pop(0)
 
                     ping_members = [await aPlayer.create(ctx,tag=m.tag) for m in [m for m in self.current_war.clan.members if m.unused_attacks > 0]]
-                    ping_list = [m for m in ping_members if m.discord_user.discord_member]
+                    ping_list = [m for m in ping_members if m.discord_user]
 
                     ping_dict = {}
                     for m in ping_list:
-                        if m.discord_user.user_id not in list(ping_dict.keys()):
-                            ping_dict[m.discord_user.user_id] = []
+                        member = await aMember.create(ctx,user_id=m.discord_user)
 
-                        ping_dict[m.discord_user.user_id].append(m)
+                        if member.discord_member:
+                            if member not in list(ping_dict.keys()):
+                                ping_dict[member] = []
+
+                            ping_dict[member].append(m)
 
                     if remaining_time < 3600:
                         ping_str = f"There is **less than 1 hour** left in Clan Wars and you have **NOT** used all your attacks.\n\n"
@@ -1240,9 +1243,9 @@ class aClan(coc.Clan):
                         dd, hh, mm, ss = await convert_seconds_to_str(ctx,remaining_time)
                         ping_str = f"Clan War ends in **{int(hh)} hours, {int(mm)} minutes**. You have **NOT** used all your attacks.\n\n"
 
-                    for (uid,accounts) in ping_dict.items():
+                    for (u,accounts) in ping_dict.items():
                         account_str = [f"{emotes_townhall[a.town_hall.level]} {a.name}" for a in accounts]
-                        ping_str += f"<@{uid}> ({', '.join(account_str)})\n"
+                        ping_str += f"{u.discord_member.mention} ({', '.join(account_str)})\n"
 
                     #override to war channel for PR
                     if self.abbreviation == 'PR':
@@ -1320,14 +1323,17 @@ class aClan(coc.Clan):
                         remaining_time_str += f"{int(mm)} minute(s) "
 
                     ping_members = [await aPlayer.create(ctx,tag=m.tag) for m in [m for m in self.current_raid_weekend.members if m.attack_count < 6]]
-                    ping_list = [m for m in ping_members if m.discord_user.discord_member]
+                    ping_list = [m for m in ping_members if m.discord_user]
 
                     ping_dict = {}
                     for m in ping_list:
-                        if m.discord_user.user_id not in list(ping_dict.keys()):
-                            ping_dict[m.discord_user.user_id] = []
+                        member = await aMember.create(ctx,user_id=m.discord_user)
 
-                        ping_dict[m.discord_user.user_id].append(m)
+                        if member.discord_member:
+                            if member not in list(ping_dict.keys()):
+                                ping_dict[member] = []
+
+                            ping_dict[member].append(m)
 
                     if len(list(ping_dict.keys())) > 0:
                         if remaining_time < 3600:
@@ -1335,9 +1341,9 @@ class aClan(coc.Clan):
                         else:
                             unfinished_raid_str = f"You started your Raid Weekend but **HAVE NOT** used all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
 
-                        for (uid,accounts) in ping_dict.items():
+                        for (u,accounts) in ping_dict.items():
                             account_str = [f"{emotes_townhall[a.town_hall.level]} {a.name}" for a in accounts]
-                            unfinished_raid_str += f"<@{uid}> ({', '.join(account_str)})\n"
+                            unfinished_raid_str += f"{u.discord_member.mention} ({', '.join(account_str)})\n"
 
                         await ch.send(unfinished_raid_str)
 
@@ -1478,7 +1484,7 @@ class aMember():
             tag="**")
         memberTags = list(memberInfo.keys())
 
-        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if getattr(a.discord_user,'user_id',0) == self.user_id]
+        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if a.discord_user == self.user_id]
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)

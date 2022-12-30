@@ -775,13 +775,18 @@ class AriXClashDataMgr(commands.Cog):
                     err = DataError(category='mejson',tag=m.tag,error=e)
                     error_log.append(err)
 
-                if m.discord_user.discord_member and m.discord_user.user_id not in role_sync_completed:
-                    try:
-                        await m.discord_user.sync_roles(ctx)
-                    except Exception as e:
-                        err = DataError(category='mesync',tag=m.tag,error=e)
-                        error_log.append(err)
-                        continue
+                if m.discord_user:
+                    memo = await aMember.create(ctx,user_id=m.discord_user)
+
+                    if memo.discord_member and memo.user_id not in role_sync_completed:
+                        try:
+                            await m.discord_user.sync_roles(ctx)
+                        except Exception as e:
+                            err = DataError(category='mesync',tag=m.tag,error=e)
+                            error_log.append(err)
+                            continue
+                        else:
+                            role_sync_completed.append(memo.user_id)
 
                 count_member_update += 1
 
