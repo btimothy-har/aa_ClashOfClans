@@ -18,6 +18,9 @@ async def setup(bot:Red):
     bot.master_refresh = False
     bot.clan_refresh_status = False
     bot.member_refresh_status = False
+
     bot.add_cog(cog)
     await cog.initialize_config(bot)
+
     bot.load_cache = True
+    bot.data_log_channel = bot.get_channel(1033390608506695743)
