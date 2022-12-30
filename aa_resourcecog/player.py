@@ -579,31 +579,33 @@ class aPlayerSeason():
         if isinstance(memberStats.get('war_log',[]),dict):
             legacy_warlog = {wID:aPlayerWarLog.from_json(wID,wl) for (wID,wl) in memberStats['war_log'].items()}
 
-            war_ids = []
             for (wid,war) in legacy_warlog.items():
                 tag_id = war.clan.tag + war.opponent.tag
                 tag_id = tag_id.replace('#','')
                 tag_id = ''.join(sorted(tag_id))
 
                 new_id = tag_id + f"{str(int(float(war.wID)))}"
-                war_ids.append(new_id)
 
-            self.warlog = {wid:await aClanWar.get(ctx,war_id=wid) for wid in war_ids}
+                war_clan = await aClan.create(ctx,tag=war.clan.tag)
+                new_war = await aClanWar.get(ctx,clan=war_clan,war_id=new_id)
+
+                self.warlog[new_war.war_id] = new_war
         else:
             self.warlog = {wid:await aClanWar.get(ctx,war_id=wid) for wid in memberStats.get('war_log',[])}
 
         if isinstance(memberStats.get('raid_log',[]),dict):
             legacy_raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats['raid_log'].items()}
 
-            raid_ids = []
             for (rid,raid) in legacy_raidlog.items():
                 tag_id = raid.clan_tag
                 tag_id = tag_id.replace('#','')
 
                 new_id = tag_id + f"{str(int(float(raid.rID)))}"
-                raid_ids.append(new_id)
 
-            self.raidlog = {rid:await aRaidWeekend.get(ctx,raid_id=rid) for rid in raid_ids}
+                raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
+                new_raid = await aRaidWeekend.get(ctx,clan=raid_clan,raid_id=new_id)
+
+                self.raidlog[new_raid.raid_id] = new_raid
         else:
             self.raidlog = {rid:await aRaidWeekend.get(ctx,raid_id=rid) for rid in memberStats.get('raid_log',[])}
 
