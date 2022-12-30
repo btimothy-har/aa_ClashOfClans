@@ -118,7 +118,7 @@ class aPlayer(coc.Player):
                         player=self,
                         season=season,
                         memberStats=seasonStats)
-                    self.past_seasons.append(stats)
+                    self.season_data.append(stats)
 
             #add to cache
             ctx.bot.member_cache[tag] = self
