@@ -73,6 +73,7 @@ class aRaidWeekend():
         clan = kwargs.get('clan',None)
         json_data = kwargs.get('json',None)
         raid_id = kwargs.get('raid_id',None)
+        z = kwargs.get('z',False)
 
         if raid_id:
             json_data = await data_file_handler(
@@ -81,10 +82,13 @@ class aRaidWeekend():
                 tag=raid_id)
 
         if json_data:
-            try:
+            if z:
+                try:
+                    self = aRaidWeekend(clan=clan,json=json_data)
+                except:
+                    return None
+            else:
                 self = aRaidWeekend(clan=clan,json=json_data)
-            except:
-                return None
         elif clan:
             raidloggen = await ctx.bot.coc_client.get_raidlog(clan_tag=clan.tag,page=False,limit=1)
             if len(raidloggen) == 0:

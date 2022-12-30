@@ -587,7 +587,7 @@ class aPlayerSeason():
                 new_id = tag_id + f"{str(int(float(war.wID)))}"
 
                 war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                new_war = await aClanWar.get(ctx,clan=war_clan,war_id=new_id)
+                new_war = await aClanWar.get(ctx,clan=war_clan,war_id=new_id,z=True)
 
                 self.warlog[new_war.war_id] = new_war
         else:
@@ -603,7 +603,7 @@ class aPlayerSeason():
                 new_id = tag_id + f"{str(int(float(raid.rID)))}"
 
                 raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
-                new_raid = await aRaidWeekend.get(ctx,clan=raid_clan,raid_id=new_id)
+                new_raid = await aRaidWeekend.get(ctx,clan=raid_clan,raid_id=new_id,z=True)
 
                 self.raidlog[new_raid.raid_id] = new_raid
         else:

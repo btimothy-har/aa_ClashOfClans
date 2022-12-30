@@ -125,6 +125,7 @@ class aClanWar():
         clan = kwargs.get('clan',None)
         json_data = kwargs.get('json',None)
         war_id = kwargs.get('war_id',0)
+        z = kwargs.get('z',False)
 
         if war_id:
             json_data = await data_file_handler(
@@ -133,7 +134,13 @@ class aClanWar():
                 tag=war_id)
 
         if json_data:
-            self = aClanWar(clan=clan,json=json_data)
+            if z:
+                try:
+                    self = aClanWar(clan=clan,json=json_data)
+                except:
+                    return None
+            else:
+                self = aClanWar(clan=clan,json=json_data)
 
         elif clan:
             try:
