@@ -635,3 +635,5 @@ class AriXClashDataMgr(commands.Cog):
                             type=activity_select,
                             name=f"{len(alliance_members)} AriX members"))
                     await self.config.last_status_update.set(st)
+
+            await test_ch.send(f'i made it here')
