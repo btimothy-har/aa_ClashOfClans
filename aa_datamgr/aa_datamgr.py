@@ -315,7 +315,7 @@ class AriXClashDataMgr(commands.Cog):
                 self.error = kwargs.get('error',None)
 
         class EmptyContext(commands.Context):
-            def __init__(self,**attrs):
+            def __init__(self,bot):
                 self.bot = bot
 
         if not self.bot.refresh_status:
@@ -326,7 +326,7 @@ class AriXClashDataMgr(commands.Cog):
             await test_ch.send(f'hi again')
 
             try:
-                ctx = EmptyContext()
+                ctx = EmptyContext(bot=self.bot)
 
                 st = time.time()
                 helsinkiTz = pytz.timezone("Europe/Helsinki")
