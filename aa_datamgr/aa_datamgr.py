@@ -589,7 +589,7 @@ class AriXClashDataMgr(commands.Cog):
 
                     if len(error_text) > 1024:
                         error_title = "Error Log (Truncated)"
-                        error_text = errStr[0:500]
+                        error_text = error_text[0:500]
 
                     data_embed.add_field(
                         name=f"**{error_title}**",
