@@ -325,7 +325,11 @@ class aWarAttack():
             self.new_stars = json_data.get('new_stars',0)
             self.new_destruction = json_data.get('new_destruction',0)
 
-            self.is_fresh_attack = json_data.get('is_fresh_attack',json_data['is_fresh_hit'])
+            if 'is_fresh_attack' in list(json_data.keys()):
+                self.is_fresh_attack = json_data['is_fresh_attack']
+            else:
+                self.is_fresh_attack = json_data['is_fresh_hit']
+
             self.is_triple = json_data.get('is_triple',False)
             self.is_best_attack = json_data.get('is_best_attack',False)
 
