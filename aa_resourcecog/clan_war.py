@@ -138,7 +138,7 @@ class aClanWar():
 
     async def save_to_json(self,ctx):
         wJson = {
-            'type': self.war_type,
+            'type': self.type,
             'state': self.state,
             'preparation_start_time': self.preparation_start_time,
             'start_time': self.start_time,

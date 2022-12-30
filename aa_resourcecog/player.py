@@ -367,7 +367,7 @@ class aPlayer(coc.Player):
             'is_member': self.is_member,
             'home_clan': self.home_clan.tag,
             'rank':self.arix_rank,
-            'discord_user':self.discord_user,
+            'discord_user':self.discord_user.user_id,
             'notes':[n.to_json() for n in self.notes],
             }
 
@@ -461,6 +461,9 @@ class aPlayer(coc.Player):
 
 
     async def update_warlog(self,ctx):
+        if not self.current_war:
+            return None
+
         if self.current_war.state in ['inWar','warEnded']:
             await self.current_war.save_to_json(ctx)
 
@@ -470,9 +473,7 @@ class aPlayer(coc.Player):
 
             else:
                 self.current_season.warlog[self.current_war.war_id] = self.current_war
-
         await self.save_to_json(ctx)
-
 
     async def update_raid_weekend(self,ctx):
         await self.current_raid_weekend.save_to_json()

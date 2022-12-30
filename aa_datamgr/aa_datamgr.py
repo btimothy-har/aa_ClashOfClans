@@ -298,8 +298,7 @@ class AriXClashDataMgr(commands.Cog):
             color="success")
         return await ctx.send(embed=embed)
 
-
-    @tasks.loop(seconds=30.0)
+    @tasks.loop(seconds=60.0)
     async def loop_data_update(self):
 
         bot = self.master_bot
