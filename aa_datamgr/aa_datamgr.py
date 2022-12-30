@@ -614,6 +614,9 @@ class AriXClashDataMgr(commands.Cog):
 
                 clan_update += f"\n"
 
+            if clan_update == '':
+                clan_update = "No Updates"
+
             data_embed.add_field(
                 name=f"**Clan Updates**",
                 value=clan_update,

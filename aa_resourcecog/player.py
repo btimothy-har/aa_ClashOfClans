@@ -691,7 +691,7 @@ class aPlayerClanGames():
 
         return self
 
-    async def set_baseline(self):
+    def set_baseline(self):
         self.last_updated = [a.value for a in self.player.achievements if a.name == 'Games Champion'][0]
 
     async def calculate_clangames(self):
