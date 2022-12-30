@@ -97,8 +97,8 @@ class aPlayer(coc.Player):
             return None
 
         #get from cache
-        if not reset and tag in list(ctx.bot.player_cache.keys()):
-            self = ctx.bot.player_cache[tag]
+        if not reset and tag in list(ctx.bot.member_cache.keys()):
+            self = ctx.bot.member_cache[tag]
         else:
             try:
                 self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer)
@@ -119,7 +119,7 @@ class aPlayer(coc.Player):
                     self.past_seasons.append(season)
 
             #add to cache
-            ctx.bot.player_cache[tag] = self
+            ctx.bot.member_cache[tag] = self
             init = True
 
         #override refresh if last 60 secs
