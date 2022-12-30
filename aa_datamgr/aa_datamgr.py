@@ -33,6 +33,16 @@ from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag
 
+class DataError():
+    def __init__(self,**kwargs):
+        self.category = kwargs.get('category',None)
+        self.tag = kwargs.get('tag',None)
+        self.error = kwargs.get('error',None)
+
+class EmptyContext(commands.Context):
+    def __init__(self,bot):
+        self.bot = bot
+
 class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
 
@@ -53,16 +63,6 @@ class AriXClashDataMgr(commands.Cog):
         self.season_update.start()
         self.clan_update.start()
         self.member_update.start()
-
-    class DataError():
-        def __init__(self,**kwargs):
-            self.category = kwargs.get('category',None)
-            self.tag = kwargs.get('tag',None)
-            self.error = kwargs.get('error',None)
-
-    class EmptyContext(commands.Context):
-        def __init__(self,bot):
-            self.bot = bot
 
     async def initialize_config(self,bot):
         ctx = EmptyContext(bot)
