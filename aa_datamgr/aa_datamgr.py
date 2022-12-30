@@ -361,7 +361,7 @@ class AriXClashDataMgr(commands.Cog):
                 role_sync = {}
                 war_reminders = {}
                 success_log = []
-                err_log = []
+                error_log = []
 
                 season = await get_current_season()
                 alliance_clans_json = await alliance_file_handler(
