@@ -1,6 +1,11 @@
 import coc
 import discord
 import time
+import pytz
+
+from numerize import numerize
+from itertools import chain
+from datetime import datetime
 
 #from .constants import 
 from .notes import aNote
