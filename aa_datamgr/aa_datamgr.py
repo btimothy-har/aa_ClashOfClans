@@ -48,6 +48,7 @@ class AriXClashDataMgr(commands.Cog):
         default_guild = {}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
+        self.loop_data_update.start()
 
     async def initialize_config(self,bot):
         class EmptyContext(commands.Context):
@@ -161,7 +162,6 @@ class AriXClashDataMgr(commands.Cog):
 
         if not ctx.bot.refresh_status:
             ctx.bot.refresh_status = True
-            self.loop_data_update.start()
 
             await ctx.send("Bot Data Refresh is now activated.")
 
@@ -243,9 +243,9 @@ class AriXClashDataMgr(commands.Cog):
             embed.add_field(
                 name="__Refresh Status__",
                 value=f"> **Current Setting**: {ctx.bot.refresh_status}"
-                    + f"\n> **Loop Number**: {self.loop_data_update.current_loop}"
+                    + f"\n> **Loop Number**: {ctx.bot.refresh_loop}"
                     + f"\n> **Task Status**: {self.loop_data_update.is_running}"
-                    + f"\n> **Next Iteration**: {self.loop_data_update.next_iteration}"
+                    + f"\n> **Next Iteration**: <t:{self.loop_data_update.next_iteration.timestamp}:F>"
                     + f"\n> **Last Updated**: {update_str} ago"
                     + f"\n> **Average Run Time**: {average_run_time} seconds",
                     inline=False)
@@ -328,9 +328,6 @@ class AriXClashDataMgr(commands.Cog):
 
             is_new_season = False
             send_logs = False
-
-            if loop_data_update.current_loop == 1 or loop_data_update.current_loop % 100 == 0:
-                send_logs = True
 
             last_status_update = await self.config.last_status_update()
             last_data_update = await self.config.last_data_update()
@@ -538,6 +535,7 @@ class AriXClashDataMgr(commands.Cog):
             [await m.sync_roles(ctx) for m in discord_members]
 
             et = time.time()
+            ctx.bot.refresh_loop += 1
 
             if len(error_log) > 0:
                 send_logs = True
@@ -560,6 +558,9 @@ class AriXClashDataMgr(commands.Cog):
 
             if len(run_time_hist) > 100:
                 del run_time_hist[0]
+
+            if ctx.bot.refresh_loop == 1 or (ctx.bot.refresh_loop % 100) == 0:
+                send_logs = True
 
             await self.config.last_data_update.set(st)
             await self.config.update_runtimes.set(run_time_hist)
