@@ -66,7 +66,7 @@ class aPlayer(coc.Player):
         self.overall_rushed_pct = 0
 
         #Membership Attributes
-        self.home_clan = await aClan.create(ctx,tag=None)
+        self.home_clan = aClan()
         self.readable_name = self.name
         self.is_member = False
         self.is_arix_account = False
@@ -936,7 +936,10 @@ class aPlayerRaidStats():
 
 class aClan(coc.Clan):
     def __init__(self,**kwargs):
-        if kwargs.get('tag',None):
+
+        tag = kwargs.get('tag',None)
+
+        if tag:
             super().__init__(**kwargs)
         else:
             self.tag = None
