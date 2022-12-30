@@ -92,6 +92,7 @@ class aPlayer(coc.Player):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
         init = False
+        build = False
 
         tag = coc.utils.correct_tag(tag)
 
@@ -102,41 +103,42 @@ class aPlayer(coc.Player):
         #get from cache
         if not reset and tag in list(ctx.bot.member_cache.keys()):
             self = ctx.bot.member_cache[tag]
+
+            #override refresh if last 60 secs
+            if (time.time() - self.timestamp) < 60:
+                refresh = False
+
+            #if more than 5mins, force refresh
+            if (time.time() - self.timestamp) > 300:
+                refresh = True
         else:
-            try:
-                self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx)
-            except Exception as exc:
-                raise TerminateProcessing(exc) from exc
-                return None
-
-            for season in ctx.bot.tracked_seasons:
-                seasonStats = await data_file_handler(ctx,
-                    file='members',
-                    tag=self.tag,
-                    season=season)
-                if seasonStats:
-                    stats = await aPlayerSeason.create(ctx,
-                        player=self,
-                        season=season,
-                        memberStats=seasonStats)
-                    self.season_data.append(stats)
-
-            #add to cache
-            ctx.bot.member_cache[tag] = self
             init = True
 
-        #override refresh if last 60 secs
-        if (time.time() - self.timestamp) < 60:
-            refresh = False
-        #if more than 5mins, force refresh
-        if (time.time() - self.timestamp) > 300:
-            refresh = True
-
-        #if tag already exists in cache, and current within last 5 minutes, use cached information
         if init or refresh:
-            pass
+            build = True
         else:
             return self
+
+        try:
+            self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx)
+        except Exception as exc:
+            raise TerminateProcessing(exc) from exc
+            return None
+
+        for season in ctx.bot.tracked_seasons:
+            seasonStats = await data_file_handler(ctx,
+                file='members',
+                tag=self.tag,
+                season=season)
+            if seasonStats:
+                stats = await aPlayerSeason.create(ctx,
+                    player=self,
+                    season=season,
+                    memberStats=seasonStats)
+                self.season_data.append(stats)
+
+        #add to cache
+        ctx.bot.member_cache[tag] = self
 
         self.readable_name = self.name
 
@@ -1014,42 +1016,49 @@ class aClan(coc.Clan):
 
     @classmethod
     async def create(cls,ctx,tag,**kwargs):
-        tag = kwargs.get('tag',None)
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
         init = False
+        build = False
 
-        if tag:
-            tag = coc.utils.correct_tag(tag)
-            if not coc.utils.is_valid_tag(tag):
-                raise InvalidTag(tag)
-                return None
-
-            if not reset and tag in list(ctx.bot.clan_cache.keys()):
-                self = ctx.bot.clan_cache[tag]
-            else:
-                try:
-                    self = await ctx.bot.coc_client.get_clan(tag,cls=aClan)
-                except Exception as exc:
-                    raise TerminateProcessing(exc) from exc
-                    return None
-                ctx.bot.clan_cache[tag] = self
-                init = True
-        else:
+        #return empty clan
+        if not tag:
             self = aClan()
             return self
 
-        #override refresh if last 60 secs
-        if (time.time() - self.timestamp) < 60:
-            refresh = False
-        #if more than 10mins, force refresh
-        if (time.time() - self.timestamp) > 600:
-            refresh = True
+        tag = coc.utils.correct_tag(tag)
+        if not coc.utils.is_valid_tag(tag):
+            raise InvalidTag(tag)
+            return None
+
+        if not reset and tag in list(ctx.bot.clan_cache.keys()):
+            self = ctx.bot.clan_cache[tag]
+
+            #override refresh if last 60 secs
+            if (time.time() - self.timestamp) < 60:
+                refresh = False
+
+            #if more than 10mins, force refresh
+            if (time.time() - self.timestamp) > 600:
+                refresh = True
+        else:
+            init = True
 
         if init or refresh:
-            pass
+            build = True
         else:
             return self
+        if not build:
+            return self
+
+        try:
+            self = await ctx.bot.coc_client.get_clan(tag,cls=aClan)
+        except Exception as exc:
+            raise TerminateProcessing(exc) from exc
+            return None
+
+        #add to cache
+        ctx.bot.clan_cache[tag] = self
 
         clanInfo = await alliance_file_handler(
             ctx=ctx,
@@ -1444,16 +1453,29 @@ class aMember():
     async def create(cls,ctx,user_id,**kwargs):
 
         refresh = kwargs.get('refresh',False)
+        init = False
+        build = False
 
         if user_id in list(ctx.bot.user_cache.keys()):
             self = ctx.bot.user_cache[user_id]
+
+            #override refresh if last 60 secs
+            if (time.time() - self.timestamp) < 60:
+                refresh = False
+
+            #if more than 10mins, force refresh
+            if (time.time() - self.timestamp) > 600:
+                refresh = True
         else:
-            self = aMember(user_id)
-            ctx.bot.user_cache[user_id] = self
             init = True
 
-        if not init:
+        if init or refresh:
+            build = True
+        else:
             return self
+
+        self = aMember(user_id)
+        ctx.bot.user_cache[user_id] = self
 
         memberInfo = await alliance_file_handler(
             ctx=ctx,
