@@ -1434,7 +1434,7 @@ class aClan(coc.Clan):
 
 ########################################
 class aMember():
-    def __init__(self,user_id):
+    def __init__(self,ctx,user_id):
         self.timestamp = time.time()
         self.user_id = user_id
         self.discord_member = ctx.bot.alliance_server.get_member(user_id)
@@ -1466,7 +1466,7 @@ class aMember():
         if cached_data and not refresh:
             return cached_data
 
-        self = aMember(user_id)
+        self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
 
         memberInfo = await alliance_file_handler(
