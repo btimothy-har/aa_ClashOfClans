@@ -1491,7 +1491,10 @@ class aMember():
             entry_type='members',
             tag="**")
 
-        self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+        try:
+            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+        except:
+            self.discord_member = None
 
         memberTags = list(memberInfo.keys())
 
@@ -1508,7 +1511,10 @@ class aMember():
         self.elder_clans = [hc for hc in self.home_clans if self.user_id in hc.elders]
 
     async def set_nickname(self,ctx,selection=False):
-        self.discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
+        try:
+            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+        except:
+            self.discord_member = None
 
         self.accounts = sorted(self.accounts,key=lambda x:(x.town_hall.level, x.exp_level),reverse=True)
 
@@ -1585,7 +1591,10 @@ class aMember():
         return new_nickname
 
     async def sync_roles(self,ctx):
-        self.discord_member = await ctx.bot.alliance_server.fetch_member(self.user_id)
+        try:
+            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+        except:
+            self.discord_member = None
 
         if not self.discord_member:
             return
