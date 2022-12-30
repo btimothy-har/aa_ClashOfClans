@@ -291,7 +291,7 @@ class aPlayer(coc.Player):
             self.is_member = memberInfo.get('is_member',False)
             self.is_arix_account = True
 
-            self.discord_user = await aMember.create(ctx,user_id=int(memberInfo.get('discord_user',None)))
+            self.discord_user = await aMember.create(ctx,user_id=int(memberInfo.get('discord_user',0)))
 
             if self.is_member:
                 if self.discord_user == self.home_clan.leader:
@@ -1451,6 +1451,9 @@ class aMember():
 
         refresh = kwargs.get('refresh',False)
         cached_data = None
+
+        if not user_id:
+            return None
 
         if user_id in list(ctx.bot.user_cache.keys()):
             cached_data = ctx.bot.user_cache[user_id]
