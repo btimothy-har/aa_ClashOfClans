@@ -165,16 +165,14 @@ class AriXClashDataMgr(commands.Cog):
     async def data_toggle(self,ctx):
         m = await ctx.send("Please wait...")
 
-        if not ctx.bot.refresh_status:
-            ctx.bot.master_refresh = True
-
-            await ctx.send("Bot Data Refresh is now activated.")
-
-        elif ctx.bot.refresh_status:
+        if ctx.bot.master_refresh:
             ctx.bot.master_refresh = False
             self.loop_data_update.stop()
-
             await ctx.send("Bot Data Refresh is now stopped.")
+
+        else:
+            ctx.bot.master_refresh = False
+            await ctx.send("Bot Data Refresh is now activated.")
 
         await m.delete()
 
