@@ -69,19 +69,23 @@ class aClanWar():
                 json_attacks = json_data['attacks']
                 json_members = json_data['members']
             except:
-                for mem_json in json_data['clan']['members']:
-                    member = aWarPlayer(self,json=mem_json,clan_tag=json_data['clan']['tag'])
+                clan_dict = json_data['clan']
+                oppo_dict = json_data['opponent']
+
+                for mem_json in clan_dict['members']:
+                    member = aWarPlayer(self,json=mem_json,clan_tag=clan_dict['tag'])
                     self.members.append(member)
 
                     for att in mem_json['attacks']:
-                        attack = aWarAttack(self,json_data=att)
-                        self.attacks.append(attack)
-                    for deff in mem_json['defenses']:
-                        attack = aWarAttack(self,json_data=deff)
+                        attack = aWarAttack(self,json=att)
                         self.attacks.append(attack)
 
-                for mem_json in json_data['opponent']['members']:
-                    member = aWarPlayer(self,json=mem_json,clan_tag=json_data['opponent']['tag'])
+                    for deff in mem_json['defenses']:
+                        attack = aWarAttack(self,json=deff)
+                        self.attacks.append(attack)
+
+                for mem_json in oppo_dict['members']:
+                    member = aWarPlayer(self,json=mem_json,clan_tag=oppo_dict['tag'])
                     self.members.append(member)
             else:
                 self.attacks = [aWarAttack(self,json=attack) for attack in json_attacks]
