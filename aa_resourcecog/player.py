@@ -1437,7 +1437,7 @@ class aMember():
     def __init__(self,user_id):
         self.timestamp = time.time()
         self.user_id = user_id
-        self.discord_member = None
+        self.discord_member = ctx.bot.alliance_server.get_member(user_id)
 
         self.elder_clans = []
         self.coleader_clans = []
@@ -1469,11 +1469,6 @@ class aMember():
         self = aMember(user_id)
         ctx.bot.user_cache[user_id] = self
 
-        try:
-            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
-        except:
-            self.discord_member = None
-
         memberInfo = await alliance_file_handler(
             ctx=ctx,
             entry_type='members',
@@ -1492,11 +1487,17 @@ class aMember():
         self.coleader_clans = [hc for hc in self.home_clans if self.user_id in hc.co_leaders]
         self.elder_clans = [hc for hc in self.home_clans if self.user_id in hc.elders]
 
+
+    async def fetch_discord_user(self,ctx):
+        if not self.discord_member:
+            try:
+                self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+            except:
+                self.discord_member = None
+
+
     async def set_nickname(self,ctx,selection=False):
-        try:
-            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
-        except:
-            self.discord_member = None
+        await self.fetch_discord_user(ctx)
 
         self.accounts = sorted(self.accounts,key=lambda x:(x.town_hall.level, x.exp_level),reverse=True)
 
@@ -1573,10 +1574,8 @@ class aMember():
         return new_nickname
 
     async def sync_roles(self,ctx):
-        try:
-            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
-        except:
-            self.discord_member = None
+
+        await self.fetch_discord_user(ctx)
 
         if not self.discord_member:
             return
