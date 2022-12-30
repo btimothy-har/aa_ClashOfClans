@@ -711,9 +711,8 @@ class aHero():
         self.id = getattr(data,'id',0)
         self.name = getattr(data,'name','')
 
-        if type(data.level) == int:
-            self.level = getattr(data,'level',0)
-        else:
+        self.level = getattr(data,'level',0)
+        if not isinstance(self.level,int):
             self.level = 0
 
         self.village = getattr(data,'village','')
@@ -781,9 +780,8 @@ class aTroop():
         self.id = getattr(data,'id',0)
         self.name = getattr(data,'name','')
 
-        if type(data.level) == int:
-            self.level = getattr(data,'level',0)
-        else:
+        self.level = getattr(data,'level',0)
+        if not isinstance(self.level,int):
             self.level = 0
 
         self.village = getattr(data,'village','')
