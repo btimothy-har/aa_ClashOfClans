@@ -117,7 +117,10 @@ class aClanWar():
         if json_data:
             self = aClanWar(clan=clan,json=json_data)
         elif clan:
-            war = await ctx.bot.coc_client.get_clan_war(clan.tag)
+            try:
+                war = await ctx.bot.coc_client.get_clan_war(clan.tag)
+            except coc.errors.PrivateWarLog:
+                return None
             if war.state == 'notInWar':
                 return None
             self = aClanWar(clan=clan,game=war)
