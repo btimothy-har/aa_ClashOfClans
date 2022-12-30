@@ -788,14 +788,14 @@ class AriXClashDataMgr(commands.Cog):
 
                     if memo:
                         if memo.discord_member and memo.user_id not in role_sync_completed:
-                            try:
+                            if True:
                                 await memo.sync_roles(ctx)
-                            except Exception as e:
-                                err = DataError(category='mesync',tag=m.tag,error=e)
-                                error_log.append(err)
-                                continue
-                            else:
-                                role_sync_completed.append(memo.user_id)
+                            # except Exception as e:
+                            #     err = DataError(category='mesync',tag=m.tag,error=e)
+                            #     error_log.append(err)
+                            #     continue
+                            # else:
+                            #     role_sync_completed.append(memo.user_id)
 
                 count_member_update += 1
 

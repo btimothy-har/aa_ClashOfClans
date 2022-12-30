@@ -21,13 +21,7 @@ async def season_file_handler(ctx,season,clans):
     is_new_season = False
     current_season = None
     new_season = None
-    with ctx.bot.clash_file_lock.read_lock():
-        with open(ctx.bot.clash_dir_path+'/seasons.json','r+') as file:
-            s_json = json.load(file)
-            current_season = s_json['current']
 
-    if season != current_season:
-        update_season = True
 
         for c in clans:
             if c.current_war.state == "inWar":

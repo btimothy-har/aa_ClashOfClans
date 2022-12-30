@@ -379,9 +379,13 @@ class aPlayer(coc.Player):
             'loot_darkelixir': self.current_season.loot_darkelixir.to_json(),
             'clangames': self.current_season.clangames.to_json(),
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
-            'raid_log': [rid for (rid,raid) in self.current_season.raidlog.items()],
-            'war_log': [wid for (wid,war) in self.current_season.warlog.items()],
+            'raid_log': [raid.raid_id for (rid,raid) in self.current_season.raidlog.items()],
+            'war_log': [war.war_id for (wid,war) in self.current_season.warlog.items()],
             }
+
+        [await raid.save_to_json(ctx) for (rid,raid) in self.current_season.raidlog.items()]
+        [await war.save_to_json(ctx) for (wid,war) in self.current_season.warlog.items()]
+
         await alliance_file_handler(
             ctx=ctx,
             entry_type='members',
@@ -457,7 +461,7 @@ class aPlayer(coc.Player):
             return None
 
         if self.current_war.state in ['inWar','warEnded']:
-            await self.current_war.save_to_json(ctx)
+            #await self.current_war.save_to_json(ctx)
 
             if self.current_war.state in ['warEnded']:
                 if self.current_war.war_id in [wid for (wid,war) in self.current_season.warlog.items()]:
@@ -471,7 +475,7 @@ class aPlayer(coc.Player):
         if not self.current_raid_weekend:
             return None
 
-        await self.current_raid_weekend.save_to_json(ctx)
+        #await self.current_raid_weekend.save_to_json(ctx)
 
         if self.current_raid_weekend.state in ['ended']:
             if self.current_raid_weekend.raid_id in [rid for (rid,raid) in self.current_season.raidlog.items()]:
@@ -1187,10 +1191,13 @@ class aClan(coc.Clan):
             'war_reminder_tracking': self.war_reminder_tracking,
             'raid_reminder_tracking': self.raid_reminder_tracking,
             'war_state': self.war_state,
-            'war_log': [wid for (wid,war) in self.war_log.items()],
+            'war_log': [war.war_id for (wid,war) in self.war_log.items()],
             'raid_weekend_state': self.raid_weekend_state,
-            'raid_log': [rid for (rid,raid) in self.raid_log.items()],
+            'raid_log': [raid.raid_id for (rid,raid) in self.raid_log.items()],
             }
+
+        [await raid.save_to_json(ctx) for (rid,raid) in self.raid_log.items()]
+        [await war.save_to_json(ctx) for (wid,war) in self.war_log.items()]
 
         await alliance_file_handler(
             ctx=ctx,
@@ -1588,7 +1595,6 @@ class aMember():
         return new_nickname
 
     async def sync_roles(self,ctx):
-
         await self.fetch_discord_user(ctx)
 
         if not self.discord_member:
