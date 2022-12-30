@@ -336,8 +336,6 @@ class AriXClashDataMgr(commands.Cog):
             await test_ch.send(f'hi again')
 
             bot.refresh_status = True
-            await test_ch.send(f'turned off')
-
             try:
                 st = time.time()
                 helsinkiTz = pytz.timezone("Europe/Helsinki")
@@ -567,15 +565,20 @@ class AriXClashDataMgr(commands.Cog):
 
                 role_sync_completed = []
                 for m in alliance_members:
-                    if m.discord_user.discord_member and m.discord_user.user_id not in role_sync_completed:
-                        try:
-                            await m.discord_user.sync_roles(ctx)
-                        except Exception as e:
-                            err = DataError(category='rosync',tag=m.tag,error=e)
-                            error_log.append(err)
-                            continue
-                        else:
-                            role_sync_completed.append(m.discord_user.user_id)
+                    try:
+                        if m.discord_user.discord_member and m.discord_user.user_id not in role_sync_completed:
+                            try:
+                                await m.discord_user.sync_roles(ctx)
+                            except Exception as e:
+                                err = DataError(category='rsync2',tag=m.tag,error=e)
+                                error_log.append(err)
+                                continue
+                            else:
+                                role_sync_completed.append(m.discord_user.user_id)
+                    except Exception as e:
+                        err = DataError(category='rsync1',tag=m.tag,error=e)
+                        error_log.append(err)
+                        continue
 
                 await test_ch.send(f'finished roles')
 
