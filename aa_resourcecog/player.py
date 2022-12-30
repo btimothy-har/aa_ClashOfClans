@@ -902,7 +902,7 @@ class aPlayerWarStats():
 
         total_duration = 0
 
-        for {wid,war} in warlog.items():
+        for (wid,war) in warlog.items():
             warmember = [m for m in war.members if m.tag == player.tag][0]
             clan = await aClan.create(ctx,tag=warmember.clan_tag)
 
@@ -938,7 +938,7 @@ class aPlayerRaidStats():
     async def compute(self,ctx,player,raidlog):
         self = aPlayerRaidStats()
 
-        for {rid,raid} in raidlog.items():
+        for (rid,raid) in raidlog.items():
             raidmember = [m for m in raid.members if m.tag == player.tag][0]
             clan = await aClan.create(ctx,tag=raid.clan_tag)
 
