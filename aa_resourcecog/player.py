@@ -311,7 +311,7 @@ class aPlayer(coc.Player):
             self.current_season = await aPlayerSeason.create(ctx,
                 player=self,
                 season='current',
-                seasonStats=memberStats)
+                memberStats=memberStats)
 
         self.desc_title = f"{self.name}"
 
