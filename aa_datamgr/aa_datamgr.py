@@ -242,8 +242,10 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Refresh Status__",
-                value=f"> **Current State**: {ctx.bot.refresh_status}"
-                    + f"\n> **Current Loop: {self.loop_data_update.current_loop}"
+                value=f"> **Current Setting**: {ctx.bot.refresh_status}"
+                    + f"\n> **Loop Number**: {self.loop_data_update.current_loop}"
+                    + f"\n> **Task Status**: {self.loop_data_update.is_running}"
+                    + f"\n> **Next Iteration**: {self.loop_data_update.next_iteration}"
                     + f"\n> **Last Updated**: {update_str} ago"
                     + f"\n> **Average Run Time**: {average_run_time} seconds",
                     inline=False)
