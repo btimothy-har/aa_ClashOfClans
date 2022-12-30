@@ -245,7 +245,7 @@ class AriXClashDataMgr(commands.Cog):
                 value=f"> **Current Setting**: {ctx.bot.refresh_status}"
                     + f"\n> **Loop Number**: {ctx.bot.refresh_loop}"
                     + f"\n> **Task Status**: {self.loop_data_update.is_running}"
-                    + f"\n> **Next Iteration**: <t:{self.loop_data_update.next_iteration.timestamp}:F>"
+                    #+ f"\n> **Next Iteration**: <t:{self.loop_data_update.next_iteration.timestamp}:F>"
                     + f"\n> **Last Updated**: {update_str} ago"
                     + f"\n> **Average Run Time**: {average_run_time} seconds",
                     inline=False)
