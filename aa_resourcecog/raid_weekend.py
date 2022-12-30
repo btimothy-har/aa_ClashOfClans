@@ -32,7 +32,7 @@ class aRaidWeekend():
             self.total_loot = json_data['total_loot']
             self.attack_count = json_data.get('attack_count',json_data.get('raid_attack_count',0))
             self.destroyed_district_count = json_data['districts_destroyed']
-            self.offensive_reward = json_data.get('offensive_reward',json_data.get('offense_rewards'.0))
+            self.offensive_reward = json_data.get('offensive_reward',json_data.get('offense_rewards',0))
             self.defensive_reward = json_data.get('defensive_reward',json_data.get('defense_rewards',0))
             self.attack_log = [aRaidClan(self,json=attack) for attack in json_data['attack_log']]
             self.defense_log = [aRaidClan(self,json=attack) for attack in json_data['defense_log']]
