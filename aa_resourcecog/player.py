@@ -1133,7 +1133,13 @@ class aClan(coc.Clan):
         if memberInfo:
             memberTags = list(memberInfo.keys())
 
-            self.arix_members = [p for p in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if p.is_member and p.home_clan.tag == self.tag]
+            self.arix_members = []
+            for tag in memberTags:
+                mp = await aPlayer.create(ctx,tag=tag)
+
+                if mp.is_member and mp.home_clan.tag == self.tag:
+                    self.arix_members.append(mp)
+
             self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
             self.arix_member_count = len(self.arix_members)
 
