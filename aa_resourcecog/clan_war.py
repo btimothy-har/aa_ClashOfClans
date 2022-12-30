@@ -307,8 +307,16 @@ class aWarAttack():
 
         if json_data:
             self.order = json_data.get('order',None)
-            self.attacker_tag = json_data.get('attacker_tag',json_data['attacker'])
-            self.defender_tag = json_data.get('defender_tag',json_data['defender'])
+
+            if 'attacker_tag' in list(json_data.keys()):
+                self.attacker_tag = json_data['attacker_tag']
+            else:
+                self.attacker_tag = json_data['attacker']
+
+            if 'defender_tag' in list(json_data.keys()):
+                self.defender_tag = json_data['defender_tag']
+            else:
+                self.defender_tag = json_data['defender']
 
             self.stars = json_data['stars']
             self.destruction = json_data['destruction']
