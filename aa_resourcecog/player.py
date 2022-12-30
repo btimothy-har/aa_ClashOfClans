@@ -983,7 +983,10 @@ class aClan(coc.Clan):
         except:
             self.capital_hall = 0
 
-        self.badge = self.badge.url
+        try:
+            self.badge = self.badge.url
+        except:
+            self.badge = ""
 
         #Alliance Attributes
         self.is_alliance_clan = getattr(cache,'is_alliance_clan',False)
