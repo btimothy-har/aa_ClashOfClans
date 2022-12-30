@@ -103,11 +103,11 @@ class aPlayer(coc.Player):
             cached_data = ctx.bot.member_cache[tag]
 
             #override refresh if last 60 secs
-            if (time.time() - self.timestamp) < 60:
+            if (time.time() - cached_data.timestamp) < 60:
                 refresh = False
 
             #if more than 5mins, force refresh
-            if (time.time() - self.timestamp) > 300:
+            if (time.time() - cached_data.timestamp) > 300:
                 refresh = True
 
         if cached_data and not refresh:
@@ -1045,11 +1045,11 @@ class aClan(coc.Clan):
             cached_data = ctx.bot.clan_cache[tag]
 
             #override refresh if last 60 secs
-            if (time.time() - self.timestamp) < 60:
+            if (time.time() - cached_data.timestamp) < 60:
                 refresh = False
 
             #if more than 10mins, force refresh
-            if (time.time() - self.timestamp) > 600:
+            if (time.time() - cached_data.timestamp) > 600:
                 refresh = True
 
         if cached_data and not refresh:
