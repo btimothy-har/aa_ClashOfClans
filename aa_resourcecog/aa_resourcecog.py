@@ -51,6 +51,8 @@ class AriXClashResources(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
+    def cog_unload(self):
+
     @commands.command(name="setclashserver")
     @commands.is_owner()
     async def set_clash_alliance_server(self,ctx,server_id:int):

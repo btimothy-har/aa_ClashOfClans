@@ -980,9 +980,10 @@ class aClan(coc.Clan):
         #Alliance Attributes
         self.is_alliance_clan = getattr(cache,'is_alliance_clan',False)
         self.abbreviation = getattr(cache,'abbreviation',"")
+        self.emoji = getattr(cache,'emoji','<:Clan:825654825509322752>')
+
         self.description = getattr(cache,'description',getattr(self,'description',None))
 
-        self.emoji = getattr(cache,'emoji','<:Clan:825654825509322752>')
         self.leader = getattr(cache,'leader',0)
         self.co_leaders = getattr(cache,'co_leaders',[])
         self.elders = getattr(cache,'elders',[])
@@ -1011,6 +1012,9 @@ class aClan(coc.Clan):
 
         self.raid_weekend_state = getattr(cache,'raid_weekend_state',"")
         self.raid_state_change = getattr(cache,'raid_state_change',False)
+
+        self.arix_members = []
+        self.arix_member_count = 0
 
         self.war_log = getattr(cache,'war_log',{})
         self.raid_log = getattr(cache,'raid_log',{})
@@ -1095,6 +1099,7 @@ class aClan(coc.Clan):
             self.leader = clanInfo.get('leader',0)
             self.co_leaders = clanInfo.get('co_leaders',[])
             self.elders = clanInfo.get('elders',[])
+
             self.recruitment_level = clanInfo.get('recruitment',[])
             self.recruitment_level.sort()
 
