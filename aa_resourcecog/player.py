@@ -114,11 +114,11 @@ class aPlayer(coc.Player):
                     tag=self.tag,
                     season=season)
                 if seasonStats:
-                    season = await aPlayerSeason.create(ctx,
+                    stats = await aPlayerSeason.create(ctx,
                         player=self,
                         season=season,
                         memberStats=seasonStats)
-                    self.past_seasons.append(season)
+                    self.past_seasons.append(stats)
 
             #add to cache
             ctx.bot.member_cache[tag] = self
@@ -533,7 +533,7 @@ class aPlayerSeason():
 
     @classmethod
     async def create(cls,ctx,player,season,memberStats):
-        self = aPlayerSeason(player,season)
+        self = aPlayerSeason(ctx,player,season)
 
         self.time_in_home_clan = memberStats.get('time_in_home_clan',0)
 
