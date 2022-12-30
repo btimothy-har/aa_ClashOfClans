@@ -75,7 +75,7 @@ class aPlayer(coc.Player):
 
         #Membership Statistics
         self.last_update = time.time()
-        self.current_season = aPlayerSeason(ctx,'current')
+        self.current_season = aPlayerSeason(ctx,self,'current')
         self.season_data = []
 
         self.member_description = ""
