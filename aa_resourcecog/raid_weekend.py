@@ -356,7 +356,7 @@ class aPlayerRaidLog():
         self.attack_count = json_data['attack_count']
         self.resources_looted = json_data['resources_looted']
         self.medals_earned = json_data['medals_earned']
-        self.attacks = [aRaidAttack.from_json(raid_id=self.rID,attacker_tag=player.tag,attacker_name=player.name,json_data=a) for a in json_data['attacks']]
+        self.attacks = []
         return self
 
     @classmethod
