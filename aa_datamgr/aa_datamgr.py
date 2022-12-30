@@ -305,14 +305,14 @@ class AriXClashDataMgr(commands.Cog):
                 self.tag = kwargs.get('tag',None)
                 self.error = kwargs.get('error',None)
 
+        class EmptyContext(commands.Context):
+            def __init__(self,**attrs):
+                self.bot = bot
+
         if not self.bot.refresh_status:
-            await asyncio.sleep(300)
+            return
 
         else:
-            class EmptyContext(commands.Context):
-                def __init__(self,**attrs):
-                    self.bot = bot
-
             ctx = EmptyContext()
 
             st = time.time()
