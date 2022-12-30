@@ -379,12 +379,9 @@ class aPlayer(coc.Player):
             'loot_darkelixir': self.current_season.loot_darkelixir.to_json(),
             'clangames': self.current_season.clangames.to_json(),
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
-            'raid_log': [raid.raid_id for (rid,raid) in self.current_season.raidlog.items()],
-            'war_log': [war.war_id for (wid,war) in self.current_season.warlog.items()],
+            'raid_log': [rid.raid_id for (rid,raid) in self.current_season.raidlog.items()],
+            'war_log': [wid.war_id for (wid,war) in self.current_season.warlog.items()],
             }
-
-        [await raid.save_to_json(ctx) for (rid,raid) in self.current_season.raidlog.items()]
-        [await war.save_to_json(ctx) for (wid,war) in self.current_season.warlog.items()]
 
         await alliance_file_handler(
             ctx=ctx,
@@ -461,7 +458,7 @@ class aPlayer(coc.Player):
             return None
 
         if self.current_war.state in ['inWar','warEnded']:
-            #await self.current_war.save_to_json(ctx)
+            await self.current_war.save_to_json(ctx)
 
             if self.current_war.state in ['warEnded']:
                 if self.current_war.war_id in [wid for (wid,war) in self.current_season.warlog.items()]:
@@ -475,7 +472,7 @@ class aPlayer(coc.Player):
         if not self.current_raid_weekend:
             return None
 
-        #await self.current_raid_weekend.save_to_json(ctx)
+        await self.current_raid_weekend.save_to_json(ctx)
 
         if self.current_raid_weekend.state in ['ended']:
             if self.current_raid_weekend.raid_id in [rid for (rid,raid) in self.current_season.raidlog.items()]:
