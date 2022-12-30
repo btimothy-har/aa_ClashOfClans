@@ -114,27 +114,45 @@ class AriXClashDataMgr(commands.Cog):
             bot.update_channel = None
 
         with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
-                file_json = json.load(file)
             with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
 
         bot.tracked_seasons = s_json['tracked']
 
-        clan_tags = [tag for (tag,clan) in file_json['clans'].items()]
-        member_tags = [tag for (tag,member) in file_json['members'].items()]
+        alliance_clans_json = await alliance_file_handler(
+            ctx=ctx,
+            entry_type='clans',
+            tag="**")
 
-        for tag in clan_tags:
-            try:
-                clan = await aClan.create(ctx,tag=tag)
-            except:
-                pass
+        member_json = await alliance_file_handler(
+            ctx=ctx,
+            entry_type='members',
+            tag="**")
 
-        for tag in member_tags:
-            try:
-                member = await aPlayer.create(ctx,tag=tag)
-            except:
-                pass
+        [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
+        [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+
+    @commands.command(name="initdata")
+    @commands.is_owner()
+    async def initialize_data_cache(self,ctx):
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
+                s_json = json.load(file)
+
+        bot.tracked_seasons = s_json['tracked']
+
+        alliance_clans_json = await alliance_file_handler(
+            ctx=ctx,
+            entry_type='clans',
+            tag="**")
+
+        member_json = await alliance_file_handler(
+            ctx=ctx,
+            entry_type='members',
+            tag="**")
+
+        [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
+        [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
 
     @commands.command(name="drefresh")
     @commands.is_owner()
