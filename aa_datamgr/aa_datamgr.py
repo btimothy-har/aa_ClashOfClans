@@ -341,12 +341,16 @@ class AriXClashDataMgr(commands.Cog):
             is_new_season = False
             send_logs = False
 
+            await test_ch.send(f'hi again 2')
+
             last_status_update = await self.config.last_status_update()
             last_data_update = await self.config.last_data_update()
             run_time_hist = await self.config.update_runtimes()
 
             active_events = []
             passive_events = []
+
+            await test_ch.send(f'hi again 3')
 
             try:
                 update_channel = self.bot.update_channel
