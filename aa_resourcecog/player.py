@@ -1141,36 +1141,36 @@ class aClan(coc.Clan):
             self.war_state = clanInfo.get('war_state','')
             self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
 
-        if memberInfo:
-            memberTags = list(memberInfo.keys())
+        # if memberInfo:
+        #     memberTags = list(memberInfo.keys())
 
-            self.arix_members = []
-            for tag in memberTags:
-                mp = await aPlayer.create(ctx,tag=tag)
+        #     self.arix_members = []
+        #     for tag in memberTags:
+        #         mp = await aPlayer.create(ctx,tag=tag)
 
-                if mp.is_member and mp.home_clan.tag == self.tag:
-                    self.arix_members.append(mp)
+        #         if mp.is_member and mp.home_clan.tag == self.tag:
+        #             self.arix_members.append(mp)
 
-            self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
-            self.arix_member_count = len(self.arix_members)
+        #     self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
+        #     self.arix_member_count = len(self.arix_members)
 
-        if isinstance(warLog,dict):
-            self.war_log = {}
+        # if isinstance(warLog,dict):
+        #     self.war_log = {}
 
-            for (wid,data) in warLog.items():
-                legacy_war = await aClanWar.get(ctx,clan=self,json=data)
-                self.war_log[legacy_war.war_id] = legacy_war
-        else:
-            self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
+        #     for (wid,data) in warLog.items():
+        #         legacy_war = await aClanWar.get(ctx,clan=self,json=data)
+        #         self.war_log[legacy_war.war_id] = legacy_war
+        # else:
+        #     self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
 
-        if isinstance(raidLog,dict):
-            self.raid_log = {}
+        # if isinstance(raidLog,dict):
+        #     self.raid_log = {}
 
-            for (rid,raid) in warLog.items():
-                legacy_raid = await aRaidWeekend.get(ctx,clan=self,json=data)
-                self.raid_log[legacy_raid.raid_id] = legacy_raid
-        else:
-            self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
+        #     for (rid,raid) in warLog.items():
+        #         legacy_raid = await aRaidWeekend.get(ctx,clan=self,json=data)
+        #         self.raid_log[legacy_raid.raid_id] = legacy_raid
+        # else:
+        #     self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
 
         if self.tag:
             self.desc_title = f"{self.name} ({self.tag})"
