@@ -1620,32 +1620,35 @@ class aMember():
             is_arix_elder = True
             is_arix_leader = True
 
-        if is_arix_member:
-            if ctx.bot.member_role not in self.discord_member.roles:
-                await self.discord_member.add_roles(ctx.bot.member_role)
-                roles_added.append(ctx.bot.member_role)
-        else:
-            if ctx.bot.member_role in self.discord_member.roles:
-                await self.discord_member.remove_roles(ctx.bot.member_role)
-                roles_removed.append(ctx.bot.member_role)
+        if ctx.bot.member_role:
+            if is_arix_member:
+                if ctx.bot.member_role not in self.discord_member.roles:
+                    await self.discord_member.add_roles(ctx.bot.member_role)
+                    roles_added.append(ctx.bot.member_role)
+            else:
+                if ctx.bot.member_role in self.discord_member.roles:
+                    await self.discord_member.remove_roles(ctx.bot.member_role)
+                    roles_removed.append(ctx.bot.member_role)
 
-        if is_arix_elder:
-            if ctx.bot.elder_role not in self.discord_member.roles:
-                await self.discord_member.add_roles(ctx.bot.elder_role)
-                roles_added.append(ctx.bot.elder_role)
-        else:
-            if ctx.bot.elder_role in self.discord_member.roles:
-                await self.discord_member.remove_roles(ctx.bot.elder_role)
-                roles_removed.append(ctx.bot.elder_role)
+        if ctx.bot.elder_role:
+            if is_arix_elder:
+                if ctx.bot.elder_role not in self.discord_member.roles:
+                    await self.discord_member.add_roles(ctx.bot.elder_role)
+                    roles_added.append(ctx.bot.elder_role)
+            else:
+                if ctx.bot.elder_role in self.discord_member.roles:
+                    await self.discord_member.remove_roles(ctx.bot.elder_role)
+                    roles_removed.append(ctx.bot.elder_role)
 
-        if is_arix_leader:
-            if ctx.bot.coleader_role not in self.discord_member.roles:
-                await self.discord_member.add_roles(ctx.bot.coleader_role)
-                roles_added.append(ctx.bot.coleader_role)
-        else:
-            if ctx.bot.coleader_role in self.discord_member.roles:
-                await self.discord_member.remove_roles(ctx.bot.coleader_role)
-                roles_removed.append(ctx.bot.coleader_role)
+        if ctx.bot.coleader_role:
+            if is_arix_leader:
+                if ctx.bot.coleader_role not in self.discord_member.roles:
+                    await self.discord_member.add_roles(ctx.bot.coleader_role)
+                    roles_added.append(ctx.bot.coleader_role)
+            else:
+                if ctx.bot.coleader_role in self.discord_member.roles:
+                    await self.discord_member.remove_roles(ctx.bot.coleader_role)
+                    roles_removed.append(ctx.bot.coleader_role)
 
         for hc in self.home_clans:
             is_elder = False
@@ -1663,42 +1666,48 @@ class aMember():
             elder_role = ctx.bot.alliance_server.get_role(int(hc.elder_role))
             coleader_role = ctx.bot.alliance_server.get_role(int(hc.coleader_role))
 
-            if member_role not in self.discord_member.roles:
-                await self.discord_member.add_roles(member_role)
-                roles_added.append(member_role)
+            if member_role:
+                if member_role not in self.discord_member.roles:
+                    await self.discord_member.add_roles(member_role)
+                    roles_added.append(member_role)
 
-            if is_elder:
-                if elder_role not in self.discord_member.roles:
-                    await self.discord_member.add_roles(elder_role)
-                    roles_added.append(elder_role)
-            else:
-                if elder_role in self.discord_member.roles:
-                    await self.discord_member.remove_roles(elder_role)
-                    roles_removed.append(elder_role)
+            if elder_role:
+                if is_elder:
+                    if elder_role not in self.discord_member.roles:
+                        await self.discord_member.add_roles(elder_role)
+                        roles_added.append(elder_role)
+                else:
+                    if elder_role in self.discord_member.roles:
+                        await self.discord_member.remove_roles(elder_role)
+                        roles_removed.append(elder_role)
 
-            if is_leader:
-                if coleader_role not in self.discord_member.roles:
-                    await self.discord_member.add_roles(coleader_role)
-                    roles_added.append(coleader_role)
-            else:
-                if coleader_role in self.discord_member.roles:
-                    await self.discord_member.remove_roles(coleader_role)
-                    roles_removed.append(coleader_role)
+            if coleader_role:
+                if is_leader:
+                    if coleader_role not in self.discord_member.roles:
+                        await self.discord_member.add_roles(coleader_role)
+                        roles_added.append(coleader_role)
+                else:
+                    if coleader_role in self.discord_member.roles:
+                        await self.discord_member.remove_roles(coleader_role)
+                        roles_removed.append(coleader_role)
 
         for clan in [c for c in allianceClans if c.tag not in [hc.tag for hc in self.home_clans]]:
             member_role = ctx.bot.alliance_server.get_role(int(clan.member_role))
             elder_role = ctx.bot.alliance_server.get_role(int(clan.elder_role))
             coleader_role = ctx.bot.alliance_server.get_role(int(clan.coleader_role))
 
-            if member_role in self.discord_member.roles:
-                await self.discord_member.remove_roles(member_role)
-                roles_removed.append(member_role)
-            if elder_role in self.discord_member.roles:
-                await self.discord_member.remove_roles(elder_role)
-                roles_removed.append(elder_role)
-            if coleader_role in self.discord_member.roles:
-                await self.discord_member.remove_roles(coleader_role)
-                roles_removed.append(coleader_role)
+            if member_role:
+                if member_role in self.discord_member.roles:
+                    await self.discord_member.remove_roles(member_role)
+                    roles_removed.append(member_role)
+
+            if elder_role:
+                if elder_role in self.discord_member.roles:
+                    await self.discord_member.remove_roles(elder_role)
+                    roles_removed.append(elder_role)
+                if coleader_role in self.discord_member.roles:
+                    await self.discord_member.remove_roles(coleader_role)
+                    roles_removed.append(coleader_role)
 
         if roles_added or roles_removed:
             ch = ctx.bot.get_channel(1047747107248939078)
