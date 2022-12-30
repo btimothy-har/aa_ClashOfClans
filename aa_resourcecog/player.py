@@ -1157,13 +1157,13 @@ class aClan(coc.Clan):
             self.desc_title = f"{self.name} ({self.tag})"
 
             war_league_str = ""
-            if self.c.war_league:
-                war_league_str = f"{emotes_league[self.c.war_league.name]} {self.c.war_league.name}"
+            if self.war_league:
+                war_league_str = f"{emotes_league[self.war_league.name]} {self.war_league.name}"
 
             self.desc_full_text = (
                     f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {self.member_count}"
-                +   f"\n{war_league_str}\n<:ClanWars:825753092230086708> W{self.c.war_wins}/D{self.c.war_ties}/L{self.c.war_losses} (Streak: {self.c.war_win_streak})"
-                +   f"\n[Clan Link: {self.tag}]({self.c.share_link})")
+                +   f"\n{war_league_str}\n<:ClanWars:825753092230086708> W{self.war_wins}/D{self.war_ties}/L{self.war_losses} (Streak: {self.war_win_streak})"
+                +   f"\n[Clan Link: {self.tag}]({self.share_link})")
 
             self.desc_summary_text = f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000{war_league_str}"
 
