@@ -349,10 +349,6 @@ class AriXClashDataMgr(commands.Cog):
             passive_events = []
 
             try:
-                log_channel = self.bot.get_channel(1033390608506695743)
-            except:
-                log_channel = None
-            try:
                 update_channel = self.bot.update_channel
             except:
                 update_channel = None
@@ -386,6 +382,8 @@ class AriXClashDataMgr(commands.Cog):
                 else:
                     alliance_clans.append(c)
 
+            await test_ch.send(f'i found all clans')
+
             for m_tag in list(member_json.keys()):
                 try:
                     m = await aPlayer.create(ctx,tag=m_tag,refresh=True)
@@ -394,6 +392,8 @@ class AriXClashDataMgr(commands.Cog):
                     error_log.append(err)
                 else:
                     alliance_members.append(c)
+
+            await test_ch.send(f'i found all members')
 
             is_cwl = False
             if datetime.now(helsinkiTz).day <= 9:
@@ -421,6 +421,8 @@ class AriXClashDataMgr(commands.Cog):
                 alliance_members = [await aPlayer.create(ctx,tag=p,refresh=True,reset=True) for p in list(member_json.keys())]
 
                 [await m.set_baselines(ctx) for m in alliance_members]
+
+            await test_ch.send(f'season is ok')
 
             ## CLAN UPDATE
             clan_update = ''
@@ -504,6 +506,8 @@ class AriXClashDataMgr(commands.Cog):
                 value=clan_update,
                 inline=False)
 
+            await test_ch.send(f'finished clan')
+
             ## MEMBER UPDATE
             count_member_update = 0
             for m in alliance_members:
@@ -542,6 +546,8 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\nSuccessful Updates: {count_member_update}",
                 inline=False)
 
+            await test_ch.send(f'finished member')
+
             [discord_members.append(m.discord_user) for m in alliance_members if m.discord_user.discord_member and m.discord_user not in discord_members]
 
             [await m.sync_roles(ctx) for m in discord_members]
@@ -578,24 +584,30 @@ class AriXClashDataMgr(commands.Cog):
             await self.config.update_runtimes.set(run_time_hist)
 
             if send_logs:
-                average_run_time = round(sum(run_time_hist) / len(run_time_hist),2)
+                try:
+                    log_channel = self.bot.get_channel(1033390608506695743)
+                except:
+                    log_channel = None
 
-                run_time_plot = ctx.bot.clash_dir_path+"/runtimeplot.png"
+                if log_channel:
+                    average_run_time = round(sum(run_time_hist) / len(run_time_hist),2)
 
-                plt.figure()
-                plt.plot(run_time_hist)
-                plt.savefig(run_time_plot)
-                plt.clf()
+                    run_time_plot = ctx.bot.clash_dir_path+"/runtimeplot.png"
 
-                run_time_plot_file = discord.File(run_time_plot,filename='run_time_plot.png')
-                data_embed.set_image(url=f"attachment://run_time_plot.png")
+                    plt.figure()
+                    plt.plot(run_time_hist)
+                    plt.savefig(run_time_plot)
+                    plt.clf()
 
-                data_embed.add_field(
-                    name=f"**Processing Time**",
-                    value=f"{round(et-st,2)} seconds. *Average: {average_run_time} seconds.*",
-                    inline=False)
+                    run_time_plot_file = discord.File(run_time_plot,filename='run_time_plot.png')
+                    data_embed.set_image(url=f"attachment://run_time_plot.png")
 
-                await log_channel.send(embed=data_embed,file=run_time_plot_file)
+                    data_embed.add_field(
+                        name=f"**Processing Time**",
+                        value=f"{round(et-st,2)} seconds. *Average: {average_run_time} seconds.*",
+                        inline=False)
+
+                    await log_channel.send(embed=data_embed,file=run_time_plot_file)
 
             activity_types = [
                 discord.ActivityType.playing,
