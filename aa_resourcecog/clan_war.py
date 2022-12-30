@@ -335,7 +335,7 @@ class aWarAttack():
                 'stars': self.stars,
                 'new_stars': self.new_stars,
                 'destruction': self.destruction,
-                'new_destruction': self.new_destruction
+                'new_destruction': self.new_destruction,
                 'duration': self.duration,
                 'attacker_tag': self.attacker_tag,
                 'defender_tag': self.defender_tag,
