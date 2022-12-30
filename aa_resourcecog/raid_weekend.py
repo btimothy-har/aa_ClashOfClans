@@ -81,7 +81,7 @@ class aRaidWeekend():
                 tag=raid_id)
 
         if json_data:
-            self = aRaidWeekend(json=json_data)
+            self = aRaidWeekend(clan=clan,json=json_data)
         elif clan:
             raidloggen = await ctx.bot.coc_client.get_raidlog(clan_tag=clan.tag,page=False,limit=1)
             if len(raidloggen) == 0:
