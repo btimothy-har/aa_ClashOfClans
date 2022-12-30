@@ -123,10 +123,8 @@ class aClanWar():
                 tag=war_id)
 
         if json_data:
-            try:
-                self = aClanWar(clan=clan,json=json_data)
-            except:
-                return None
+            self = aClanWar(clan=clan,json=json_data)
+
         elif clan:
             try:
                 war = await ctx.bot.coc_client.get_clan_war(clan.tag)
