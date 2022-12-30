@@ -521,7 +521,7 @@ class aPlayerSeason():
         self.loot_elixir = aPlayerStat({})
         self.loot_darkelixir = aPlayerStat({})
 
-        self.clangames = aPlayerClanGames()
+        self.clangames = aPlayerClanGames(self,self.season)
 
         self.capitalcontribution = aPlayerStat({})
 
