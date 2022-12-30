@@ -117,7 +117,7 @@ class aPlayer(coc.Player):
                     season = await aPlayerSeason.create(ctx,
                         player=self,
                         season=season,
-                        seasonStats=seasonStats)
+                        memberStats=seasonStats)
                     self.past_seasons.append(season)
 
             #add to cache
