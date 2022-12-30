@@ -563,7 +563,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n<:donated:825574412589858886> {a.donations}\u3000<:received:825574507045584916> {a.received}\n\u200b",
                     inline=False)
 
-                for achievement in a.p.achievements:
+                for achievement in a.achievements:
                     if achievement.name == 'Gold Grab':
                         gold_value = achievement.value
                     if achievement.name == 'Elixir Escapade':
@@ -582,9 +582,9 @@ class AriXMemberCommands(commands.Cog):
                     value=f"**Loot**"
                         + f"\n<:gold:825613041198039130> {numerize.numerize(gold_value,1)}\u3000<:elixir:825612858271596554> {numerize.numerize(elixir_value,1)}\u3000<:darkelixir:825640568973033502> {numerize.numerize(darkelixir_value,1)}"
                         + f"\n**Clan Capital**"
-                        + f"\n<:CapitalGoldContributed:971012592057339954> {numerize.numerize(a.p.clan_capital_contributions,1)}\u3000<:CapitalRaids:1034032234572816384> {numerize.numerize(capitalraided_value,1)}"
+                        + f"\n<:CapitalGoldContributed:971012592057339954> {numerize.numerize(a.clan_capital_contributions,1)}\u3000<:CapitalRaids:1034032234572816384> {numerize.numerize(capitalraided_value,1)}"
                         + f"\n**War Stats**"
-                        + f"\n<:WarStars:825756777844178944> {a.p.war_stars:,}\u3000<:ClanWarLeagues:825752759948279848> {warleague_value:,}"
+                        + f"\n<:WarStars:825756777844178944> {a.war_stars:,}\u3000<:ClanWarLeagues:825752759948279848> {warleague_value:,}"
                         + f"\n**Clan Games**"
                         + f"\n<:ClanGames:834063648494190602> {clangames_value:,}\n\u200b")
 
