@@ -776,7 +776,12 @@ class AriXClashDataMgr(commands.Cog):
                     error_log.append(err)
 
                 if m.discord_user:
-                    memo = await aMember.create(ctx,user_id=m.discord_user)
+                    try:
+                        memo = await aMember.create(ctx,user_id=m.discord_user)
+                    except Exception as e:
+                        err = DataError(category='getme',tag=m.tag,error=e)
+                        error_log.append(err)
+                        continue
 
                     if memo.discord_member and memo.user_id not in role_sync_completed:
                         try:
