@@ -1450,43 +1450,37 @@ class aMember():
     async def create(cls,ctx,user_id,**kwargs):
 
         refresh = kwargs.get('refresh',False)
-        init = False
-        build = False
+        cached_data = None
 
         if user_id in list(ctx.bot.user_cache.keys()):
-            self = ctx.bot.user_cache[user_id]
+            cached_data = ctx.bot.user_cache[user_id]
 
-            #override refresh if last 60 secs
-            if (time.time() - self.timestamp) < 60:
+            #override refresh if last 1min
+            if (time.time() - cached_data.timestamp) < 60:
                 refresh = False
 
             #if more than 10mins, force refresh
-            if (time.time() - self.timestamp) > 600:
+            if (time.time() - cached_data.timestamp) > 600:
                 refresh = True
-        else:
-            init = True
 
-        if init or refresh:
-            build = True
-        else:
-            return self
+        if cached_data and not refresh:
+            return cached_data
 
         self = aMember(user_id)
         ctx.bot.user_cache[user_id] = self
-
-        memberInfo = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='members',
-            tag="**")
 
         try:
             self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
         except:
             self.discord_member = None
 
+        memberInfo = await alliance_file_handler(
+            ctx=ctx,
+            entry_type='members',
+            tag="**")
         memberTags = list(memberInfo.keys())
 
-        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if a.discord_user == self.user_id]
+        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if a.discord_user.user_id == self.user_id]
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)
