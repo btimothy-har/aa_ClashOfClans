@@ -171,7 +171,7 @@ class AriXClashDataMgr(commands.Cog):
             await ctx.send("Bot Data Refresh is now stopped.")
 
         else:
-            ctx.bot.master_refresh = False
+            ctx.bot.master_refresh = True
             await ctx.send("Bot Data Refresh is now activated.")
 
         await m.delete()
