@@ -21,10 +21,10 @@ class aRaidWeekend():
         clan = kwargs.get('clan',None)
 
         if json_data:
-            self.clan_tag = json_data.get('clan_tag',None)
-            self.clan_name = json_data.get('clan_name',None)
-            self.clan_badge = json_data.get('clan_badge',None)
-            self.clan_level = json_data.get('clan_level',None)
+            self.clan_tag = json_data.get('clan_tag',getattr(clan,'tag',None))
+            self.clan_name = json_data.get('clan_name',getattr(clan,'name',None))
+            self.clan_badge = json_data.get('clan_badge',getattr(clan,'badge',None))
+            self.clan_level = json_data.get('clan_level',getattr(clan,'level',None))
 
             self.state = json_data['state']
             self.start_time = json_data['start_time']
@@ -43,7 +43,7 @@ class aRaidWeekend():
 
             self.clan_tag = clan.tag
             self.clan_name = clan.name
-            self.clan_badge = clan.badge.url
+            self.clan_badge = clan.badge
             self.clan_level = clan.level
 
             self.state = data.state
