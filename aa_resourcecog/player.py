@@ -182,8 +182,9 @@ class aPlayer(coc.Player):
             is_unlocked_at_this_level = False
             if hero_name in hero_availability[self.town_hall.level]:
                 is_unlocked_at_this_level = True
-            hero = self.get_hero(name=hero_name)
-            if not hero:
+            try:
+                hero = self.get_hero(name=hero_name)
+            except:
                 hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
             hero = aHero(hero,self.town_hall.level,is_unlocked_at_this_level)
             self.heroes.append(hero)
@@ -194,8 +195,9 @@ class aPlayer(coc.Player):
             is_unlocked_at_this_level = False
             if troop_name in troop_availability[self.town_hall.level]:
                 is_unlocked_at_this_level = True
-            troop = self.get_troop(name=troop_name,is_home_troop=True)
-            if not troop:
+            try:
+                troop = self.get_troop(name=troop_name,is_home_troop=True)
+            except:
                 troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
             troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
             self.troops.append(troop)
@@ -206,8 +208,9 @@ class aPlayer(coc.Player):
             is_unlocked_at_this_level = False
             if spell_name in spell_availability[self.town_hall.level]:
                 is_unlocked_at_this_level = True
-            spell = self.get_spell(name=spell_name)
-            if not spell:
+            try:
+                spell = self.get_spell(name=spell_name)
+            except:
                 spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
             spell = aSpell(spell,self.town_hall.level,is_unlocked_at_this_level)
             self.spells.append(spell)
