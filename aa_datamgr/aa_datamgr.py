@@ -301,10 +301,11 @@ class AriXClashDataMgr(commands.Cog):
         return await ctx.send(embed=embed)
 
 
-    @tasks.loop(seconds=60.0)
+    @tasks.loop(minutes=60.0)
     async def loop_data_update(self):
 
         bot = self.bot
+        save_state = self.bot.refresh_status
         test_ch = self.bot.get_channel(856433806142734346)
 
         await test_ch.send('hello')
@@ -327,6 +328,9 @@ class AriXClashDataMgr(commands.Cog):
 
         else:
             await test_ch.send(f'hi again')
+
+            self.bot.refresh_status = False
+            await test_ch.send(f'turned off')
 
             try:
                 st = time.time()
@@ -364,6 +368,10 @@ class AriXClashDataMgr(commands.Cog):
                 success_log = []
                 error_log = []
 
+                alliance_clans = []
+                alliance_members = []
+                discord_members = []
+
                 season = await get_current_season()
                 alliance_clans_json = await alliance_file_handler(
                     ctx=ctx,
@@ -375,10 +383,6 @@ class AriXClashDataMgr(commands.Cog):
                     entry_type='members',
                     tag="**")
 
-                alliance_clans = []
-                alliance_members = []
-                discord_members = []
-
                 for c_tag in list(alliance_clans_json.keys()):
                     try:
                         c = await aClan.create(ctx,tag=c_tag,refresh=True)
@@ -389,6 +393,7 @@ class AriXClashDataMgr(commands.Cog):
                         alliance_clans.append(c)
 
                 await test_ch.send(f'i found all clans')
+
 
                 for m_tag in list(member_json.keys()):
                     try:
@@ -560,6 +565,8 @@ class AriXClashDataMgr(commands.Cog):
 
                 [await m.sync_roles(ctx) for m in discord_members]
 
+                await test_ch.send(f'finished roles')
+
                 et = time.time()
                 ctx.bot.refresh_loop += 1
 
@@ -658,6 +665,10 @@ class AriXClashDataMgr(commands.Cog):
 
                 await test_ch.send(f'i made it here')
 
+                self.bot.refresh_status = True
+
             except Exception as e:
                 await test_ch.send(e)
+
+        self.bot.refresh_status = save_state
 
