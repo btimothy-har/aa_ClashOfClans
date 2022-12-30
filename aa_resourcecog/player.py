@@ -66,7 +66,7 @@ class aPlayer(coc.Player):
         self.overall_rushed_pct = 0
 
         #Membership Attributes
-        self.home_clan = aClan(ctx,None)
+        self.home_clan = await aClan.create(ctx,tag=None)
         self.readable_name = self.name
         self.is_member = False
         self.is_arix_account = False
