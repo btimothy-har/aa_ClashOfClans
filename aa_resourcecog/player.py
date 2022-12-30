@@ -173,7 +173,8 @@ class aPlayer(coc.Player):
         else:
             self.clan_description = "No Clan"
 
-        self.town_hall = aTownHall(level=self.town_hall,weapon=self.town_hall_weapon)
+        ph_town_hall = aTownHall(level=self.town_hall,weapon=self.town_hall_weapon)
+        self.town_hall = ph_town_hall
         self.clan_castle = sum([a.value for a in self.achievements if a.name=='Empire Builder'])
 
         self.heroes = []
