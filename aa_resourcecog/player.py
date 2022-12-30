@@ -32,57 +32,56 @@ class ClashPlayerError(Exception):
 class aPlayer(coc.Player):
     def __init__(self,**kwargs):
         ctx = kwargs.get('ctx',None)
+        cache = kwargs.get('cache',None)
 
         super().__init__(**kwargs)
         self.timestamp = time.time()
 
-        self.discord_link = None
-        self.discord_user = None
+        self.discord_user = getattr(cache,'discord_user',None)
 
-        self.readable_name = ""
-        self.clan_castle = 0
+        self.clan_castle = getattr(cache,'clan_castle',0)
 
-        self.current_war = None
-        self.current_raid_weekend = None
+        self.current_war = getattr(cache,'current_war',None)
+        self.current_raid_weekend = getattr(cache,'current_raid_weekend',None)
 
-        self.clan_description = ''
-        self.hero_description = ''
+        self.clan_description = getattr(cache,'clan_description',"")
+        self.hero_description = getattr(cache,'hero_description',"")
 
-        self.hero_strength = 0
-        self.max_hero_strength = 0
-        self.min_hero_strength = 0
-        self.hero_rushed_pct = 0
+        self.hero_strength = getattr(cache,'hero_strength',0)
+        self.max_hero_strength = getattr(cache,'max_hero_strength',0)
+        self.min_hero_strength = getattr(cache,'min_hero_strength',0)
+        self.hero_rushed_pct = getattr(cache,'hero_rushed_pct',0)
 
-        self.troop_strength = 0
-        self.max_troop_strength = 0
-        self.min_troop_strength = 0
-        self.troop_rushed_pct = 0
+        self.troop_strength = getattr(cache,'troop_strength',0)
+        self.max_troop_strength = getattr(cache,'max_troop_strength',0)
+        self.min_troop_strength = getattr(cache,'min_troop_strength',0)
+        self.troop_rushed_pct = getattr(cache,'troop_rushed_pct',0)
 
-        self.spell_strength = 0
-        self.max_spell_strength = 0
-        self.min_spell_strength = 0
-        self.spell_rushed_pct = 0
+        self.spell_strength = getattr(cache,'spell_strength',0)
+        self.max_spell_strength = getattr(cache,'max_spell_strength',0)
+        self.min_spell_strength = getattr(cache,'min_spell_strength',0)
+        self.spell_rushed_pct = getattr(cache,'spell_rushed_pct',0)
 
-        self.overall_rushed_pct = 0
+        self.overall_rushed_pct = getattr(cache,'overall_rushed_pct',0)
 
         #Membership Attributes
-        self.home_clan = aClan()
-        self.readable_name = self.name
-        self.is_member = False
-        self.is_arix_account = False
-        self.arix_rank = 'Non-Member'
-        self.notes = []
+        self.home_clan = getattr(cache,'home_clan',aClan())
+        self.readable_name = getattr(cache,'readable_name',self.name)
+        self.is_member = getattr(cache,'is_member',False)
+        self.is_arix_account = getattr(cache,'is_arix_account',False)
+        self.arix_rank = getattr(cache,'arix_rank','Non-Member')
+        self.notes = getattr(cache,'notes',[])
 
         #Membership Statistics
-        self.last_update = time.time()
-        self.current_season = aPlayerSeason(ctx,self,'current')
-        self.season_data = []
+        self.last_update = getattr(cache,'last_update',time.time())
+        self.current_season = getattr(cache,'current_season',aPlayerSeason(ctx,self,'current'))
+        self.season_data = getattr(cache,'season_data',{})
 
-        self.member_description = ""
+        self.member_description = getattr(cache,'member_description',"")
 
-        self.desc_title = ""
-        self.desc_full_text = ""
-        self.desc_summary_text = ""
+        self.desc_title = getattr(cache,'desc_title',"")
+        self.desc_full_text = getattr(cache,'desc_full_text',"")
+        self.desc_summary_text = getattr(cache,'desc_summary_text',"")
 
     def __repr__(self):
         return f"Player {self.name} ({self.tag}) - AriX {self.arix_rank}"
@@ -91,6 +90,7 @@ class aPlayer(coc.Player):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
+        cached_data = None
         init = False
         build = False
 
@@ -102,7 +102,7 @@ class aPlayer(coc.Player):
 
         #get from cache
         if not reset and tag in list(ctx.bot.member_cache.keys()):
-            self = ctx.bot.member_cache[tag]
+            cached_data = ctx.bot.member_cache[tag]
 
             #override refresh if last 60 secs
             if (time.time() - self.timestamp) < 60:
@@ -117,30 +117,29 @@ class aPlayer(coc.Player):
         if init or refresh:
             build = True
         else:
-            return self
+            return cached_data
 
         try:
-            self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx)
+            self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx,cache=cached_data)
         except Exception as exc:
             raise TerminateProcessing(exc) from exc
             return None
 
-        for season in ctx.bot.tracked_seasons:
-            seasonStats = await data_file_handler(ctx,
-                file='members',
-                tag=self.tag,
-                season=season)
-            if seasonStats:
-                stats = await aPlayerSeason.create(ctx,
-                    player=self,
-                    season=season,
-                    memberStats=seasonStats)
-                self.season_data.append(stats)
-
         #add to cache
         ctx.bot.member_cache[tag] = self
 
-        self.readable_name = self.name
+        if not cached_data:
+            for season in ctx.bot.tracked_seasons:
+                seasonStats = await data_file_handler(ctx,
+                    file='members',
+                    tag=self.tag,
+                    season=season)
+                if seasonStats:
+                    stats = await aPlayerSeason.create(ctx,
+                        player=self,
+                        season=season,
+                        memberStats=seasonStats)
+                    self.season_data[season] = stats
 
         if not self.clan:
             clan_tag = None
@@ -298,7 +297,7 @@ class aPlayer(coc.Player):
             self.is_member = memberInfo.get('is_member',False)
             self.is_arix_account = True
 
-            self.discord_user = int(memberInfo.get('discord_user',0))
+            self.discord_user = await aMember.create(ctx,user_id=int(memberInfo.get('discord_user',None)))
 
             if self.is_member:
                 if self.discord_user == self.home_clan.leader:
@@ -352,13 +351,11 @@ class aPlayer(coc.Player):
         else:
             self.desc_summary_text += f"<:Clan:825654825509322752> {self.clan_description}"
 
-        if not self.discord_user:
+        if not self.discord_user.user_id:
             get_links = await ctx.bot.discordlinks.get_links(self.tag)
-            self.discord_user = get_links[0][1]
 
-        if self.discord_user:
-            self.discord_user = await aMember.create(ctx,user_id=self.discord_user)
-
+            if len(get_links) > 0:
+                self.discord_user = await aMember.create(ctx,user_id=get_links[0][1])
         return self
 
     async def save_to_json(self,ctx):
@@ -971,6 +968,7 @@ class aClan(coc.Clan):
 
         tag = kwargs.get('tag',None)
         load = kwargs.get('load',False)
+        cache = kwargs.get('cache',None)
 
         if tag or load:
             super().__init__(**kwargs)
@@ -980,51 +978,55 @@ class aClan(coc.Clan):
 
         self.timestamp = time.time()
 
+        try:
+            self.capital_hall = [district.hall_level for district in self.capital_districts if district.name=="Capital Peak"][0]
+        except:
+            self.capital_hall = 0
+
         #Alliance Attributes
-        self.is_alliance_clan = False
-        self.abbreviation = ''
-        self.description = None
-        self.level = 0
-        self.capital_hall = 0
-        self.emoji = ''
-        self.leader = 0
-        self.co_leaders = []
-        self.elders = []
-        self.member_count = 0
-        self.recruitment_level = []
-        self.notes = []
+        self.is_alliance_clan = getattr(cache,'is_alliance_clan',False)
+        self.abbreviation = getattr(cache,'abbreviation',"")
+        self.description = getattr(cache,'description',getattr(self,'description',None))
 
-        self.member_role = 0
-        self.elder_role = 0
-        self.coleader_role = 0
+        self.emoji = getattr(cache,'emoji','<:Clan:825654825509322752>')
+        self.leader = getattr(cache,'leader',0)
+        self.co_leaders = getattr(cache,'co_leaders',[])
+        self.elders = getattr(cache,'elders',[])
 
-        self.announcement_channel = 0
-        self.reminder_channel = 0
-        self.send_war_reminder = False
-        self.send_raid_reminder = False
+        self.recruitment_level = getattr(cache,'recruitment_level',[])
+        self.notes = getattr(cache,'notes',[])
 
-        self.war_reminder_intervals = []
-        self.raid_reminder_intervals = []
+        self.member_role = getattr(cache,'member_role',0)
+        self.elder_role = getattr(cache,'elder_role',0)
+        self.coleader_role = getattr(cache,'coleader_role',0)
 
-        self.war_reminder_tracking = []
-        self.raid_reminder_tracking = []
+        self.announcement_channel = getattr(cache,'announcement_channel',0)
+        self.reminder_channel = getattr(cache,'reminder_channel',0)
+        self.send_war_reminder = getattr(cache,'send_war_reminder',False)
+        self.send_raid_reminder = getattr(cache,'send_raid_reminder',False)
+
+        self.war_reminder_intervals = getattr(cache,'war_reminder_intervals',[])
+        self.raid_reminder_intervals = getattr(cache,'raid_reminder_intervals',[])
+
+        self.war_reminder_tracking = getattr(cache,'war_reminder_tracking',[])
+        self.raid_reminder_tracking = getattr(cache,'raid_reminder_tracking',[])
 
         #Clan Statuses
-        self.war_state = ''
-        self.war_state_change = False
+        self.war_state = getattr(cache,'war_state',"")
+        self.war_state_change = getattr(cache,'war_state_change',False)
 
-        self.raid_weekend_state = ''
-        self.raid_state_change = False
+        self.raid_weekend_state = getattr(cache,'raid_weekend_state',"")
+        self.raid_state_change = getattr(cache,'raid_state_change',False)
 
-        self.war_log = {}
-        self.raid_log = {}
+        self.war_log = getattr(cache,'war_log',{})
+        self.raid_log = getattr(cache,'raid_log',{})
 
-        self.current_war = None
-        self.current_raid_weekend = None
+        self.current_war = getattr(cache,'current_war',None)
+        self.current_raid_weekend = getattr(cache,'current_raid_weekend',None)
 
-        self.desc_title = ""
-        self.desc_full_text = ""
-        self.desc_summary_text = ""
+        self.desc_title = getattr(cache,'desc_title',"")
+        self.desc_full_text = getattr(cache,'desc_full_text',"")
+        self.desc_summary_text = getattr(cache,'desc_summary_text',"")
 
     def __repr__(self):
         return f"Clan {self.tag} {self.name} generated on {datetime.fromtimestamp(self.timestamp).strftime('%m%d%Y%H%M%S')}"
@@ -1033,6 +1035,7 @@ class aClan(coc.Clan):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
+        cached_data = None
         init = False
         build = False
 
@@ -1047,7 +1050,7 @@ class aClan(coc.Clan):
             return None
 
         if not reset and tag in list(ctx.bot.clan_cache.keys()):
-            self = ctx.bot.clan_cache[tag]
+            cached_data = ctx.bot.clan_cache[tag]
 
             #override refresh if last 60 secs
             if (time.time() - self.timestamp) < 60:
@@ -1062,12 +1065,10 @@ class aClan(coc.Clan):
         if init or refresh:
             build = True
         else:
-            return self
-        if not build:
-            return self
+            return cached_data
 
         try:
-            self = await ctx.bot.coc_client.get_clan(tag=tag,cls=aClan,load=True)
+            self = await ctx.bot.coc_client.get_clan(tag=tag,cls=aClan,load=True,cache=cached_data)
         except Exception as exc:
             raise TerminateProcessing(exc) from exc
             return None
@@ -1091,11 +1092,6 @@ class aClan(coc.Clan):
             ctx=ctx,
             file='capitalraid',
             tag=self.tag)
-
-        try:
-            self.capital_hall = [district.hall_level for district in self.capital_districts if district.name=="Capital Peak"][0]
-        except:
-            self.capital_hall = 0
 
         self.current_war = await aClanWar.get(ctx,clan=self)
         self.current_raid_weekend = await aRaidWeekend.get(ctx,clan=self)
@@ -1181,8 +1177,6 @@ class aClan(coc.Clan):
             'abbr':self.abbreviation,
             'emoji':self.emoji,
             'description': self.description,
-            'level': self.level,
-            'capital_hall': self.capital_hall,
             'leader':self.leader,
             'co_leaders': self.co_leaders,
             'elders': self.elders,
