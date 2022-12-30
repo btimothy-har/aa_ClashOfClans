@@ -304,6 +304,7 @@ class AriXClashDataMgr(commands.Cog):
     @tasks.loop(seconds=60.0)
     async def loop_data_update(self):
 
+        bot = self.bot
         test_ch = self.bot.get_channel(856433806142734346)
 
         await test_ch.send('hello')
@@ -318,6 +319,8 @@ class AriXClashDataMgr(commands.Cog):
             def __init__(self,bot):
                 self.bot = bot
 
+        ctx = EmptyContext(bot=bot)
+
         if not self.bot.refresh_status:
             await test_ch.send(f'bye {self.bot.refresh_status}')
             return
@@ -326,8 +329,6 @@ class AriXClashDataMgr(commands.Cog):
             await test_ch.send(f'hi again')
 
             try:
-                ctx = EmptyContext(bot=self.bot)
-
                 st = time.time()
                 helsinkiTz = pytz.timezone("Europe/Helsinki")
 
@@ -553,7 +554,9 @@ class AriXClashDataMgr(commands.Cog):
 
                 await test_ch.send(f'finished member')
 
-                [discord_members.append(m.discord_user) for m in alliance_members if m.discord_user.discord_member and m.discord_user not in discord_members]
+                for m in alliance_members:
+                    if m.discord_user.discord_member and m.discord_user.user_id not in [u.user_id for u in discord_members]:
+                        discord_members.append(m.discord_user)
 
                 [await m.sync_roles(ctx) for m in discord_members]
 
