@@ -36,7 +36,7 @@ class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
 
     def __init__(self,bot):
-        self.bot = bot
+        self.master_bot = bot
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
             "last_status_update": 0,
@@ -166,12 +166,12 @@ class AriXClashDataMgr(commands.Cog):
         m = await ctx.send("Please wait...")
 
         if not ctx.bot.refresh_status:
-            ctx.bot.refresh_status = True
+            ctx.bot.master_refresh = True
 
             await ctx.send("Bot Data Refresh is now activated.")
 
         elif ctx.bot.refresh_status:
-            ctx.bot.refresh_status = False
+            ctx.bot.master_refresh = False
             self.loop_data_update.stop()
 
             await ctx.send("Bot Data Refresh is now stopped.")
@@ -247,9 +247,9 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Refresh Status__",
-                value=f"> **Current Setting**: {ctx.bot.refresh_status}"
+                value=f"> **Master Switch**: {ctx.bot.master_refresh}"
+                    + f"\n> **Current State**: {ctx.bot.refresh_status}"
                     + f"\n> **Loop Number**: {ctx.bot.refresh_loop}"
-                    + f"\n> **Task Status**: {self.loop_data_update.is_running}"
                     #+ f"\n> **Next Iteration**: <t:{self.loop_data_update.next_iteration.timestamp}:F>"
                     + f"\n> **Last Updated**: {update_str} ago"
                     + f"\n> **Average Run Time**: {average_run_time} seconds",
@@ -304,9 +304,9 @@ class AriXClashDataMgr(commands.Cog):
     @tasks.loop(seconds=30.0)
     async def loop_data_update(self):
 
-        bot = self.bot
-        save_state = self.bot.refresh_status
-        test_ch = self.bot.get_channel(856433806142734346)
+        bot = self.master_bot
+        run = True
+        test_ch = bot.get_channel(856433806142734346)
 
         await test_ch.send('hello')
 
@@ -322,14 +322,20 @@ class AriXClashDataMgr(commands.Cog):
 
         ctx = EmptyContext(bot=bot)
 
-        if not self.bot.refresh_status:
-            await test_ch.send(f'bye {self.bot.refresh_status}')
+        if not bot.master_refresh:
+            run = False
+
+        if bot.refresh_status:
+            run = False
+
+        if not run:
+            await test_ch.send(f'bye {bot.refresh_status}')
             return
 
         else:
             await test_ch.send(f'hi again')
 
-            self.bot.refresh_status = False
+            bot.refresh_status = True
             await test_ch.send(f'turned off')
 
             try:
@@ -359,7 +365,7 @@ class AriXClashDataMgr(commands.Cog):
                 await test_ch.send(f'hi again 3')
 
                 try:
-                    update_channel = self.bot.update_channel
+                    update_channel = bot.update_channel
                 except:
                     update_channel = None
 
@@ -419,10 +425,10 @@ class AriXClashDataMgr(commands.Cog):
                     data_embed.add_field(
                         name=f"**New Season Initialized: {new_season}**",
                         value=f"__Files Saved__"
-                            + f"\n**{current_season}/members.json**: {os.path.exists(self.bot.clash_dir_path+'/'+current_season+'/members.json')}"
+                            + f"\n**{current_season}/members.json**: {os.path.exists(bot.clash_dir_path+'/'+current_season+'/members.json')}"
                             + f"\n"
                             + f"__Files Created__"
-                            + f"\n**members.json**: {os.path.exists(self.bot.clash_dir_path+'/members.json')}",
+                            + f"\n**members.json**: {os.path.exists(bot.clash_dir_path+'/members.json')}",
                         inline=False)
                     season = new_season
 
@@ -559,11 +565,17 @@ class AriXClashDataMgr(commands.Cog):
 
                 await test_ch.send(f'finished member')
 
+                role_sync_completed = []
                 for m in alliance_members:
-                    if m.discord_user.discord_member and m.discord_user.user_id not in [u.user_id for u in discord_members]:
-                        discord_members.append(m.discord_user)
-
-                [await m.sync_roles(ctx) for m in discord_members]
+                    if m.discord_user.discord_member and m.discord_user.user_id not in role_sync_completed:
+                        try:
+                            await m.discord_user.sync_roles(ctx)
+                        except Exception as e:
+                            err = DataError(category='rosync',tag=m.tag,error=e)
+                            error_log.append(err)
+                            continue
+                        else:
+                            role_sync_completed.append(m.discord_user.user_id)
 
                 await test_ch.send(f'finished roles')
 
@@ -600,7 +612,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 if send_logs:
                     try:
-                        log_channel = self.bot.get_channel(1033390608506695743)
+                        log_channel = bot.get_channel(1033390608506695743)
                     except:
                         log_channel = None
 
@@ -665,10 +677,8 @@ class AriXClashDataMgr(commands.Cog):
 
                 await test_ch.send(f'i made it here')
 
-                self.bot.refresh_status = True
-
             except Exception as e:
                 await test_ch.send(e)
 
-        self.bot.refresh_status = save_state
+        bot.refresh_status = False
 
