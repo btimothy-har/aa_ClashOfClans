@@ -38,6 +38,7 @@ async def setup(bot:Red):
     bot.clash_eclipse_lock = fasteners.InterProcessReaderWriterLock(os.getenv('ECLIPSEPATH') + "/eclipse.lock")
     bot.clash_eclipse_sessions = []
 
+    bot.current_season = None
     bot.tracked_seasons = []
     bot.user_cache = {}
     bot.member_cache = {}

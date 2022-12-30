@@ -14,7 +14,7 @@ from .aa_datamgr import AriXClashDataMgr
 
 async def setup(bot:Red):
     cog = AriXClashDataMgr(bot)
-    bot.refresh_loop = 0
+    bot.refresh_loop = -1
     bot.master_refresh = False
     bot.clan_refresh_status = False
     bot.member_refresh_status = False
