@@ -17,43 +17,6 @@ async def get_current_season(params=None):
 
     return current_season
 
-async def season_file_handler(ctx,season,clans):
-    is_new_season = False
-    current_season = None
-    new_season = None
-
-
-        for c in clans:
-            if c.current_war.state == "inWar":
-                update_season = False
-
-            if c.current_raid_weekend.state == "ongoing":
-                update_season = False
-
-        if update_season:
-            is_new_season = True
-            new_season = season
-            async with ctx.bot.async_file_lock:
-                with ctx.bot.clash_file_lock.write_lock():
-                    new_path = ctx.bot.clash_dir_path+'/'+current_season
-                    os.makedirs(new_path)
-
-                    with open(ctx.bot.clash_dir_path+'/seasons.json','r+') as file:
-                        s_json = json.load(file)
-                        s_json['tracked'].append(current_season)
-                        s_json['current'] = new_season
-                        file.seek(0)
-                        json.dump(s_json,file,indent=2)
-                        file.truncate()
-
-                    shutil.copy2(ctx.bot.clash_dir_path+'/alliance.json',new_path)
-
-                    shutil.copy2(ctx.bot.clash_dir_path+'/members.json',new_path)
-                    with open(ctx.bot.clash_dir_path+'/members.json','w+') as file:
-                        json.dump({},file,indent=2)
-
-    return is_new_season, current_season, new_season
-
 
 async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
     if season:
