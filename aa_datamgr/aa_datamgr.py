@@ -629,6 +629,7 @@ class AriXClashDataMgr(commands.Cog):
         except Exception as e:
             await bot.send_to_owners(f"Error encountered during Clan Data Refresh:\n\n{e}")
             bot.clan_refresh_status = False
+            return
 
 
         try:
@@ -785,15 +786,16 @@ class AriXClashDataMgr(commands.Cog):
                         error_log.append(err)
                         continue
 
-                    if memo.discord_member and memo.user_id not in role_sync_completed:
-                        try:
-                            await m.discord_user.sync_roles(ctx)
-                        except Exception as e:
-                            err = DataError(category='mesync',tag=m.tag,error=e)
-                            error_log.append(err)
-                            continue
-                        else:
-                            role_sync_completed.append(memo.user_id)
+                    if memo:
+                        if memo.discord_member and memo.user_id not in role_sync_completed:
+                            try:
+                                await m.discord_user.sync_roles(ctx)
+                            except Exception as e:
+                                err = DataError(category='mesync',tag=m.tag,error=e)
+                                error_log.append(err)
+                                continue
+                            else:
+                                role_sync_completed.append(memo.user_id)
 
                 count_member_update += 1
 
@@ -811,6 +813,7 @@ class AriXClashDataMgr(commands.Cog):
         except Exception as e:
             await bot.send_to_owners(f"Error encountered during Member Data Refresh:\n\n{e}")
             bot.member_refresh_status = False
+            return
 
 
         try:
