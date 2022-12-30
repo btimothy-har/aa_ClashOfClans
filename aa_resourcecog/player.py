@@ -1475,7 +1475,7 @@ class aMember():
             tag="**")
         memberTags = list(memberInfo.keys())
 
-        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if a.discord_user.user_id == self.user_id]
+        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if getattr(a.discord_user,'user_id',0) == self.user_id]
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)
