@@ -180,7 +180,9 @@ class AriXClashDataMgr(commands.Cog):
 
         if ctx.bot.master_refresh:
             ctx.bot.master_refresh = False
-            self.loop_data_update.stop()
+            self.season_update.stop()
+            self.clan_update.stop()
+            self.member_update.stop()
             await ctx.send("Bot Data Refresh is now stopped.")
 
         else:

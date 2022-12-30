@@ -356,7 +356,8 @@ class aPlayer(coc.Player):
             get_links = await ctx.bot.discordlinks.get_links(self.tag)
             self.discord_user = get_links[0][1]
 
-        self.discord_user = await aMember.create(ctx,user_id=self.discord_user)
+        if self.discord_user:
+            self.discord_user = await aMember.create(ctx,user_id=self.discord_user)
 
         return self
 
