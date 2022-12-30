@@ -168,8 +168,9 @@ class aPlayer(coc.Player):
             except:
                 pass
             else:
-                if self.tag in [m.tag for m in check_raid.members]:
-                    self.current_raid_weekend = check_raid
+                if check_raid:
+                    if self.tag in [m.tag for m in check_raid.members]:
+                        self.current_raid_weekend = check_raid
 
         if self.clan.tag:
             self.clan_description = f"{str(self.role)} of {self.clan.name}"
