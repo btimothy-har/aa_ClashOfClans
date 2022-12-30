@@ -84,7 +84,7 @@ class aRaidWeekend():
         ch = ctx.bot.get_channel(856433806142734346)
         try:
             await ch.send(raid_id)
-            await ch.send(len(json_data))
+            await ch.send(list(json_data.keys()))
             await ch.send(z)
         except:
             pass
