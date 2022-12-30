@@ -31,6 +31,8 @@ class ClashPlayerError(Exception):
 
 class aPlayer(coc.Player):
     def __init__(self,**kwargs):
+        ctx = kwargs.get('ctx',None)
+
         super().__init__(**kwargs)
         self.timestamp = time.time()
 
@@ -101,7 +103,7 @@ class aPlayer(coc.Player):
             self = ctx.bot.member_cache[tag]
         else:
             try:
-                self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer)
+                self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx)
             except Exception as exc:
                 raise TerminateProcessing(exc) from exc
                 return None
