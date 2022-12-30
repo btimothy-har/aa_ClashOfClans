@@ -815,6 +815,8 @@ class aTroop():
 
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
+        else:
+            self.is_rushed = False
 
     def to_json(self):
         tJson = {
@@ -856,6 +858,8 @@ class aSpell():
 
         if self.level < self.minlevel_for_townhall:
             self.is_rushed = True
+        else:
+            self.is_rushed = False
 
     def to_json(self):
         sJson = {
