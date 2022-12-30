@@ -91,6 +91,7 @@ class aPlayer(coc.Player):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
+        init = False
 
         tag = coc.utils.correct_tag(tag)
 
@@ -1016,6 +1017,7 @@ class aClan(coc.Clan):
         tag = kwargs.get('tag',None)
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
+        init = False
 
         if tag:
             tag = coc.utils.correct_tag(tag)
