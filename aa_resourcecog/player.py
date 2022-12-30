@@ -591,7 +591,10 @@ class aPlayerSeason():
 
                 self.warlog[new_war.war_id] = new_war
         else:
-            self.warlog = {wid:await aClanWar.get(ctx,war_id=wid) for wid in memberStats.get('war_log',[])}
+            for wid in memberStats.get('war_log',[]):
+                war = await aClanWar.get(ctx,war_id=wid)
+                if war:
+                    self.warlog[war.war_id] = war
 
         if isinstance(memberStats.get('raid_log',[]),dict):
             legacy_raidlog = {rID:aPlayerRaidLog.from_json(rID,self,rl) for (rID,rl) in memberStats['raid_log'].items()}
@@ -607,7 +610,10 @@ class aPlayerSeason():
 
                 self.raidlog[new_raid.raid_id] = new_raid
         else:
-            self.raidlog = {rid:await aRaidWeekend.get(ctx,raid_id=rid) for rid in memberStats.get('raid_log',[])}
+            for rid in memberStats.get('raid_log',[]):
+                raid = await aRaidWeekend.get(ctx,raid_id=rid)
+                if raid:
+                    self.raidlog[raid.raid_id] = raid
 
         self.war_stats = await aPlayerWarStats.compute(ctx=ctx,player=self.player,warlog=self.warlog)
         self.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,player=self.player,raidlog=self.raidlog)
