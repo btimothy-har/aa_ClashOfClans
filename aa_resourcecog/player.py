@@ -10,7 +10,7 @@ from datetime import datetime
 from coc.ext import discordlinks
 
 from .constants import clanRanks, emotes_townhall, emotes_builderhall, emotes_capitalhall, emotes_league, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
-from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
 
 from .notes import aNote
 from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
