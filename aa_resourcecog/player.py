@@ -91,8 +91,6 @@ class aPlayer(coc.Player):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
         cached_data = None
-        init = False
-        build = False
 
         tag = coc.utils.correct_tag(tag)
 
@@ -111,12 +109,8 @@ class aPlayer(coc.Player):
             #if more than 5mins, force refresh
             if (time.time() - self.timestamp) > 300:
                 refresh = True
-        else:
-            init = True
 
-        if init or refresh:
-            build = True
-        else:
+        if cached_data and not refresh:
             return cached_data
 
         try:
@@ -1036,8 +1030,6 @@ class aClan(coc.Clan):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
         cached_data = None
-        init = False
-        build = False
 
         #return empty clan
         if not tag:
@@ -1059,12 +1051,8 @@ class aClan(coc.Clan):
             #if more than 10mins, force refresh
             if (time.time() - self.timestamp) > 600:
                 refresh = True
-        else:
-            init = True
 
-        if init or refresh:
-            build = True
-        else:
+        if cached_data and not refresh:
             return cached_data
 
         try:
