@@ -308,8 +308,6 @@ class AriXClashDataMgr(commands.Cog):
         run = True
         test_ch = bot.get_channel(856433806142734346)
 
-        await test_ch.send('hello')
-
         class DataError():
             def __init__(self,**kwargs):
                 self.category = kwargs.get('category',None)
@@ -329,7 +327,6 @@ class AriXClashDataMgr(commands.Cog):
             run = False
 
         if not run:
-            await test_ch.send(f'bye {bot.refresh_status}')
             return
 
         else:
