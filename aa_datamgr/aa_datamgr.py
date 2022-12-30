@@ -153,6 +153,14 @@ class AriXClashDataMgr(commands.Cog):
     @commands.command(name="initdata")
     @commands.is_owner()
     async def initialize_data_cache(self,ctx):
+
+        msg = await ctx.send("Initializing...")
+
+        bot.user_cache = {}
+        bot.member_cache = {}
+        bot.clan_cache = {}
+        bot.pass_cache = {}
+
         with ctx.bot.clash_file_lock.read_lock():
             with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
@@ -172,6 +180,10 @@ class AriXClashDataMgr(commands.Cog):
 
         [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
         [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+
+        bot.refresh_loop = 0
+
+        await msg.delete()
 
     @commands.command(name="drefresh")
     @commands.is_owner()
