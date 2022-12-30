@@ -165,7 +165,7 @@ class AriXClashDataMgr(commands.Cog):
 
             await ctx.send("Bot Data Refresh is now activated.")
 
-        if ctx.bot.refresh_status:
+        elif ctx.bot.refresh_status:
             ctx.bot.refresh_status = False
             self.loop_data_update.stop()
 
@@ -445,13 +445,13 @@ class AriXClashDataMgr(commands.Cog):
 
                                 if c.war_state == 'warEnded':
                                     if c.current_war.result in ['winning','won']:
-                                        active_events.append(f"{c.abbreviation} win {c.c.war_wins} times.")
+                                        active_events.append(f"{c.abbreviation} win {c.war_wins} times.")
 
                                     if c.current_war.result in ['losing','lost']:
-                                        active_events.append(f"{c.abbreviation} get crushed {c.c.war_losses} times.")
+                                        active_events.append(f"{c.abbreviation} get crushed {c.war_losses} times.")
 
-                                    if c.c.war_win_streak >= 3:
-                                        active_events.append(f"{c.abbreviation} on a {c.c.war_win_streak} streak!")
+                                    if c.war_win_streak >= 3:
+                                        active_events.append(f"{c.abbreviation} on a {c.war_win_streak} streak!")
 
                             else:
                                 if c.war_state == 'inWar':
