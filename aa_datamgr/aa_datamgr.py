@@ -678,7 +678,7 @@ class AriXClashDataMgr(commands.Cog):
             await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n{e}")
 
 
- @tasks.loop(seconds=60.0)
+    @tasks.loop(seconds=60.0)
     async def member_update(self):
 
         bot = self.master_bot
