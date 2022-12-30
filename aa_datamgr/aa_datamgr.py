@@ -592,7 +592,7 @@ class AriXClashDataMgr(commands.Cog):
                     for e in error_log:
                         error_text += f"{e.category}{e.tag}: {e.error}\n"
 
-                    if len(errStr) > 1024:
+                    if len(error_text) > 1024:
                         error_title = "Error Log (Truncated)"
                         error_text = errStr[0:500]
 
