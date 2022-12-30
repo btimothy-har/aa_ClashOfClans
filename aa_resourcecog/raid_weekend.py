@@ -30,10 +30,10 @@ class aRaidWeekend():
             self.start_time = json_data['start_time']
             self.end_time = json_data['end_time']
             self.total_loot = json_data['total_loot']
-            self.attack_count = json_data.get('attack_count',json_data.get('raid_attack_count',0))
+            self.attack_count = json_data.get('attack_count',json_data.['raid_attack_count'])
             self.destroyed_district_count = json_data['districts_destroyed']
-            self.offensive_reward = json_data.get('offensive_reward',json_data.get('offense_rewards',0))
-            self.defensive_reward = json_data.get('defensive_reward',json_data.get('defense_rewards',0))
+            self.offensive_reward = json_data.get('offensive_reward',json_data.['offense_rewards'])
+            self.defensive_reward = json_data.get('defensive_reward',json_data.['defense_rewards'])
             self.attack_log = [aRaidClan(self,json=attack) for attack in json_data['attack_log']]
             self.defense_log = [aRaidClan(self,json=attack) for attack in json_data['defense_log']]
             self.members = [aRaidMember(self,json=member) for member in json_data['members']]
@@ -81,7 +81,10 @@ class aRaidWeekend():
                 tag=raid_id)
 
         if json_data:
-            self = aRaidWeekend(clan=clan,json=json_data)
+            try:
+                self = aRaidWeekend(clan=clan,json=json_data)
+            except:
+                return None
         elif clan:
             raidloggen = await ctx.bot.coc_client.get_raidlog(clan_tag=clan.tag,page=False,limit=1)
             if len(raidloggen) == 0:

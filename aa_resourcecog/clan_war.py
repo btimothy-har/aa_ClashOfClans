@@ -123,7 +123,10 @@ class aClanWar():
                 tag=war_id)
 
         if json_data:
-            self = aClanWar(clan=clan,json=json_data)
+            try:
+                self = aClanWar(clan=clan,json=json_data)
+            except:
+                return None
         elif clan:
             try:
                 war = await ctx.bot.coc_client.get_clan_war(clan.tag)
@@ -176,7 +179,7 @@ class aWarClan():
             self.stars = json_data['stars']
             self.destruction = json_data['destruction']
             self.average_attack_duration = json_data['average_attack_duration']
-            self.attacks_used = json_data.get('attacks_used',json_data.get('total_attacks',0))
+            self.attacks_used = json_data.get('attacks_used',json_data['total_attacks'])
 
         if game_data:
             self.tag = game_data.tag
