@@ -85,7 +85,7 @@ class aRaidWeekend():
     @classmethod
     async def get(cls,ctx,**kwargs):
         clan = kwargs.get('clan',None)
-        json_data = kwargs.get('json',None)
+        json_data = kwargs.get('json',{})
         raid_id = kwargs.get('raid_id',None)
         z = kwargs.get('z',False)
 
