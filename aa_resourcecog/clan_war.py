@@ -137,6 +137,10 @@ class aClanWar():
                 file='warlog',
                 tag=war_id)
 
+            ch = ctx.bot.get_channel(856433806142734346)
+            await ch.send(war_id)
+            await ch.send(list(json_data.keys()))
+
         if json_data:
             if z:
                 try:
