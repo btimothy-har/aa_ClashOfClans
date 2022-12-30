@@ -81,9 +81,9 @@ class aRaidWeekend():
                 file='capitalraid',
                 tag=raid_id)
 
-        ctx.bot.get_channel(856433806142734346)
-        await ctx.send(raid_id)
-        await ctx.send(json_data)
+        ch = ctx.bot.get_channel(856433806142734346)
+        await ch.send(raid_id)
+        await ch.send(json_data)
 
         if json_data:
             if z:
