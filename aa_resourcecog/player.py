@@ -905,7 +905,11 @@ class aPlayerWarStats():
         total_duration = 0
 
         for (wid,war) in warlog.items():
-            warmember = [m for m in war.members if m.tag == player.tag][0]
+            try:
+                warmember = [m for m in war.members if m.tag == player.tag][0]
+            except:
+                continue
+
             clan = await aClan.create(ctx,tag=warmember.clan_tag)
 
             if war.type == 'random' and clan.is_alliance_clan:
@@ -941,7 +945,11 @@ class aPlayerRaidStats():
         self = aPlayerRaidStats()
 
         for (rid,raid) in raidlog.items():
-            raidmember = [m for m in raid.members if m.tag == player.tag][0]
+            try:
+                raidmember = [m for m in raid.members if m.tag == player.tag][0]
+            except:
+                continue
+
             clan = await aClan.create(ctx,tag=raid.clan_tag)
 
             if clan.is_alliance_clan:
