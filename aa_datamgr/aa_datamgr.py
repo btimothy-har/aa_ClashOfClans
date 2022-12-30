@@ -388,8 +388,8 @@ class AriXClashDataMgr(commands.Cog):
                     except Exception as e:
                         err = DataError(category='clan',tag=c_tag,error=e)
                         error_log.append(err)
-                    else:
-                        alliance_clans.append(c)
+                        continue
+                    alliance_clans.append(c)
 
                 await test_ch.send(f'i found all clans')
 
@@ -400,8 +400,8 @@ class AriXClashDataMgr(commands.Cog):
                     except Exception as e:
                         err = DataError(category='player',tag=m_tag,error=e)
                         error_log.append(err)
-                    else:
-                        alliance_members.append(c)
+                        continue
+                    alliance_members.append(m)
 
                 await test_ch.send(f'i found all members')
 
@@ -509,6 +509,8 @@ class AriXClashDataMgr(commands.Cog):
                     except Exception as e:
                         err = DataError(category='cljson',tag=c.tag,error=e)
                         error_log.append(err)
+
+                    clan_update += f"\n\n"
 
 
                 data_embed.add_field(
