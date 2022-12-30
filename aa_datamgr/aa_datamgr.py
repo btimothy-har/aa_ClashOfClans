@@ -157,6 +157,7 @@ class AriXClashDataMgr(commands.Cog):
             with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
 
+        bot.current_season = s_json['current']
         bot.tracked_seasons = s_json['tracked']
 
         alliance_clans_json = await alliance_file_handler(
@@ -254,9 +255,9 @@ class AriXClashDataMgr(commands.Cog):
                 name="__Data Update Status__",
                 value=f"> **Master Switch**: {ctx.bot.master_refresh}"
                     + f"\n> **Clan Update**: {ctx.bot.clan_refresh_status}"
-                    + f"\n> **Last Clan Update**: <t:{clan_update_last}:R>"
+                    + f"\n> **Last Clan Update**: <t:{int(clan_update_last)}:R>"
                     + f"\n> **Member Update**: {ctx.bot.member_refresh_status}"
-                    + f"\n> **Last Member Update**: <t:{member_update_last}:R>",
+                    + f"\n> **Last Member Update**: <t:{int(member_update_last)}:R>",
                 inline=False)
 
             embed.add_field(
