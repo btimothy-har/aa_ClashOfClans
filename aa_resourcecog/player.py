@@ -284,7 +284,15 @@ class aPlayer(coc.Player):
         memberInfo = await alliance_file_handler(ctx,'members',self.tag)
         #From AriX Data File
         if memberInfo:
-            self.home_clan = await aClan.create(ctx,tag=memberInfo.get('home_clan',None))
+
+            home_clan_json = memberInfo.get('home_clan',None)
+
+            if isinstance(home_clan_json,dict):
+                home_clan_tag = home_clan_json['tag']
+            else:
+                home_clan_tag = home_clan_json
+
+            self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
             self.readable_name = memberInfo.get('readable_name',self.name)
             self.is_member = memberInfo.get('is_member',False)
             self.is_arix_account = True
