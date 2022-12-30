@@ -89,7 +89,10 @@ class aRaidWeekend():
         raid_id = kwargs.get('raid_id',None)
         z = kwargs.get('z',False)
 
-        if raid_id:
+        if raid_id and raid_id in list(ctx.bot.raid_cache.keys()):
+            return ctx.bot.raid_cache[raid_id]
+
+        if not json_data and raid_id:
             json_data = await data_file_handler(
                 ctx=ctx,
                 file='capitalraid',
@@ -115,6 +118,7 @@ class aRaidWeekend():
         else:
             return None
 
+        ctx.bot.raid_cache[self.raid_id] = self
         return self
 
     async def get_results_embed(self,ctx):

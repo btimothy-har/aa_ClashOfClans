@@ -44,7 +44,10 @@ async def setup(bot:Red):
     bot.user_cache = {}
     bot.member_cache = {}
     bot.clan_cache = {}
+
     bot.pass_cache = {}
+    bot.war_cache = {}
+    bot.raid_cache = {}
 
     if not os.path.exists(bot.clash_dir_path+'/seasons.json'):
         with bot.clash_file_lock.write_lock():

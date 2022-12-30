@@ -135,7 +135,10 @@ class aClanWar():
         war_id = kwargs.get('war_id',0)
         z = kwargs.get('z',False)
 
-        if war_id:
+        if war_id and war_id in list(ctx.bot.war_cache.keys()):
+            return ctx.bot.war_cache[war_id]
+
+        if not json_data and war_id:
             json_data = await data_file_handler(
                 ctx=ctx,
                 file='warlog',

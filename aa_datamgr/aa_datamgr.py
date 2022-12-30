@@ -152,7 +152,6 @@ class AriXClashDataMgr(commands.Cog):
     @commands.command(name="initdata")
     @commands.is_owner()
     async def initialize_data_cache(self,ctx):
-
         msg = await ctx.send("Initializing...")
 
         ctx.bot.user_cache = {}
@@ -183,6 +182,67 @@ class AriXClashDataMgr(commands.Cog):
         ctx.bot.refresh_loop = 0
 
         await msg.delete()
+
+    @commands.command(name="fileconvert")
+    @commands.is_owner()
+    async def convert_warraidlog(self,ctx):
+
+        file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
+
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                file_json = json.load(file)
+
+        new_warlog = {}
+
+        for (clan,warlog) in file_json.items():
+            c = await aClan.create(ctx,tag=clan)
+            c.war_log = {}
+
+            for (wid,war) in warlog.items():
+                w = await aClanWar.get(ctx,clan=c,json=war)
+                war_id = w.war_id
+
+                c.war_log[war_id] = w
+                new_warlog[war_id] = w
+
+            await c.save_to_json(ctx)
+
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                with open(file_path,'r+') as file:
+                    file.seek(0)
+                    json.dump(new_warlog,file,indent=2)
+                    file.truncate()
+
+        file_path = ctx.bot.clash_dir_path + '/' + 'capitalraid.json'
+
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                file_json = json.load(file)
+        new_raidlog = {}
+
+        for (clan,raidlog) in file_json.items():
+            c = await aClan.create(ctx,tag=clan)
+            c.raid_log = {}
+
+            for (wid,raid) in raidlog.items():
+                r = await aRaidWeekend.get(ctx,clan=c,json=raid)
+                raid_id = r.raid_id
+
+                c.raid_log[raid_id] = r
+                new_raidlog[raid_id] = r
+
+            await c.save_to_json(ctx)
+
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                with open(file_path,'r+') as file:
+                    file.seek(0)
+                    json.dump(new_raidlog,file,indent=2)
+                    file.truncate()
+
+
 
     @commands.command(name="drefresh")
     @commands.is_owner()
