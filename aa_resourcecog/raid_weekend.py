@@ -30,10 +30,24 @@ class aRaidWeekend():
             self.start_time = json_data['start_time']
             self.end_time = json_data['end_time']
             self.total_loot = json_data['total_loot']
-            self.attack_count = json_data.get('attack_count',json_data['raid_attack_count'])
+
             self.destroyed_district_count = json_data['districts_destroyed']
-            self.offensive_reward = json_data.get('offensive_reward',json_data['offense_rewards'])
-            self.defensive_reward = json_data.get('defensive_reward',json_data['defense_rewards'])
+
+            try:
+                self.attack_count = json_data['attack_count']
+            except:
+                self.attack_count = json_data.get('raid_attack_count',0)
+
+            try:
+                self.offensive_reward = json_data['offensive_reward']
+            except:
+                self.offensive_reward = json_data.get('offense_rewards',0)
+
+            try:
+                self.defensive_reward = json_data['defensive_reward']
+            except:
+                self.defensive_reward = json_data.get('defense_rewards',0)
+
             self.attack_log = [aRaidClan(self,json=attack) for attack in json_data['attack_log']]
             self.defense_log = [aRaidClan(self,json=attack) for attack in json_data['defense_log']]
             self.members = [aRaidMember(self,json=member) for member in json_data['members']]
@@ -85,6 +99,7 @@ class aRaidWeekend():
         try:
             await ch.send(raid_id)
             await ch.send(list(json_data.keys()))
+            await ch.send(json_data['attack_count'])
             await ch.send(z)
         except:
             pass
