@@ -1013,8 +1013,8 @@ class aClan(coc.Clan):
         self.raid_weekend_state = getattr(cache,'raid_weekend_state',"")
         self.raid_state_change = getattr(cache,'raid_state_change',False)
 
-        self.arix_members = []
-        self.arix_member_count = 0
+        self.arix_members = getattr(cache,'arix_members',[])
+        self.arix_member_count = getattr(cache,'arix_member_count',0)
 
         self.war_log = getattr(cache,'war_log',{})
         self.raid_log = getattr(cache,'raid_log',{})
