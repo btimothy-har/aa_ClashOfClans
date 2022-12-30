@@ -36,6 +36,7 @@ class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
 
     def __init__(self):
+        self.bot = bot
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
             "last_status_update": 0,
@@ -114,8 +115,8 @@ class AriXClashDataMgr(commands.Cog):
         except:
             bot.update_channel = None
 
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
+        with bot.clash_file_lock.read_lock():
+            with open(bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
 
         bot.tracked_seasons = s_json['tracked']
@@ -130,8 +131,12 @@ class AriXClashDataMgr(commands.Cog):
             entry_type='members',
             tag="**")
 
-        [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
-        [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+        if len(list(bot.clan_cache.keys())) == 0:
+            [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
+
+        if len(list(bot.member_cache.keys())) == 0:
+            [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+
 
     @commands.command(name="initdata")
     @commands.is_owner()
