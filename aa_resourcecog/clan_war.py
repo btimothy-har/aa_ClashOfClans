@@ -176,7 +176,7 @@ class aWarClan():
             self.stars = json_data['stars']
             self.destruction = json_data['destruction']
             self.average_attack_duration = json_data['average_attack_duration']
-            self.attacks_used = json_data.get('attacks_used',json_data['total_attacks'])
+            self.attacks_used = json_data.get('attacks_used',json_data.get('total_attacks',0))
 
         if game_data:
             self.tag = game_data.tag
