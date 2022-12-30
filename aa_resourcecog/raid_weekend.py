@@ -181,7 +181,7 @@ class aRaidWeekend():
 
         return raid_end_embed
 
-    async def save_to_json(self,ctx):
+    def to_json(self):
         rwJson = {
             'clan_tag': self.clan_tag,
             'clan_name': self.clan_name,
@@ -199,6 +199,10 @@ class aRaidWeekend():
             'defense_log': [r.to_json() for r in self.defense_log],
             'members': [m.to_json() for m in self.members]
             }
+        return rwJson
+
+    async def save_to_json(self,ctx):
+        rwJson = self.to_json()
 
         await data_file_handler(
             ctx=ctx,

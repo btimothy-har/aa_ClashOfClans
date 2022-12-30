@@ -166,7 +166,7 @@ class aClanWar():
 
         return self
 
-    async def save_to_json(self,ctx):
+    def to_json(self):
         wJson = {
             'type': self.type,
             'state': self.state,
@@ -183,7 +183,10 @@ class aClanWar():
             'members': [m.to_json() for m in self.members],
             'attacks': [a.to_json() for a in self.attacks]
             }
+        return wJson
 
+    async def save_to_json(self,ctx):
+        wJson = self.to_json()
         await data_file_handler(
             ctx=ctx,
             file='warlog',

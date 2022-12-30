@@ -206,7 +206,7 @@ class AriXClashDataMgr(commands.Cog):
                 war_id = w.war_id
 
                 c.war_log[war_id] = w
-                new_warlog[war_id] = w
+                new_warlog[war_id] = w.to_json()
 
             await c.save_to_json(ctx)
 
@@ -235,7 +235,7 @@ class AriXClashDataMgr(commands.Cog):
                 raid_id = r.raid_id
 
                 c.raid_log[raid_id] = r
-                new_raidlog[raid_id] = r
+                new_raidlog[raid_id] = r.to_json()
 
             await c.save_to_json(ctx)
 
