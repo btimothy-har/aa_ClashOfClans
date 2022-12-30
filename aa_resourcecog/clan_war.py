@@ -84,7 +84,7 @@ class aClanWar():
                     member = aWarPlayer(self,json=mem_json,clan_tag=json_data['opponent']['tag'])
                     self.members.append(member)
             else:
-                self.attacks = [aWarAttack(self,json_data=attack) for attack in json_attacks]
+                self.attacks = [aWarAttack(self,json=attack) for attack in json_attacks]
                 self.members = [aWarPlayer(self,json=member) for member in json_members]
 
         if game_data:
@@ -136,10 +136,6 @@ class aClanWar():
                 ctx=ctx,
                 file='warlog',
                 tag=war_id)
-
-            ch = ctx.bot.get_channel(856433806142734346)
-            await ch.send(war_id)
-            await ch.send(list(json_data.keys()))
 
         if json_data:
             if z:
