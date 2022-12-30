@@ -1460,7 +1460,7 @@ class aMember():
             entry_type='members',
             tag="**")
 
-        self.discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
+        self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
 
         memberTags = list(memberInfo.keys())
 
