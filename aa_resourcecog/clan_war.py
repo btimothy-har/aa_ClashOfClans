@@ -32,7 +32,11 @@ class aClanWar():
             else:
                 self.result = warResultOngoing[self.result]
 
-            self.team_size = json_data.get('team_size',json_data.get('size',0))
+            if 'team_size' in list(json_data.keys()):
+                self.team_size = json_data['team_size']
+            else:
+                self.team_size = json_data['size']
+
             self.attacks_per_member = json_data.get('attacks_per_member',0)
 
             self.war_tag = json_data.get('war_tag',None)

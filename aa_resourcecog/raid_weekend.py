@@ -33,20 +33,20 @@ class aRaidWeekend():
 
             self.destroyed_district_count = json_data['districts_destroyed']
 
-            try:
+            if 'attack_count' in list(json_data.keys()):
                 self.attack_count = json_data['attack_count']
-            except:
-                self.attack_count = json_data.get('raid_attack_count',0)
+            else:
+                self.attack_count = json_data['raid_attack_count']
 
-            try:
+            if 'offensive_reward' in list(json_data.keys()):
                 self.offensive_reward = json_data['offensive_reward']
-            except:
-                self.offensive_reward = json_data.get('offense_rewards',0)
+            else:
+                self.offensive_reward = json_data.['offense_rewards']
 
-            try:
+            if 'defensive_reward' in list(json_data.keys()):
                 self.defensive_reward = json_data['defensive_reward']
-            except:
-                self.defensive_reward = json_data.get('defense_rewards',0)
+            else:
+                self.defensive_reward = json_data.['defense_rewards']
 
             self.attack_log = [aRaidClan(self,json=attack) for attack in json_data['attack_log']]
             self.defense_log = [aRaidClan(self,json=attack) for attack in json_data['defense_log']]
@@ -94,16 +94,6 @@ class aRaidWeekend():
                 ctx=ctx,
                 file='capitalraid',
                 tag=raid_id)
-
-        ch = ctx.bot.get_channel(856433806142734346)
-        try:
-            await ch.send(raid_id)
-            await ch.send(list(json_data.keys()))
-            await ch.send(json_data['attack_count'])
-            await ch.send(z)
-        except:
-            pass
-
         if json_data:
             if z:
                 try:
