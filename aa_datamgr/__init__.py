@@ -16,6 +16,7 @@ async def setup(bot:Red):
     cog = AriXClashDataMgr(bot)
     bot.refresh_loop = 0
     bot.master_refresh = False
-    bot.refresh_status = False
+    bot.clan_refresh_status = False
+    bot.member_refresh_status = False
     bot.add_cog(cog)
     await cog.initialize_config(bot)

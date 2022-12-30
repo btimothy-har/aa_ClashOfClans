@@ -406,8 +406,8 @@ class aPlayer(coc.Player):
     async def update_stats(self,ctx):
         if self.clan.tag == self.home_clan.tag:
             self.current_season.time_in_home_clan += (self.timestamp - self.last_update)
-        elif self.clan.tag not in [c.tag for c in self.other_clans]:
-            self.other_clans.append(self.clan)
+        elif self.clan.tag not in [c.tag for c in self.current_season.other_clans]:
+            self.current_season.other_clans.append(self.clan)
 
         self.current_season.attacks.update_stat(self.attack_wins)
         self.current_season.defenses.update_stat(self.defense_wins)
@@ -430,8 +430,8 @@ class aPlayer(coc.Player):
 
 
     async def set_baselines(self,ctx):
-        if self.clan.tag not in [c.tag for c in self.other_clans]:
-            self.other_clans.append(self.clan)
+        if self.clan.tag not in [c.tag for c in self.current_season.other_clans]:
+            self.current_season.other_clans.append(self.clan)
 
         self.current_season.attacks.set_baseline(self.attack_wins)
         self.current_season.defenses.set_baseline(self.defense_wins)
@@ -476,7 +476,10 @@ class aPlayer(coc.Player):
         await self.save_to_json(ctx)
 
     async def update_raid_weekend(self,ctx):
-        await self.current_raid_weekend.save_to_json()
+        if not self.current_raid_weekend:
+            return None
+
+        await self.current_raid_weekend.save_to_json(ctx)
 
         if self.current_raid_weekend.state in ['ended']:
             if self.current_raid_weekend.raid_id in [rid for (rid,raid) in self.current_season.raidlog.items()]:
