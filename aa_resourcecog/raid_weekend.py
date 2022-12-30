@@ -85,6 +85,7 @@ class aRaidWeekend():
         try:
             await ch.send(raid_id)
             await ch.send(json_data)
+            await ch.send(z)
         except:
             pass
 
