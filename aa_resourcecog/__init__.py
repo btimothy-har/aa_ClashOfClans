@@ -39,6 +39,7 @@ async def setup(bot:Red):
     bot.clash_eclipse_sessions = []
 
     bot.current_season = None
+    bot.load_cache = False
     bot.tracked_seasons = []
     bot.user_cache = {}
     bot.member_cache = {}

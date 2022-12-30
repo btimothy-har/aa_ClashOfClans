@@ -141,13 +141,13 @@ class AriXClashDataMgr(commands.Cog):
             entry_type='members',
             tag="**")
 
-        if len(list(bot.clan_cache.keys())) == 0:
-            [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
+        if bot.load_cache:
+            if len(list(bot.clan_cache.keys())) == 0:
+                [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
 
-        if len(list(bot.member_cache.keys())) == 0:
-            [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
-
-        bot.refresh_loop = 0
+            if len(list(bot.member_cache.keys())) == 0:
+                [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+            bot.refresh_loop = 0
 
 
     @commands.command(name="initdata")
