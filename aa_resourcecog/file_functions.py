@@ -27,16 +27,14 @@ async def season_file_handler(ctx,season,clans):
             current_season = s_json['current']
 
     if season != current_season:
-
         update_season = True
 
         for c in clans:
-            if c.war_state == "inWar":
+            if c.current_war.state == "inWar":
                 update_season = False
 
-            if c.raid_weekend_state == "ongoing":
+            if c.current_raid_weekend.state == "ongoing":
                 update_season = False
-
 
         if update_season:
             is_new_season = True
@@ -60,19 +58,14 @@ async def season_file_handler(ctx,season,clans):
                     with open(ctx.bot.clash_dir_path+'/members.json','w+') as file:
                         json.dump({},file,indent=2)
 
-                    shutil.copy2(ctx.bot.clash_dir_path+'/warlog.json',new_path)
-                    with open(ctx.bot.clash_dir_path+'/warlog.json','w+') as file:
-                        json.dump({},file,indent=2)
-
-                    shutil.copy2(ctx.bot.clash_dir_path+'/capitalraid.json',new_path)
-                    with open(ctx.bot.clash_dir_path+'/capitalraid.json','w+') as file:
-                        json.dump({},file,indent=2)
-
     return is_new_season, current_season, new_season
 
 
-async def alliance_file_handler(ctx,entry_type,tag,new_data=None):
-    alliance_file = ctx.bot.clash_dir_path+'/alliance.json'
+async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
+    if season:
+        alliance_file = ctx.bot.clash_dir_path+'/' + season + '/alliance.json'
+    else:
+        alliance_file = ctx.bot.clash_dir_path+'/alliance.json'
 
     if new_data:
         async with ctx.bot.async_file_lock:
@@ -88,7 +81,10 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None):
             with open(alliance_file,'r') as file:
                 file_json = json.load(file)
     try:
-        rJson = file_json[entry_type][tag]
+        if tag == "**":
+            rJson = file_json[entry_type]
+        else:
+            rJson = file_json[entry_type][tag]
     except KeyError:
         rJson = {}
     return rJson
@@ -102,7 +98,7 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
         'members':'members.json',
         'warlog':'warlog.json',
         'capitalraid':'capitalraid.json',
-        'clangames':'clangames.json'
+        'challengepass':'challengepass.json'
         }
     if season:
         file_path = ctx.bot.clash_dir_path + '/' + season + '/' + file_name[file]

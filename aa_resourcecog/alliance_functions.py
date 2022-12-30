@@ -4,8 +4,9 @@ import pytz
 from datetime import datetime
 
 from .constants import clanRanks
-from .player import aPlayer
-from .clan import aClan
+from .player import aPlayer, aClan, aMember
+from .clan_war import aClanWar
+from .raid_weekend import aRaidWeekend
 from .errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 
@@ -23,7 +24,7 @@ async def get_user_profile(ctx,user_id):
         user_accounts = []
         for tag in member_accounts:
             try:
-                p = await aPlayer.create(ctx,tag)
+                p = await aPlayer.create(ctx,tag=tag)
             except Exception as e:
                 await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for Player Tag {tag}.",
@@ -66,7 +67,7 @@ async def get_alliance_clan(ctx,abbreviation=None):
         ret_clans = []
         for tag in select_clan:
             try:
-                clan = await aClan.create(ctx,tag)
+                clan = await aClan.create(ctx,tag=tag)
                 ret_clans.append(clan)
             except Exception as e:
                 await error_end_processing(ctx,
@@ -93,7 +94,7 @@ async def get_clan_members(ctx,clan=None):
     ret_members = []
     for tag in clan_members:
         try:
-            p = await aPlayer.create(ctx,tag)
+            p = await aPlayer.create(ctx,tag=tag)
         except Exception as e:
             await error_end_processing(ctx,
                 preamble=f"Error encountered while retrieving data for Player Tag {tag}.",

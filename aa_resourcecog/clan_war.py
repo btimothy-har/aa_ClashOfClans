@@ -1,210 +1,255 @@
 import time
 
 from .constants import warTypeGrid, warResultOngoing, warResultEnded
+from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
 from .notes import aNote
 
 class aClanWar():
-    def __init__(self,ctx):
-        self.timestamp = time.time()
-        self.ctx = ctx
-        self.wID = ''
+    def __init__(self,**kwargs):
 
-        self.w = None
-        self.type = ''
-        self.state = ''
-        self.result = ''
-        self.size = 0
-        self.attacks_per_member = 0
-        self.start_time = 0
-        self.end_time = 0
+        json_data = kwargs.get('json',None)
+        game_data = kwargs.get('game',None)
+        clan = kwargs.get('clan',None)
 
-        self.clan = None
-        self.opponent = None
+        if json_data:
+            self.type = json_data['type']
+            self.state = json_data['state']
+            self.preparation_start_time = json_data.get('preparation_start_time',0)
+            self.start_time = json_data['start_time']
+            self.end_time = json_data['end_time']
+
+            self.result = json_data['result']
+            if time.time() > self.end_time:
+                self.result = warResultEnded[self.result]
+            else:
+                self.result = warResultOngoing[self.result]
+
+            self.team_size = json_data.get('team_size',json_data.get('size',0))
+            self.attacks_per_member = json_data.get('attacks_per_member',0)
+
+            self.war_tag = json_data.get('war_tag',None)
+            self.league_group = json_data.get('league_group',None)
+
+            clan_1 = aWarClan(self,json=json_data.get('clan_1'),json_data.get('clan',{}))
+            clan_2 = aWarClan(self,json=json_data.get('clan_2'),json_data.get('opponent',{}))
+
+            if clan and clan.tag == clan_2.tag:
+                self.clan = clan_2
+                self.opponent = clan_1
+            else:
+                self.clan = clan_1
+                self.opponent = clan_2
+
+            self.attacks = []
+            self.members = []
+
+            try:
+                json_attacks = json_data['attacks']
+                json_members = json_data['members']
+            except:
+                for mem_json in json_data['clan']['members']:
+                    member = aWarPlayer(self,json=mem_json,clan_tag=json_data['clan']['tag'])
+                    self.members.append(member)
+
+                    for att in mem_json['attacks']:
+                        attack = aWarAttack(self,json_data=att)
+                        self.attacks.append(attack)
+                    for deff in mem_json['defenses']:
+                        attack = aWarAttack(self,json_data=deff)
+                        self.attacks.append(attack)
+
+                for mem_json in json_data['opponent']['members']:
+                    member = aWarPlayer(self,json=mem_json,clan_tag=json_data['opponent']['tag'])
+                    self.members.append(member)
+            else:
+                self.attacks = [aWarAttack(self,json_data=attack) for attack in json_attacks]
+                self.members = [aWarPlayer(self,json=member) for member in json_members]
+
+        if game_data:
+            data = game_data
+            self.type = data.type
+            self.state = data.state
+            self.preparation_start_time = data.preparation_start_time.time.timestamp()
+            self.start_time = data.start_time.time.timestamp()
+            self.end_time = data.end_time.time.timestamp()
+            self.result = data.status
+
+            self.team_size = data.team_size
+            self.attacks_per_member = data.attacks_per_member
+
+            self.war_tag = data.war_tag
+            self.league_group = data.league_group
+
+            self.clan = aWarClan(self,data=data.clan)
+            self.opponent = aWarClan(self,data=data.opponent)
+
+            self.attacks = [aWarAttack(self,data=att) for att in data.attacks]
+            self.members = [aWarPlayer(self,data=mem) for mem in data.members]
+
+        tag_id = self.clan.tag + self.opponent.tag
+        tag_id = tag_id.replace('#','')
+        tag_id = ''.join(sorted(tag_id))
+
+        self.war_id = tag_id + f"{str(int(self.start_time))}"
+
+        self.attacks = sorted(self.attacks, key=lambda x: x.order)
+        self.members = sorted(self.members, key=lambda x:(x.map_position,(x.town_hall*-1)))
+        [a.compute_attack_stats() for a in self.attacks]
+        [m.compute_war_performance() for m in self.members]
+
+        self.clan.get_members()
+        self.clan.get_attacks()
+        self.opponent.get_members()
+        self.opponent.get_attacks()
 
     @classmethod
-    def from_json(cls,ctx,wID,json_data):
-        self = aClanWar(ctx)
-        self.wID = wID
+    async def get(cls,ctx,**kwargs):
+        clan = kwargs.get('clan',None)
+        json_data = kwargs.get('json',None)
+        war_id = kwargs.get('war_id',0)
 
-        self.type = json_data['type']
-        self.state = json_data['state']
+        if war_id:
+            json_data = await data_file_handler(
+                ctx=ctx,
+                file='warlog',
+                tag=war_id)
 
-        self.result = json_data['result']
-
-        self.size = json_data['size']
-        self.attacks_per_member = json_data['attacks_per_member']
-        self.start_time = json_data['start_time']
-        self.end_time = json_data['end_time']
-
-        if self.timestamp > self.end_time:
-            self.result = warResultEnded[self.result]
+        if json_data:
+            self = aClanWar(clan=clan,json=json_data)
+        elif clan:
+            war = await ctx.bot.coc_client.get_clan_war(clan.tag)
+            if war.state == 'notInWar':
+                return None
+            self = aClanWar(clan=clan,game=war)
         else:
-            self.result = warResultOngoing[self.result]
-
-        self.clan = aWarClan.from_json(war=self,json_data=json_data['clan'],is_opponent=False)
-        self.opponent = aWarClan.from_json(war=self,json_data=json_data['opponent'],is_opponent=True)
-
-        if self.timestamp > self.end_time:
-            self.state = 'warEnded'
+            return None
 
         return self
 
-    @classmethod
-    def from_game(cls,ctx,game_data):
-        self = aClanWar(ctx)
-        self.w = game_data
-
-        self.type = warTypeGrid[self.w.type]
-        self.state = self.w.state
-        self.result = self.w.status
-        self.size = self.w.team_size
-        self.attacks_per_member = self.w.attacks_per_member
-        self.start_time = self.w.start_time.time.timestamp()
-        self.end_time = self.w.end_time.time.timestamp()
-        self.wID = str(self.start_time)
-
-        if self.timestamp > self.end_time:
-            self.result = warResultEnded[self.result]
-        else:
-            self.result = warResultOngoing[self.result]
-
-        self.clan = aWarClan.from_game(war=self,game_data=self.w.clan,is_opponent=False)
-        self.opponent = aWarClan.from_game(war=self,game_data=self.w.opponent,is_opponent=True)
-
-        return self
-
-    def to_json(self):
+    async def save_to_json(self,ctx):
         wJson = {
-            'type': self.type,
+            'type': self.war_type,
             'state': self.state,
-            'result': self.result,
-            'size': self.size,
-            'attacks_per_member': self.attacks_per_member,
+            'preparation_start_time': self.preparation_start_time,
             'start_time': self.start_time,
             'end_time': self.end_time,
-            'clan': self.clan.to_json(),
-            'opponent':self.opponent.to_json(),
+            'result': self.result,
+            'clan_1': self.clan.to_json(),
+            'clan_2': self.opponent.to_json(),
+            'team_size': self.team_size,
+            'attacks_per_member': self.attacks_per_member,
+            'war_tag': self.war_tag,
+            'league_group': self.league_group,
+            'members': [m.to_json() for m in self.members],
+            'attacks': [a.to_json() for a in self.attacks]
             }
-        return self.wID, wJson
+
+        await data_file_handler(
+            ctx=ctx,
+            file='warlog',
+            tag=self.war_id,
+            new_data=wJson)
 
 class aWarClan():
-    def __init__(self,war):
+    def __init__(self,war,**kwargs):
         self.war = war
-        self.c = None
 
-        self.tag = ''
-        self.name = ''
-        self.is_opponent = False
+        json_data = kwargs.get('json',None)
+        game_data = kwargs.get('data',None)
 
-        self.total_attacks = 0
-        self.missed_attacks = 0
-        self.stars = 0
-        self.destruction = 0
-        self.average_attack_duration = 0
-        self.triples = 0
+        if json_data:
+            self.tag = json_data['tag']
+            self.name = json_data['name']
+            self.badge = json_data.get('badge',None)
+            self.level = json_data.get('level',None)
+            self.stars = json_data['stars']
+            self.destruction = json_data['destruction']
+            self.average_attack_duration = json_data['average_attack_duration']
+            self.attacks_used = json_data.get('attacks_used',json_data['total_attacks'])
+
+        if game_data:
+            self.tag = game_data.tag
+            self.name = game_data.name
+            self.badge = game_data.badge.url
+            self.level = game_data.level
+            self.stars = game_data.stars
+            self.destruction = game_data.destruction
+            self.average_attack_duration = game_data.average_attack_duration
+            self.attacks_used = game_data.attacks_used
+
+        self.max_stars = self.war.team_size * self.war.attacks_per_member
 
         self.members = []
+        self.attacks = []
+        self.defenses = []
 
-    @classmethod
-    def from_json(cls,war,json_data,is_opponent:bool):
-        self = aWarClan(war)
-        self.war = war
+    def get_members(self):
+        self.members = [m for m in self.war.members if m.clan_tag == self.tag]
 
-        self.tag = json_data['tag']
-        self.name = json_data['name']
-        self.is_opponent = is_opponent
-
-        self.total_attacks = json_data['total_attacks']
-        self.missed_attacks = (self.war.attacks_per_member * self.war.size) - self.total_attacks
-        self.stars = json_data['stars']
-        self.destruction = json_data['destruction']
-        self.average_attack_duration = json_data['average_attack_duration']
-        self.triples = json_data['triples']
-
-        self.members = [aWarPlayer.from_json(clan=self,json_data=m) for m in json_data['members']]
-        return self
-
-    @classmethod
-    def from_game(cls,war,game_data,is_opponent:bool):
-        self = aWarClan(war)
-        self.c = game_data
-
-        self.tag = self.c.tag
-        self.name = self.c.name
-        self.is_opponent = is_opponent
-        
-        self.total_attacks = self.c.attacks_used
-        self.missed_attacks = (self.war.attacks_per_member * self.war.size) - self.total_attacks
-        self.stars = self.c.stars
-        self.destruction = self.c.destruction
-        self.average_attack_duration = self.c.average_attack_duration
-        self.triples = len([a for a in self.c.attacks if a.stars==3 and a.attacker.town_hall <= a.defender.town_hall])
-
-        self.members = [aWarPlayer.from_game(clan=self,game_data=m) for m in self.c.members]
-        return self
+    def get_attacks(self):
+        self.attacks = [a for a in self.war.attacks if a.attacker_tag in [m.tag for m in self.members]]
+        self.defenses = [a for a in self.war.attacks if a.defender_tag in [m.tag for m in self.members]]
 
     def to_json(self):
         clanJson = {
             'tag': self.tag,
             'name': self.name,
-            'total_attacks': self.total_attacks,
-            'missed_attacks': self.missed_attacks,
+            'badge': self.badge,
+            'level': self.level,
             'stars': self.stars,
             'destruction': self.destruction,
             'average_attack_duration': self.average_attack_duration,
-            'triples': self.triples,
-            'members': [m.to_json() for m in self.members],
+            'attacks_used': self.attacks_used
             }
         return clanJson
 
 class aWarPlayer():
-    def __init__(self,clan):
-        self.clan = clan
-        self.p = None
-        
-        self.is_opponent = self.clan.is_opponent
+    def __init__(self,war,**kwargs):
+        json_data = kwargs.get('json',None)
+        game_data = kwargs.get('data',None)
+        clan_tag = kwargs.get('clan_tag',None)
 
-        self.tag = ''
-        self.name = ''
-        self.town_hall = 1
-        self.map_position = 0
+        self.war = war
+
+        if json_data:
+            self.tag = json_data['tag']
+            self.name = json_data['name']
+            self.town_hall = json_data['town_hall']
+            self.map_position = json_data['map_position']
+
+            self.clan_tag = json_data.get('clan_tag',clan_tag)
+
+        if game_data:
+            self.tag = game_data.tag
+            self.name = game_data.name
+            self.town_hall = game_data.town_hall
+            self.map_position = game_data.map_position
+            self.clan_tag = game_data.clan.tag
+
+        if self.clan_tag == self.war.clan.tag:
+            self.is_opponent = False
+            self.clan = self.war.clan
+        else:
+            self.is_opponent = True
+            self.clan = self.war.opponent
+
+        self.attacks = [att for att in self.war.attacks if att.attacker_tag == self.tag]
+        self.defenses = [att for att in self.war.attacks if att.defender_tag == self.tag]
+
+        self.unused_attacks = self.war.attacks_per_member - len(self.attacks)
+        self.defense_count = len(self.defenses)
+
+        self.star_count = 0
         self.best_opponent_attack = None
-        self.attacks = []
-        self.defenses = []
 
-    @classmethod
-    def from_json(cls,clan,json_data):
-        self = aWarPlayer(clan)
+    def compute_war_performance(self):
+        best_defenses = sorted(self.defenses,key=lambda x:(x.order),reverse=True)
+        for d in best_defenses:
+            if d.new_stars > 0 or d.new_destruction > 0:
+                self.best_opponent_attack = d
+                break
 
-        self.tag = json_data['tag']
-        self.name = json_data['name']
-        self.town_hall = json_data['town_hall']
-        self.map_position = json_data['map_position']
-
-        self.best_opponent_attack = aWarAttack.from_json(war_id=self.clan.war.wID,json_data=json_data.get('best_opponent_attack',None))
-
-        #only build attacks and defenses for own clan
-        if not self.is_opponent:
-            self.attacks = [aWarAttack.from_json(war_id=self.clan.war.wID,json_data=a) for a in json_data['attacks']]
-            self.defenses = [aWarAttack.from_json(war_id=self.clan.war.wID,json_data=a) for a in json_data['defenses']]
-        return self
-
-    @classmethod
-    def from_game(cls,clan,game_data):
-        self = aWarPlayer(clan)
-        self.p = game_data
-
-        self.tag = self.p.tag
-        self.name = self.p.name
-        self.town_hall = self.p.town_hall
-        self.map_position = self.p.map_position
-
-        self.best_opponent_attack = aWarAttack.from_game(war_id=self.clan.war.wID, game_data=self.p.best_opponent_attack)
-
-        if not self.is_opponent:
-            self.attacks = [aWarAttack.from_game(war_id=self.clan.war.wID, game_data=a) for a in self.p.attacks]
-            self.defenses = [aWarAttack.from_game(war_id=self.clan.war.wID, game_data=a) for a in self.p.defenses]
-        return self
+        self.star_count = sum([a.new_stars for a in self.attacks])
 
     def to_json(self):
         playerJson = {
@@ -212,85 +257,91 @@ class aWarPlayer():
             'name': self.name,
             'town_hall': self.town_hall,
             'map_position': self.map_position,
-            'best_opponent_attack': self.best_opponent_attack.to_json(),
-            'attacks': [a.to_json() for a in self.attacks],
-            'defenses': [d.to_json() for d in self.defenses]
+            'clan_tag': self.clan_tag
             }
         return playerJson
 
 class aWarAttack():
-    def __init__(self,war_id):
-        self.wID = war_id
-        self.a = None
+    def __init__(self,war,**kwargs):
+        json_data = kwargs.get('json',None)
+        game_data = kwargs.get('data',None)
 
-        self.order = None
-        self.attacker = ''
-        self.attacker_townhall = 0
-        self.attacker_position = 0
-        self.defender = ''
-        self.defender_townhall = 0
-        self.defender_position = 0
-        self.stars = 0
-        self.destruction = 0
-        self.duration = 0
-        self.is_triple = False
-        self.is_fresh_hit = False
+        self.war = war
 
-    @classmethod
-    def from_json(cls,war_id,json_data=None):
-        self = aWarAttack(war_id)
         if json_data:
-            self.order = json_data['order']
-            self.attacker = json_data['attacker']
-            self.attacker_townhall = json_data.get('attacker_th',1)
-            self.attacker_position = json_data.get('attacker_pos',0)
-            self.defender = json_data['defender']
-            self.defender_townhall = json_data.get('defender_th',1)
-            self.defender_position = json_data.get('defender_pos',0)
+            self.order = json_data.get('order',None)
+            self.attacker_tag = json_data.get('attacker_tag',json_data['attacker'])
+            self.defender_tag = json_data.get('defender_tag',json_data['defender'])
+
             self.stars = json_data['stars']
             self.destruction = json_data['destruction']
             self.duration = json_data['duration']
-            self.is_triple = json_data['is_triple']
-            self.is_fresh_hit = json_data['is_fresh_hit']
-        return self
 
-    @classmethod
-    def from_game(cls,war_id,game_data=None):
-        self = aWarAttack(war_id)
-        self.a = game_data
+            self.new_stars = json_data.get('new_stars',0)
+            self.new_destruction = json_data.get('new_destruction',0)
+
+            self.is_fresh_attack = json_data.get('is_fresh_attack',json_data['is_fresh_hit'])
+            self.is_triple = json_data.get('is_triple',False)
+            self.is_best_attack = json_data.get('is_best_attack',False)
 
         if game_data:
+            self.order = game_data.order
+            self.attacker_tag = game_data.attacker_tag
+            self.defender_tag = game_data.defender_tag
 
-            self.order = self.a.order
-            self.attacker = self.a.attacker_tag
-            self.attacker_townhall = self.a.attacker.town_hall
-            self.attacker_position = self.a.attacker.map_position
-            self.defender = self.a.defender_tag
-            self.defender_townhall = self.a.defender.town_hall
-            self.defender_position = self.a.defender.map_position
-            self.stars = self.a.stars
-            self.destruction = self.a.destruction
-            self.duration = self.a.duration
-            self.is_triple = (self.a.stars==3 and self.a.attacker.town_hall <= self.a.defender.town_hall)
-            self.is_fresh_hit = self.a.is_fresh_attack
-        return self
+            self.stars = game_data.stars
+            self.destruction = game_data.destruction
+            self.duration = game_data.duration
+
+            self.new_stars = 0
+            self.new_destruction = 0
+
+            self.is_fresh_attack = game_data.is_fresh_attack
+            self.is_triple = False
+            self.is_best_attack = False
+
+        self.attacker = None
+        self.defender = None
+
+
+    def compute_attack_stats(self):
+        self.attacker = [player for player in self.war.members if player.tag == self.attacker_tag][0]
+        self.defender = [player for player in self.war.members if player.tag == self.defender_tag][0]
+        self.is_triple = (self.stars==3 and self.attacker.town_hall <= self.defender.town_hall)
+
+        all_attacks = [att for att in self.war.attacks if att.defender_tag == self.defender_tag]
+
+        base_stars = 0
+        base_destruction = 0
+        is_best_attack = False
+
+        for att in [att for att in self.war.attacks if att.order < self.order]:
+            if att.stars > base_stars:
+                base_stars = att.stars
+            if att.destruction > base_destruction:
+                base_destruction = att.destruction
+
+        self.new_stars = max(0,self.stars - base_stars)
+        self.new_destruction = max(0,self.destruction - base_destruction)
+
+        if is_best_attack:
+            self.is_best_attack = True
 
     def to_json(self):
         if self.order:
             attackJson = {
-                'warID': self.wID,
+                'warID': self.war.war_id,
                 'order': self.order,
-                'attacker': self.attacker,
-                'attacker_th': self.attacker_townhall,
-                'attacker_pos': self.attacker_position,
-                'defender': self.defender,
-                'defender_th': self.defender_townhall,
-                'defender_pos': self.defender_position,
                 'stars': self.stars,
+                'new_stars': self.new_stars,
                 'destruction': self.destruction,
+                'new_destruction': self.new_destruction
                 'duration': self.duration,
+                'attacker_tag': self.attacker_tag,
+                'defender_tag': self.defender_tag,
+                'is_fresh_attack': self.is_fresh_attack,
                 'is_triple': self.is_triple,
-                'is_fresh_hit': self.is_fresh_hit
+                'is_best_attack': self.is_best_attack
                 }
             return attackJson
         else:

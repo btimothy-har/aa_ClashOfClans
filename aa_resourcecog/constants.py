@@ -396,3 +396,24 @@ xp_rank_roles = [
     1009367512485478471,
     1009367179520643112
     ]
+
+donationsAchievement = {
+    'any': 'Friend in Need',
+    'spells': 'Sharing is caring',
+    'siege_machines': 'Siege Sharer'
+    }
+
+destroyTargetAchievement = {
+    'Builder Huts': 'Union Buster',
+    'Mortars': 'Mortar Mauler',
+    'Walls': 'Wall Buster',
+    'Townhalls': 'Humiliator',
+    'X-Bows': 'X-Bow Exterminator',
+    'Inferno Towers': 'Firefighter',
+    'Eagle Artilleries': 'Anti-Artillery',
+    'Scattershots': 'Shattered and Scattered',
+    'Weaponized Townhalls': 'Not So Easy This Time',
+    'Weaponized Builder Huts': 'Bust This!',
+    'Spell Towers': 'Counterspell',
+    'Monoliths': 'Monolith Masher'
+    }
