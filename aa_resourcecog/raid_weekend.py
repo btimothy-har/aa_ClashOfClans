@@ -77,6 +77,8 @@ class aRaidWeekend():
             self = aRaidWeekend(clan=clan,json=json_data)
         elif clan:
             raidloggen = await ctx.bot.coc_client.get_raidlog(clan_tag=clan.tag,page=False,limit=1)
+            if len(raidloggen) == 0:
+                return None
             self = aRaidWeekend(clan=clan,game=raidloggen[0])
         else:
             return None
