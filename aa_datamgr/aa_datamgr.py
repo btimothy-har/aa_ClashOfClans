@@ -262,8 +262,8 @@ class AriXClashDataMgr(commands.Cog):
             embed.add_field(
                 name="__Data Update Performance__",
                 value=f"> **Jobs Completed**: {ctx.bot.refresh_loop}"
-                    + f"\n> **Clan Update Runtime: Average {clan_update_average} seconds"
-                    + f"\n> **Member Update Runtime: Average {member_update_average} seconds",
+                    + f"\n> **Clan Update Runtime**: avg {clan_update_average} seconds"
+                    + f"\n> **Member Update Runtime**: avg {member_update_average} seconds",
                 inline=False)
 
             await ctx.send(embed=embed)

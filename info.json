@@ -2,5 +2,5 @@
     "author": ["AriX Alliance | Clash of Clans"],
     "description": "Multi-cog framework for the AriX Alliance, built on Discord Red Bot.",
     "install_msg": "Welcome to AriX!\nThe AriX Clash system is made out of 3 separate cogs, and they must be loaded in the following order:```1) aa_datamgr\n2) aa_leadercog\n3) aa_membercog```Cogs #2 and #3 are optional but recommended.",
-    "short": "AriX_ClashOfClans",
+    "short": "AriX_ClashOfClans"
 }
