@@ -41,12 +41,12 @@ class aRaidWeekend():
             if 'offensive_reward' in list(json_data.keys()):
                 self.offensive_reward = json_data['offensive_reward']
             else:
-                self.offensive_reward = json_data.['offense_rewards']
+                self.offensive_reward = json_data['offense_rewards']
 
             if 'defensive_reward' in list(json_data.keys()):
                 self.defensive_reward = json_data['defensive_reward']
             else:
-                self.defensive_reward = json_data.['defense_rewards']
+                self.defensive_reward = json_data['defense_rewards']
 
             self.attack_log = [aRaidClan(self,json=attack) for attack in json_data['attack_log']]
             self.defense_log = [aRaidClan(self,json=attack) for attack in json_data['defense_log']]
