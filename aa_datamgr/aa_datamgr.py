@@ -35,7 +35,7 @@ from aa_resourcecog.errors import TerminateProcessing, InvalidTag
 class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
 
-    def __init__(self):
+    def __init__(self,bot):
         self.bot = bot
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {

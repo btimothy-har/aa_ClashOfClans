@@ -13,7 +13,7 @@ from redbot.core.bot import Red
 from .aa_datamgr import AriXClashDataMgr
 
 async def setup(bot:Red):
-    cog = AriXClashDataMgr()
+    cog = AriXClashDataMgr(bot)
     bot.refresh_loop = 0
     bot.add_cog(cog)
     await cog.initialize_config(bot)
