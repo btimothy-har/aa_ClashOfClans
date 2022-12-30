@@ -3,7 +3,7 @@ from .discordutils import clash_embed
 class TerminateProcessing(Exception):
     """Raise this exception when processing should be terminated."""
     def __init__(self, exc):
-        self.message = exc.message
+        self.message = exc
         super().__init__(self.message)
 
     def __str__(self):
