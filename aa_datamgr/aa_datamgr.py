@@ -202,10 +202,11 @@ class AriXClashDataMgr(commands.Cog):
 
         for (tag,member) in file_json.items():
 
-            await ctx.send(list(member.keys()))
+            if 'attack_wins' in list(member.keys()):
+                member['attacks'] = member['attack_wins']
 
-            member['attacks'] = member['attack_wins']
-            member['defenses'] = member['defense_wins']
+            if 'defense_wins' in list(member.keys()):
+                member['defenses'] = member['defense_wins']
 
             warlog = member['war_log']
             if isinstance(warlog,dict):
