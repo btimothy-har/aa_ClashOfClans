@@ -656,8 +656,12 @@ class aTownHall():
 
 class aPlayerStat():
     def __init__(self,inputJson):
-        self.season = inputJson.get('season',0)
-        self.lastupdate = inputJson.get('lastUpdate',0)
+        self.season = 0
+        self.lastupdate = 0
+
+        if inputJson:
+            self.season = inputJson['season']
+            self.lastupdate = inputJson['lastUpdate']
 
         if self.lastupdate >= 2000000000:
             self.statdisplay = 'max'

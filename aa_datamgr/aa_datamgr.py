@@ -178,8 +178,8 @@ class AriXClashDataMgr(commands.Cog):
             entry_type='members',
             tag="**")
 
-        for tag in list(alliance_clans_json.keys()):
-            await aClan.create(ctx,tag=tag)
+        #for tag in list(alliance_clans_json.keys()):
+        #    await aClan.create(ctx,tag=tag)
 
         #for tag in list(member_json.keys()):
         a = await aPlayer.create(ctx,tag='#LJC8V0GCJ')
