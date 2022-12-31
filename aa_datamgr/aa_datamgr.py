@@ -131,7 +131,7 @@ class AriXClashDataMgr(commands.Cog):
 
         bot.current_season = s_json['current']
         bot.tracked_seasons = s_json['tracked']
-
+d
 
     @commands.command(name="nstart")
     @commands.is_owner()
@@ -151,6 +151,10 @@ class AriXClashDataMgr(commands.Cog):
             with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
                 a_json = json.load(file)
 
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(ctx.bot.clash_dir_path+'/members.json','r') as file:
+                m_json = json.load(file)
+
         ctx.bot.current_season = s_json['current']
         ctx.bot.tracked_seasons = s_json['tracked']
 
@@ -159,7 +163,7 @@ class AriXClashDataMgr(commands.Cog):
             await aClan.create(ctx,tag=tag,json=clan)
 
         for (tag,member) in a_json['members'].items():
-            a = await aPlayer.create(ctx,tag=tag,a_json=member)
+            a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
 
         ctx.bot.refresh_loop = 0
 
