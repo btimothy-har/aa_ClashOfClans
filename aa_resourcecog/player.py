@@ -622,7 +622,7 @@ class aPlayerSeason():
             self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
 
             self.warlogkeys = stats['war_log']
-            await debug.send(self.warlogkeys)
+            await debug.send(f"wl {self.warlogkeys}")
             for war_id in self.warlogkeys:
                 await debug.send(f"..{war_id}")
                 war = await aClanWar.get(ctx,war_id=war_id)
@@ -630,6 +630,7 @@ class aPlayerSeason():
                 await debug.send(f"..{war}")
 
             self.raidlogkeys = stats['raid_log']
+            await debug.send(f"rl {self.raidlogkeys}")
             for raid_id in self.raidlogkeys:
                 raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
                 self.raidlog[raid_id] = raid
