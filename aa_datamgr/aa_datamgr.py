@@ -257,7 +257,7 @@ class AriXClashDataMgr(commands.Cog):
 
         for (tag,member) in file_json.items():
             new_warlog = []
-            for (war_id,war) in member['war_log']:
+            for (war_id,war) in member['war_log'].items():
 
                 tag_id = war['clan']['tag'] + war['opponent']['tag']
                 tag_id = tag_id.replace('#','')
@@ -267,7 +267,7 @@ class AriXClashDataMgr(commands.Cog):
                 new_warlog.append(new_id)
 
             new_raidlog = []
-            for (raid_id,raid) in member['raid_log']:
+            for (raid_id,raid) in member['raid_log'].items():
 
                 tag_id = raid['clan_tag']
                 tag_id = tag_id.replace('#','')
