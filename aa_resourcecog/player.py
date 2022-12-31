@@ -765,7 +765,10 @@ class aHero():
         except:
             self.level = 0
 
-        self.village = data.village
+        try:
+            self.village = data.village
+        except:
+            self.village = "home"
 
         maxlevel_for_townhall = data.get_max_level_for_townhall(max(townhall_level,3))
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
@@ -774,7 +777,7 @@ class aHero():
             minlevel_for_townhall = data.get_max_level_for_townhall(max(townhall_level-1,3))
             self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
         except:
-            self.minlevel_for_townhall = 0
+            self.minlevel_for_townhall =% 0
 
         if is_unlocked_at_this_level:
             self.minlevel_for_townhall = 0
@@ -783,17 +786,6 @@ class aHero():
             self.is_rushed = True
         else:
             self.is_rushed = False
-
-    def to_json(self):
-        hJson = {
-            'id': self.id,
-            'name': self.name,
-            'level': self.level,
-            'village': self.village,
-            'maxlevel_for_townhall': self.maxlevel_for_townhall,
-            'minlevel_for_townhall': self.minlevel_for_townhall
-            }
-        return hJson
 
 class aHeroPet():
     def __init__(self,data=None,minimum_level=None):
