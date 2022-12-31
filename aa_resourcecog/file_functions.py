@@ -65,7 +65,12 @@ async def data_file_handler(ctx,action:str,file:str,tag:str,new_data=None,season
     else:
         file_path = ctx.bot.clash_dir_path + '/' + file_name[file]
 
+
+    ch = ctx.bot.get_channel(856433806142734346)
+
     if action == 'write' and new_data:
+        await ch.send('write')
+
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
                 with open(file_path,'r+') as file:
@@ -76,6 +81,7 @@ async def data_file_handler(ctx,action:str,file:str,tag:str,new_data=None,season
                     file.truncate()
 
     elif action == 'read':
+        await ch.send('read')
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)
