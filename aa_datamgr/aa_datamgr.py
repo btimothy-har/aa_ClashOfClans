@@ -236,14 +236,14 @@ class AriXClashDataMgr(commands.Cog):
 
             await c.save_to_json(ctx)
 
-        await ctx.send('members now')
-
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
                 with open(file_path,'r+') as file:
                     file.seek(0)
                     json.dump(new_raidlog,file,indent=2)
                     file.truncate()
+
+        await ctx.send('members now')
 
         file_path = ctx.bot.clash_dir_path + '/' + 'members.json'
         with ctx.bot.clash_file_lock.read_lock():
@@ -281,6 +281,8 @@ class AriXClashDataMgr(commands.Cog):
                     file.seek(0)
                     json.dump(file_json,file,indent=2)
                     file.truncate()
+
+        await ctx.send('all done')
 
     @commands.command(name="drefresh")
     @commands.is_owner()
