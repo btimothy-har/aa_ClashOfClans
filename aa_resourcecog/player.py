@@ -204,7 +204,8 @@ class aPlayer(coc.Player):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
-        json_input = kwargs.get('json',None)
+        alli_json_input = kwargs.get('a_json',None)
+        stats_json_input = kwargs.get('s_json',None)
         cached_data = None
 
         tag = coc.utils.correct_tag(tag)
@@ -280,10 +281,13 @@ class aPlayer(coc.Player):
                     if self.tag in [m.tag for m in check_raid.members]:
                         self.current_raid_weekend = check_raid
 
-        member_info = await read_file_handler(ctx,
-            file='alliance',
-            tag=self.tag,
-            atype='members')
+        if alli_json_input:
+            member_info = alli_json_input
+        else:
+            member_info = await read_file_handler(ctx,
+                file='alliance',
+                tag=self.tag,
+                atype='members')
 
         #From AriX Data File
         if member_info:
@@ -316,12 +320,12 @@ class aPlayer(coc.Player):
             notes = [aNote.from_json(ctx,n) for n in member_info.get('notes',[])]
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-        if not json_input:
+        if not stats_json_input:
             member_stats = await read_file_handler(ctx,
                 file='members',
                 tag=self.tag)
         else:
-            member_stats = json_input
+            member_stats = stats_json_input
 
         if member_stats:
             self.last_update = member_stats['last_update']
@@ -1058,6 +1062,7 @@ class aClan(coc.Clan):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
+        json_data = kwargs.get('json',None)
         conv = kwargs.get('conv',False)
         cached_data = None
 
@@ -1094,10 +1099,13 @@ class aClan(coc.Clan):
         #add to cache
         ctx.bot.clan_cache[tag] = self
 
-        clanInfo = await read_file_handler(ctx=ctx,
-            file='alliance',
-            tag=self.tag,
-            atype='clans')
+        if not json_data:
+            clanInfo = await read_file_handler(ctx=ctx,
+                file='alliance',
+                tag=self.tag,
+                atype='clans')
+        else:
+            clanInfo = json_data
 
         self.current_war = await aClanWar.get(ctx,clan=self)
         self.current_raid_weekend = await aRaidWeekend.get(ctx,clan=self)
@@ -1138,9 +1146,9 @@ class aClan(coc.Clan):
             self.war_state = clanInfo.get('war_state','')
             self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
 
-        if not conv:
-            self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
-            self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
+            if not conv:
+                self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
+                self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
 
         if self.tag:
             self.desc_title = f"{self.name} ({self.tag})"

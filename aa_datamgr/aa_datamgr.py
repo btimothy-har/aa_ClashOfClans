@@ -158,11 +158,11 @@ class AriXClashDataMgr(commands.Cog):
         ctx.bot.tracked_seasons = s_json['tracked']
 
 
-        for tag in list(a_json['clans'].keys()):
-            await aClan.create(ctx,tag=tag)
+        for (tag,clan) in a_json['clans'].items():
+            await aClan.create(ctx,tag=tag,json=clan)
 
-        for tag in list(a_json['members'].keys()):
-            a = await aPlayer.create(ctx,tag=tag)
+        for (tag,member) in a_json['members'].items():
+            a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
         ctx.bot.refresh_loop = 0
 

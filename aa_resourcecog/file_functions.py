@@ -53,16 +53,16 @@ async def read_file_handler(ctx,file:str,tag:str,**kwargs):
         with open(file_path,'r') as file:
             file_json = json.load(file)
 
-    if file == 'alliance':
-        try:
-            return_data = file_json[atype][tag]
-        except KeyError:
-            return_data = None
-    else:
-        try:
-            return_data = file_json[tag]
-        except KeyError:
-            return_data = None
+            if file == 'alliance':
+                try:
+                    return_data = file_json[atype][tag]
+                except KeyError:
+                    return_data = None
+            else:
+                try:
+                    return_data = file_json[tag]
+                except KeyError:
+                    return_data = None
 
     return return_data
 
@@ -80,17 +80,17 @@ async def write_file_handler(ctx,file:str,tag:str,new_data,**kwargs):
     async with ctx.bot.async_file_lock:
         with ctx.bot.clash_file_lock.write_lock():
             with open(file_path,'r+') as file:
-                    file_json = json.load(file)
-                    if file == 'alliance':
-                        file_json[atype][tag] = new_data
-                        return_data = file_json[atype][tag]
-                    else:
-                        file_json[tag] = new_data
-                        return_data = file_json[tag]
+                file_json = json.load(file)
+                if file == 'alliance':
+                    file_json[atype][tag] = new_data
+                    return_data = file_json[atype][tag]
+                else:
+                    file_json[tag] = new_data
+                    return_data = file_json[tag]
 
-                    file.seek(0)
-                    json.dump(file_json,file,indent=2)
-                    file.truncate()
+                file.seek(0)
+                json.dump(file_json,file,indent=2)
+                file.truncate()
 
     return return_data
 
