@@ -474,8 +474,6 @@ class aPlayer(coc.Player):
 
 
     async def update_warlog(self,ctx):
-        if
-
         if not self.current_war:
             return None
 
