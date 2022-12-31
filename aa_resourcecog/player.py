@@ -721,10 +721,10 @@ class aPlayerClanGames():
         self = aPlayerClanGames(stats=stats,season=season)
 
         if input_json:
-            self.score = inputJson.get('score',0)
-            self.clan = await aClan.create(ctx,tag=inputJson.get('clan',None))
-            self.ending_time = inputJson.get('ending_time',0)
-            self.last_updated = inputJson.get('last_updated',0)
+            self.score = input_json.get('score',0)
+            self.clan = await aClan.create(ctx,tag=input_json.get('clan',None))
+            self.ending_time = input_json.get('ending_time',0)
+            self.last_updated = input_json.get('last_updated',0)
 
         return self
 
