@@ -163,7 +163,7 @@ class aPlayer(coc.Player):
             raise TerminateProcessing(exc) from exc
             return None
 
-        if self.clan:
+        if self.clan.tag:
             try:
                 check_war = await aClanWar.get(ctx,clan=self.clan)
             except:
@@ -372,7 +372,6 @@ class aPlayer(coc.Player):
         return self
 
     async def save_to_json(self,ctx):
-
         warlogkeys = []
         for (war_id, war) in self.current_season.warlog.items():
             if war:
@@ -614,11 +613,13 @@ class aPlayerSeason():
             self.loot_elixir = aPlayerStat(stats['loot_elixir'])
             self.loot_darkelixir = aPlayerStat(stats['loot_darkelixir'])
 
+            await debug.send(f"cg {stats['clangames']}")
             self.clangames = await aPlayerClanGames.create(ctx,
                 stats=self,
-                input_json=stats['clangames'],
+                json=stats['clangames'],
                 season=season)
 
+            await debug.send(f"cap {stats['capitalcontribution']}")
             self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
 
             self.warlogkeys = stats['war_log']
@@ -626,14 +627,17 @@ class aPlayerSeason():
             for war_id in self.warlogkeys:
                 await debug.send(f"..{war_id}")
                 war = await aClanWar.get(ctx,war_id=war_id)
-                self.warlog[war_id] = war
+                if war:
+                    self.warlog[war_id] = war
                 await debug.send(f"..{war}")
 
             self.raidlogkeys = stats['raid_log']
             await debug.send(f"rl {self.raidlogkeys}")
             for raid_id in self.raidlogkeys:
                 raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
-                self.raidlog[raid_id] = raid
+                if raid:
+                    self.raidlog[raid_id] = raid
+                await debug.send(f"..{raid}")
 
             self.war_stats = await aPlayerWarStats.compute(ctx=ctx,
                                                         player=self.player,
