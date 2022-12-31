@@ -601,8 +601,8 @@ class aPlayerSeason():
             self.time_in_home_clan = stats['time_in_home_clan']
             self.other_clans = [await aClan.create(ctx,tag=c) for c in stats['other_clans']]
 
-            await debug.send("attacks" + stats['attacks'])
-            await debug.send("defenses" + stats['defenses'])
+            await debug.send(f"attacks {stats['attacks']}")
+            await debug.send(f"defenses {stats['defenses']}")
 
             self.attacks = aPlayerStat(stats['attacks'])
             self.defenses = aPlayerStat(stats['defenses'])
