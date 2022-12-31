@@ -454,15 +454,17 @@ class aPlayer(coc.Player):
         if not self.current_war:
             return None
 
+        c_war_id = self.current_war.war_id
+
         if self.current_war.state in ['inWar','warEnded']:
             await self.current_war.save_to_json(ctx)
 
             if self.current_war.state in ['warEnded']:
-                if self.current_war.war_id in [wid for (wid,war) in self.current_season.warlog.items()]:
-                    self.current_season.warlog[self.current_war.war_id] = self.current_war
+                if self.current_war.war_id in list(self.current_season.warlog.keys()):
+                    self.current_season.warlog[c_war_id] = self.current_war
 
             else:
-                self.current_season.warlog[self.current_war.war_id] = self.current_war
+                self.current_season.warlog[c_war_id] = self.current_war
         await self.save_to_json(ctx)
 
     async def update_raid_weekend(self,ctx):
@@ -471,12 +473,14 @@ class aPlayer(coc.Player):
 
         await self.current_raid_weekend.save_to_json(ctx)
 
+        c_raid_id = self.current_raid_weekend.raid_id
+
         if self.current_raid_weekend.state in ['ended']:
-            if self.current_raid_weekend.raid_id in [rid for (rid,raid) in self.current_season.raidlog.items()]:
-                self.current_season.raidlog[self.current_raid_weekend.raid_id] = self.current_raid_weekend
+            if self.current_raid_weekend.raid_id in list(self.current_season.raidlog.keys()):
+                self.current_season.raidlog[c_raid_id] = self.current_raid_weekend
 
         else:
-            self.current_season.raidlog[self.current_raid_weekend.raid_id] = self.current_raid_weekend
+            self.current_season.raidlog[c_raid_id] = self.current_raid_weekend
 
         await self.save_to_json(ctx)
 

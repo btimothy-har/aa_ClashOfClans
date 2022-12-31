@@ -212,7 +212,7 @@ async def userprofile_raidlog(ctx,account,message=None):
             + f"\n\u200b"
             )
 
-    raid_id_sort = [rid for rid,raid in a.raidlog.items()]
+    raid_id_sort = [rid for rid,raid in a.current_season.raidlog.items()]
     raid_id_sort.sort(reverse=True)
 
     for rid in raid_id_sort:
