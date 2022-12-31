@@ -192,7 +192,7 @@ class aPlayer(coc.Player):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
-        json = kwargs.get('json',None)
+        json_input = kwargs.get('json',None)
         cached_data = None
 
         tag = coc.utils.correct_tag(tag)
@@ -306,7 +306,7 @@ class aPlayer(coc.Player):
             notes = [aNote.from_json(ctx,n) for n in memberInfo.get('notes',[])]
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-        if not json:
+        if not json_input:
             file_path = ctx.bot.clash_dir_path + '/members1.json'
             with ctx.bot.clash_file_lock.read_lock():
                 with open(file_path,'r') as file:
