@@ -117,44 +117,49 @@ async def userprofile_warlog(ctx,account,message=None):
     warlog_embed = await clash_embed(ctx,
         title=f"**War Log: {a.name} ({a.tag})**",
         message=f"**Stats for: {current_season} Season**"
-            + f"\n<:TotalWars:827845123596746773> `{a.war_stats.wars_participated:^3}`\u3000"
-            + f"<:Triple:1034033279411687434> `{a.war_stats.triples:^3}`\u3000"
-            + f"<:MissedHits:825755234412396575> `{a.war_stats.missed_attacks:^3}`"
-            + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> `{a.war_stats.offense_stars:<3}`\u3000:fire: `{a.war_stats.offense_destruction:>3}%`"
-            + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.war_stats.defense_stars:<3}`\u3000:fire: `{a.war_stats.defense_destruction:>3}%`"
+            + f"\n<:TotalWars:827845123596746773> `{a.current_season.war_stats.wars_participated:^3}`\u3000"
+            + f"<:Triple:1034033279411687434> `{a.current_season.war_stats.triples:^3}`\u3000"
+            + f"<:MissedHits:825755234412396575> `{a.current_season.war_stats.unused_attacks:^3}`"
+            + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> `{a.current_season.war_stats.offense_stars:<3}`\u3000:fire: `{a.current_season.war_stats.offense_destruction:>3}%`"
+            + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.current_season.war_stats.defense_stars:<3}`\u3000:fire: `{a.current_season.war_stats.defense_destruction:>3}%`"
             + f"\n\u200b")
 
-    war_id_sort = [wid for wid,war in a.warlog.items()]
+    war_id_sort = [wid for wid,war in a.current_season.warlog.items()]
     war_id_sort.sort(reverse=True)
 
     for wid in war_id_sort:
-        war = a.warlog[wid]
-        try:
-            wid = float(wid)
-        except:
-            continue
+        war = a.current_season.warlog[wid]
 
         if war.result != '':
             attack_str = ""
-            for att in war.attacks:
-                if war.attacks.index(att) > 0:
-                    attack_str += "\n"
-                attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> `{att.stars:^3}`\u3000:fire: `{att.destruction:>3}%`"
 
-            if len(war.defenses) > 0:
-                if len(war.attacks) > 0:
+            wm = [m for m in war.members if m.tag == a.tag][0]
+            for att in wm.attacks:
+                if wm.attacks.index(att) > 0:
+                    attack_str += "\n"
+                attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker.town_hall]} vs {emotes_townhall[att.defender.town_hall]}\u3000<:WarStars:825756777844178944> `{att.stars:^3}`\u3000:fire: `{att.destruction:>3}%`"
+
+            if len(wm.defenses) > 0:
+                if len(wm.attacks) > 0:
                     attack_str += "\n"
 
-                for defe in war.defenses:
-                    if war.defenses.index(defe) > 0:
+                for defe in wm.defenses:
+                    if wm.defenses.index(defe) > 0:
                         attack_str += "\n"
-                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker_townhall]} vs {emotes_townhall[defe.defender_townhall]}\u3000<:WarStars:825756777844178944> `{defe.stars:^3}`\u3000:fire: `{defe.destruction:>3}%`"
+                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker.town_hall]} vs {emotes_townhall[defe.defender.town_hall]}\u3000<:WarStars:825756777844178944> `{defe.stars:^3}`\u3000:fire: `{defe.destruction:>3}%`"
 
             attack_str += "\n\u200b"
 
+            if wm.is_opponent:
+                war_clan = war.opponent
+                war_opponent = war.clan
+            else:
+                war_clan = war.clan
+                war_opponent = war.opponent
+
             warlog_embed.add_field(
-                name=f"{war.clan.name} vs {war.opponent.name}",
-                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(war.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{war.total_attacks - len(war.attacks):^3}`\u3000<:Defense:828103708956819467> `{len(war.defenses):^3}`"
+                name=f"{war_clan.name} vs {war_opponent.name}",
+                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(wm.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{wm.unused_attacks:^3}`\u3000<:Defense:828103708956819467> `{len(wm.defenses):^3}`"
                     + f"\n{attack_str}",
                 inline=False
                 )
@@ -202,8 +207,8 @@ async def userprofile_raidlog(ctx,account,message=None):
     raidlog_embed = await clash_embed(ctx,
         title=f"**Raid Log: {a.name} ({a.tag})**",
         message=f"**Stats for: {current_season} Season**"
-            + f"\n<:CapitalRaids:1034032234572816384> {a.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.raid_stats.raids_participated * 6) - a.raid_stats.raid_attacks}"
-            + f"\n<:CapitalGoldLooted:1045200974094028821> {a.raid_stats.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned:,}"
+            + f"\n<:CapitalRaids:1034032234572816384> {a.current_season.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.current_season.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.current_season.raid_stats.raids_participated * 6) - a.current_season.raid_stats.raid_attacks}"
+            + f"\n<:CapitalGoldLooted:1045200974094028821> {a.current_season.raid_stats.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {a.current_season.raid_stats.medals_earned:,}"
             + f"\n\u200b"
             )
 
@@ -213,17 +218,14 @@ async def userprofile_raidlog(ctx,account,message=None):
     for rid in raid_id_sort:
         raid = a.raidlog[rid]
 
-        try:
-            rid = float(rid)
-        except:
-            continue
+        raid_date = datetime.fromtimestamp(raid.end_time).strftime('%d %b %Y')
 
-        raid_date = datetime.fromtimestamp(rid).strftime('%d %b %Y')
+        raid_member = [m for m in raid.members if m.tag == a.tag]
 
         raidlog_embed.add_field(
             name=f"Raid Weekend: {raid_date}",
             value=f"<:Clan:825654825509322752> {raid.clan_name}\n<:Attack:828103854814003211> {raid.attack_count} / 6"
-                + f"\u3000<:CapitalGoldLooted:1045200974094028821> {raid.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {raid.medals_earned:,}"
+                + f"\u3000<:CapitalGoldLooted:1045200974094028821> {raid_member.capital_resources_looted:,}\u3000<:RaidMedals:983374303552753664> {raid_member.medals_earned:,}"
                 + f"\n\u200b",
             inline=False
             )
