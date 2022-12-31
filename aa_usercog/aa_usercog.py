@@ -582,7 +582,7 @@ class AriXMemberCommands(commands.Cog):
             #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_str += "💩 To view Rushed Levels"
 
-            if (ctx.bot.leader_role in author.roles or ctx.bot.coleader_role in author.roles) and len(a.notes)>0:
+            if (ctx.bot.leader_role in ctx.author.roles or ctx.bot.coleader_role in ctx.author.roles) and len(a.notes)>0:
                 nav_str += f"\n\n:mag: View Member Notes ({len(a.notes)})"
 
             if len(accounts) > 1:
