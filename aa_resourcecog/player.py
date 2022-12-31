@@ -420,13 +420,14 @@ class aPlayer(coc.Player):
 
         await alliance_file_handler(
             ctx=ctx,
+            action='write',
             entry_type='members',
             tag=self.tag,
             new_data=allianceJson)
 
         await data_file_handler(
             ctx=ctx,
-            action='read',
+            action='write',
             file='members',
             tag=self.tag,
             new_data=memberJson)
