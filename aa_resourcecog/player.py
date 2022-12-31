@@ -172,7 +172,7 @@ class aPlayer(coc.Player):
             self.desc_full_text = cache.desc_full_text
             self.desc_summary_text = cache.desc_summary_text
 
-        if not cache:
+        else:
             self.discord_user = 0
             self.current_war = None
             self.current_raid_weekend = None
