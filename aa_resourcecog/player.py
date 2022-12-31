@@ -616,8 +616,10 @@ class aPlayerSeason():
 
         self.warlogkeys = memberStats.get('war_log',[])
         for war_id in self.warlogkeys:
+            await debug.send(f"..{war_id}")
             war = await aClanWar.get(ctx,war_id=war_id)
             self.warlog[war_id] = war
+            await debug.send(f"..{war}")
 
         self.raidlogkeys = memberStats.get('raid_log',[])
         for raid_id in self.raidlogkeys:
