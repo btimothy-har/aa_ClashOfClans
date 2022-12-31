@@ -130,26 +130,26 @@ class AriXClashDataMgr(commands.Cog):
         bot.current_season = s_json['current']
         bot.tracked_seasons = s_json['tracked']
 
-        alliance_clans_json = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='clans',
-            tag="**")
+        # alliance_clans_json = await alliance_file_handler(
+        #     ctx=ctx,
+        #     entry_type='clans',
+        #     tag="**")
 
-        member_json = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='members',
-            tag="**")
+        # member_json = await alliance_file_handler(
+        #     ctx=ctx,
+        #     entry_type='members',
+        #     tag="**")
 
-        if bot.load_cache:
-            if len(list(bot.clan_cache.keys())) == 0:
-                for tag in list(alliance_clans_json.keys()):
-                    await aClan.create(ctx,tag=tag)
+        # if bot.load_cache:
+        #     if len(list(bot.clan_cache.keys())) == 0:
+        #         for tag in list(alliance_clans_json.keys()):
+        #             await aClan.create(ctx,tag=tag)
 
-            if len(list(bot.member_cache.keys())) == 0:
-                for tag in list(member_json.keys()):
-                    await aPlayer.create(ctx,tag=tag)
+        #     if len(list(bot.member_cache.keys())) == 0:
+        #         for tag in list(member_json.keys()):
+        #             await aPlayer.create(ctx,tag=tag)
 
-            bot.refresh_loop = 0
+        #     bot.refresh_loop = 0
 
 
     @commands.command(name="initdata")
