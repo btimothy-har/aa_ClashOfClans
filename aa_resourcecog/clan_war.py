@@ -9,7 +9,7 @@ from datetime import datetime
 
 from .notes import aNote
 from .discordutils import convert_seconds_to_str, clash_embed
-from .file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 from .constants import warTypeGrid, warResultOngoing, warResultEnded
 
 class aClanWar():
@@ -143,9 +143,7 @@ class aClanWar():
             return ctx.bot.war_cache[war_id]
 
         if not json_data and war_id:
-            json_data = await data_file_handler(
-                ctx=ctx,
-                action='read',
+            json_data = await read_file_handler(ctx=ctx,
                 file='warlog',
                 tag=war_id)
 
@@ -192,9 +190,8 @@ class aClanWar():
 
     async def save_to_json(self,ctx):
         wJson = self.to_json()
-        await data_file_handler(
-            ctx=ctx,
-            action='write',
+
+        await write_file_handler(ctx=ctx,
             file='warlog',
             tag=self.war_id,
             new_data=wJson)

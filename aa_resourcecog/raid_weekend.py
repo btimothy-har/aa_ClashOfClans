@@ -11,7 +11,7 @@ from datetime import datetime
 from .notes import aNote
 from .discordutils import convert_seconds_to_str, clash_embed
 from .constants import warTypeGrid, warResultOngoing, warResultEnded
-from .file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 
 class aRaidWeekend():
     def __init__(self,**kwargs):
@@ -93,9 +93,8 @@ class aRaidWeekend():
             return ctx.bot.raid_cache[raid_id]
 
         if not json_data and raid_id:
-            json_data = await data_file_handler(
+            json_data = await read_file_handler(
                 ctx=ctx,
-                action='read',
                 file='capitalraid',
                 tag=raid_id)
 
@@ -205,9 +204,7 @@ class aRaidWeekend():
     async def save_to_json(self,ctx):
         rwJson = self.to_json()
 
-        await data_file_handler(
-            ctx=ctx,
-            action='write',
+        await write_file_handler(ctx=ctx,
             file='capitalraid',
             tag=self.raid_id,
             new_data=rwJson)

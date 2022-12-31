@@ -11,7 +11,7 @@ from datetime import datetime
 from coc.ext import discordlinks
 
 from .constants import clanRanks, emotes_townhall, emotes_builderhall, emotes_capitalhall, emotes_league, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
-from .file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 
 from .notes import aNote
 from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -239,17 +239,15 @@ class aPlayer(coc.Player):
 
         if not cached_data:
             for season in ctx.bot.tracked_seasons:
-                seasonStats = await data_file_handler(ctx,
-                    action='read',
+                season_stats = await read_file_handler(ctx,
                     file='members',
                     tag=self.tag,
-                    new_data=None,
                     season=season)
-                if seasonStats:
+                if season_stats:
                     stats = await aPlayerSeason.create(ctx,
                         player=self,
                         season=season,
-                        stats=seasonStats)
+                        stats=season_stats)
                     self.season_data[season] = stats
 
         if not self.clan:
@@ -282,14 +280,14 @@ class aPlayer(coc.Player):
                     if self.tag in [m.tag for m in check_raid.members]:
                         self.current_raid_weekend = check_raid
 
-        memberInfo = await alliance_file_handler(ctx,
-            entry_type='members',
-            tag=self.tag)
+        member_info = await read_file_handler(ctx,
+            file='alliance',
+            tag=self.tag,
+            atype='members')
 
         #From AriX Data File
-        if memberInfo:
-
-            home_clan_json = memberInfo.get('home_clan',None)
+        if member_info:
+            home_clan_json = member_info.get('home_clan',None)
 
             if isinstance(home_clan_json,dict):
                 home_clan_tag = home_clan_json['tag']
@@ -297,11 +295,11 @@ class aPlayer(coc.Player):
                 home_clan_tag = home_clan_json
 
             self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
-            self.readable_name = memberInfo.get('readable_name',self.name)
-            self.is_member = memberInfo.get('is_member',False)
+            self.readable_name = member_info.get('readable_name',self.name)
+            self.is_member = member_info.get('is_member',False)
             self.is_arix_account = True
 
-            self.discord_user = int(memberInfo.get('discord_user',0))
+            self.discord_user = int(member_info.get('discord_user',0))
 
             if self.is_member:
                 if self.discord_user == self.home_clan.leader:
@@ -315,16 +313,13 @@ class aPlayer(coc.Player):
             else:
                 self.arix_rank = 'Non-Member'
 
-            notes = [aNote.from_json(ctx,n) for n in memberInfo.get('notes',[])]
+            notes = [aNote.from_json(ctx,n) for n in member_info.get('notes',[])]
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
         if not json_input:
-            file_path = ctx.bot.clash_dir_path + '/members1.json'
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(file_path,'r') as file:
-                    file_json = json.load(file)
-
-            member_stats = file_json[self.tag]
+            member_stats = await read_file_handler(ctx,
+                file='members',
+                tag=self.tag)
         else:
             member_stats = json_input
 
@@ -370,7 +365,7 @@ class aPlayer(coc.Player):
                 self.discord_user = get_links[0][1]
         return self
 
-    async def to_json(self,ctx):
+    def to_json(self):
         warlogkeys = []
         for (war_id, war) in self.current_season.warlog.items():
             if war:
@@ -415,20 +410,19 @@ class aPlayer(coc.Player):
 
     async def save_to_json(self,ctx):
 
-        alliance_json, member_json = await self.to_json(ctx)
+        alliance_json, member_json = self.to_json()
 
-        await alliance_file_handler(
-            ctx=ctx,
-            entry_type='members',
+        await write_file_handler(ctx=ctx,
+            file='alliance',
             tag=self.tag,
-            new_data=alliance_json)
+            new_data=alliance_json,
+            atype='members')
 
-        await data_file_handler(
-            ctx=ctx,
-            action='write',
+        await write_file_handler(ctx=ctx,
             file='members',
             tag=self.tag,
             new_data=member_json)
+
 
     async def update_stats(self,ctx):
         if self.clan.tag == self.home_clan.tag:
@@ -477,7 +471,6 @@ class aPlayer(coc.Player):
                 self.current_season.capitalcontribution.set_baseline(achievement.value)
 
         self.last_update = self.timestamp
-        await self.save_to_json(ctx)
 
 
     async def set_readable_name(self,ctx,name):
@@ -492,7 +485,6 @@ class aPlayer(coc.Player):
         c_war_id = self.current_war.war_id
 
         if self.current_war.state in ['inWar','warEnded']:
-            await self.current_war.save_to_json(ctx)
 
             if self.current_war.state in ['warEnded']:
                 if self.current_war.war_id in list(self.current_season.warlog.keys()):
@@ -504,8 +496,6 @@ class aPlayer(coc.Player):
     async def update_raid_weekend(self,ctx):
         if not self.current_raid_weekend:
             return None
-
-        await self.current_raid_weekend.save_to_json(ctx)
 
         c_raid_id = self.current_raid_weekend.raid_id
 
@@ -1104,10 +1094,10 @@ class aClan(coc.Clan):
         #add to cache
         ctx.bot.clan_cache[tag] = self
 
-        clanInfo = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='clans',
-            tag=self.tag)
+        clanInfo = await read_file_handler(ctx=ctx,
+            file='alliance',
+            tag=self.tag,
+            atype='clans')
 
         self.current_war = await aClanWar.get(ctx,clan=self)
         self.current_raid_weekend = await aRaidWeekend.get(ctx,clan=self)
@@ -1174,24 +1164,15 @@ class aClan(coc.Clan):
         return self
 
     async def compute_arix_membership(self,ctx):
-        memberInfo = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='members',
-            tag="**")
-
-        memberTags = list(memberInfo.keys())
-
-        self.arix_members = []
-        for tag in memberTags:
-            mp = await aPlayer.create(ctx,tag=tag)
-            if mp.is_member and mp.home_clan.tag == self.tag:
-                self.arix_members.append(mp)
+        for (m_tag,member) in ctx.bot.member_cache.items():
+            if member.is_member and member.home_clan.tag == self.tag:
+                self.arix_members.append(member)
 
         self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
         self.arix_member_count = len(self.arix_members)
 
-    async def save_to_json(self,ctx):
-        allianceJson = {
+    def to_json(self):
+        clan_alliance_json = {
             'name':self.name,
             'abbr':self.abbreviation,
             'emoji':self.emoji,
@@ -1218,12 +1199,16 @@ class aClan(coc.Clan):
             'raid_log': [raid.raid_id for (rid,raid) in self.raid_log.items()],
             }
 
-        await alliance_file_handler(
-            ctx=ctx,
-            entry_type='clans',
-            tag=self.tag,
-            new_data=allianceJson)
+        return clan_alliance_json
 
+    async def save_to_json(self,ctx):
+        clan_json = self.to_json()
+
+        await write_file_handler(ctx=ctx,
+            file='alliance',
+            tag=self.tag,
+            new_data=clan_json,
+            atype='clans')
 
     async def update_clan_war(self,ctx):
         update_summary = ""
@@ -1240,8 +1225,6 @@ class aClan(coc.Clan):
         self.war_state = self.current_war.state
 
         self.war_log[self.current_war.war_id] = self.current_war
-
-        await self.save_to_json(ctx)
 
         if self.current_war.type == 'random':
             if self.war_state_change and self.current_war.state == 'inWar':
@@ -1301,8 +1284,6 @@ class aClan(coc.Clan):
         self.raid_weekend_state = self.current_raid_weekend.state
 
         self.raid_log[self.current_raid_weekend.raid_id] = self.current_raid_weekend
-
-        await self.save_to_json(ctx)
 
         #new raid weekend
         if self.raid_state_change:

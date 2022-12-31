@@ -17,83 +17,82 @@ async def get_current_season(params=None):
 
     return current_season
 
-
-async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
-    if season:
-        alliance_file = ctx.bot.clash_dir_path+'/' + season + '/alliance.json'
-    else:
-        alliance_file = ctx.bot.clash_dir_path+'/alliance.json'
-
-    if new_data:
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                with open(alliance_file,'r+') as file:
-                    file_json = json.load(file)
-                    file_json[entry_type][tag] = new_data
-                    file.seek(0)
-                    json.dump(file_json,file,indent=2)
-                    file.truncate()
-    else:
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(alliance_file,'r') as file:
-                file_json = json.load(file)
-    try:
-        if tag == "**":
-            rJson = file_json[entry_type]
-        else:
-            rJson = file_json[entry_type][tag]
-    except KeyError:
-        rJson = {}
-    return rJson
-
-
-async def data_file_handler(ctx,action:str,file:str,tag:str,**kwargs):
-
-    new_data = kwargs.get('new_data',None)
+def filename_handler(ctx,name_input,**kwargs):
     season = kwargs.get('season',None)
 
-    if action not in ['read','write']:
-        return None
-
-    if file not in ['members','warlog','capitalraid','challengepass']:
+    if name_input not in ['alliance','members','warlog','capitalraid','challengepass']:
         return None
 
     file_name = {
+        'alliance':'alliance.json',
         'members':'members.json',
         'warlog':'warlog.json',
         'capitalraid':'capitalraid.json',
         'challengepass':'challengepass.json'
         }
+
     if season:
-        file_path = ctx.bot.clash_dir_path + '/' + season + '/' + file_name[file]
+        file_path = ctx.bot.clash_dir_path + '/' + season + '/' + file_name[name_input]
     else:
-        file_path = ctx.bot.clash_dir_path + '/' + file_name[file]
+        file_path = ctx.bot.clash_dir_path + '/' + file_name[name_input]
 
-    ch = ctx.bot.get_channel(856433806142734346)
+    return file_path
 
-    if action == 'write' and new_data:
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                with open(file_path,'r') as file:
+async def read_file_handler(ctx,file:str,tag:str,**kwargs):
+    season = kwargs.get('season',None)
+    atype = kwargs.get('atype',None)
+
+    if file == 'alliance' and not atype:
+        return None
+
+    file_path = filename_handler(ctx,name_input=file,season=season)
+    if not file_path:
+        return None
+
+    with ctx.bot.clash_file_lock.read_lock():
+        with open(file_path,'r') as file:
+            file_json = json.load(file)
+
+    if file == 'alliance':
+        try:
+            return_data = file_json[atype][tag]
+        except KeyError:
+            return_data = None
+    else:
+        try:
+            return_data = file_json[tag]
+        except KeyError:
+            return_data = None
+
+    return return_data
+
+async def write_file_handler(ctx,file:str,tag:str,new_data,**kwargs):
+    season = kwargs.get('season',None)
+    atype = kwargs.get('atype',None)
+
+    if file == 'alliance' and not atype:
+        return None
+
+    file_path = filename_handler(ctx,name_input=file,season=season)
+    if not file_path:
+        return None
+
+    async with ctx.bot.async_file_lock:
+        with ctx.bot.clash_file_lock.write_lock():
+            with open(file_path,'r+') as file:
                     file_json = json.load(file)
+                    if file == 'alliance':
+                        file_json[atype][tag] = new_data
+                        return_data = file_json[atype][tag]
+                    else:
+                        file_json[tag] = new_data
+                        return_data = file_json[tag]
 
-                file_json[tag] = new_data
-                with open(file_path,'w') as file:
+                    file.seek(0)
                     json.dump(file_json,file,indent=2)
+                    file.truncate()
 
-    elif action == 'read':
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(file_path,'r') as file:
-                file_json = json.load(file)
-    try:
-        if tag == "**":
-            response_json = file_json
-        else:
-            response_json = file_json[tag]
-    except KeyError:
-        response_json = {}
-    return response_json
-
+    return return_data
 
 async def eclipse_base_handler(ctx,base_town_hall=None,base_json=None):
     eclipse_base_file = ctx.bot.eclipse_path+'/warbases.json'
