@@ -131,7 +131,7 @@ class AriXClashDataMgr(commands.Cog):
 
         bot.current_season = s_json['current']
         bot.tracked_seasons = s_json['tracked']
-d
+
 
     @commands.command(name="nstart")
     @commands.is_owner()
