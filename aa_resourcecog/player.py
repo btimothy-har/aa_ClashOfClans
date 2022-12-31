@@ -777,7 +777,7 @@ class aHero():
             minlevel_for_townhall = data.get_max_level_for_townhall(max(townhall_level-1,3))
             self.minlevel_for_townhall = int(0 if minlevel_for_townhall is None else minlevel_for_townhall)
         except:
-            self.minlevel_for_townhall =% 0
+            self.minlevel_for_townhall = 0
 
         if is_unlocked_at_this_level:
             self.minlevel_for_townhall = 0
