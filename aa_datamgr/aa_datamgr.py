@@ -202,6 +202,8 @@ class AriXClashDataMgr(commands.Cog):
 
         for (tag,member) in file_json.items():
 
+            await ctx.send(list(member.keys()))
+
             member['attacks'] = member['attack_wins']
             member['defenses'] = member['defense_wins']
 
