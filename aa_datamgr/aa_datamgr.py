@@ -152,7 +152,7 @@ class AriXClashDataMgr(commands.Cog):
                 a_json = json.load(file)
 
         with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/members.json','r') as file:
+            with open(ctx.bot.clash_dir_path+'/member_info.json','r') as file:
                 m_json = json.load(file)
 
         ctx.bot.current_season = s_json['current']
@@ -366,7 +366,7 @@ class AriXClashDataMgr(commands.Cog):
                 name="__Core Data Files__",
                 value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
-                    + f"\n> **members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                    + f"\n> **member_info.json**: {os.path.exists(ctx.bot.clash_dir_path+'/member_info.json')}"
                     + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                     inline=False)
@@ -420,7 +420,7 @@ class AriXClashDataMgr(commands.Cog):
                 with open(ctx.bot.clash_dir_path+'/alliance.json','w') as file:
                     json.dump(json_file_defaults['alliance'],file,indent=2)
 
-                with open(ctx.bot.clash_dir_path+'/members.json','w') as file:
+                with open(ctx.bot.clash_dir_path+'/member_info.json','w') as file:
                     json.dump({},file,indent=2)
 
                 with open(ctx.bot.clash_dir_path+'/warlog.json','w') as file:
@@ -433,7 +433,7 @@ class AriXClashDataMgr(commands.Cog):
             title="All Data Files Reset.",
             message=f"**seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     +f"\n**alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
-                    +f"\n**members.json**: {os.path.exists(ctx.bot.clash_dir_path+'/members.json')}"
+                    +f"\n**member_info.json**: {os.path.exists(ctx.bot.clash_dir_path+'/member_info.json')}"
                     +f"\n**warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     +f"\n**capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
             color="success")
