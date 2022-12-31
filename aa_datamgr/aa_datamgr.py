@@ -163,7 +163,10 @@ class AriXClashDataMgr(commands.Cog):
             await aClan.create(ctx,tag=tag,json=clan)
 
         for (tag,member) in a_json['members'].items():
-            a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
+            if tag in list(m_json.keys()):
+                a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
+            else:
+                a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
         ctx.bot.refresh_loop = 0
 
