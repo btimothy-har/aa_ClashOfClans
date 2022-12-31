@@ -37,9 +37,10 @@ class aPlayer(coc.Player):
         super().__init__(**kwargs)
         self.timestamp = time.time()
 
-        self.discord_user = getattr(cache,'discord_user',0)
+        self.town_hall = aTownHall(level=self.town_hall,weapon=self.town_hall_weapon)
+        self.clan_castle = sum([a.value for a in self.achievements if a.name=='Empire Builder'])
 
-        self.clan_castle = getattr(cache,'clan_castle',0)
+        self.discord_user = getattr(cache,'discord_user',0)
 
         self.current_war = getattr(cache,'current_war',None)
         self.current_raid_weekend = getattr(cache,'current_raid_weekend',None)
@@ -169,10 +170,6 @@ class aPlayer(coc.Player):
             self.clan_description = f"{str(self.role)} of {self.clan.name}"
         else:
             self.clan_description = "No Clan"
-
-        ph_town_hall = aTownHall(level=self.town_hall,weapon=self.town_hall_weapon)
-        self.town_hall = ph_town_hall
-        self.clan_castle = sum([a.value for a in self.achievements if a.name=='Empire Builder'])
 
         self.heroes = []
         hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
