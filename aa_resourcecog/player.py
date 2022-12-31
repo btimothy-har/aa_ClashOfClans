@@ -595,6 +595,7 @@ class aPlayerSeason():
         self = aPlayerSeason(ctx,player,season)
 
         debug = ctx.bot.get_channel(856433806142734346)
+        await debug.send(list(memberStats.keys())
 
         self.time_in_home_clan = memberStats.get('time_in_home_clan',0)
 
