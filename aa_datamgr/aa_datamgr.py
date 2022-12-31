@@ -142,10 +142,13 @@ class AriXClashDataMgr(commands.Cog):
 
         if bot.load_cache:
             if len(list(bot.clan_cache.keys())) == 0:
-                [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
+                for tag in list(alliance_clans_json.keys()):
+                    await aClan.create(ctx,tag=tag)
 
             if len(list(bot.member_cache.keys())) == 0:
-                [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+                for tag in list(member_json.keys()):
+                    await aPlayer.create(ctx,tag=tag)
+
             bot.refresh_loop = 0
 
 
@@ -175,8 +178,13 @@ class AriXClashDataMgr(commands.Cog):
             entry_type='members',
             tag="**")
 
-        [await aClan.create(ctx,tag=tag) for tag in list(alliance_clans_json.keys())]
-        [await aPlayer.create(ctx,tag=tag) for tag in list(member_json.keys())]
+        for tag in list(alliance_clans_json.keys()):
+            await aClan.create(ctx,tag=tag)
+
+        #for tag in list(member_json.keys()):
+        a = await aPlayer.create(ctx,tag='#LJC8V0GCJ')
+        for (wid,item) in a.current_season.warlog.items():
+            print(f"{wid} {item}")
 
         ctx.bot.refresh_loop = 0
 
