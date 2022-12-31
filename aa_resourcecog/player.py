@@ -655,7 +655,7 @@ class aPlayerClanGames():
             sm = int(season[0])
             sy = int(season[1])
 
-        self.stats = player
+        self.stats = stats
         self.games_start = datetime(sy, sm, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.games_end = datetime(sy, sm, 28, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.score = 0
@@ -667,9 +667,9 @@ class aPlayerClanGames():
     @classmethod
     async def create(cls,ctx,stats,**kwargs):
         input_json = kwargs.get('json',None)
-        season = kwargs.get('season',None)
+        season = kwargs.get('season','current')
 
-        self = aPlayerClanGames(player,season)
+        self = aPlayerClanGames(stats=stats,season=season)
 
         if input_json:
             self.score = inputJson.get('score',0)
