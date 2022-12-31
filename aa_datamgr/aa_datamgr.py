@@ -198,7 +198,7 @@ class AriXClashDataMgr(commands.Cog):
         new_warlog = {}
 
         for (clan,warlog) in file_json.items():
-            c = await aClan.create(ctx,tag=clan)
+            c = await aClan.create(ctx,tag=clan,conv=True)
             c.war_log = {}
 
             for (wid,war) in warlog.items():
@@ -227,7 +227,7 @@ class AriXClashDataMgr(commands.Cog):
         new_raidlog = {}
 
         for (clan,raidlog) in file_json.items():
-            c = await aClan.create(ctx,tag=clan)
+            c = await aClan.create(ctx,tag=clan,conv=True)
             c.raid_log = {}
 
             for (wid,raid) in raidlog.items():
