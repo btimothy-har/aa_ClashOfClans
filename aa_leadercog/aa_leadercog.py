@@ -1884,7 +1884,7 @@ class AriXLeaderCommands(commands.Cog):
                     message=f"**Welcome to the Report Hub.**"
                         + f"\n\nHere, you'll be able to generate various in-discord reports for your selected clan. "
                         + f"Alternatively, extract all data in the bot into an Excel spreadsheet.\n\u200b",
-                    thumbnail=c.badge.url)
+                    thumbnail=c.badge)
 
                 main_menu_embed.add_field(
                     name="```**To get started, please select a report from the list below.**```",

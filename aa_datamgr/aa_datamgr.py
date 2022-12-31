@@ -712,11 +712,11 @@ class AriXClashDataMgr(commands.Cog):
 
             clanwar_json = await data_file_handler(
                 ctx=ctx,
-                entry_type='warlog',
+                file='warlog',
                 tag="**")
             capitalraid_json = await data_file_handler(
                 ctx=ctx,
-                entry_type='capitalraid',
+                file='capitalraid',
                 tag="**")
 
             ## CLAN UPDATE
@@ -835,7 +835,7 @@ class AriXClashDataMgr(commands.Cog):
             bot.clan_refresh_status = False
 
         except Exception as e:
-            await bot.send_to_owners(f"Error encountered during Clan Data Refresh:\n\n{e}")
+            await bot.send_to_owners(f"Error encountered during Clan Data Refresh:\n\n```{e}```")
             bot.clan_refresh_status = False
             return
 
@@ -901,10 +901,10 @@ class AriXClashDataMgr(commands.Cog):
                 await self.config.last_status_update.set(st)
 
         except Exception as e:
-            await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n{e}")
+            await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
 
 
-    @tasks.loop(seconds=60.0)
+    @tasks.loop(seconds=30.0)
     async def member_update(self):
 
         bot = self.master_bot
@@ -1019,7 +1019,7 @@ class AriXClashDataMgr(commands.Cog):
             bot.member_refresh_status = False
 
         except Exception as e:
-            await bot.send_to_owners(f"Error encountered during Member Data Refresh:\n\n{e}")
+            await bot.send_to_owners(f"Error encountered during Member Data Refresh:\n\n```{e}```")
             bot.member_refresh_status = False
             return
 
@@ -1052,4 +1052,4 @@ class AriXClashDataMgr(commands.Cog):
                 await bot.data_log_channel.send(embed=data_embed)
 
         except Exception as e:
-            await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n{e}")
+            await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
