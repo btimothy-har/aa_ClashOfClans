@@ -685,22 +685,22 @@ class aPlayerClanGames():
     async def calculate_clangames(self):
         max_score = 4000
         if self.stats.player.timestamp >= self.games_start and self.stats.player.timestamp < self.games_end:
-            new_score = [a.value for a in self.player.achievements if a.name == 'Games Champion'][0]
+            new_score = [a.value for a in self.stats.player.achievements if a.name == 'Games Champion'][0]
 
             if (new_score - self.last_updated) > 0:
 
                 if self.score == 0:
-                    self.clan = self.player.clan
+                    self.clan = self.stats.player.clan
                     self.starting_time = time
 
                 self.score += (new_score - self.last_updated)
                 self.last_updated = new_score
 
                 if self.score >= max_score:
-                    self.ending_time = self.player.timestamp
+                    self.ending_time = self.stats.player.timestamp
                     self.score = max_score
         else:
-            self.last_updated = [a.value for a in self.player.achievements if a.name == 'Games Champion'][0]
+            self.last_updated = [a.value for a in self.stats.player.achievements if a.name == 'Games Champion'][0]
 
     def to_json(self):
         clangamesJson = {
