@@ -95,6 +95,7 @@ class aRaidWeekend():
         if not json_data and raid_id:
             json_data = await data_file_handler(
                 ctx=ctx,
+                action='read',
                 file='capitalraid',
                 tag=raid_id)
 
@@ -206,6 +207,7 @@ class aRaidWeekend():
 
         await data_file_handler(
             ctx=ctx,
+            action='write',
             file='capitalraid',
             tag=self.raid_id,
             new_data=rwJson)

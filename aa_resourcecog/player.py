@@ -126,8 +126,10 @@ class aPlayer(coc.Player):
         if not cached_data:
             for season in ctx.bot.tracked_seasons:
                 seasonStats = await data_file_handler(ctx,
+                    action='read',
                     file='members',
                     tag=self.tag,
+                    new_data=None,
                     season=season)
                 if seasonStats:
                     stats = await aPlayerSeason.create(ctx,
@@ -308,6 +310,7 @@ class aPlayer(coc.Player):
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
         memberStats = await data_file_handler(ctx,
+            action='read',
             file='members',
             tag=self.tag)
 
@@ -392,6 +395,7 @@ class aPlayer(coc.Player):
 
         await data_file_handler(
             ctx=ctx,
+            action='read',
             file='members',
             tag=self.tag,
             new_data=memberJson)

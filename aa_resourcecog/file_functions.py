@@ -47,7 +47,10 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
     return rJson
 
 
-async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
+async def data_file_handler(ctx,action:str,file:str,tag:str,new_data=None,season=None):
+    if action not in ['read','write']:
+        return None
+
     if file not in ['members','warlog','capitalraid','challengepass']:
         return None
 
@@ -62,7 +65,7 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
     else:
         file_path = ctx.bot.clash_dir_path + '/' + file_name[file]
 
-    if new_data:
+    if action == 'write' and new_data:
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
                 with open(file_path,'r+') as file:
@@ -71,7 +74,8 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
                     file.seek(0)
                     json.dump(file_json,file,indent=2)
                     file.truncate()
-    else:
+
+    elif action == 'read':
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)

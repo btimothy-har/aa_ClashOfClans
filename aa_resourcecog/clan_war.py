@@ -141,6 +141,7 @@ class aClanWar():
         if not json_data and war_id:
             json_data = await data_file_handler(
                 ctx=ctx,
+                action='read',
                 file='warlog',
                 tag=war_id)
 
@@ -189,6 +190,7 @@ class aClanWar():
         wJson = self.to_json()
         await data_file_handler(
             ctx=ctx,
+            action='write',
             file='warlog',
             tag=self.war_id,
             new_data=wJson)

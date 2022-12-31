@@ -486,10 +486,12 @@ class AriXClashDataMgr(commands.Cog):
 
             clanwar_json = await data_file_handler(
                 ctx=ctx,
+                action='read',
                 entry_type='warlog',
                 tag="**")
             capitalraid_json = await data_file_handler(
                 ctx=ctx,
+                action='read',
                 entry_type='capitalraid',
                 tag="**")
 
@@ -709,15 +711,18 @@ class AriXClashDataMgr(commands.Cog):
 
             alliance_clans_json = await alliance_file_handler(
                 ctx=ctx,
+                action='read',
                 entry_type='clans',
                 tag="**")
 
             clanwar_json = await data_file_handler(
                 ctx=ctx,
+                action='read',
                 file='warlog',
                 tag="**")
             capitalraid_json = await data_file_handler(
                 ctx=ctx,
+                action='read',
                 file='capitalraid',
                 tag="**")
 
