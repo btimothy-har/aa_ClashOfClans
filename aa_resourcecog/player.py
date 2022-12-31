@@ -306,7 +306,7 @@ class aPlayer(coc.Player):
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
         if not json:
-            filepath = ctx.bot.clash_dir_path + '/members.json'
+            file_path = ctx.bot.clash_dir_path + '/members.json'
             with ctx.bot.clash_file_lock.read_lock():
                 with open(file_path,'r') as file:
                     file_json = json.load(file)
