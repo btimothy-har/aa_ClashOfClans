@@ -60,9 +60,6 @@ class AriXClashDataMgr(commands.Cog):
         default_guild = {}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
-        self.season_update.start()
-        self.clan_update.start()
-        self.member_update.start()
 
         self.master_lock = asyncio.Lock()
         self.clan_lock = asyncio.Lock()
@@ -166,7 +163,12 @@ class AriXClashDataMgr(commands.Cog):
 
         ctx.bot.refresh_loop = 0
 
-        await msg.edit("**Setup complete.**")
+        self.season_update.start()
+        self.clan_update.start()
+        self.member_update.start()
+
+        await msg.delete()
+        await ctx.send("**Setup complete.**")
 
 
     @commands.command(name="fileconvert")
@@ -698,12 +700,17 @@ class AriXClashDataMgr(commands.Cog):
         if bot.refresh_loop < 0:
             return None
 
+        if not bot.master_refresh:
+            return None
+
         if self.master_lock.locked():
             return None
         if self.clan_lock.locked():
             return None
 
         async with self.clan_lock:
+            bot.clan_refresh_status = True
+
             st = time.time()
             helsinkiTz = pytz.timezone("Europe/Helsinki")
 
@@ -845,68 +852,68 @@ class AriXClashDataMgr(commands.Cog):
                 return
 
 
-            try:
-                processing_time = round(et-st,2)
-                clan_update_runtime.append(processing_time)
+        try:
+            processing_time = round(et-st,2)
+            clan_update_runtime.append(processing_time)
 
-                if len(clan_update_runtime) > 100:
-                    del clan_update_runtime[0]
+            if len(clan_update_runtime) > 100:
+                del clan_update_runtime[0]
 
-                await self.config.clan_update_last.set(st)
-                await self.config.clan_update_runtime.set(clan_update_runtime)
+            await self.config.clan_update_last.set(st)
+            await self.config.clan_update_runtime.set(clan_update_runtime)
 
-                if len(error_log) > 0:
-                    error_title = "Error Log"
-                    error_text = ""
-                    for e in error_log:
-                        error_text += f"{e.category}{e.tag}: {e.error}\n"
+            if len(error_log) > 0:
+                error_title = "Error Log"
+                error_text = ""
+                for e in error_log:
+                    error_text += f"{e.category}{e.tag}: {e.error}\n"
 
-                    if len(error_text) > 1024:
-                        error_title = "Error Log (Truncated)"
-                        error_text = error_text[0:500]
+                if len(error_text) > 1024:
+                    error_title = "Error Log (Truncated)"
+                    error_text = error_text[0:500]
 
-                    data_embed.add_field(
-                        name=f"**{error_title}**",
-                        value=error_text,
-                        inline=False)
+                data_embed.add_field(
+                    name=f"**{error_title}**",
+                    value=error_text,
+                    inline=False)
 
-                    await bot.data_log_channel.send(embed=data_embed)
+                await bot.data_log_channel.send(embed=data_embed)
 
-                activity_types = [
-                    discord.ActivityType.playing,
-                    discord.ActivityType.streaming,
-                    discord.ActivityType.listening,
-                    discord.ActivityType.watching
-                    ]
-                activity_select = random.choice(activity_types)
+            activity_types = [
+                discord.ActivityType.playing,
+                discord.ActivityType.streaming,
+                discord.ActivityType.listening,
+                discord.ActivityType.watching
+                ]
+            activity_select = random.choice(activity_types)
 
-                #update active events after 1 hours
-                if last_status_update - st > 3600 and len(active_events) > 0:
-                    event = random.choice(active_events)
-                    await bot.change_presence(
-                        activity=discord.Activity(
-                            type=activity_select,
-                            name=event))
-                    await self.config.last_status_update.set(st)
-
-                #update passive events after 2 hours
-                elif last_status_update - st > 7200 and len(passive_events) > 0:
-                    event = random.choice(passive_events)
-                    await bot.change_presence(
-                        activity=discord.Activity(
+            #update active events after 1 hours
+            if last_status_update - st > 3600 and len(active_events) > 0:
+                event = random.choice(active_events)
+                await bot.change_presence(
+                    activity=discord.Activity(
                         type=activity_select,
                         name=event))
-                    await self.config.last_status_update.set(st)
+                await self.config.last_status_update.set(st)
 
-                elif last_status_update - st > 14400:
-                    await bot.change_presence(
-                        activity=discord.Activity(
-                        type=activity_select,
-                        name=f"{mem_count} AriX members"))
-                    await self.config.last_status_update.set(st)
+            #update passive events after 2 hours
+            elif last_status_update - st > 7200 and len(passive_events) > 0:
+                event = random.choice(passive_events)
+                await bot.change_presence(
+                    activity=discord.Activity(
+                    type=activity_select,
+                    name=event))
+                await self.config.last_status_update.set(st)
 
-            except Exception as e:
-                await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
+            elif last_status_update - st > 14400:
+                await bot.change_presence(
+                    activity=discord.Activity(
+                    type=activity_select,
+                    name=f"{mem_count} AriX members"))
+                await self.config.last_status_update.set(st)
+
+        except Exception as e:
+            await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
 
 
     @tasks.loop(seconds=30.0)
@@ -919,12 +926,18 @@ class AriXClashDataMgr(commands.Cog):
         if bot.refresh_loop < 0:
             return None
 
+        if not bot.master_refresh:
+            return None
+
         if self.master_lock.locked():
             return None
         if self.member_lock.locked():
             return None
 
         async with self.member_lock:
+
+            bot.member_refresh_status = True
+
             st = time.time()
             helsinkiTz = pytz.timezone("Europe/Helsinki")
 
@@ -1002,7 +1015,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 data_embed.add_field(
                     name=f"**Member Updates**",
-                    value=f"Number of Tags: {len(list(member_json.keys()))}"
+                    value=f"Number of Tags: {len(list(ctx.bot.member_cache.keys()))}"
                         + f"\nAccounts Found: {count_members}"
                         + f"\nSuccessful Updates: {count_member_update}",
                     inline=False)
@@ -1017,32 +1030,32 @@ class AriXClashDataMgr(commands.Cog):
                 return
 
 
-            try:
-                processing_time = round(et-st,2)
-                member_update_runtime.append(processing_time)
+        try:
+            processing_time = round(et-st,2)
+            member_update_runtime.append(processing_time)
 
-                if len(member_update_runtime) > 100:
-                    del member_update_runtime[0]
+            if len(member_update_runtime) > 100:
+                del member_update_runtime[0]
 
-                await self.config.member_update_last.set(st)
-                await self.config.member_update_runtime.set(member_update_runtime)
+            await self.config.member_update_last.set(st)
+            await self.config.member_update_runtime.set(member_update_runtime)
 
-                if len(error_log) > 0:
-                    error_title = "Error Log"
-                    error_text = ""
-                    for e in error_log:
-                        error_text += f"{e.category}{e.tag}: {e.error}\n"
+            if len(error_log) > 0:
+                error_title = "Error Log"
+                error_text = ""
+                for e in error_log:
+                    error_text += f"{e.category}{e.tag}: {e.error}\n"
 
-                    if len(error_text) > 1024:
-                        error_title = "Error Log (Truncated)"
-                        error_text = error_text[0:500]
+                if len(error_text) > 1024:
+                    error_title = "Error Log (Truncated)"
+                    error_text = error_text[0:500]
 
-                    data_embed.add_field(
-                        name=f"**{error_title}**",
-                        value=error_text,
-                        inline=False)
+                data_embed.add_field(
+                    name=f"**{error_title}**",
+                    value=error_text,
+                    inline=False)
 
-                    await bot.data_log_channel.send(embed=data_embed)
+                await bot.data_log_channel.send(embed=data_embed)
 
-            except Exception as e:
-                await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
+        except Exception as e:
+            await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
