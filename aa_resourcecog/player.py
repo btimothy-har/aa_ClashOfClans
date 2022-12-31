@@ -40,30 +40,116 @@ class aPlayer(coc.Player):
         self.town_hall = aTownHall(level=self.town_hall,weapon=self.town_hall_weapon)
         self.clan_castle = sum([a.value for a in self.achievements if a.name=='Empire Builder'])
 
+        if self.clan:
+            self.clan_description = f"{str(self.role)} of {self.clan.name}"
+        else:
+            self.clan_description = "No Clan"
+
+        self.heroes = []
+        hero_d = [hero for (th,hero) in hero_availability.items() if th <= self.town_hall.level]
+        for hero_name in list(chain.from_iterable(hero_d)):
+            is_unlocked_at_this_level = False
+            if hero_name in hero_availability[self.town_hall.level]:
+                is_unlocked_at_this_level = True
+            try:
+                hero = self.get_hero(name=hero_name)
+            except:
+                hero = None
+
+            if not hero:
+                hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
+            hero = aHero(hero,self.town_hall.level,is_unlocked_at_this_level)
+            self.heroes.append(hero)
+
+        self.troops = []
+        troop_d = [troop for (th,troop) in troop_availability.items() if th <= self.town_hall.level]
+        for troop_name in list(chain.from_iterable(troop_d)):
+            is_unlocked_at_this_level = False
+            if troop_name in troop_availability[self.town_hall.level]:
+                is_unlocked_at_this_level = True
+            try:
+                troop = self.get_troop(name=troop_name,is_home_troop=True)
+            except:
+                troop = None
+
+            if not troop:
+                troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
+            troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
+            self.troops.append(troop)
+
+        self.spells = []
+        spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
+        for spell_name in list(chain.from_iterable(spell_d)):
+            is_unlocked_at_this_level = False
+            if spell_name in spell_availability[self.town_hall.level]:
+                is_unlocked_at_this_level = True
+            try:
+                spell = self.get_spell(name=spell_name)
+            except:
+                spell = None
+
+            if not spell:
+                spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
+            spell = aSpell(spell,self.town_hall.level,is_unlocked_at_this_level)
+            self.spells.append(spell)
+
+        pets_placeholder = []
+        pets_d = {th:pets for (th,pets) in pet_availability.items() if th<=self.town_hall.level}
+        for th, pets in pets_d.items():
+            minlevel = 0
+            if th < self.town_hall.level:
+                minlevel = 10
+            for pet in pets:
+                get_pet = [p for p in self.hero_pets if p.name==pet]
+                if len(get_pet) == 0:
+                    pet_object = aHeroPet.not_yet_unlocked(pet,minlevel)
+                else:
+                    pet_object = aHeroPet(get_pet[0],minlevel)
+                pets_placeholder.append(pet_object)
+        self.hero_pets = pets_placeholder
+
+        self.hero_description = ""
+        if self.town_hall.level >= 7:
+            self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
+        if self.town_hall.level >= 9:
+            self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
+        if self.town_hall.level >= 11:
+            self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
+        if self.town_hall.level >= 13:
+            self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
+
+        self.hero_strength = sum([hero.level for hero in self.heroes])
+        self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
+        self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
+
+        rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
+        if self.min_hero_strength > 0:
+            self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,2)
+
+        self.troop_strength = sum([troop.level for troop in self.troops])
+        self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.hero_pets]))
+        self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.hero_pets]))
+
+        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.hero_pets if p.level < p.minlevel_for_townhall])
+        if self.min_troop_strength > 0:
+            self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,2)
+
+        self.spell_strength = sum([spell.level for spell in self.spells])
+        self.max_spell_strength = (sum([spell.maxlevel_for_townhall for spell in self.spells]))
+        self.min_spell_strength = (sum([spell.minlevel_for_townhall for spell in self.spells]))
+
+        rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
+        if self.min_spell_strength > 0:
+            self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,2)
+
+        if self.min_hero_strength + self.min_troop_strength + self.min_spell_strength > 0:
+            rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
+            self.overall_rushed_pct = round(rushed_pct*100,2)
+
         if not cache:
             self.discord_user = 0
             self.current_war = None
             self.current_raid_weekend = None
-
-            self.clan_description = ""
-            self.hero_description = ""
-
-            self.hero_strength = getattr(cache,'hero_strength',0)
-            self.max_hero_strength = getattr(cache,'max_hero_strength',0)
-            self.min_hero_strength = getattr(cache,'min_hero_strength',0)
-            self.hero_rushed_pct = getattr(cache,'hero_rushed_pct',0)
-
-            self.troop_strength = getattr(cache,'troop_strength',0)
-            self.max_troop_strength = getattr(cache,'max_troop_strength',0)
-            self.min_troop_strength = getattr(cache,'min_troop_strength',0)
-            self.troop_rushed_pct = getattr(cache,'troop_rushed_pct',0)
-
-            self.spell_strength = getattr(cache,'spell_strength',0)
-            self.max_spell_strength = getattr(cache,'max_spell_strength',0)
-            self.min_spell_strength = getattr(cache,'min_spell_strength',0)
-            self.spell_rushed_pct = getattr(cache,'spell_rushed_pct',0)
-
-            self.overall_rushed_pct = getattr(cache,'overall_rushed_pct',0)
 
             #Membership Attributes
             try:
@@ -183,112 +269,6 @@ class aPlayer(coc.Player):
                     if self.tag in [m.tag for m in check_raid.members]:
                         self.current_raid_weekend = check_raid
 
-        if self.clan.tag:
-            self.clan_description = f"{str(self.role)} of {self.clan.name}"
-        else:
-            self.clan_description = "No Clan"
-
-        self.heroes = []
-        hero_d = [hero for (th,hero) in hero_availability.items() if th<=self.town_hall.level]
-        for hero_name in list(chain.from_iterable(hero_d)):
-            is_unlocked_at_this_level = False
-            if hero_name in hero_availability[self.town_hall.level]:
-                is_unlocked_at_this_level = True
-            try:
-                hero = self.get_hero(name=hero_name)
-            except:
-                hero = None
-
-            if not hero:
-                hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
-            hero = aHero(hero,self.town_hall.level,is_unlocked_at_this_level)
-            self.heroes.append(hero)
-
-        self.troops = []
-        troop_d = [troop for (th,troop) in troop_availability.items() if th<=self.town_hall.level]
-        for troop_name in list(chain.from_iterable(troop_d)):
-            is_unlocked_at_this_level = False
-            if troop_name in troop_availability[self.town_hall.level]:
-                is_unlocked_at_this_level = True
-            try:
-                troop = self.get_troop(name=troop_name,is_home_troop=True)
-            except:
-                troop = None
-
-            if not troop:
-                troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
-            troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
-            self.troops.append(troop)
-
-        self.spells = []
-        spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
-        for spell_name in list(chain.from_iterable(spell_d)):
-            is_unlocked_at_this_level = False
-            if spell_name in spell_availability[self.town_hall.level]:
-                is_unlocked_at_this_level = True
-            try:
-                spell = self.get_spell(name=spell_name)
-            except:
-                spell = None
-
-            if not spell:
-                spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
-            spell = aSpell(spell,self.town_hall.level,is_unlocked_at_this_level)
-            self.spells.append(spell)
-
-        pets_placeholder = []
-        pets_d = {th:pets for (th,pets) in pet_availability.items() if th<=self.town_hall.level}
-        for th, pets in pets_d.items():
-            minlevel = 0
-            if th < self.town_hall.level:
-                minlevel = 10
-            for pet in pets:
-                get_pet = [p for p in self.hero_pets if p.name==pet]
-                if len(get_pet) == 0:
-                    pet_object = aHeroPet.not_yet_unlocked(pet,minlevel)
-                else:
-                    pet_object = aHeroPet(get_pet[0],minlevel)
-                pets_placeholder.append(pet_object)
-        self.hero_pets = pets_placeholder
-
-        self.hero_description = ""
-        if self.town_hall.level >= 7:
-            self.hero_description = f"{emotes_army['Barbarian King']} {sum([h.level for h in self.heroes if h.name=='Barbarian King'])}"
-        if self.town_hall.level >= 9:
-            self.hero_description += f"\u3000{emotes_army['Archer Queen']} {sum([h.level for h in self.heroes if h.name=='Archer Queen'])}"
-        if self.town_hall.level >= 11:
-            self.hero_description += f"\u3000{emotes_army['Grand Warden']} {sum([h.level for h in self.heroes if h.name=='Grand Warden'])}"
-        if self.town_hall.level >= 13:
-            self.hero_description += f"\u3000{emotes_army['Royal Champion']} {sum([h.level for h in self.heroes if h.name=='Royal Champion'])}"
-
-        self.hero_strength = sum([hero.level for hero in self.heroes])
-        self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
-        self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
-
-        rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
-        if self.min_hero_strength > 0:
-            self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,2)
-
-        self.troop_strength = sum([troop.level for troop in self.troops])
-        self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.hero_pets]))
-        self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.hero_pets]))
-
-        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.hero_pets if p.level < p.minlevel_for_townhall])
-        if self.min_troop_strength > 0:
-            self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,2)
-
-        self.spell_strength = sum([spell.level for spell in self.spells])
-        self.max_spell_strength = (sum([spell.maxlevel_for_townhall for spell in self.spells]))
-        self.min_spell_strength = (sum([spell.minlevel_for_townhall for spell in self.spells]))
-
-        rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
-        if self.min_spell_strength > 0:
-            self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,2)
-
-        if self.min_hero_strength + self.min_troop_strength + self.min_spell_strength > 0:
-            rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
-            self.overall_rushed_pct = round(rushed_pct*100,2)
-
         memberInfo = await alliance_file_handler(ctx,
             entry_type='members',
             tag=self.tag)
@@ -326,10 +306,11 @@ class aPlayer(coc.Player):
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
         if not json:
-            member_stats = await data_file_handler(ctx,
-                action='read',
-                file='members',
-                tag=self.tag)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(file_path,'r') as file:
+                    file_json = json.load(file)
+
+            member_stats = file_json[self.tag]
         else:
             member_stats = json
 
