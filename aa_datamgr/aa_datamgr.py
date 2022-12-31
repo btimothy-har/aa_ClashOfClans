@@ -235,7 +235,7 @@ class AriXClashDataMgr(commands.Cog):
 
             file_json[tag] = member
 
-            mm = await aPlayer.create(ctx,tag=member['tag'],json=member,reset=True)
+            mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
 
             await mm.save_to_json()
 
