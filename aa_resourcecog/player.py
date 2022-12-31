@@ -757,16 +757,15 @@ class aPlayerClanGames():
 class aHero():
     def __init__(self,data,townhall_level,is_unlocked_at_this_level=False):
 
-        self.id = getattr(data,'id',0)
-        self.name = getattr(data,'name','')
+        self.id = data.id
+        self.name = data.name
 
-        self.level = getattr(data,'level',0)
-        if not isinstance(self.level,int):
+        try:
+            self.level = int(data.level)
+        except:
             self.level = 0
 
-        self.village = getattr(data,'village','')
-        if self.village == '':
-            self.village = 'home'
+        self.village = data.village
 
         maxlevel_for_townhall = data.get_max_level_for_townhall(max(townhall_level,3))
         self.maxlevel_for_townhall = int(0 if maxlevel_for_townhall is None else maxlevel_for_townhall)
