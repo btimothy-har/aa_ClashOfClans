@@ -40,63 +40,63 @@ class aPlayer(coc.Player):
         self.town_hall = aTownHall(level=self.town_hall,weapon=self.town_hall_weapon)
         self.clan_castle = sum([a.value for a in self.achievements if a.name=='Empire Builder'])
 
-        self.discord_user = getattr(cache,'discord_user',0)
+        if not cache:
+            self.discord_user = 0
+            self.current_war = None
+            self.current_raid_weekend = None
 
-        self.current_war = getattr(cache,'current_war',None)
-        self.current_raid_weekend = getattr(cache,'current_raid_weekend',None)
+            self.clan_description = ""
+            self.hero_description = ""
 
-        self.clan_description = getattr(cache,'clan_description',"")
-        self.hero_description = getattr(cache,'hero_description',"")
+            self.hero_strength = getattr(cache,'hero_strength',0)
+            self.max_hero_strength = getattr(cache,'max_hero_strength',0)
+            self.min_hero_strength = getattr(cache,'min_hero_strength',0)
+            self.hero_rushed_pct = getattr(cache,'hero_rushed_pct',0)
 
-        self.hero_strength = getattr(cache,'hero_strength',0)
-        self.max_hero_strength = getattr(cache,'max_hero_strength',0)
-        self.min_hero_strength = getattr(cache,'min_hero_strength',0)
-        self.hero_rushed_pct = getattr(cache,'hero_rushed_pct',0)
+            self.troop_strength = getattr(cache,'troop_strength',0)
+            self.max_troop_strength = getattr(cache,'max_troop_strength',0)
+            self.min_troop_strength = getattr(cache,'min_troop_strength',0)
+            self.troop_rushed_pct = getattr(cache,'troop_rushed_pct',0)
 
-        self.troop_strength = getattr(cache,'troop_strength',0)
-        self.max_troop_strength = getattr(cache,'max_troop_strength',0)
-        self.min_troop_strength = getattr(cache,'min_troop_strength',0)
-        self.troop_rushed_pct = getattr(cache,'troop_rushed_pct',0)
+            self.spell_strength = getattr(cache,'spell_strength',0)
+            self.max_spell_strength = getattr(cache,'max_spell_strength',0)
+            self.min_spell_strength = getattr(cache,'min_spell_strength',0)
+            self.spell_rushed_pct = getattr(cache,'spell_rushed_pct',0)
 
-        self.spell_strength = getattr(cache,'spell_strength',0)
-        self.max_spell_strength = getattr(cache,'max_spell_strength',0)
-        self.min_spell_strength = getattr(cache,'min_spell_strength',0)
-        self.spell_rushed_pct = getattr(cache,'spell_rushed_pct',0)
+            self.overall_rushed_pct = getattr(cache,'overall_rushed_pct',0)
 
-        self.overall_rushed_pct = getattr(cache,'overall_rushed_pct',0)
+            #Membership Attributes
+            try:
+                self.home_clan = cache.home_clan
+            except:
+                self.home_clan = aClan()
+            self.readable_name = getattr(cache,'readable_name',self.name)
+            self.is_member = getattr(cache,'is_member',False)
+            self.is_arix_account = getattr(cache,'is_arix_account',False)
+            self.arix_rank = getattr(cache,'arix_rank','Non-Member')
+            self.notes = getattr(cache,'notes',[])
 
-        #Membership Attributes
-        try:
-            self.home_clan = cache.home_clan
-        except:
-            self.home_clan = aClan()
-        self.readable_name = getattr(cache,'readable_name',self.name)
-        self.is_member = getattr(cache,'is_member',False)
-        self.is_arix_account = getattr(cache,'is_arix_account',False)
-        self.arix_rank = getattr(cache,'arix_rank','Non-Member')
-        self.notes = getattr(cache,'notes',[])
+            #Membership Statistics
+            try:
+                self.last_update = cache.last_update
+            except:
+                self.last_update = time.time
 
-        #Membership Statistics
-        try:
-            self.last_update = cache.last_update
-        except:
-            self.last_update = time.time
+            try:
+                self.current_season = cache.current_season
+            except:
+                self.current_season = aPlayerSeason(ctx,self,'current')
 
-        try:
-            self.current_season = cache.current_season
-        except:
-            self.current_season = aPlayerSeason(ctx,self,'current')
+            try:
+                self.season_data = cache.season_data
+            except:
+                self.season_data = {}
 
-        try:
-            self.season_data = cache.season_data
-        except:
-            self.season_data = {}
+            self.member_description = getattr(cache,'member_description',"")
 
-        self.member_description = getattr(cache,'member_description',"")
-
-        self.desc_title = getattr(cache,'desc_title',"")
-        self.desc_full_text = getattr(cache,'desc_full_text',"")
-        self.desc_summary_text = getattr(cache,'desc_summary_text',"")
+            self.desc_title = getattr(cache,'desc_title',"")
+            self.desc_full_text = getattr(cache,'desc_full_text',"")
+            self.desc_summary_text = getattr(cache,'desc_summary_text',"")
 
     def __repr__(self):
         return f"Player {self.name} ({self.tag}) - AriX {self.arix_rank}"
@@ -458,8 +458,6 @@ class aPlayer(coc.Player):
                 self.current_season.capitalcontribution.update_stat(achievement.value)
 
         self.last_update = self.timestamp
-        await self.save_to_json(ctx)
-
 
     async def set_baselines(self,ctx):
         if self.clan.tag not in [c.tag for c in self.current_season.other_clans]:
@@ -507,7 +505,6 @@ class aPlayer(coc.Player):
 
             else:
                 self.current_season.warlog[c_war_id] = self.current_war
-        await self.save_to_json(ctx)
 
     async def update_raid_weekend(self,ctx):
         if not self.current_raid_weekend:
@@ -523,8 +520,6 @@ class aPlayer(coc.Player):
 
         else:
             self.current_season.raidlog[c_raid_id] = self.current_raid_weekend
-
-        await self.save_to_json(ctx)
 
 
     async def new_member(self,ctx,discord_user,home_clan=None):
@@ -547,8 +542,6 @@ class aPlayer(coc.Player):
             self.arix_rank = 'Non-Member'
 
         self.discord_user = discord_user.id
-
-        await self.set_baselines(ctx)
         await self.save_to_json(ctx)
 
 
@@ -734,7 +727,7 @@ class aPlayerClanGames():
         return self
 
     def set_baseline(self):
-        self.last_updated = [a.value for a in self.player.achievements if a.name == 'Games Champion'][0]
+        self.last_updated = [a.value for a in self.stats.player.achievements if a.name == 'Games Champion'][0]
 
     async def calculate_clangames(self):
         max_score = 4000
