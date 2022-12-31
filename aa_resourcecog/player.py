@@ -66,7 +66,10 @@ class aPlayer(coc.Player):
         self.overall_rushed_pct = getattr(cache,'overall_rushed_pct',0)
 
         #Membership Attributes
-        self.home_clan = getattr(cache,'home_clan',aClan())
+        try:
+            self.home_clan = cache.home_clan
+        except:
+            self.home_clan = aClan()
         self.readable_name = getattr(cache,'readable_name',self.name)
         self.is_member = getattr(cache,'is_member',False)
         self.is_arix_account = getattr(cache,'is_arix_account',False)
@@ -74,9 +77,20 @@ class aPlayer(coc.Player):
         self.notes = getattr(cache,'notes',[])
 
         #Membership Statistics
-        self.last_update = getattr(cache,'last_update',time.time())
-        self.current_season = getattr(cache,'current_season',aPlayerSeason(ctx,self,'current'))
-        self.season_data = getattr(cache,'season_data',{})
+        try:
+            self.last_update = cache.last_update
+        except:
+            self.last_update = time.time
+
+        try:
+            self.current_season = cache.current_season
+        except:
+            self.current_season = aPlayerSeason(ctx,self,'current')
+
+        try:
+            self.season_data = cache.season_data
+        except:
+            self.season_data = {}
 
         self.member_description = getattr(cache,'member_description',"")
 
@@ -277,6 +291,7 @@ class aPlayer(coc.Player):
         memberInfo = await alliance_file_handler(ctx,
             entry_type='members',
             tag=self.tag)
+
         #From AriX Data File
         if memberInfo:
 
@@ -357,6 +372,18 @@ class aPlayer(coc.Player):
         return self
 
     async def save_to_json(self,ctx):
+
+        warlogkeys = []
+        for (war_id, war) in self.current_season.warlog.items():
+            if war:
+                warlogkeys.append(war.war_id)
+
+        raidlogkeys = []
+        for (raid_id, raid) in self.current_season.raidlog.items():
+            if raid:
+                raidlogkeys.append(raid.raid_id)
+
+
         allianceJson = {
             'name':self.name,
             'readable_name': self.readable_name,
@@ -383,8 +410,8 @@ class aPlayer(coc.Player):
             'loot_darkelixir': self.current_season.loot_darkelixir.to_json(),
             'clangames': self.current_season.clangames.to_json(),
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
-            'raid_log': [raid.raid_id for (rid,raid) in self.current_season.raidlog.items()],
-            'war_log': [war.war_id for (wid,war) in self.current_season.warlog.items()],
+            'raid_log': raidlogkeys,
+            'war_log': warlogkeys,
             }
 
         await alliance_file_handler(
@@ -555,9 +582,11 @@ class aPlayerSeason():
 
         self.capitalcontribution = aPlayerStat({})
 
+        self.warlogkeys = []
         self.warlog = {}
         self.war_stats = aPlayerWarStats()
 
+        self.raidlogkeys = []
         self.raidlog = {}
         self.raid_stats = aPlayerRaidStats()
 
@@ -585,11 +614,13 @@ class aPlayerSeason():
 
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
-        for war_id in memberStats.get('war_log',[]):
+        self.warlogkeys = memberStats.get('war_log',[])
+        for war_id in self.warlogkeys:
             war = await aClanWar.get(ctx,war_id=war_id)
             self.warlog[war_id] = war
 
-        for raid_id in memberStats.get('raid_log',[]):
+        self.raidlogkeys = memberStats.get('raid_log',[])
+        for raid_id in self.raidlogkeys:
             raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
             self.raidlog[raid_id] = raid
 

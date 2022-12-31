@@ -184,7 +184,7 @@ class AriXClashDataMgr(commands.Cog):
         #for tag in list(member_json.keys()):
         a = await aPlayer.create(ctx,tag='#LJC8V0GCJ')
         for (wid,item) in a.current_season.warlog.items():
-            print(f"{wid} {item}")
+            await ctx.send(f"{wid} {item}")
 
         ctx.bot.refresh_loop = 0
 
