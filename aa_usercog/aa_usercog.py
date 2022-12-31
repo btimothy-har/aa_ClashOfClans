@@ -398,7 +398,7 @@ class AriXMemberCommands(commands.Cog):
         If no tags are provided, will return all of your accounts registered with AriX.
         """
 
-        discord_member = None
+        member = None
         player_tags = []
         output_embed = []
         accounts = []
@@ -406,20 +406,20 @@ class AriXMemberCommands(commands.Cog):
         if len(tags_or_user_mention) == 0:
             member = await aMember.create(ctx,user_id=ctx.author.id)
         else:
-            check_for_discord_mention = int(re.search('@(.*)>',tags_or_user_mention[0]).group(1))
-            member = await aMember.create(ctx,user_id=check_for_discord_mention)
+            try:
+                check_for_discord_mention = int(re.search('@(.*)>',tags_or_user_mention[0]).group(1))
+                member = await aMember.create(ctx,user_id=check_for_discord_mention)
+            except:
+                member = None
 
-            if len(member.accounts) == 0:
-                for t in tags_or_user_mention:
-                    t = coc.utils.correct_tag(t)
-                    if not coc.utils.is_valid_tag(t):
-                        continue
-                    player_tags.append(t)
+        if not member:
+            for t in tags_or_user_mention:
+                t = coc.utils.correct_tag(t)
+                if not coc.utils.is_valid_tag(t):
+                    continue
 
-        if player_tags:
-            for tag in player_tags:
                 try:
-                    p = await aPlayer.create(ctx,tag)
+                    p = await aPlayer.create(ctx,tag=t)
                 except Exception as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
                     return await ctx.send(embed=eEmbed)
