@@ -330,7 +330,7 @@ class aPlayer(coc.Player):
             tag=self.tag)
 
         if member_stats:
-            self.last_update = memberStats['last_update']
+            self.last_update = member_stats['last_update']
             self.current_season = await aPlayerSeason.create(ctx,
                 player=self,
                 season='current',
