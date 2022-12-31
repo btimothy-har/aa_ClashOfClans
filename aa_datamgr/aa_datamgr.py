@@ -492,19 +492,19 @@ class AriXClashDataMgr(commands.Cog):
                 tag="**")
 
             for war_id in list(clanwar_json.keys()):
-                war = await aClanWar.create(ctx,war_id=war_id)
+                war = await aClanWar.get(ctx,war_id=war_id)
 
                 if war.state not in ['warEnded']:
                     war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                    war = await aClanWar.create(ctx,clan=war_clan)
+                    war = await aClanWar.get(ctx,clan=war_clan)
                     await war.save_to_json(ctx)
 
             for raid_id in list(capitalraid_json.keys()):
-                raid = await aRaidWeekend.create(ctx,raid_id=raid_id)
+                raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
 
                 if raid.state not in ['ended']:
                     raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
-                    raid = await aRaidWeekend.create(ctx,clan=raid_clan)
+                    raid = await aRaidWeekend.get(ctx,clan=raid_clan)
                     await raid.save_to_json(ctx)
 
         await ctx.send('update completed')
@@ -815,19 +815,19 @@ class AriXClashDataMgr(commands.Cog):
                 inline=False)
 
             for war_id in list(clanwar_json.keys()):
-                war = await aClanWar.create(ctx,war_id=war_id)
+                war = await aClanWar.get(ctx,war_id=war_id)
 
                 if war.state not in ['warEnded']:
                     war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                    war = await aClanWar.create(ctx,clan=war_clan)
+                    war = await aClanWar.get(ctx,clan=war_clan)
                     await war.save_to_json(ctx)
 
             for raid_id in list(capitalraid_json.keys()):
-                raid = await aRaidWeekend.create(ctx,raid_id=raid_id)
+                raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
 
                 if raid.state not in ['ended']:
                     raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
-                    raid = await aRaidWeekend.create(ctx,clan=raid_clan)
+                    raid = await aRaidWeekend.get(ctx,clan=raid_clan)
                     await raid.save_to_json(ctx)
 
             et = time.time()
