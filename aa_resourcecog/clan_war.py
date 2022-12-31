@@ -59,6 +59,9 @@ class aClanWar():
                 if clan.tag == clan_2.tag:
                     self.clan = clan_2
                     self.opponent = clan_1
+                else:
+                    self.clan = clan_1
+                    self.opponent = clan_2
             else:
                 self.clan = clan_1
                 self.opponent = clan_2
