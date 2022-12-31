@@ -25,7 +25,7 @@ def filename_handler(ctx,name_input,**kwargs):
 
     file_name = {
         'alliance':'alliance.json',
-        'members':'members.json',
+        'members':'member_info.json',
         'warlog':'warlog.json',
         'capitalraid':'capitalraid.json',
         'challengepass':'challengepass.json'
