@@ -59,23 +59,9 @@ class AriXMemberCommands(commands.Cog):
         Your server nickname can be changed to match one of your registered accounts.
         """
 
-        new_nickname = await resc.user_nickname_handler(ctx,ctx.author)
+        member = aMember.create(ctx,user_id=ctx.author.id)
 
-        if not new_nickname:
-            return
-
-        try:
-            discord_member = ctx.guild.get_member(ctx.author.id)
-            await discord_member.edit(nick=new_nickname)
-            success_embed = await clash_embed(ctx,
-                message=f"{ctx.author.mention} your nickname has been set to {new_nickname}.",
-                color='success')
-            return await ctx.send(embed=success_embed)
-        except:
-            end_embed = await clash_embed(ctx,
-                message=f"{ctx.author.mention}, I don't have permissions to change your nickname.",
-                color='fail')
-            return await ctx.send(embed=end_embed)
+        await member.set_nickname(ctx,selection=True)
 
     @commands.command(name="register")
     async def user_add_guest_account(self,ctx):
@@ -219,7 +205,7 @@ class AriXMemberCommands(commands.Cog):
 
         alliance_clans = await get_alliance_clan(ctx)
 
-        if len(alliance_clans) == 0:
+        if not alliance_clans:
             eEmbed = await clash_embed(ctx=ctx,message=f"There are no clans registered.",color="fail")
             return await ctx.send(embed=eEmbed)
 
@@ -299,7 +285,7 @@ class AriXMemberCommands(commands.Cog):
             rEmbed = await clash_embed(ctx=ctx,
                 title=f"{c.emoji} {c.desc_title}",
                 message=clan_str,
-                thumbnail=c.badge.medium,
+                thumbnail=c.badge,
                 show_author=False)
 
             await ctx.send(embed=rEmbed)
@@ -317,7 +303,7 @@ class AriXMemberCommands(commands.Cog):
         if not user:
             user = ctx.author
 
-        member = await aMember.create(ctx,user.id)
+        member = await aMember.create(ctx,user_id=user.id)
 
         is_staff = False
 

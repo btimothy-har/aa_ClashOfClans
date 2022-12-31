@@ -503,7 +503,7 @@ class aPlayer(coc.Player):
             self.is_member = False
             self.arix_rank = 'Non-Member'
 
-        self.discord_user = discord_user
+        self.discord_user = discord_user.id
 
         await self.set_baselines(ctx)
         await self.save_to_json(ctx)
@@ -1128,8 +1128,13 @@ class aClan(coc.Clan):
             if self.war_league:
                 war_league_str = f"{emotes_league[self.war_league.name]} {self.war_league.name}"
 
+            if self.is_alliance_clan:
+                mc = self.arix_member_count
+            else:
+                mc = self.member_count
+
             self.desc_full_text = (
-                    f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {self.member_count}"
+                    f"<:Clan:825654825509322752> Level {self.level}\u3000{emotes_capitalhall[self.capital_hall]} CH {self.capital_hall}\u3000<:Members:1040672942524215337> {mc}"
                 +   f"\n{war_league_str}\n<:ClanWars:825753092230086708> W{self.war_wins}/D{self.war_ties}/L{self.war_losses} (Streak: {self.war_win_streak})"
                 +   f"\n[Clan Link: {self.tag}]({self.share_link})")
 
