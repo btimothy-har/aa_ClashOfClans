@@ -737,6 +737,12 @@ class AriXClashDataMgr(commands.Cog):
                     error_log.append(err)
                     continue
 
+                try:
+                    await c.compute_arix_membership(ctx)
+                except Exception as e:
+                    err = DataError(category='clmem',tag=c.tag,error=e)
+                    error_log.append(err)
+
                 mem_count += c.arix_member_count
 
                 clan_update += f"__{c.name} {c.tag}__"

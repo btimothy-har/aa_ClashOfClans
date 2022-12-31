@@ -1078,10 +1078,6 @@ class aClan(coc.Clan):
             ctx=ctx,
             entry_type='clans',
             tag=self.tag)
-        memberInfo = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='members',
-            tag="**")
 
         self.current_war = await aClanWar.get(ctx,clan=self)
         self.current_raid_weekend = await aRaidWeekend.get(ctx,clan=self)
@@ -1123,17 +1119,6 @@ class aClan(coc.Clan):
             self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
 
         if not conv:
-            memberTags = list(memberInfo.keys())
-
-            self.arix_members = []
-            for tag in memberTags:
-                mp = await aPlayer.create(ctx,tag=tag)
-                if mp.is_member and mp.home_clan.tag == self.tag:
-                    self.arix_members.append(mp)
-
-            self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
-            self.arix_member_count = len(self.arix_members)
-
             self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
             self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
 
@@ -1158,6 +1143,22 @@ class aClan(coc.Clan):
 
         return self
 
+    async def compute_arix_membership(self,ctx):
+        memberInfo = await alliance_file_handler(
+            ctx=ctx,
+            entry_type='members',
+            tag="**")
+
+        memberTags = list(memberInfo.keys())
+
+        self.arix_members = []
+        for tag in memberTags:
+            mp = await aPlayer.create(ctx,tag=tag)
+            if mp.is_member and mp.home_clan.tag == self.tag:
+                self.arix_members.append(mp)
+
+        self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
+        self.arix_member_count = len(self.arix_members)
 
     async def save_to_json(self,ctx):
         allianceJson = {
