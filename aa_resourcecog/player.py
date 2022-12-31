@@ -272,7 +272,9 @@ class aPlayer(coc.Player):
             rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
             self.overall_rushed_pct = round(rushed_pct*100,2)
 
-        memberInfo = await alliance_file_handler(ctx,'members',self.tag)
+        memberInfo = await alliance_file_handler(ctx,
+            entry_type='members',
+            tag=self.tag)
         #From AriX Data File
         if memberInfo:
 
@@ -305,7 +307,9 @@ class aPlayer(coc.Player):
             notes = [aNote.from_json(ctx,n) for n in memberInfo.get('notes',[])]
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-        memberStats = await data_file_handler(ctx,'members',self.tag)
+        memberStats = await data_file_handler(ctx,
+            file='members',
+            tag=self.tag)
 
         if memberStats:
             self.last_update = memberStats['last_update']
@@ -391,7 +395,6 @@ class aPlayer(coc.Player):
             file='members',
             tag=self.tag,
             new_data=memberJson)
-
 
     async def update_stats(self,ctx):
         if self.clan.tag == self.home_clan.tag:
@@ -576,9 +579,13 @@ class aPlayerSeason():
 
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
-        self.warlog = {war_id:await aClanWar.get(ctx,war_id=war_id) for war_id in memberStats.get('war_log',[])}
+        for war_id in memberStats.get('war_log',[]):
+            war = await aClanWar.get(ctx,war_id=war_id)
+            self.warlog[war_id] = war
 
-        self.raidlog = {raid_id:await aRaidWeekend.get(ctx,raid_id=raid_id) for raid_id in memberStats.get('raid_log',[])}
+        for raid_id in memberStats.get('raid_log',[]):
+            raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
+            self.raidlog[raid_id] = raid
 
         self.war_stats = await aPlayerWarStats.compute(ctx=ctx,player=self.player,warlog=self.warlog)
         self.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,player=self.player,raidlog=self.raidlog)
@@ -1059,14 +1066,6 @@ class aClan(coc.Clan):
             ctx=ctx,
             entry_type='members',
             tag="**")
-        warLog = await data_file_handler(
-            ctx=ctx,
-            file='warlog',
-            tag=self.tag)
-        raidLog = await data_file_handler(
-            ctx=ctx,
-            file='capitalraid',
-            tag=self.tag)
 
         self.current_war = await aClanWar.get(ctx,clan=self)
         self.current_raid_weekend = await aRaidWeekend.get(ctx,clan=self)

@@ -48,7 +48,7 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
 
 
 async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
-    if file not in ['members','warlog','capitalraid']:
+    if file not in ['members','warlog','capitalraid','challengepass']:
         return None
 
     file_name = {
