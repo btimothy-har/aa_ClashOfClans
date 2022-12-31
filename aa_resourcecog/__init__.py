@@ -38,17 +38,6 @@ async def setup(bot:Red):
     bot.clash_eclipse_lock = fasteners.InterProcessReaderWriterLock(os.getenv('ECLIPSEPATH') + "/eclipse.lock")
     bot.clash_eclipse_sessions = []
 
-    bot.current_season = None
-    bot.load_cache = False
-    bot.tracked_seasons = []
-    bot.user_cache = {}
-    bot.member_cache = {}
-    bot.clan_cache = {}
-
-    bot.pass_cache = {}
-    bot.war_cache = {}
-    bot.raid_cache = {}
-
     if not os.path.exists(bot.clash_dir_path+'/seasons.json'):
         with bot.clash_file_lock.write_lock():
             with open(bot.clash_dir_path+'/seasons.json','w') as file:
