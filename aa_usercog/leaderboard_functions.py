@@ -29,10 +29,9 @@ from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capita
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from aa_resourcecog.clan import aClan
-from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.clan_war import aClanWar
+from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 class WarLord_Player():

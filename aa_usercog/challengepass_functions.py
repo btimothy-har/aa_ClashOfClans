@@ -4,7 +4,7 @@ import time
 import pytz
 import random
 
-from aa_resourcecog.file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
+from aa_resourcecog.file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 
 class MemberIneligible(Exception):
