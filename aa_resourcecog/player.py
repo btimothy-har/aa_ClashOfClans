@@ -383,8 +383,8 @@ class aPlayer(coc.Player):
             'loot_darkelixir': self.current_season.loot_darkelixir.to_json(),
             'clangames': self.current_season.clangames.to_json(),
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
-            'raid_log': [rid for (rid,raid) in self.current_season.raidlog.items()],
-            'war_log': [wid for (wid,war) in self.current_season.warlog.items()],
+            'raid_log': [raid.raid_id for (rid,raid) in self.current_season.raidlog.items()],
+            'war_log': [war.war_id for (wid,war) in self.current_season.warlog.items()],
             }
 
         await alliance_file_handler(
@@ -584,8 +584,6 @@ class aPlayerSeason():
         self.clangames = await aPlayerClanGames.create(ctx,stats=self,input_json=memberStats.get('clangames',{}),season=season)
 
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
-
-
 
         for war_id in memberStats.get('war_log',[]):
             war = await aClanWar.get(ctx,war_id=war_id)

@@ -55,9 +55,10 @@ class aClanWar():
             clan_1 = aWarClan(self,json=clan_1_json)
             clan_2 = aWarClan(self,json=clan_2_json)
 
-            if clan and clan.tag == clan_2.tag:
-                self.clan = clan_2
-                self.opponent = clan_1
+            if clan:
+                if clan.tag == clan_2.tag:
+                    self.clan = clan_2
+                    self.opponent = clan_1
             else:
                 self.clan = clan_1
                 self.opponent = clan_2

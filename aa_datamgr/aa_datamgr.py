@@ -480,6 +480,9 @@ class AriXClashDataMgr(commands.Cog):
         if update_type == 'clan':
             c = await aClan.create(ctx,tag=tag,refresh=True)
 
+            if c.is_alliance_clan:
+                await c.compute_arix_membership(ctx)
+
             war_update = await c.update_clan_war(ctx)
             raid_update = await c.update_raid_weekend(ctx)
             await c.save_to_json(ctx)
@@ -737,11 +740,12 @@ class AriXClashDataMgr(commands.Cog):
                     error_log.append(err)
                     continue
 
-                try:
-                    await c.compute_arix_membership(ctx)
-                except Exception as e:
-                    err = DataError(category='clmem',tag=c.tag,error=e)
-                    error_log.append(err)
+                if c.is_alliance_clan:
+                    try:
+                        await c.compute_arix_membership(ctx)
+                    except Exception as e:
+                        err = DataError(category='clmem',tag=c.tag,error=e)
+                        error_log.append(err)
 
                 mem_count += c.arix_member_count
 
