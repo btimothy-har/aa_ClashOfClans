@@ -105,6 +105,7 @@ class aPlayer(coc.Player):
     async def create(cls,ctx,tag,**kwargs):
         refresh = kwargs.get('refresh',False)
         reset = kwargs.get('reset',False)
+        json = kwargs.get('json',None)
         cached_data = None
 
         tag = coc.utils.correct_tag(tag)
@@ -324,10 +325,13 @@ class aPlayer(coc.Player):
             notes = [aNote.from_json(ctx,n) for n in memberInfo.get('notes',[])]
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-        member_stats = await data_file_handler(ctx,
-            action='read',
-            file='members',
-            tag=self.tag)
+        if not json:
+            member_stats = await data_file_handler(ctx,
+                action='read',
+                file='members',
+                tag=self.tag)
+        else:
+            member_stats = json
 
         if member_stats:
             self.last_update = member_stats['last_update']
