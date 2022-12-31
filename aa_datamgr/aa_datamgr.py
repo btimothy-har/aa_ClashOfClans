@@ -237,7 +237,8 @@ class AriXClashDataMgr(commands.Cog):
 
             mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
 
-            await mm.save_to_json()
+            await mm.save_to_json(ctx)
+            await ctx.send(f"saved {mm.tag}")
 
         # async with ctx.bot.async_file_lock:
         #     with ctx.bot.clash_file_lock.write_lock():

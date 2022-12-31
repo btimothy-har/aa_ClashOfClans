@@ -600,13 +600,9 @@ class aPlayerSeason():
 
         if stats:
             debug = ctx.bot.get_channel(856433806142734346)
-            await debug.send(list(stats.keys()))
 
             self.time_in_home_clan = stats['time_in_home_clan']
             self.other_clans = [await aClan.create(ctx,tag=c) for c in stats['other_clans']]
-
-            await debug.send(f"attacks {stats['attacks']}")
-            await debug.send(f"defenses {stats['defenses']}")
 
             self.attacks = aPlayerStat(stats['attacks'])
             self.defenses = aPlayerStat(stats['defenses'])
@@ -618,17 +614,14 @@ class aPlayerSeason():
             self.loot_elixir = aPlayerStat(stats['loot_elixir'])
             self.loot_darkelixir = aPlayerStat(stats['loot_darkelixir'])
 
-            await debug.send(f"cg {stats['clangames']}")
             self.clangames = await aPlayerClanGames.create(ctx,
                 stats=self,
                 json=stats['clangames'],
                 season=season)
 
-            await debug.send(f"cap {stats['capitalcontribution']}")
             self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
 
             self.warlogkeys = stats['war_log']
-            await debug.send(f"wl {self.warlogkeys}")
             for war_id in self.warlogkeys:
                 await debug.send(f"..{war_id}")
                 war = await aClanWar.get(ctx,war_id=war_id)
@@ -637,7 +630,6 @@ class aPlayerSeason():
                 await debug.send(f"..{war}")
 
             self.raidlogkeys = stats['raid_log']
-            await debug.send(f"rl {self.raidlogkeys}")
             for raid_id in self.raidlogkeys:
                 raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
                 if raid:
