@@ -601,6 +601,9 @@ class aPlayerSeason():
             self.time_in_home_clan = stats['time_in_home_clan']
             self.other_clans = [await aClan.create(ctx,tag=c) for c in stats['other_clans']]
 
+            await debug.send("attacks" + stats['attacks'])
+            await debug.send("defenses" + stats['defenses'])
+
             self.attacks = aPlayerStat(stats['attacks'])
             self.defenses = aPlayerStat(stats['defenses'])
 
@@ -619,6 +622,7 @@ class aPlayerSeason():
             self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
 
             self.warlogkeys = stats['war_log']
+            await debug.send(self.warlogkeys)
             for war_id in self.warlogkeys:
                 await debug.send(f"..{war_id}")
                 war = await aClanWar.get(ctx,war_id=war_id)
@@ -631,12 +635,12 @@ class aPlayerSeason():
                 self.raidlog[raid_id] = raid
 
             self.war_stats = await aPlayerWarStats.compute(ctx=ctx,
-                                                            player=self.player,
-                                                            warlog=self.warlog)
+                                                        player=self.player,
+                                                        warlog=self.warlog)
 
             self.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,
-                                                            player=self.player,
-                                                            raidlog=self.raidlog)
+                                                        player=self.player,
+                                                        raidlog=self.raidlog)
         return self
 
 class aTownHall():
