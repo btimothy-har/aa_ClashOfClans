@@ -730,7 +730,6 @@ class AriXClashDataMgr(commands.Cog):
 
             alliance_clans_json = await alliance_file_handler(
                 ctx=ctx,
-                action='read',
                 entry_type='clans',
                 tag="**")
 

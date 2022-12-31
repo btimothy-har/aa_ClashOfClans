@@ -420,7 +420,7 @@ class aPlayer(coc.Player):
 
     async def save_to_json(self,ctx):
 
-        alliance_json, member_json = self.to_json()
+        alliance_json, member_json = self.to_json(ctx)
 
         await alliance_file_handler(
             ctx=ctx,
