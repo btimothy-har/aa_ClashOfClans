@@ -434,6 +434,49 @@ class AriXClashDataMgr(commands.Cog):
         return await ctx.send(embed=embed)
 
 
+    @commands.command(name="simulate")
+    @commands.is_owner()
+    async def data_simulation(self,ctx,update_type,tag):
+
+        if update_type not in ['clan','member']:
+            await ctx.send("Invalid data type.")
+
+
+        if update_type == 'member':
+            helsinkiTz = pytz.timezone("Europe/Helsinki")
+            is_cwl = False
+            if datetime.now(helsinkiTz).day <= 9:
+                is_cwl = True
+
+            m = await aPlayer.create(ctx,tag=tag,refresh=True)
+
+            await m.update_warlog(ctx)
+            await m.update_raid_weekend(ctx)
+
+            if is_cwl:
+                await m.set_baselines(ctx)
+            else:
+                await m.current_season.clangames.calculate_clangames()
+
+                if m.clan.is_alliance_clan:
+                    await m.update_stats(ctx)
+                else:
+                    await m.set_baselines(ctx)
+
+            await m.save_to_json(ctx)
+
+            role_sync_completed = []
+            if m.discord_user:
+                memo = await aMember.create(ctx,user_id=m.discord_user)
+
+                if memo:
+                    if memo.discord_member and memo.user_id not in role_sync_completed:
+                        await memo.sync_roles(ctx)
+                        role_sync_completed.append(memo.user_id)
+
+        await ctx.send('update completed')
+
+
 
     @tasks.loop(hours=1.0)
     async def season_update(self):
@@ -861,7 +904,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 count_members += 1
 
-                if True:
+                try:
                     await m.update_warlog(ctx)
                     await m.update_raid_weekend(ctx)
 
@@ -874,10 +917,10 @@ class AriXClashDataMgr(commands.Cog):
                             await m.update_stats(ctx)
                         else:
                             await m.set_baselines(ctx)
-                #except Exception as e:
-                #    err = DataError(category='meupdt',tag=m.tag,error=e)
-                #    error_log.append(err)
-                #    continue
+                except Exception as e:
+                    err = DataError(category='meupdt',tag=m.tag,error=e)
+                    error_log.append(err)
+                    continue
 
                 try:
                     await m.save_to_json(ctx)
@@ -895,14 +938,14 @@ class AriXClashDataMgr(commands.Cog):
 
                     if memo:
                         if memo.discord_member and memo.user_id not in role_sync_completed:
-                            if True:
+                            try:
                                 await memo.sync_roles(ctx)
-                            # except Exception as e:
-                            #     err = DataError(category='mesync',tag=m.tag,error=e)
-                            #     error_log.append(err)
-                            #     continue
-                            # else:
-                            #     role_sync_completed.append(memo.user_id)
+                            except Exception as e:
+                                err = DataError(category='mesync',tag=m.tag,error=e)
+                                error_log.append(err)
+                                continue
+                            else:
+                                role_sync_completed.append(memo.user_id)
 
                 count_member_update += 1
 
