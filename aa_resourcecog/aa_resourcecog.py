@@ -21,7 +21,7 @@ from string import ascii_letters, digits
 
 from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
-from .file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 from .alliance_functions import get_user_profile, get_alliance_clan
 from .notes import aNote
 from .player import aPlayer, aClan, aMember
