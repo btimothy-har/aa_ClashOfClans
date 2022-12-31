@@ -187,9 +187,9 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def convert_warraidlog(self,ctx):
 
-        await ctx.send('started')
-
         file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
+
+        await ctx.send(f'started {file_path}')
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)
@@ -215,9 +215,8 @@ class AriXClashDataMgr(commands.Cog):
                     json.dump(new_warlog,file,indent=2)
                     file.truncate()
 
-        await ctx.send('now onto cap')
-
         file_path = ctx.bot.clash_dir_path + '/' + 'capitalraid.json'
+        await ctx.send(f'now onto cap {file_path}')
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)
@@ -243,9 +242,8 @@ class AriXClashDataMgr(commands.Cog):
                     json.dump(new_raidlog,file,indent=2)
                     file.truncate()
 
-        await ctx.send('members now')
-
         file_path = ctx.bot.clash_dir_path + '/' + 'members.json'
+        await ctx.send(f'members now {file_path}')
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)
