@@ -375,7 +375,7 @@ class aPlayer(coc.Player):
                 self.discord_user = get_links[0][1]
         return self
 
-    async def save_to_json(self,ctx):
+    async def to_json(self,ctx):
         warlogkeys = []
         for (war_id, war) in self.current_season.warlog.items():
             if war:
@@ -385,7 +385,6 @@ class aPlayer(coc.Player):
         for (raid_id, raid) in self.current_season.raidlog.items():
             if raid:
                 raidlogkeys.append(raid.raid_id)
-
 
         allianceJson = {
             'name':self.name,
@@ -417,18 +416,24 @@ class aPlayer(coc.Player):
             'iamnotcrazy':'iamnotcrazy'
             }
 
+        return allianceJson, memberJson
+
+    async def save_to_json(self,ctx):
+
+        alliance_json, member_json = self.to_json()
+
         await alliance_file_handler(
             ctx=ctx,
             entry_type='members',
             tag=self.tag,
-            new_data=allianceJson)
+            new_data=alliance_json)
 
         await data_file_handler(
             ctx=ctx,
             action='write',
             file='members',
             tag=self.tag,
-            new_data=memberJson)
+            new_data=member_json)
 
     async def update_stats(self,ctx):
         if self.clan.tag == self.home_clan.tag:

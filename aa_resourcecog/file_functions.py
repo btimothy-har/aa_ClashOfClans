@@ -48,6 +48,7 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
 
 
 async def data_file_handler(ctx,action:str,file:str,tag:str,**kwargs):
+
     new_data = kwargs.get('new_data',None)
     season = kwargs.get('season',None)
 

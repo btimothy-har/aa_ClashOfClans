@@ -291,12 +291,15 @@ class AriXClashDataMgr(commands.Cog):
                     new_raidlog.append(new_id)
                 member['raid_log'] = new_raidlog
 
-            file_json[tag] = member
-
             mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
 
-            await mm.save_to_json(ctx)
-            await ctx.send(f"saved {mm.tag}")
+            mm_ajson, mm_mjson = await mm.to_json(ctx)
+
+            file_json[tag] = mm_mjson
+
+        with open(ctx.bot.clash_dir_path + '/' + 'members1.json','w') as file:
+            json.dump(file_json,file,indent=2)
+
 
         # async with ctx.bot.async_file_lock:
         #     with ctx.bot.clash_file_lock.write_lock():
