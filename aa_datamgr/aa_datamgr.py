@@ -237,10 +237,8 @@ class AriXClashDataMgr(commands.Cog):
 
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
-                with open(file_path,'r+') as file:
-                    file.seek(0)
+                with open(file_path,'w') as file:
                     json.dump(file_json,file,indent=2)
-                    file.truncate()
 
         file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
 
@@ -269,10 +267,8 @@ class AriXClashDataMgr(commands.Cog):
 
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
-                with open(file_path,'r+') as file:
-                    file.seek(0)
+                with open(file_path,'w') as file:
                     json.dump(new_warlog,file,indent=2)
-                    file.truncate()
 
         file_path = ctx.bot.clash_dir_path + '/' + 'capitalraid.json'
         await ctx.send(f'now onto cap {file_path}')
@@ -299,10 +295,8 @@ class AriXClashDataMgr(commands.Cog):
 
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
-                with open(file_path,'r+') as file:
-                    file.seek(0)
+                with open(file_path,'w') as file:
                     json.dump(new_raidlog,file,indent=2)
-                    file.truncate()
 
         await ctx.send('all done')
 
