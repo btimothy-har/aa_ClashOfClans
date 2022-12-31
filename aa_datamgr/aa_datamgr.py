@@ -199,9 +199,9 @@ class AriXClashDataMgr(commands.Cog):
                 new_warlog = []
                 for (war_id,war) in warlog.items():
 
-                    tag_id_a = war['clan']['tag'] + war['opponent']['tag']
-                    tag_id_b = tag_a.replace('#','')
-                    tag_id = ''.join(sorted(tag_id_b))
+                    tag_a = war['clan']['tag'] + war['opponent']['tag']
+                    tag_b = tag_a.replace('#','')
+                    tag_id = ''.join(sorted(tag_b))
 
                     new_id = tag_id + str(int(float(war_id)))
                     new_warlog.append(new_id)
@@ -212,8 +212,8 @@ class AriXClashDataMgr(commands.Cog):
                 new_raidlog = []
                 for (raid_id,raid) in member['raid_log'].items():
 
-                    tag_id_a = raid['clan_tag']
-                    tag_id = tag_id_a.replace('#','')
+                    tag_a = raid['clan_tag']
+                    tag_id = tag_a.replace('#','')
 
                     new_id = tag_id + str(int(float(raid_id)))
                     new_raidlog.append(new_id)
