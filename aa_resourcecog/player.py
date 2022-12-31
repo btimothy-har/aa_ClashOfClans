@@ -900,7 +900,6 @@ class aPlayerWarStats():
 
         if self.attack_count > 0:
             self.average_attack_duration = total_duration / self.attack_count
-
         return self
 
 class aPlayerRaidStats():
@@ -926,6 +925,7 @@ class aPlayerRaidStats():
                 self.raids_participated += 1
                 self.raid_attacks += raidmember.attack_count
                 self.resources_looted += raidmember.capital_resources_looted
+        return self
 
 ########################################
 
