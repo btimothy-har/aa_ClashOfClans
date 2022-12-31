@@ -27,7 +27,7 @@ from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults, clanRanks
 from aa_resourcecog.notes import aNote
-from aa_resourcecog.file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
+from aa_resourcecog.file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 from aa_resourcecog.player import aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
@@ -134,27 +134,6 @@ class AriXClashDataMgr(commands.Cog):
 
         bot.current_season = s_json['current']
         bot.tracked_seasons = s_json['tracked']
-
-        # alliance_clans_json = await alliance_file_handler(
-        #     ctx=ctx,
-        #     entry_type='clans',
-        #     tag="**")
-
-        # member_json = await alliance_file_handler(
-        #     ctx=ctx,
-        #     entry_type='members',
-        #     tag="**")
-
-        # if bot.load_cache:
-        #     if len(list(bot.clan_cache.keys())) == 0:
-        #         for tag in list(alliance_clans_json.keys()):
-        #             await aClan.create(ctx,tag=tag)
-
-        #     if len(list(bot.member_cache.keys())) == 0:
-        #         for tag in list(member_json.keys()):
-        #             await aPlayer.create(ctx,tag=tag)
-
-        #     bot.refresh_loop = 0
 
 
     @commands.command(name="nstart")
@@ -548,56 +527,21 @@ class AriXClashDataMgr(commands.Cog):
         st = time.time()
 
         for (war_id,war) in ctx.bot.war_cache.items():
-            war.save_to_json
+            if war:
+                await war.save_to_json(ctx)
 
         for (raid_id,raid) in ctx.bot.raid_cache.items():
-            async with ctx.bot.async_file_lock:
-                with ctx.bot.clash_file_lock.write_lock():
-
-                    raid_json = raid.to_json()
-
-                    with open(ctx.bot.clash_dir_path+'/capitalraid.json','r+') as file:
-                        file_json = json.load(file)
-                        file_json[raid_id] = raid_json
-                        file.seek(0)
-                        json.dump(file_json,file,indent=2)
-                        file.truncate()
+            if raid:
+                await raid.save_to_json(ctx)
 
         for (c_tag,clan) in ctx.bot.clan_cache.items():
+
             if clan.is_alliance_clan:
-                alliance_json = await clan.to_json()
-
-                async with ctx.bot.async_file_lock:
-                    with ctx.bot.clash_file_lock.write_lock():
-
-                        with open(ctx.bot.clash_dir_path+'/alliance.json','r+') as file:
-                            file_json = json.load(file)
-                            file_json['clans'][c_tag] = alliance_json
-                            file.seek(0)
-                            json.dump(file_json,file,indent=2)
-                            file.truncate()
-
+                await clan.save_to_json(ctx)
 
         for (m_tag,member) in ctx.bot.member_cache.items():
             if member.is_arix_account:
-                alliance_json, member_json = member.to_json()
-
-                async with ctx.bot.async_file_lock:
-                    with ctx.bot.clash_file_lock.write_lock():
-
-                        with open(ctx.bot.clash_dir_path+'/alliance.json','r+') as file:
-                            file_json = json.load(file)
-                            file_json['members'][m_tag] = alliance_json
-                            file.seek(0)
-                            json.dump(file_json,file,indent=2)
-                            file.truncate()
-
-                        with open(ctx.bot.clash_dir_path+'/members.json','r+') as file:
-                            file_json = json.load(file)
-                            file_json[m_tag] = member_json
-                            file.seek(0)
-                            json.dump(file_json,file,indent=2)
-                            file.truncate()
+                await member.save_to_json(ctx)
 
         await self.config.last_data_save.set(st)
 
@@ -618,10 +562,6 @@ class AriXClashDataMgr(commands.Cog):
 
         if bot.refresh_loop < 0:
             return None
-
-        await self.master_lock.acquire()
-        await self.clan_lock.acquire()
-        await self.member_lock.acquire()
 
         st = time.time()
         update_season = False
@@ -650,27 +590,17 @@ class AriXClashDataMgr(commands.Cog):
         if update_season:
             log_str = ""
 
-            alliance_clans_json = await alliance_file_handler(
-                ctx=ctx,
-                entry_type='clans',
-                tag="**")
+            for (c_tag,clan) in ctx.bot.clan_cache.items():
 
-            for c_tag in list(alliance_clans_json.keys()):
-                try:
-                    c = await aClan.create(ctx,tag=c_tag)
-                except Exception as e:
-                    err = DataError(category='clan',tag=c_tag,error=e)
-                    error_log.append(err)
-                    continue
+                if clan.is_alliance_clan:
+                    if clan.current_war.state == 'inWar':
+                        update_season = False
+                    if clan.current_raid_weekend.state == 'ongoing':
+                        update_season = False
 
-                if c.current_war.state == 'inWar':
-                    update_season = False
-                if c.current_raid_weekend.state == 'ongoing':
-                    update_season = False
-
-                log_str += f"**{c.name} ({c.tag})**"
-                log_str += f"\n> Clan War: {c.current_war.state}"
-                log_str += f"\n> Capital Raid: {c.current_raid_weekend.state}"
+                log_str += f"**{clan.name} ({clan.tag})**"
+                log_str += f"\n> Clan War: {clan.current_war.state}"
+                log_str += f"\n> Capital Raid: {clan.current_raid_weekend.state}"
 
                 log_str += "\n\n"
 
@@ -681,15 +611,11 @@ class AriXClashDataMgr(commands.Cog):
 
         if update_season:
             #lock processes
-            bot.clan_refresh_status = True
-            bot.member_refresh_status = True
+            await self.master_lock.acquire()
+            await self.clan_lock.acquire()
+            await self.member_lock.acquire()
 
             new_season = season
-
-            member_info_json = await alliance_file_handler(
-                ctx=ctx,
-                entry_type='members',
-                tag="**")
 
             async with bot.async_file_lock:
                 with bot.clash_file_lock.write_lock():
@@ -709,7 +635,7 @@ class AriXClashDataMgr(commands.Cog):
                     with open(bot.clash_dir_path+'/members.json','w+') as file:
                         json.dump({},file,indent=2)
 
-            for c_tag in list(alliance_clans_json.keys()):
+            for (c_tag,clan) in ctx.bot.clan_cache.items():
                 try:
                     c = await aClan.create(ctx,tag=c_tag,refresh=True,reset=True)
                 except Exception as e:
@@ -717,7 +643,7 @@ class AriXClashDataMgr(commands.Cog):
                     error_log.append(err)
                     continue
 
-            for m_tag in list(member_info_json.keys()):
+            for (m_tag,member) in ctx.bot.member_cache.items():
                 try:
                     m = await aPlayer.create(ctx,tag=m_tag,refresh=True,reset=True)
                     await m.set_baselines(ctx)
@@ -734,6 +660,10 @@ class AriXClashDataMgr(commands.Cog):
                     + f"__Files Created__"
                     + f"\n**members.json**: {os.path.exists(bot.clash_dir_path+'/members.json')}",
                 inline=False)
+
+            await self.clan_lock.release()
+            await self.member_lock.release()
+            await self.master_lock.release()
 
             try:
                 await bot.update_channel.send(f"**The new season {season} has started!**")
@@ -756,10 +686,6 @@ class AriXClashDataMgr(commands.Cog):
 
         if send_logs:
             await self.data_log_channel.send(embed=season_embed)
-
-        await self.clan_lock.release()
-        await self.member_lock.release()
-        await self.master_lock.release()
 
 
     @tasks.loop(seconds=120.0)
