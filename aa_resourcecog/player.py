@@ -314,7 +314,7 @@ class aPlayer(coc.Player):
 
             member_stats = file_json[self.tag]
         else:
-            member_stats = json
+            member_stats = json_input
 
         if member_stats:
             self.last_update = member_stats['last_update']
@@ -403,7 +403,7 @@ class aPlayer(coc.Player):
 
     async def save_to_json(self,ctx):
 
-        alliance_json, member_json = self.to_json(ctx)
+        alliance_json, member_json = await self.to_json(ctx)
 
         await alliance_file_handler(
             ctx=ctx,
@@ -474,6 +474,8 @@ class aPlayer(coc.Player):
 
 
     async def update_warlog(self,ctx):
+        if
+
         if not self.current_war:
             return None
 
