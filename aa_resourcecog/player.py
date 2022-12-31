@@ -576,9 +576,9 @@ class aPlayerSeason():
 
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
-        self.warlog = {war_id:await aClanWar.get(ctx,war_id=war_id) for war_id in memberStats.get('war_id',[])}
+        self.warlog = {war_id:await aClanWar.get(ctx,war_id=war_id) for war_id in memberStats.get('war_log',[])}
 
-        self.raidlog = {raid_id:await aRaidWeekend.get(ctx,raid_id=raid_id) for raid_id in memberStats.get('war_log',[])}
+        self.raidlog = {raid_id:await aRaidWeekend.get(ctx,raid_id=raid_id) for raid_id in memberStats.get('raid_log',[])}
 
         self.war_stats = await aPlayerWarStats.compute(ctx=ctx,player=self.player,warlog=self.warlog)
         self.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,player=self.player,raidlog=self.raidlog)
