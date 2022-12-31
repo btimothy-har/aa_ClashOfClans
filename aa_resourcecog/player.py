@@ -577,7 +577,7 @@ class aPlayerSeason():
         self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
         self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
 
-        self.clangames = await aPlayerClanGames.create(ctx,player=player,input_json=memberStats.get('clangames',{}),season=season)
+        self.clangames = await aPlayerClanGames.create(ctx,player=self,input_json=memberStats.get('clangames',{}),season=season)
 
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
@@ -645,7 +645,7 @@ class aPlayerStat():
         return statJson
 
 class aPlayerClanGames():
-    def __init__(self,player,season):
+    def __init__(self,stats,season):
 
         if season == 'current':
             sm = datetime.now(pytz.utc).month
@@ -655,7 +655,7 @@ class aPlayerClanGames():
             sm = int(season[0])
             sy = int(season[1])
 
-        self.player = player
+        self.stats = player
         self.games_start = datetime(sy, sm, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.games_end = datetime(sy, sm, 28, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.score = 0
@@ -665,7 +665,7 @@ class aPlayerClanGames():
         self.last_updated = 0
 
     @classmethod
-    async def create(cls,ctx,player,**kwargs):
+    async def create(cls,ctx,stats,**kwargs):
         input_json = kwargs.get('json',None)
         season = kwargs.get('season',None)
 
@@ -684,7 +684,7 @@ class aPlayerClanGames():
 
     async def calculate_clangames(self):
         max_score = 4000
-        if self.player.timestamp >= self.games_start and self.player.timestamp < self.games_end:
+        if self.stats.player.timestamp >= self.games_start and self.stats.player.timestamp < self.games_end:
             new_score = [a.value for a in self.player.achievements if a.name == 'Games Champion'][0]
 
             if (new_score - self.last_updated) > 0:
