@@ -196,15 +196,19 @@ class AriXClashDataMgr(commands.Cog):
         new_warlog = {}
 
         for (clan,warlog) in file_json.items():
-            c = await aClan.create(ctx,tag=clan,conv=True)
-            c.war_log = {}
+            if coc.utils.is_valid_tag(clan):
+                c = await aClan.create(ctx,tag=clan,conv=True)
+                c.war_log = {}
 
-            for (wid,war) in warlog.items():
-                w = await aClanWar.get(ctx,clan=c,json=war)
-                war_id = w.war_id
+                for (wid,war) in warlog.items():
+                    w = await aClanWar.get(ctx,clan=c,json=war)
+                    war_id = w.war_id
 
-                c.war_log[war_id] = w
-                new_warlog[war_id] = w.to_json()
+                    c.war_log[war_id] = w
+                    new_warlog[war_id] = w.to_json()
+
+            else:
+                new_warlog[clan] = warlog
 
             await c.save_to_json(ctx)
 
@@ -223,15 +227,18 @@ class AriXClashDataMgr(commands.Cog):
         new_raidlog = {}
 
         for (clan,raidlog) in file_json.items():
-            c = await aClan.create(ctx,tag=clan,conv=True)
-            c.raid_log = {}
+            if coc.utils.is_valid_tag(clan):
+                c = await aClan.create(ctx,tag=clan,conv=True)
+                c.raid_log = {}
 
-            for (wid,raid) in raidlog.items():
-                r = await aRaidWeekend.get(ctx,clan=c,json=raid)
-                raid_id = r.raid_id
+                for (wid,raid) in raidlog.items():
+                    r = await aRaidWeekend.get(ctx,clan=c,json=raid)
+                    raid_id = r.raid_id
 
-                c.raid_log[raid_id] = r
-                new_raidlog[raid_id] = r.to_json()
+                    c.raid_log[raid_id] = r
+                    new_raidlog[raid_id] = r.to_json()
+            else:
+                new_raidlog[clan] = raidlog
 
             await c.save_to_json(ctx)
 
