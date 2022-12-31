@@ -379,8 +379,8 @@ class aPlayer(coc.Player):
             'loot_darkelixir': self.current_season.loot_darkelixir.to_json(),
             'clangames': self.current_season.clangames.to_json(),
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
-            'raid_log': [rid.raid_id for (rid,raid) in self.current_season.raidlog.items()],
-            'war_log': [wid.war_id for (wid,war) in self.current_season.warlog.items()],
+            'raid_log': [rid for (rid,raid) in self.current_season.raidlog.items()],
+            'war_log': [wid for (wid,war) in self.current_season.warlog.items()],
             }
 
         await alliance_file_handler(
