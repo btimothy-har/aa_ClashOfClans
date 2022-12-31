@@ -577,7 +577,7 @@ class aPlayerSeason():
         self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
         self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
 
-        self.clangames = await aPlayerClanGames.create(ctx,player=self,input_json=memberStats.get('clangames',{}),season=season)
+        self.clangames = await aPlayerClanGames.create(ctx,stats=self,input_json=memberStats.get('clangames',{}),season=season)
 
         self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
 
