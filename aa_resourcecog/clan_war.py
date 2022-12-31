@@ -217,7 +217,7 @@ class aWarClan():
         if game_data:
             self.tag = game_data.tag
             self.name = game_data.name
-            self.badge = game_data.badge
+            self.badge = game_data.badge.url
             self.level = game_data.level
             self.stars = game_data.stars
             self.destruction = game_data.destruction

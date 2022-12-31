@@ -586,7 +586,7 @@ class AriXClashDataMgr(commands.Cog):
             await self.data_log_channel.send(embed=season_embed)
 
 
-    @tasks.loop(seconds=60.0)
+    @tasks.loop(seconds=120.0)
     async def clan_update(self):
 
         bot = self.master_bot
@@ -861,7 +861,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 count_members += 1
 
-                try:
+                if True:
                     await m.update_warlog(ctx)
                     await m.update_raid_weekend(ctx)
 
@@ -874,10 +874,10 @@ class AriXClashDataMgr(commands.Cog):
                             await m.update_stats(ctx)
                         else:
                             await m.set_baselines(ctx)
-                except Exception as e:
-                    err = DataError(category='meupdt',tag=m.tag,error=e)
-                    error_log.append(err)
-                    continue
+                #except Exception as e:
+                #    err = DataError(category='meupdt',tag=m.tag,error=e)
+                #    error_log.append(err)
+                #    continue
 
                 try:
                     await m.save_to_json(ctx)
