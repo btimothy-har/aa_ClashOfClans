@@ -157,33 +157,23 @@ class aPlayer(coc.Player):
                 self.home_clan = cache.home_clan
             except:
                 self.home_clan = aClan()
-            self.readable_name = getattr(cache,'readable_name',self.name)
-            self.is_member = getattr(cache,'is_member',False)
-            self.is_arix_account = getattr(cache,'is_arix_account',False)
-            self.arix_rank = getattr(cache,'arix_rank','Non-Member')
-            self.notes = getattr(cache,'notes',[])
+            self.readable_name = self.name
+
+            self.is_member = False
+            self.is_arix_account = False
+            self.arix_rank = 'Non-Member'
+            self.notes = []
 
             #Membership Statistics
-            try:
-                self.last_update = cache.last_update
-            except:
-                self.last_update = time.time
+            self.last_update = self.timestamp
+            self.current_season = aPlayerSeason(ctx,self,'current')
+            self.season_data = {}
 
-            try:
-                self.current_season = cache.current_season
-            except:
-                self.current_season = aPlayerSeason(ctx,self,'current')
+            self.member_description = ""
 
-            try:
-                self.season_data = cache.season_data
-            except:
-                self.season_data = {}
-
-            self.member_description = getattr(cache,'member_description',"")
-
-            self.desc_title = getattr(cache,'desc_title',"")
-            self.desc_full_text = getattr(cache,'desc_full_text',"")
-            self.desc_summary_text = getattr(cache,'desc_summary_text',"")
+            self.desc_title = ""
+            self.desc_full_text = ""
+            self.desc_summary_text = ""
 
     def __repr__(self):
         return f"Player {self.name} ({self.tag}) - AriX {self.arix_rank}"

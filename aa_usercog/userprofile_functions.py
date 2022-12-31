@@ -300,7 +300,7 @@ async def userprofile_trooplevels(ctx,account,message=None):
             value=f"{hero_str}\n\u200b",
             inline=False)
 
-    if len(a.pets) > 0:
+    if len(a.hero_pets) > 0:
         pets_str = ""
         ct = 0
         for p in a.pets:
