@@ -202,6 +202,9 @@ class AriXClashDataMgr(commands.Cog):
 
         for (tag,member) in file_json.items():
 
+            member['attacks'] = member['attack_wins']
+            member['defenses'] = member['defense_wins']
+
             warlog = member['war_log']
             if isinstance(warlog,dict):
                 new_warlog = []
