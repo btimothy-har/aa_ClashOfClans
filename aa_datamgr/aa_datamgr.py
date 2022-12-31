@@ -152,7 +152,7 @@ class AriXClashDataMgr(commands.Cog):
                 a_json = json.load(file)
 
         with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/member_info.json','r') as file:
+            with open(ctx.bot.clash_dir_path+'/members.json','r') as file:
                 m_json = json.load(file)
 
         ctx.bot.current_season = s_json['current']
