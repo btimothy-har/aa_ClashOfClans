@@ -1310,7 +1310,7 @@ class AriXLeaderCommands(commands.Cog):
             for p in accounts:
                 confirm_remove.add_field(
                     name=f"{p.desc_title}",
-                    value=f"> <:Discord:1040423151760314448> <@{p.discord_user.user_id}>"
+                    value=f"> <:Discord:1040423151760314448> <@{p.discord_user}>"
                         + f"\n> {p.desc_summary_text}",
                     inline=False)
 
@@ -1663,7 +1663,7 @@ class AriXLeaderCommands(commands.Cog):
                     'id': i.tag,
                     'title': i.desc_title,
                     'emoji': i.emoji,
-                    'description': f"Current Rank: {current_rank}\u3000New Rank: {new_rank}\nAccounts: {len([a for a in member.accounts if a.home_clan.tag == rank_clan.tag]i)}"
+                    'description': f"Current Rank: {current_rank}\u3000New Rank: {new_rank}\nAccounts: {len([a for a in member.accounts if a.home_clan.tag == rank_clan.tag])}"
                     }
                 selection_list.append(d)
                 selection_str += f"{d['emoji']} **{d['title']}**\n{d['description']}"
