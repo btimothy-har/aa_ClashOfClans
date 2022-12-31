@@ -59,7 +59,7 @@ class AriXMemberCommands(commands.Cog):
         Your server nickname can be changed to match one of your registered accounts.
         """
 
-        member = aMember.create(ctx,user_id=ctx.author.id)
+        member = await aMember.create(ctx,user_id=ctx.author.id)
 
         await member.set_nickname(ctx,selection=True)
 
@@ -188,7 +188,7 @@ class AriXMemberCommands(commands.Cog):
                 except Exception as e:
                     err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
                     await ctx.author.send(embed=err_embed)
-                    return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
+                    return await ctx.bot.send_to_owners(f"I ran into an error while adding {new_account.tag} {new_account.name} as a Guest account for {ctx.author.mention}.\n\nError: ```{e}```")
 
                 player_embed = await clash_embed(ctx,
                     message=f"You've successfully linked the account **{new_account.tag} {new_account.name}** to AriX!",
@@ -440,8 +440,8 @@ class AriXMemberCommands(commands.Cog):
                 member_status = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***\n"
 
             discord_msg = ""
-            if a.discord_user.discord_member:
-                discord_msg += f"\n<:Discord:1040423151760314448> {a.discord_user.discord_member}"
+            if a.discord_user:
+                discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_user}>"
 
             if a.league.name == 'Unranked':
                 league_img = "https://i.imgur.com/TZF5r54.png"
