@@ -307,7 +307,7 @@ async def report_war_status(ctx,message,clan):
             mem_str += f"\n> <:TotalWars:827845123596746773> {m.current_season.war_stats.wars_participated}\u3000"
             mem_str += f"<:WarStars:825756777844178944> {m.current_season.war_stats.offense_stars}\u3000"
             mem_str += f"<:Triple:1034033279411687434> {m.current_season.war_stats.triples}\u3000"
-            mem_str += f"<:MissedHits:825755234412396575> {m.current_season.war_stats.missed_attacks}"
+            mem_str += f"<:MissedHits:825755234412396575> {m.current_season.war_stats.unused_attacks}"
 
             if m.clan.tag != clan.tag:
                 mem_str += f"\n> <:Clan:825654825509322752> {m.clan.name}"
@@ -359,7 +359,7 @@ async def report_all_members(ctx,message,clan):
                 m_str += f"\n> "
 
             if m.discord_user:
-                m_str += f"<:Discord:1040423151760314448> <@{m.discord_user.user_id}>\u3000"
+                m_str += f"<:Discord:1040423151760314448> <@{m.discord_user}>\u3000"
 
             if m.clan.name != m.home_clan.name:
                 m_str += f"<:Clan:825654825509322752> {m.clan_description}"
@@ -412,7 +412,7 @@ async def report_missing_members(ctx,message,clan):
                 m_str += f"\n> "
 
             if m.discord_user:
-                m_str += f"<:Discord:1040423151760314448> <@{m.discord_user.user_id}>\u3000"
+                m_str += f"<:Discord:1040423151760314448> <@{m.discord_user}>\u3000"
 
             m_str += f"<:Clan:825654825509322752> {m.clan_description}"
 
@@ -469,7 +469,7 @@ async def report_unrecognized_members(ctx,message,clan):
                 m_str += f"\n > "
 
             if m.discord_user:
-                m_str += f"<:Discord:1040423151760314448> <@{m.discord_user.user_id}>\u3000"
+                m_str += f"<:Discord:1040423151760314448> <@{m.discord_user}>\u3000"
 
             # m_str += f"<:Clan:825654825509322752> {m.clan_description}"
 
