@@ -194,57 +194,6 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def convert_warraidlog(self,ctx):
 
-        file_path = ctx.bot.clash_dir_path + '/' + 'members.json'
-        await ctx.send(f'members now {file_path}')
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(file_path,'r') as file:
-                file_json = json.load(file)
-
-        for (tag,member) in file_json.items():
-
-            if 'attack_wins' in list(member.keys()):
-                member['attacks'] = member['attack_wins']
-
-            if 'defense_wins' in list(member.keys()):
-                member['defenses'] = member['defense_wins']
-
-            warlog = member['war_log']
-            if isinstance(warlog,dict):
-                new_warlog = []
-                for (war_id,war) in warlog.items():
-
-                    tag_a = war['clan']['tag'] + war['opponent']['tag']
-                    tag_b = tag_a.replace('#','')
-                    tag_id = ''.join(sorted(tag_b))
-
-                    new_id = tag_id + str(int(float(war_id)))
-                    new_warlog.append(new_id)
-                member['war_log'] = new_warlog
-
-            raidlog = member['raid_log']
-            if isinstance(raidlog,dict):
-                new_raidlog = []
-                for (raid_id,raid) in member['raid_log'].items():
-
-                    tag_a = raid['clan_tag']
-                    tag_id = tag_a.replace('#','')
-
-                    new_id = tag_id + str(int(float(raid_id)))
-                    new_raidlog.append(new_id)
-                member['raid_log'] = new_raidlog
-
-            file_json[tag] = member
-
-            mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
-
-            await mm.save_to_json(ctx)
-            await ctx.send(f"saved {mm.tag}")
-
-        # async with ctx.bot.async_file_lock:
-        #     with ctx.bot.clash_file_lock.write_lock():
-        #         with open(file_path,'w') as file:
-        #             json.dump(file_json,file,indent=2)
-
         file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
 
         await ctx.send(f'started {file_path}')
@@ -302,6 +251,57 @@ class AriXClashDataMgr(commands.Cog):
             with ctx.bot.clash_file_lock.write_lock():
                 with open(file_path,'w') as file:
                     json.dump(new_raidlog,file,indent=2)
+
+        file_path = ctx.bot.clash_dir_path + '/' + 'members.json'
+        await ctx.send(f'members now {file_path}')
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                file_json = json.load(file)
+
+        for (tag,member) in file_json.items():
+
+            if 'attack_wins' in list(member.keys()):
+                member['attacks'] = member['attack_wins']
+
+            if 'defense_wins' in list(member.keys()):
+                member['defenses'] = member['defense_wins']
+
+            warlog = member['war_log']
+            if isinstance(warlog,dict):
+                new_warlog = []
+                for (war_id,war) in warlog.items():
+
+                    tag_a = war['clan']['tag'] + war['opponent']['tag']
+                    tag_b = tag_a.replace('#','')
+                    tag_id = ''.join(sorted(tag_b))
+
+                    new_id = tag_id + str(int(float(war_id)))
+                    new_warlog.append(new_id)
+                member['war_log'] = new_warlog
+
+            raidlog = member['raid_log']
+            if isinstance(raidlog,dict):
+                new_raidlog = []
+                for (raid_id,raid) in member['raid_log'].items():
+
+                    tag_a = raid['clan_tag']
+                    tag_id = tag_a.replace('#','')
+
+                    new_id = tag_id + str(int(float(raid_id)))
+                    new_raidlog.append(new_id)
+                member['raid_log'] = new_raidlog
+
+            file_json[tag] = member
+
+            mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
+
+            await mm.save_to_json(ctx)
+            await ctx.send(f"saved {mm.tag}")
+
+        # async with ctx.bot.async_file_lock:
+        #     with ctx.bot.clash_file_lock.write_lock():
+        #         with open(file_path,'w') as file:
+        #             json.dump(file_json,file,indent=2)
 
         await ctx.send('all done')
 

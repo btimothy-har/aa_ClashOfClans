@@ -623,18 +623,15 @@ class aPlayerSeason():
 
             self.warlogkeys = stats['war_log']
             for war_id in self.warlogkeys:
-                await debug.send(f"..{war_id}")
                 war = await aClanWar.get(ctx,war_id=war_id)
                 if war:
                     self.warlog[war_id] = war
-                await debug.send(f"..{war}")
 
             self.raidlogkeys = stats['raid_log']
             for raid_id in self.raidlogkeys:
                 raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
                 if raid:
                     self.raidlog[raid_id] = raid
-                await debug.send(f"..{raid}")
 
             self.war_stats = await aPlayerWarStats.compute(ctx=ctx,
                                                         player=self.player,
