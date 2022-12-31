@@ -411,6 +411,7 @@ class aPlayer(coc.Player):
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
             'raid_log': raidlogkeys,
             'war_log': warlogkeys,
+            'iamnotcrazy':'iamnotcrazy'
             }
 
         await alliance_file_handler(
@@ -708,6 +709,7 @@ class aPlayerClanGames():
         self.games_start = datetime(sy, sm, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.games_end = datetime(sy, sm, 28, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.score = 0
+        self.clan_tag = None
         self.clan = None
         self.starting_time = 0
         self.ending_time = 0
@@ -721,10 +723,11 @@ class aPlayerClanGames():
         self = aPlayerClanGames(stats=stats,season=season)
 
         if input_json:
-            self.score = input_json.get('score',0)
-            self.clan = await aClan.create(ctx,tag=input_json.get('clan',None))
-            self.ending_time = input_json.get('ending_time',0)
-            self.last_updated = input_json.get('last_updated',0)
+            self.score = input_json['score']
+            self.clan_tag = input_json['clan']
+            self.clan = await aClan.create(ctx,tag=self.clan_tag)
+            self.ending_time = input_json.['ending_time']
+            self.last_updated = input_json.['last_updated']
 
         return self
 
@@ -739,6 +742,7 @@ class aPlayerClanGames():
             if (new_score - self.last_updated) > 0:
 
                 if self.score == 0:
+                    self.clan_tag = self.stats.player.clan.tag
                     self.clan = self.stats.player.clan
                     self.starting_time = time
 
@@ -753,7 +757,7 @@ class aPlayerClanGames():
 
     def to_json(self):
         clangamesJson = {
-            'clan': getattr(self.clan,'tag',None),
+            'clan': self.clan_tag,
             'score': self.score,
             'last_updated': self.last_updated,
             'ending_time': self.ending_time
