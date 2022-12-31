@@ -76,7 +76,10 @@ async def data_file_handler(ctx,file:str,tag:str,new_data=None,season=None):
             with open(file_path,'r') as file:
                 file_json = json.load(file)
     try:
-        response_json = file_json[tag]
+        if tag == "**":
+            response_json = file_json
+        else:
+            response_json = file_json[tag]
     except KeyError:
         response_json = {}
     return response_json

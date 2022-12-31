@@ -170,7 +170,6 @@ class AriXClashDataMgr(commands.Cog):
             ctx=ctx,
             entry_type='clans',
             tag="**")
-
         member_json = await alliance_file_handler(
             ctx=ctx,
             entry_type='members',
@@ -348,6 +347,8 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> Players: {len(ctx.bot.member_cache)}"
                     + f"\n> Clans: {len(ctx.bot.clan_cache)}"
                     + f"\n> Users: {len(ctx.bot.user_cache)}"
+                    + f"\n> Clan Wars: {len(ctx.bot.war_cache)}"
+                    + f"\n> Capital Raids: {len(ctx.bot.raid_cache)}"
                     + f"\n> Challenge Pass: {len(ctx.bot.pass_cache)}",
                 inline=False)
 
@@ -473,6 +474,38 @@ class AriXClashDataMgr(commands.Cog):
                     if memo.discord_member and memo.user_id not in role_sync_completed:
                         await memo.sync_roles(ctx)
                         role_sync_completed.append(memo.user_id)
+
+        if update_type == 'clan':
+            c = await aClan.create(ctx,tag=tag,refresh=True)
+
+            war_update = await c.update_clan_war(ctx)
+            raid_update = await c.update_raid_weekend(ctx)
+            await c.save_to_json(ctx)
+
+            clanwar_json = await data_file_handler(
+                ctx=ctx,
+                entry_type='warlog',
+                tag="**")
+            capitalraid_json = await data_file_handler(
+                ctx=ctx,
+                entry_type='capitalraid',
+                tag="**")
+
+            for war_id in list(clanwar_json.keys()):
+                war = await aClanWar.create(ctx,war_id=war_id)
+
+                if war.state not in ['warEnded']:
+                    war_clan = await aClan.create(ctx,tag=war.clan.tag)
+                    war = await aClanWar.create(ctx,clan=war_clan)
+                    await war.save_to_json(ctx)
+
+            for raid_id in list(capitalraid_json.keys()):
+                raid = await aRaidWeekend.create(ctx,raid_id=raid_id)
+
+                if raid.state not in ['ended']:
+                    raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
+                    raid = await aRaidWeekend.create(ctx,clan=raid_clan)
+                    await raid.save_to_json(ctx)
 
         await ctx.send('update completed')
 
@@ -677,6 +710,15 @@ class AriXClashDataMgr(commands.Cog):
                 entry_type='clans',
                 tag="**")
 
+            clanwar_json = await data_file_handler(
+                ctx=ctx,
+                entry_type='warlog',
+                tag="**")
+            capitalraid_json = await data_file_handler(
+                ctx=ctx,
+                entry_type='capitalraid',
+                tag="**")
+
             ## CLAN UPDATE
             clan_update = ''
             mem_count = 0
@@ -771,6 +813,22 @@ class AriXClashDataMgr(commands.Cog):
                 name=f"**Clan Updates**",
                 value=clan_update,
                 inline=False)
+
+            for war_id in list(clanwar_json.keys()):
+                war = await aClanWar.create(ctx,war_id=war_id)
+
+                if war.state not in ['warEnded']:
+                    war_clan = await aClan.create(ctx,tag=war.clan.tag)
+                    war = await aClanWar.create(ctx,clan=war_clan)
+                    await war.save_to_json(ctx)
+
+            for raid_id in list(capitalraid_json.keys()):
+                raid = await aRaidWeekend.create(ctx,raid_id=raid_id)
+
+                if raid.state not in ['ended']:
+                    raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
+                    raid = await aRaidWeekend.create(ctx,clan=raid_clan)
+                    await raid.save_to_json(ctx)
 
             et = time.time()
             bot.refresh_loop += 1
