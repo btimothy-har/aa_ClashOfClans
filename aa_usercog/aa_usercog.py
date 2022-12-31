@@ -533,7 +533,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n**Clan Capital**"
                         + f"\n<:CapitalGoldContributed:971012592057339954> {a.current_season.capitalcontribution.statdisplay}\u3000<:CapitalRaids:1034032234572816384> {a.current_season.raid_stats.raids_participated}\u3000<:RaidMedals:983374303552753664> {a.current_season.raid_stats.medals_earned:,}"
                         + f"\n**War Performance**"
-                        + f"\n<:TotalWars:827845123596746773> {a.current_season.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.current_season.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.current_season.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.current_season.war_stats.missed_attacks}"
+                        + f"\n<:TotalWars:827845123596746773> {a.current_season.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.current_season.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.current_season.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.current_season.war_stats.unused_attacks}"
                         + f"\n**Clan Games**"
                         + f"\n{clangames_str}\n\u200b",
                     inline=False)
