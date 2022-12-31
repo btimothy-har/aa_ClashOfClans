@@ -147,16 +147,38 @@ class aPlayer(coc.Player):
             rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
             self.overall_rushed_pct = round(rushed_pct*100,2)
 
+        if cache:
+            self.discord_user = cache.discord_user
+            self.current_war = cache.current_war
+            self.current_raid_weekend = cache.current_raid_weekend
+
+            #Membership Attributes
+            self.home_clan = cache.home_clan
+            self.readable_name = cache.readable_name
+
+            self.is_member = cache.is_member
+            self.is_arix_account = cache.is_arix_account
+            self.arix_rank = cache.arix_rank
+            self.notes = cache.notes
+
+            #Membership Statistics
+            self.last_update = cache.last_update
+            self.current_season = cache.current_season
+            self.season_data = cache.season_data
+
+            self.member_description = cache.member_description
+
+            self.desc_title = cache.desc_title
+            self.desc_full_text = cache.desc_full_text
+            self.desc_summary_text = cache.desc_summary_text
+
         if not cache:
             self.discord_user = 0
             self.current_war = None
             self.current_raid_weekend = None
 
             #Membership Attributes
-            try:
-                self.home_clan = cache.home_clan
-            except:
-                self.home_clan = aClan()
+            self.home_clan = aClan()
             self.readable_name = self.name
 
             self.is_member = False
