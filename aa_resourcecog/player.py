@@ -149,7 +149,7 @@ class aPlayer(coc.Player):
                     stats = await aPlayerSeason.create(ctx,
                         player=self,
                         season=season,
-                        memberStats=seasonStats)
+                        stats=seasonStats)
                     self.season_data[season] = stats
 
         if not self.clan:
@@ -324,17 +324,17 @@ class aPlayer(coc.Player):
             notes = [aNote.from_json(ctx,n) for n in memberInfo.get('notes',[])]
             self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-        memberStats = await data_file_handler(ctx,
+        member_stats = await data_file_handler(ctx,
             action='read',
             file='members',
             tag=self.tag)
 
-        if memberStats:
+        if member_stats:
             self.last_update = memberStats['last_update']
             self.current_season = await aPlayerSeason.create(ctx,
                 player=self,
                 season='current',
-                memberStats=memberStats)
+                stats=member_stats)
 
         self.desc_title = f"{self.name}"
 
@@ -591,44 +591,52 @@ class aPlayerSeason():
         self.raid_stats = aPlayerRaidStats()
 
     @classmethod
-    async def create(cls,ctx,player,season,memberStats):
+    async def create(cls,ctx,player,season,stats):
         self = aPlayerSeason(ctx,player,season)
 
-        debug = ctx.bot.get_channel(856433806142734346)
-        await debug.send(list(memberStats.keys()))
+        if stats:
+            debug = ctx.bot.get_channel(856433806142734346)
+            await debug.send(list(stats.keys()))
 
-        self.time_in_home_clan = memberStats.get('time_in_home_clan',0)
+            self.time_in_home_clan = stats['time_in_home_clan']
+            self.other_clans = [await aClan.create(ctx,tag=c) for c in stats['other_clans']]
 
-        self.other_clans = [await aClan.create(ctx,tag=c) for c in memberStats.get('other_clans',[])]
+            self.attacks = aPlayerStat(stats['attacks'])
+            self.defenses = aPlayerStat(stats['defenses'])
 
-        self.attacks = aPlayerStat(memberStats.get('attacks',{}))
-        self.defenses = aPlayerStat(memberStats.get('defenses',{}))
+            self.donations_sent = aPlayerStat(stats['donations_sent'])
+            self.donations_rcvd = aPlayerStat(stats['donations_rcvd'])
 
-        self.donations_sent = aPlayerStat(memberStats.get('donations_sent',{}))
-        self.donations_rcvd = aPlayerStat(memberStats.get('donations_rcvd',{}))
+            self.loot_gold = aPlayerStat(stats['loot_gold'])
+            self.loot_elixir = aPlayerStat(stats['loot_elixir'])
+            self.loot_darkelixir = aPlayerStat(stats['loot_darkelixir'])
 
-        self.loot_gold = aPlayerStat(memberStats.get('loot_gold',{}))
-        self.loot_elixir = aPlayerStat(memberStats.get('loot_elixir',{}))
-        self.loot_darkelixir = aPlayerStat(memberStats.get('loot_darkelixir',{}))
+            self.clangames = await aPlayerClanGames.create(ctx,
+                stats=self,
+                input_json=stats['clangames'],
+                season=season)
 
-        self.clangames = await aPlayerClanGames.create(ctx,stats=self,input_json=memberStats.get('clangames',{}),season=season)
+            self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
 
-        self.capitalcontribution = aPlayerStat(memberStats.get('capitalcontribution',{}))
+            self.warlogkeys = stats['war_log']
+            for war_id in self.warlogkeys:
+                await debug.send(f"..{war_id}")
+                war = await aClanWar.get(ctx,war_id=war_id)
+                self.warlog[war_id] = war
+                await debug.send(f"..{war}")
 
-        self.warlogkeys = memberStats.get('war_log',[])
-        for war_id in self.warlogkeys:
-            await debug.send(f"..{war_id}")
-            war = await aClanWar.get(ctx,war_id=war_id)
-            self.warlog[war_id] = war
-            await debug.send(f"..{war}")
+            self.raidlogkeys = stats['raid_log']
+            for raid_id in self.raidlogkeys:
+                raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
+                self.raidlog[raid_id] = raid
 
-        self.raidlogkeys = memberStats.get('raid_log',[])
-        for raid_id in self.raidlogkeys:
-            raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
-            self.raidlog[raid_id] = raid
+            self.war_stats = await aPlayerWarStats.compute(ctx=ctx,
+                                                            player=self.player,
+                                                            warlog=self.warlog)
 
-        self.war_stats = await aPlayerWarStats.compute(ctx=ctx,player=self.player,warlog=self.warlog)
-        self.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,player=self.player,raidlog=self.raidlog)
+            self.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,
+                                                            player=self.player,
+                                                            raidlog=self.raidlog)
         return self
 
 class aTownHall():
