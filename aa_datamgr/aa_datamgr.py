@@ -190,11 +190,9 @@ class AriXClashDataMgr(commands.Cog):
         await ctx.send('started')
 
         file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
-
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)
-
         new_warlog = {}
 
         for (clan,warlog) in file_json.items():
@@ -220,7 +218,6 @@ class AriXClashDataMgr(commands.Cog):
         await ctx.send('now onto cap')
 
         file_path = ctx.bot.clash_dir_path + '/' + 'capitalraid.json'
-
         with ctx.bot.clash_file_lock.read_lock():
             with open(file_path,'r') as file:
                 file_json = json.load(file)
@@ -239,6 +236,8 @@ class AriXClashDataMgr(commands.Cog):
 
             await c.save_to_json(ctx)
 
+        await ctx.send('members now')
+
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
                 with open(file_path,'r+') as file:
@@ -246,9 +245,42 @@ class AriXClashDataMgr(commands.Cog):
                     json.dump(new_raidlog,file,indent=2)
                     file.truncate()
 
-        await ctx.send('all done')
+        file_path = ctx.bot.clash_dir_path + '/' + 'members.json'
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                file_json = json.load(file)
 
+        for (tag,member) in file_json.items():
+            new_warlog = []
+            for (war_id,war) in member['war_log']:
 
+                tag_id = war['clan']['tag'] + war['opponent']['tag']
+                tag_id = tag_id.replace('#','')
+                tag_id = ''.join(sorted(tag_id))
+
+                new_id = tag_id + str(int(float(war_id)))
+                new_warlog.append(new_id)
+
+            new_raidlog = []
+            for (raid_id,raid) in member['raid_log']:
+
+                tag_id = raid['clan_tag']
+                tag_id = tag_id.replace('#','')
+
+                new_id = tag_id + str(int(float(raid_id)))
+                new_raidlog.append(new_id)
+
+            member['war_log'] = new_warlog
+            member['raid_log'] = new_raidlog
+
+            file_json[tag] = member
+
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                with open(file_path,'r+') as file:
+                    file.seek(0)
+                    json.dump(file_json,file,indent=2)
+                    file.truncate()
 
     @commands.command(name="drefresh")
     @commands.is_owner()
