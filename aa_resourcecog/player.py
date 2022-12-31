@@ -726,8 +726,8 @@ class aPlayerClanGames():
             self.score = input_json['score']
             self.clan_tag = input_json['clan']
             self.clan = await aClan.create(ctx,tag=self.clan_tag)
-            self.ending_time = input_json.['ending_time']
-            self.last_updated = input_json.['last_updated']
+            self.ending_time = input_json['ending_time']
+            self.last_updated = input_json['last_updated']
 
         return self
 
