@@ -401,7 +401,6 @@ class aPlayer(coc.Player):
             'name': self.name,
             'last_update': self.last_update,
             'current_clan': self.clan.tag,
-            'role': str(self.role),
             'time_in_home_clan': self.current_season.time_in_home_clan,
             'other_clans': [c.tag for c in self.current_season.other_clans],
             'attacks': self.current_season.attacks.to_json(),
@@ -602,7 +601,12 @@ class aPlayerSeason():
             debug = ctx.bot.get_channel(856433806142734346)
 
             self.time_in_home_clan = stats['time_in_home_clan']
-            self.other_clans = [await aClan.create(ctx,tag=c) for c in stats['other_clans']]
+
+            for c in stats['other_clans']:
+                nc = await aClan.create(ctx,tag=c)
+
+                if nc.tag:
+                    self.other_clans.append(nc)
 
             self.attacks = aPlayerStat(stats['attacks'])
             self.defenses = aPlayerStat(stats['defenses'])

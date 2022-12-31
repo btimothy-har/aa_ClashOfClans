@@ -47,7 +47,10 @@ async def alliance_file_handler(ctx,entry_type,tag,new_data=None,season=None):
     return rJson
 
 
-async def data_file_handler(ctx,action:str,file:str,tag:str,new_data=None,season=None):
+async def data_file_handler(ctx,action:str,file:str,tag:str,**kwargs):
+    new_data = kwargs.get(new_data,None)
+    season = kwargs.get(season,None)
+
     if action not in ['read','write']:
         return None
 
@@ -65,18 +68,17 @@ async def data_file_handler(ctx,action:str,file:str,tag:str,new_data=None,season
     else:
         file_path = ctx.bot.clash_dir_path + '/' + file_name[file]
 
-
     ch = ctx.bot.get_channel(856433806142734346)
 
     if action == 'write' and new_data:
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
-                with open(file_path,'r+') as file:
+                with open(file_path,'r') as file:
                     file_json = json.load(file)
-                    file_json[tag] = new_data
-                    file.seek(0)
+
+                file_json[tag] = new_data
+                with open(file_path,'w') as file:
                     json.dump(file_json,file,indent=2)
-                    file.truncate()
 
     elif action == 'read':
         with ctx.bot.clash_file_lock.read_lock():
