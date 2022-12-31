@@ -256,27 +256,29 @@ class AriXClashDataMgr(commands.Cog):
                 file_json = json.load(file)
 
         for (tag,member) in file_json.items():
-            new_warlog = []
-            for (war_id,war) in member['war_log'].items():
 
-                tag_id = war['clan']['tag'] + war['opponent']['tag']
-                tag_id = tag_id.replace('#','')
-                tag_id = ''.join(sorted(tag_id))
+            if isinstance(member['war_log'],dict):
+                new_warlog = []
+                for (war_id,war) in member['war_log'].items():
 
-                new_id = tag_id + str(int(float(war_id)))
-                new_warlog.append(new_id)
+                    tag_id = war['clan']['tag'] + war['opponent']['tag']
+                    tag_id = tag_id.replace('#','')
+                    tag_id = ''.join(sorted(tag_id))
 
-            new_raidlog = []
-            for (raid_id,raid) in member['raid_log'].items():
+                    new_id = tag_id + str(int(float(war_id)))
+                    new_warlog.append(new_id)
+                member['war_log'] = new_warlog
 
-                tag_id = raid['clan_tag']
-                tag_id = tag_id.replace('#','')
+            if isinstance(member['raid_log'],dict):
+                new_raidlog = []
+                for (raid_id,raid) in member['raid_log'].items():
 
-                new_id = tag_id + str(int(float(raid_id)))
-                new_raidlog.append(new_id)
+                    tag_id = raid['clan_tag']
+                    tag_id = tag_id.replace('#','')
 
-            member['war_log'] = new_warlog
-            member['raid_log'] = new_raidlog
+                    new_id = tag_id + str(int(float(raid_id)))
+                    new_raidlog.append(new_id)
+                member['raid_log'] = new_raidlog
 
             file_json[tag] = member
 
