@@ -46,6 +46,9 @@ class aClashSeason():
         self.clangames_start = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
         self.clangames_end = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
+        self.cwl_start = datetime(self.season_year, self.season_month, 1, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+        self.cwl_end = datetime(self.season_year, self.season_month, 9, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+
     @classmethod
     def get_current_season(cls):
         utc = pytz.timezone("UTC")
@@ -1344,11 +1347,12 @@ class aClan(coc.Clan):
                         ping_str += f"{u.discord_member.mention} ({', '.join(account_str)})\n"
 
                     #override to war channel for PR
-                    if self.abbreviation == 'PR':
-                        ch = ctx.bot.get_channel(733000312180441190)
-                        await ch.send(ping_str)
-                    else:
-                        await ch.send(ping_str)
+                    if ch:
+                        if self.abbreviation == 'PR':
+                            ch = ctx.bot.get_channel(733000312180441190)
+                            await ch.send(ping_str)
+                        else:
+                            await ch.send(ping_str)
 
                     update_summary += f"\n> - War reminders sent for {len(ping_list)} members."
 
@@ -1397,12 +1401,13 @@ class aClan(coc.Clan):
                         message="**There is 1 Day left in Raid Weekend.**\nAlternate accounts are now allowed to fill up the remaining slots.",
                         show_author=False)
 
-                    if self.member_role:
-                        role = ctx.bot.alliance_server.get_role(self.member_role)
-                        rm = discord.AllowedMentions(roles=True)
-                        await ch.send(content=f"{role.mention}",embed=raid_weekend_1day_embed,allowed_mentions=rm)
-                    else:
-                        await ch.send(embed=raid_weekend_1day_embed)
+                    if ch:
+                        if self.member_role:
+                            role = ctx.bot.alliance_server.get_role(self.member_role)
+                            rm = discord.AllowedMentions(roles=True)
+                            await ch.send(content=f"{role.mention}",embed=raid_weekend_1day_embed,allowed_mentions=rm)
+                        else:
+                            await ch.send(embed=raid_weekend_1day_embed)
 
                     update_summary += f"\n> - 24 hours left in Raid Weekend."
 
@@ -1443,7 +1448,8 @@ class aClan(coc.Clan):
                             account_str = [f"{emotes_townhall[a.town_hall.level]} {a.name}" for a in accounts]
                             unfinished_raid_str += f"{u.discord_member.mention} ({', '.join(account_str)})\n"
 
-                        await ch.send(unfinished_raid_str)
+                        if ch:
+                            await ch.send(unfinished_raid_str)
 
                         update_summary += f"\n> - Raid Reminders sent for {len(ping_list)} members."
 
@@ -1582,7 +1588,11 @@ class aMember():
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)
             self.accounts = [await aPlayer.create(ctx,tag=tag) for tag in other_accounts]
 
+        self.accounts = sorted(self.accounts,key=lambda x:(x.town_hall.level, x.exp_level),reverse=True)
+
         [self.home_clans.append(a.home_clan) for a in self.accounts if a.is_member and a.home_clan not in self.home_clans]
+
+        self.home_clans = sorted(self.home_clans,key=lambda x:(x.level, x.capital_hall),reverse=True)
 
         self.leader_clans = [hc for hc in self.home_clans if self.user_id == hc.leader]
         self.coleader_clans = [hc for hc in self.home_clans if self.user_id in hc.co_leaders]
@@ -1599,8 +1609,6 @@ class aMember():
 
     async def set_nickname(self,ctx,selection=False):
         await self.fetch_discord_user(ctx)
-
-        self.accounts = sorted(self.accounts,key=lambda x:(x.town_hall.level, x.exp_level),reverse=True)
 
         if len(self.accounts) == 0 or not self.discord_member:
             return None

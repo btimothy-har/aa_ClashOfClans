@@ -508,14 +508,15 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def data_simulation(self,ctx,update_type,tag):
 
+        st = time.time()
+
         if update_type not in ['clan','member','season']:
             await ctx.send("Invalid data type.")
 
-
         if update_type == 'member':
-            helsinkiTz = pytz.timezone("Europe/Helsinki")
             is_cwl = False
-            if datetime.now(helsinkiTz).day <= 9:
+
+            if st >= ctx.bot.current_season.cwl_start and st <= ctx.bot.current_season.cwl_end:
                 is_cwl = True
 
             m = await aPlayer.create(ctx,tag=tag,refresh=True)
@@ -896,11 +897,6 @@ class AriXClashDataMgr(commands.Cog):
             bot.clan_refresh_status = True
 
             st = time.time()
-            helsinkiTz = pytz.timezone("Europe/Helsinki")
-
-            is_cwl = False
-            if datetime.now(helsinkiTz).day <= 9:
-                is_cwl = True
 
             data_embed = discord.Embed(
                 title="Clan Update Report",
@@ -1124,10 +1120,9 @@ class AriXClashDataMgr(commands.Cog):
             bot.member_refresh_status = True
 
             st = time.time()
-            helsinkiTz = pytz.timezone("Europe/Helsinki")
 
             is_cwl = False
-            if datetime.now(helsinkiTz).day <= 9:
+            if st >= ctx.bot.current_season.cwl_start and st <= ctx.bot.current_season.cwl_end:
                 is_cwl = True
 
             data_embed = discord.Embed(
