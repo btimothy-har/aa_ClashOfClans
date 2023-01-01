@@ -639,7 +639,7 @@ class AriXClashDataMgr(commands.Cog):
             color=0x0000)
 
 
-    @tasks.loop(minutes=5.0)
+    @tasks.loop(minutes=10.0)
     async def season_update(self):
 
         bot = self.master_bot
@@ -774,7 +774,8 @@ class AriXClashDataMgr(commands.Cog):
             await self.config.last_status_update.set(st)
 
         if send_logs:
-            await self.data_log_channel.send(embed=season_embed)
+            ch = bot.get_channel(1033390608506695743)
+            await ch.send(embed=season_embed)
 
 
     @tasks.loop(seconds=120.0)
