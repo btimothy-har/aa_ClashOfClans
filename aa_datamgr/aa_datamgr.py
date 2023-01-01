@@ -246,6 +246,15 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def convert_warraidlog(self,ctx):
 
+        file_path = ctx.bot.clash_dir_path + '/' + 'alliance.json'
+        await ctx.send(f'gettingalliance {file_path}')
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                alliance_json = json.load(file)
+
+        alliance_clans = alliance_json['clans']
+        alliance_members = alliance_json['members']
+
         file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
 
         await ctx.send(f'started {file_path}')
@@ -256,7 +265,10 @@ class AriXClashDataMgr(commands.Cog):
 
         for (clan,warlog) in file_json.items():
             if coc.utils.is_valid_tag(clan):
-                c = await aClan.create(ctx,tag=clan,conv=True)
+                if clan in list(alliance_clans.keys()):
+                    c = await aClan.create(ctx,tag=clan,json=alliance_clans[clan],allianceconv=True)
+                else:
+                    c = await aClan.create(ctx,tag=clan,allianceconv=True)
                 c.war_log = {}
 
                 for (wid,war) in warlog.items():
@@ -310,12 +322,6 @@ class AriXClashDataMgr(commands.Cog):
             with open(file_path,'r') as file:
                 file_json = json.load(file)
 
-        file_path = ctx.bot.clash_dir_path + '/' + 'alliance.json'
-        await ctx.send(f'gettingalliance {file_path}')
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(file_path,'r') as file:
-                alliance_json = json.load(file)
-
         for (tag,member) in file_json.items():
 
             if 'attack_wins' in list(member.keys()):
@@ -349,7 +355,6 @@ class AriXClashDataMgr(commands.Cog):
                     new_raidlog.append(new_id)
                 member['raid_log'] = new_raidlog
 
-            alliance_members = alliance_json['members']
             if tag in list(alliance_members.keys()):
                 mm = await aPlayer.create(ctx,tag=tag,a_json=alliance_members[tag],s_json=member,reset=True)
             else:
