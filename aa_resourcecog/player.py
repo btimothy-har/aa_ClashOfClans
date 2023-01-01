@@ -421,8 +421,6 @@ class aPlayer(coc.Player):
 
             if len(get_links) > 0:
                 self.discord_user = get_links[0][1]
-
-        member = await aMember.create(ctx,user_id=self.discord_user)
         return self
 
     def to_json(self):
@@ -1555,6 +1553,7 @@ class aMember():
     def __init__(self,ctx,user_id):
         self.timestamp = time.time()
         self.user_id = user_id
+        self.discord_member = None
 
         self.elder_clans = []
         self.coleader_clans = []
@@ -1586,13 +1585,6 @@ class aMember():
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
 
-        self.discord_member = ctx.bot.alliance_server.get_member(user_id)
-        if not self.discord_member:
-            try:
-                self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
-            except:
-                self.discord_member = None
-
         self.accounts = [member for (m_tag,member) in ctx.bot.member_cache.items() if member.discord_user == self.user_id]
 
         if len(self.accounts) == 0:
@@ -1619,7 +1611,7 @@ class aMember():
 
 
     async def set_nickname(self,ctx,selection=False):
-        await self.fetch_discord_user(ctx)
+        self.discord_member = await ctx.bot.alliance_server.fetch_member(self.user_id)
 
         nickname_accounts = [a for a in self.accounts if a.is_member]
 
@@ -1703,7 +1695,7 @@ class aMember():
         return new_nickname
 
     async def sync_roles(self,ctx):
-        await self.fetch_discord_user(ctx)
+        self.discord_member = await ctx.bot.alliance_server.fetch_member(self.user_id)
 
         if not self.discord_member:
             return

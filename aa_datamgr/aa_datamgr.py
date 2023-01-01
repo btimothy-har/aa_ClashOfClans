@@ -180,6 +180,11 @@ class AriXClashDataMgr(commands.Cog):
                 else:
                     a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
+
+            for (tag,member) in ctx.bot.member_cache.items()
+                if member.discord_user:
+                    await aMember.create(ctx,user_id=member.discord_user,refresh=True)
+
             ctx.bot.refresh_loop = 0
 
             self.data_backup_save.start()
