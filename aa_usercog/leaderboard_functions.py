@@ -127,7 +127,7 @@ async def leaderboard_heistlord(ctx):
     for th in th_leaderboard:
 
         leaderboard_members = [hp for hp in all_participants if hp.town_hall.level==th]
-        leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.loot_darkelixir.season),reverse=True)
+        leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.current_season.loot_darkelixir.season),reverse=True)
 
         leaderboard_str = ""
 
@@ -206,7 +206,7 @@ async def leaderboard_clangames(ctx):
             sc = f"{m.current_season.clangames.score:,}"
             ct = ""
 
-            if m.clangames.ending_time:
+            if m.current_season.clangames.ending_time:
                 cd, ch, cm, cs = await convert_seconds_to_str(ctx,(m.current_season.clangames.ending_time-m.current_season.clangames.games_start))
                 if cd > 0:
                     ct += f"{int(cd)}d "
