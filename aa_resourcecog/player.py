@@ -1553,7 +1553,7 @@ class aMember():
     def __init__(self,ctx,user_id):
         self.timestamp = time.time()
         self.user_id = user_id
-        self.discord_member = None
+        self.discord_member = ctx.bot.alliance_server.get_member(user_id)
 
         self.elder_clans = []
         self.coleader_clans = []
@@ -1603,6 +1603,8 @@ class aMember():
 
 
     async def fetch_discord_user(self,ctx):
+        self.discord_member = ctx.bot.alliance_server.get_member(user_id)
+
         if not self.discord_member:
             try:
                 self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)

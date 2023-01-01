@@ -337,6 +337,9 @@ class AriXMemberCommands(commands.Cog):
         has_badge = False
         badge_msg = ""
 
+        if not member.discord_member:
+            await member.fetch_discord_user(ctx)
+
         roles_sorted = sorted(member.discord_member.roles,key=lambda x:(x.position),reverse=True)
 
         for i in list(badge_emotes.keys()):
