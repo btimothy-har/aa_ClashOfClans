@@ -45,7 +45,7 @@ class WarLord_Player():
         self.total_stars = 0
         self.total_destruction = 0.0
 
-        war_ids = [wid for wid,war in self.player_stats.warlog.items()]
+        war_ids = [wid for (wid,war) in self.player_stats.warlog.items()]
 
         for wid in war_ids:
             war = self.player_stats.warlog[wid]

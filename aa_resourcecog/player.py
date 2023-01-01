@@ -1012,7 +1012,7 @@ class aPlayerWarStats():
 
             clan = await aClan.create(ctx,tag=warmember.clan_tag)
 
-            if war.type in ['random','classic']:
+            if war.type in ['random','classic'] and clan.is_alliance_clan:
                 self.wars_participated += 1
                 self.attack_count += len(warmember.attacks)
 
