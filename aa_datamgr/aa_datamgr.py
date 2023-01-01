@@ -60,6 +60,8 @@ class AriXClashDataMgr(commands.Cog):
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
 
+        self.placeholder_context = None
+
         self.master_lock = asyncio.Lock()
         self.clan_lock = asyncio.Lock()
         self.member_lock = asyncio.Lock()
@@ -75,6 +77,8 @@ class AriXClashDataMgr(commands.Cog):
     async def start_nebula(self,ctx,partial=False):
         bot = self.master_bot
         msg = await ctx.send("**Initializing N.E.B.U.LA.** ...")
+
+        self.placeholder_context = ctx
 
         resource_cog = bot.get_cog("AriXClashResources")
 
@@ -561,9 +565,7 @@ class AriXClashDataMgr(commands.Cog):
         if update_type not in ['clan','member','season']:
             await ctx.send("Invalid data type.")
 
-        hi = ctx
-
-        ctx = EmptyContext(bot=self.bot)
+        ctx = self.placeholder_context
 
         if update_type == 'member':
             is_cwl = False
@@ -751,7 +753,7 @@ class AriXClashDataMgr(commands.Cog):
                 ch = bot.get_channel(1033390608506695743)
                 await ch.send(embed=season_embed)
 
-        await hi.send('update completed')
+        await ctx.send('update completed')
 
     @tasks.loop(minutes=28.0)
     async def data_backup_save(self):
@@ -795,7 +797,7 @@ class AriXClashDataMgr(commands.Cog):
     async def season_update(self):
 
         bot = self.master_bot
-        ctx = EmptyContext(bot=bot)
+        ctx = self.placeholder_context
         send_logs = False
 
         clans = []
@@ -942,7 +944,7 @@ class AriXClashDataMgr(commands.Cog):
     async def clan_update(self):
 
         bot = self.master_bot
-        ctx = EmptyContext(bot=bot)
+        ctx = self.placeholder_context
         send_logs = False
 
         if bot.refresh_loop < 0:
@@ -1164,7 +1166,7 @@ class AriXClashDataMgr(commands.Cog):
     async def member_update(self):
 
         bot = self.master_bot
-        ctx = EmptyContext(bot=bot)
+        ctx = self.placeholder_context
         send_logs = False
 
         if bot.refresh_loop < 0:
