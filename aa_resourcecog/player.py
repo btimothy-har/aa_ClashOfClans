@@ -1286,6 +1286,10 @@ class aClan(coc.Clan):
 
         self.raid_state_change = False
 
+        if not self.current_raid_weekend:
+            self.raid_state = 'Not In Raid'
+            return None
+
         if self.current_raid_weekend.state != self.raid_weekend_state:
             self.raid_state_change = True
 
