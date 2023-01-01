@@ -435,7 +435,7 @@ class aPlayer(coc.Player):
                 raidlogkeys.append(raid.raid_id)
 
         allianceJson = {
-            'name':self.name,
+            'name': self.name,
             'readable_name': self.readable_name,
             'is_member': self.is_member,
             'home_clan': self.home_clan.tag,
@@ -468,7 +468,6 @@ class aPlayer(coc.Player):
         return allianceJson, memberJson
 
     async def save_to_json(self,ctx):
-
         alliance_json, member_json = self.to_json()
 
         await write_file_handler(ctx=ctx,

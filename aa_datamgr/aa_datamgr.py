@@ -151,7 +151,7 @@ class AriXClashDataMgr(commands.Cog):
                     ac_json = json.load(file)
 
             with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/memberinfo.json','r') as file:
+                with open(ctx.bot.clash_dir_path+'/membership.json','r') as file:
                     am_json = json.load(file)
 
             with ctx.bot.clash_file_lock.read_lock():
@@ -310,6 +310,12 @@ class AriXClashDataMgr(commands.Cog):
             with open(file_path,'r') as file:
                 file_json = json.load(file)
 
+        file_path = ctx.bot.clash_dir_path + '/' + 'alliance.json'
+            await ctx.send(f'gettingalliance {file_path}')
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(file_path,'r') as file:
+                    alliance_json = json.load(file)
+
         for (tag,member) in file_json.items():
 
             if 'attack_wins' in list(member.keys()):
@@ -343,7 +349,11 @@ class AriXClashDataMgr(commands.Cog):
                     new_raidlog.append(new_id)
                 member['raid_log'] = new_raidlog
 
-            mm = await aPlayer.create(ctx,tag=tag,s_json=member,reset=True)
+            alliance_members = alliance_json['members']
+            if tag in list(alliance_members.keys()):
+                mm = await aPlayer.create(ctx,tag=tag,a_json=alliance_members[tag],s_json=member,reset=True)
+            else:
+                mm = await aPlayer.create(ctx,tag=tag,s_json=member,reset=True)
 
             await mm.save_to_json(ctx)
 
@@ -666,7 +676,7 @@ class AriXClashDataMgr(commands.Cog):
                             file.truncate()
 
                         shutil.copy2(bot.clash_dir_path+'/clans.json',new_path)
-                        shutil.copy2(bot.clash_dir_path+'/memberinfo.json',new_path)
+                        shutil.copy2(bot.clash_dir_path+'/membership.json',new_path)
                         shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
                         with open(bot.clash_dir_path+'/players.json','w+') as file:
                             json.dump({},file,indent=2)
@@ -851,7 +861,7 @@ class AriXClashDataMgr(commands.Cog):
                         file.truncate()
 
                     shutil.copy2(bot.clash_dir_path+'/clans.json',new_path)
-                    shutil.copy2(bot.clash_dir_path+'/memberinfo.json',new_path)
+                    shutil.copy2(bot.clash_dir_path+'/membership.json',new_path)
                     shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
                     with open(bot.clash_dir_path+'/players.json','w+') as file:
                         json.dump({},file,indent=2)
