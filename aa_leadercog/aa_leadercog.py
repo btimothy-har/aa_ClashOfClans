@@ -1635,7 +1635,7 @@ class AriXLeaderCommands(commands.Cog):
                     + f"\n\n**{rank_clan.emoji} {rank_clan.name}**"
                     + f"\nCurrent Rank: {current_rank}"
                     + f"\nNew Rank: *{new_rank}*"
-                    + f"\nAccounts: {len([a for a in member.accounts if a.home_clan.tag == rank_clan.tag])}")
+                    + f"\nAccounts: {len([a for a in member.accounts if a.is_member and a.home_clan.tag == rank_clan.tag])}")
 
             confirm = await ctx.send(content=ctx.author.mention,embed=confirm_embed)
             if not await user_confirmation(ctx,confirm):
@@ -1647,9 +1647,9 @@ class AriXLeaderCommands(commands.Cog):
             selection_list = ""
             selection_str = ""
             for i in eligible_ranks:
-                if member.user_id in rank_clan.co_leaders:
+                if member.user_id in i.co_leaders:
                     current_rank = 'Co-Leader'
-                elif member.user_id in rank_clan.elders:
+                elif member.user_id in i.elders:
                     current_rank = 'Elder'
                 else:
                     current_rank = 'Member'
@@ -1663,7 +1663,7 @@ class AriXLeaderCommands(commands.Cog):
                     'id': i.tag,
                     'title': i.desc_title,
                     'emoji': i.emoji,
-                    'description': f"Current Rank: {current_rank}\u3000New Rank: {new_rank}\nAccounts: {len([a for a in member.accounts if a.home_clan.tag == rank_clan.tag])}"
+                    'description': f"Current Rank: {current_rank}\u3000New Rank: {new_rank}\nAccounts: {len([a for a in member.accounts if a.is_member and a.home_clan.tag == i.tag])}"
                     }
                 selection_list.append(d)
                 selection_str += f"{d['emoji']} **{d['title']}**\n{d['description']}"
@@ -1691,13 +1691,17 @@ class AriXLeaderCommands(commands.Cog):
 
             await select.delete()
 
-        rank_clan = handle_rank['clan']
+        if member.user_id in rank_clan.co_leaders:
+            current_rank = 'Co-Leader'
+        elif member.user_id in rank_clan.elders:
+            current_rank = 'Elder'
+        else:
+            current_rank = 'Member'
 
-        current_rank_index = clanRanks.index(handle_rank['rank'])
-        if action == 'promote':
-            new_rank = clanRanks[current_rank_index+1]
         if action == 'demote':
-            new_rank = clanRanks[current_rank_index-1]
+            new_rank = clanRanks[clanRanks.index(current_rank)-1]
+        if action == 'promote':
+            new_rank = clanRanks[clanRanks.index(current_rank)+1]
 
         try:
             await rank_clan.update_member_rank(ctx,user,new_rank)
