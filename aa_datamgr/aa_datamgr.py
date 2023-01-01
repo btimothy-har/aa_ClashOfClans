@@ -166,7 +166,7 @@ class AriXClashDataMgr(commands.Cog):
                 with open(ctx.bot.clash_dir_path+'/capitalraid.json','r') as file:
                     cr_json = json.load(file)
 
-            for (tag,clan) in a_json['clans'].items():
+            for (tag,clan) in ac_json.items():
                 await aClan.create(ctx,tag=tag,json=clan)
 
             for (tag,member) in am_json.items():
