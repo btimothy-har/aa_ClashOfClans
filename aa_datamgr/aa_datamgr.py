@@ -526,6 +526,44 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send('update completed')
 
+    @commands.command(name="nsave")
+    @commands.is_owner()
+    async def save_json_data(self,ctx):
+
+        bot = self.master_bot
+        send_logs = False
+
+        if bot.refresh_loop < 0:
+            return None
+
+        await self.master_lock.acquire()
+        await self.clan_lock.acquire()
+        await self.member_lock.acquire()
+
+        st = time.time()
+
+        for (war_id,war) in ctx.bot.war_cache.items():
+            if war:
+                await war.save_to_json(ctx)
+
+        for (raid_id,raid) in ctx.bot.raid_cache.items():
+            if raid:
+                await raid.save_to_json(ctx)
+
+        for (c_tag,clan) in ctx.bot.clan_cache.items():
+            if clan.is_alliance_clan:
+                await clan.save_to_json(ctx)
+
+        for (m_tag,member) in ctx.bot.member_cache.items():
+            if member.is_arix_account:
+                await member.save_to_json(ctx)
+
+        await self.config.last_data_save.set(st)
+
+        await self.clan_lock.release()
+        await self.member_lock.release()
+        await self.master_lock.release()
+
     @tasks.loop(minutes=8.0)
     async def data_backup_save(self):
 
