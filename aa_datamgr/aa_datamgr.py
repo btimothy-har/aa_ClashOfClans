@@ -223,7 +223,10 @@ class AriXClashDataMgr(commands.Cog):
         self.data_backup_save.stop()
 
         #save data
-        await save_cache_data(ctx)
+        await save_war_cache(ctx)
+        await save_raid_cache(ctx)
+        await save_clan_cache(ctx)
+        await save_member_cache(ctx)
         await ctx.send("**Data saved, goodbye!**")
 
         self.master_bot.remove_cog('AriXMemberCommands')
@@ -642,7 +645,10 @@ class AriXClashDataMgr(commands.Cog):
                 await self.clan_lock.acquire()
                 await self.member_lock.acquire()
 
-                await save_cache_data(ctx)
+                await save_war_cache(ctx)
+                await save_raid_cache(ctx)
+                await save_clan_cache(ctx)
+                await save_member_cache(ctx)
 
                 async with bot.async_file_lock:
                     with bot.clash_file_lock.write_lock():
@@ -823,7 +829,10 @@ class AriXClashDataMgr(commands.Cog):
             await self.clan_lock.acquire()
             await self.member_lock.acquire()
 
-            await save_cache_data(ctx)
+            await save_war_cache(ctx)
+            await save_raid_cache(ctx)
+            await save_clan_cache(ctx)
+            await save_member_cache(ctx)
 
             async with bot.async_file_lock:
                 with bot.clash_file_lock.write_lock():
