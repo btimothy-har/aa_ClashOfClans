@@ -1826,7 +1826,7 @@ class aMember():
                     text_roles_removed += f"{r.name} `{r.id}`\n"
 
                 embed.add_field(
-                    name=f"**Roles Added**",
+                    name=f"**Roles Removed**",
                     value=text_roles_removed)
 
             ch = bot.get_channel(1047747107248939078)

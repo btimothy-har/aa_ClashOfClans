@@ -1713,6 +1713,7 @@ class AriXLeaderCommands(commands.Cog):
             for a in [a for a in member.accounts if a.is_member and a.home_clan.tag == rank_clan.tag]:
                 await aPlayer.create(ctx,a.tag,fetch=True)
 
+            member = await aMember.create(ctx,user_id=user_id)
             await member.sync_roles(ctx)
         except:
             err_embed = await clash_embed(ctx,
