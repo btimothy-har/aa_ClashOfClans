@@ -279,11 +279,11 @@ class AriXClashDataMgr(commands.Cog):
                     new_raidlog.append(new_id)
                 member['raid_log'] = new_raidlog
 
-            mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
+            mm = await aPlayer.create(ctx,tag=tag,stats_json_input=member,reset=True)
 
             await mm.save_to_json(ctx)
 
-            #file_json[tag] = mm_mjson
+            file_json[tag] = mm_mjson
 
 
         # async with ctx.bot.async_file_lock:
