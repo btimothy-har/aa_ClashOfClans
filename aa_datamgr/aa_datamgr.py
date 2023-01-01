@@ -155,6 +155,14 @@ class AriXClashDataMgr(commands.Cog):
             with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
                 m_json = json.load(file)
 
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(ctx.bot.clash_dir_path+'/warlog.json','r') as file:
+                w_json = json.load(file)
+
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(ctx.bot.clash_dir_path+'/capitalraid.json','r') as file:
+                cr_json = json.load(file)
+
         ctx.bot.current_season = s_json['current']
         ctx.bot.tracked_seasons = s_json['tracked']
 
@@ -543,7 +551,6 @@ class AriXClashDataMgr(commands.Cog):
                 await raid.save_to_json(ctx)
 
         for (c_tag,clan) in ctx.bot.clan_cache.items():
-
             if clan.is_alliance_clan:
                 await clan.save_to_json(ctx)
 

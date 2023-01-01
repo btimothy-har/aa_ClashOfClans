@@ -300,10 +300,10 @@ class aPlayer(coc.Player):
 
             self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
             self.readable_name = member_info.get('readable_name',self.name)
-            self.is_member = member_info.get('is_member',False)
+            self.is_member = member_info['discord_user']
             self.is_arix_account = True
 
-            self.discord_user = int(member_info.get('discord_user',0))
+            self.discord_user = member_info['discord_user']
 
             if self.is_member:
                 if self.discord_user == self.home_clan.leader:
