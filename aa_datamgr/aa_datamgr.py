@@ -374,6 +374,30 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send('all done')
 
+    @commands.command(name="warsync")
+    @commands.is_owner()
+    async def warlogsync(self,ctx):
+
+        await ctx.send("starting")
+
+        all_wars = []
+
+        file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                war_json = json.load(file)
+
+        for (warid,warj) in war_json.items():
+            clan_war = await aClanWar.get(ctx,json=war)
+
+            for (tag,member) in ctx.bot.member_cache.items():
+                if tag in [m.tag for m in clan_war.members]:
+                    if clan_war.war_id not in [war.war_id for war in member.current_season.war_log]:
+                        member.current_season.war_log[clan_war.war_id] = clan_war
+
+        await ctx.send("completed")
+
+
     @commands.command(name="drefresh")
     @commands.is_owner()
     async def data_toggle(self,ctx):
@@ -722,9 +746,9 @@ class AriXClashDataMgr(commands.Cog):
                     name=f"start of the {new_season} Season! Clash on!"))
                 self.last_status_update = st
 
-        if send_logs:
-            ch = bot.get_channel(1033390608506695743)
-            await ch.send(embed=season_embed)
+            if send_logs:
+                ch = bot.get_channel(1033390608506695743)
+                await ch.send(embed=season_embed)
 
         await ctx.send('update completed')
 
