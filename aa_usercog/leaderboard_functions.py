@@ -81,7 +81,7 @@ async def leaderboard_warlord(ctx):
             + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
             + f"\n> - TH levels are taken from the specific War you participated in."
             + f"\n\nWarlords receive `10,000XP` per title, in addition to the TH Warlord role."
-            + f"\n\n`{'':<21}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<1}{'':<2}`<:HitRate:1054325756618088498>`{'':<2}`")
+            + f"\n\n`{'':<24}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<1}{'':<2}`<:HitRate:1054325756618088498>`{'':<2}`")
 
     for th in th_leaderboard:
         leaderboard_members = [wp for wp in [WarLord_Player(ctx,m,th) for m in all_participants] if wp.wars_participated > 0]
@@ -96,7 +96,7 @@ async def leaderboard_warlord(ctx):
                 break
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}"
-            leaderboard_str += f"`{m.player.name:<15}"
+            leaderboard_str += f"`{m.player.name:<18}"
             leaderboard_str += f"{m.total_triples:^5}"
             leaderboard_str += f"{m.total_attacks:^5}"
             leaderboard_str += f"{'':<1}{str(m.hit_rate)+'%':>5}{'':<2}`\u3000"
@@ -141,7 +141,7 @@ async def leaderboard_heistlord(ctx):
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[th]}{m.home_clan.emoji}"
-            leaderboard_str += f"`{m.name:<15}"
+            leaderboard_str += f"`{m.name:<18}"
             leaderboard_str += f"{value:>9}`<:DarkElixir:825640568973033502>"
 
         heistlord_leaderboard_embed.add_field(

@@ -27,7 +27,7 @@ from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults, clanRanks
 from aa_resourcecog.notes import aNote
-from aa_resourcecog.file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
+from aa_resourcecog.file_functions import get_current_season, save_cache_data, read_file_handler, write_file_handler, eclipse_base_handler
 from aa_resourcecog.player import aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
@@ -50,7 +50,6 @@ class AriXClashDataMgr(commands.Cog):
         self.master_bot = bot
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
-            "last_status_update": 0,
             "clan_update_last":0,
             "clan_update_runtime":[],
             "member_update_last":0,
@@ -64,6 +63,12 @@ class AriXClashDataMgr(commands.Cog):
         self.master_lock = asyncio.Lock()
         self.clan_lock = asyncio.Lock()
         self.member_lock = asyncio.Lock()
+
+        self.last_status_update = 0
+        self.clan_update_count = 0
+        self.member_update_count = 0
+        self.season_update_count = 0
+        self.backup_count = 0
 
     @commands.command(name="nstart")
     @commands.is_owner()
@@ -199,21 +204,7 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
 
-        for (war_id,war) in ctx.bot.war_cache.items():
-            if war:
-                await war.save_to_json(ctx)
-
-        for (raid_id,raid) in ctx.bot.raid_cache.items():
-            if raid:
-                await raid.save_to_json(ctx)
-
-        for (c_tag,clan) in ctx.bot.clan_cache.items():
-            if clan.is_alliance_clan:
-                await clan.save_to_json(ctx)
-
-        for (m_tag,member) in ctx.bot.member_cache.items():
-            if member.is_arix_account:
-                await member.save_to_json(ctx)
+        await save_cache_data(ctx)
 
         await self.config.last_data_save.set(st)
 
@@ -458,7 +449,10 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Data Update Performance__",
-                value=f"> **Jobs Completed**: {ctx.bot.refresh_loop}"
+                value=f"> **Member Update Jobs**: {self.member_update_count}"
+                    + f"\n> **Clan Update Jobs**: {self.clan_update_count}"
+                    + f"\n> **Season Check Jobs**: {self.season_update_count}"
+                    + f"\n> **Backup Jobs**: {self.backup_count}"
                     + f"\n> **Clan Update Runtime**: avg {clan_update_average} seconds"
                     + f"\n> **Member Update Runtime**: avg {member_update_average} seconds",
                 inline=False)
@@ -586,7 +580,7 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send('update completed')
 
-    @tasks.loop(minutes=8.0)
+    @tasks.loop(minutes=28.0)
     async def data_backup_save(self):
 
         bot = self.master_bot
@@ -603,21 +597,7 @@ class AriXClashDataMgr(commands.Cog):
         st = time.time()
 
         try:
-            for (war_id,war) in ctx.bot.war_cache.items():
-                if war:
-                    await war.save_to_json(ctx)
-
-            for (raid_id,raid) in ctx.bot.raid_cache.items():
-                if raid:
-                    await raid.save_to_json(ctx)
-
-            for (c_tag,clan) in ctx.bot.clan_cache.items():
-                if clan.is_alliance_clan:
-                    await clan.save_to_json(ctx)
-
-            for (m_tag,member) in ctx.bot.member_cache.items():
-                if member.is_arix_account:
-                    await member.save_to_json(ctx)
+            await save_cache_data(ctx)
 
         except Exception as e:
             await bot.send_to_owners(f"Error encountered during File Save:\n\n```{e}```")
@@ -632,11 +612,7 @@ class AriXClashDataMgr(commands.Cog):
         self.member_lock.release()
         self.master_lock.release()
 
-
-
-        season_embed = discord.Embed(
-            title="**Season Update**",
-            color=0x0000)
+        self.backup_count += 1
 
 
     @tasks.loop(minutes=10.0)
@@ -654,8 +630,6 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
         update_season = False
-
-        last_status_update = await self.config.last_status_update()
 
         season_embed = discord.Embed(
             title="**Season Update**",
@@ -705,6 +679,8 @@ class AriXClashDataMgr(commands.Cog):
             await self.member_lock.acquire()
 
             new_season = season
+
+            await save_cache_data(ctx)
 
             async with bot.async_file_lock:
                 with bot.clash_file_lock.write_lock():
@@ -771,11 +747,13 @@ class AriXClashDataMgr(commands.Cog):
                 activity=discord.Activity(
                 type=activity_select,
                 name=f"start of the {new_season} Season! Clash on!"))
-            await self.config.last_status_update.set(st)
+            self.last_status_update = st
 
         if send_logs:
             ch = bot.get_channel(1033390608506695743)
             await ch.send(embed=season_embed)
+
+        self.season_update_count += 1
 
 
     @tasks.loop(seconds=120.0)
@@ -815,7 +793,6 @@ class AriXClashDataMgr(commands.Cog):
                 icon_url="https://i.imgur.com/TZF5r54.png")
 
             try:
-                last_status_update = await self.config.last_status_update()
                 clan_update_last = await self.config.clan_update_last()
                 clan_update_runtime = await self.config.clan_update_runtime()
 
@@ -932,6 +909,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 et = time.time()
                 bot.refresh_loop += 1
+                self.clan_update_count += 1
                 bot.clan_refresh_status = False
 
             except Exception as e:
@@ -977,7 +955,7 @@ class AriXClashDataMgr(commands.Cog):
             activity_select = random.choice(activity_types)
 
             #update active events after 1 hours
-            if last_status_update - st > 3600 and len(active_events) > 0:
+            if self.last_status_update - st > 3600 and len(active_events) > 0:
                 event = random.choice(active_events)
                 await bot.change_presence(
                     activity=discord.Activity(
@@ -986,7 +964,7 @@ class AriXClashDataMgr(commands.Cog):
                 await self.config.last_status_update.set(st)
 
             #update passive events after 2 hours
-            elif last_status_update - st > 7200 and len(passive_events) > 0:
+            elif self.last_status_update - st > 7200 and len(passive_events) > 0:
                 event = random.choice(passive_events)
                 await bot.change_presence(
                     activity=discord.Activity(
@@ -994,12 +972,12 @@ class AriXClashDataMgr(commands.Cog):
                     name=event))
                 await self.config.last_status_update.set(st)
 
-            elif last_status_update - st > 14400:
+            elif self.last_status_update - st > 14400:
                 await bot.change_presence(
                     activity=discord.Activity(
                     type=activity_select,
                     name=f"{mem_count} AriX members"))
-                await self.config.last_status_update.set(st)
+                await self.last_status_update = st
 
         except Exception as e:
             await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
@@ -1111,6 +1089,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 et = time.time()
                 bot.refresh_loop += 1
+                self.member_update_count += 1
                 bot.member_refresh_status = False
 
             except Exception as e:

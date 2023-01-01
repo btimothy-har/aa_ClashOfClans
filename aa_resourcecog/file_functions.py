@@ -17,6 +17,24 @@ async def get_current_season(params=None):
 
     return current_season
 
+async def save_cache_data(ctx):
+    for (war_id,war) in ctx.bot.war_cache.items():
+        if war:
+            await war.save_to_json(ctx)
+
+    for (raid_id,raid) in ctx.bot.raid_cache.items():
+        if raid:
+            await raid.save_to_json(ctx)
+
+    for (c_tag,clan) in ctx.bot.clan_cache.items():
+        if clan.is_alliance_clan:
+            await clan.save_to_json(ctx)
+
+    for (m_tag,member) in ctx.bot.member_cache.items():
+        if member.is_arix_account:
+            await member.save_to_json(ctx)
+
+
 def filename_handler(ctx,name_input,**kwargs):
     season = kwargs.get('season',None)
 
