@@ -21,13 +21,12 @@ from string import ascii_letters, digits
 
 from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from .constants import confirmation_emotes, selection_emotes, emotes_army, emotes_capitalhall, emotes_league
-from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 from .alliance_functions import get_user_profile, get_alliance_clan
 from .notes import aNote
-from .player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from .clan import aClan
-from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from .player import aPlayer, aClan, aMember
+from .clan_war import aClanWar
+from .raid_weekend import aRaidWeekend
 
 load_dotenv()
 
@@ -209,25 +208,10 @@ class AriXClashResources(commands.Cog):
 
     async def user_nickname_handler(ctx,user,selection=True):
         leader_clans = []
-        home_clans, user_accounts = await get_user_profile(ctx,user.id)
 
-        if not user_accounts:
-            if ctx.author.id == user.id:
-                end_embed = await clash_embed(ctx,
-                    message="You must have registered accounts with AriX to use this command.",
-                    color="fail")
-            else:
-                end_embed = await clash_embed(ctx,
-                    message=f"{user.mention} does not have accounts registered with AriX.",
-                    color='fail')
-            await ctx.send(embed=end_embed)
-            return None
-
-        p_user_accounts = [a for a in user_accounts if a.is_member]
-
-        for a in p_user_accounts:
-            if a.arix_rank == 'Leader' and a.home_clan.tag not in [c.tag for c in leader_clans]:
-                leader_clans.append(a.home_clan)
+        for c in self.home_clans:
+            if self.user_id in c:
+                leader_clans.append(c)
 
         if len(p_user_accounts) == 0:
             p_user_accounts = user_accounts

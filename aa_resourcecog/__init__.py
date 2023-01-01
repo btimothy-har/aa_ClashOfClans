@@ -31,8 +31,6 @@ async def setup(bot:Red):
     bot.clash_report_path = os.getenv('REPORTPATH')
     bot.eclipse_path = os.getenv('ECLIPSEPATH')
 
-    bot.refresh_status = False
-
     bot.async_file_lock = asyncio.Lock()
     bot.clash_file_lock = fasteners.InterProcessReaderWriterLock(os.getenv("DATAPATH") + "/clash.lock")
 
@@ -40,35 +38,32 @@ async def setup(bot:Red):
     bot.clash_eclipse_lock = fasteners.InterProcessReaderWriterLock(os.getenv('ECLIPSEPATH') + "/eclipse.lock")
     bot.clash_eclipse_sessions = []
 
-    bot.member_cache = {}
-    bot.clan_cache = {}
+    # if not os.path.exists(bot.clash_dir_path+'/seasons.json'):
+    #     with bot.clash_file_lock.write_lock():
+    #         with open(bot.clash_dir_path+'/seasons.json','w') as file:
+    #             season_default = json_file_defaults['seasons']
+    #             season_default['current'] = await get_current_season()
+    #             json.dump(season_default,file,indent=2)
 
-    if not os.path.exists(bot.clash_dir_path+'/seasons.json'):
-        with bot.clash_file_lock.write_lock():
-            with open(bot.clash_dir_path+'/seasons.json','w') as file:
-                season_default = json_file_defaults['seasons']
-                season_default['current'] = await get_current_season()
-                json.dump(season_default,file,indent=2)
+    # if not os.path.exists(bot.clash_dir_path+'/alliance.json'):
+    #     with bot.clash_file_lock.write_lock():
+    #         with open(bot.clash_dir_path+'/alliance.json','w') as file:
+    #             json.dump(json_file_defaults['alliance'],file,indent=2)
 
-    if not os.path.exists(bot.clash_dir_path+'/alliance.json'):
-        with bot.clash_file_lock.write_lock():
-            with open(bot.clash_dir_path+'/alliance.json','w') as file:
-                json.dump(json_file_defaults['alliance'],file,indent=2)
+    # if not os.path.exists(bot.clash_dir_path+'/members.json'):
+    #     with bot.clash_file_lock.write_lock():
+    #         with open(bot.clash_dir_path+'/members.json','w') as file:
+    #             json.dump({},file,indent=2)
 
-    if not os.path.exists(bot.clash_dir_path+'/members.json'):
-        with bot.clash_file_lock.write_lock():
-            with open(bot.clash_dir_path+'/members.json','w') as file:
-                json.dump({},file,indent=2)
+    # if not os.path.exists(bot.clash_dir_path+'/warlog.json'):
+    #     with bot.clash_file_lock.write_lock():
+    #         with open(bot.clash_dir_path+'/warlog.json','w') as file:
+    #             json.dump({},file,indent=2)
 
-    if not os.path.exists(bot.clash_dir_path+'/warlog.json'):
-        with bot.clash_file_lock.write_lock():
-            with open(bot.clash_dir_path+'/warlog.json','w') as file:
-                json.dump({},file,indent=2)
-
-    if not os.path.exists(bot.clash_dir_path+'/capitalraid.json'):
-        with bot.clash_file_lock.write_lock():
-            with open(bot.clash_dir_path+'/capitalraid.json','w') as file:
-                json.dump({},file,indent=2)
+    # if not os.path.exists(bot.clash_dir_path+'/capitalraid.json'):
+    #     with bot.clash_file_lock.write_lock():
+    #         with open(bot.clash_dir_path+'/capitalraid.json','w') as file:
+    #             json.dump({},file,indent=2)
     
     cog = AriXClashResources()
     bot.add_cog(cog)

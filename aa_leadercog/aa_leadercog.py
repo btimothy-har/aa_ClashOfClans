@@ -27,10 +27,9 @@ from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, use
 from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from aa_resourcecog.clan import aClan
-from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.clan_war import aClanWar
+from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 class AriXLeaderCommands(commands.Cog):
@@ -163,7 +162,7 @@ class AriXLeaderCommands(commands.Cog):
             return await ctx.send(embed=embed)
 
         try:
-            c = await aClan.create(ctx,tag)
+            c = await aClan.create(ctx,tag=tag)
         except Exception as e:
             eEmbed = await clash_embed(ctx=ctx,message=f"{e}",color="fail")
             return await ctx.send(embed=eEmbed)
@@ -175,14 +174,14 @@ class AriXLeaderCommands(commands.Cog):
                 embed = await clash_embed(ctx=ctx,
                     message=f"The clan {c.name} ({c.tag}) is already part of the Alliance.",
                     color="fail",
-                    thumbnail=c.clan.badge.url)
+                    thumbnail=c.badge.url)
                 return await ctx.send(embed=embed)
 
         info_embed = await clash_embed(ctx=ctx,
             title=f"**You are adding: {c.desc_title}**",
             message=f"{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url)
+            thumbnail=c.badge.url)
         add_msg = await ctx.send(embed=info_embed)
 
 
@@ -288,7 +287,7 @@ class AriXLeaderCommands(commands.Cog):
             message=f"Leader: {leader.mention}\nAbbreviation: `{clan_abbreviation}`\u3000Emoji: {emoji}"
                 + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url)
+            thumbnail=c.badge.url)
 
         await add_msg.edit(
             content=f"{ctx.author.mention}, please confirm you would like to add the below clan.",
@@ -310,11 +309,12 @@ class AriXLeaderCommands(commands.Cog):
             message=f"Leader: {leader.mention}\u3000Abbreviation: `{c.abbreviation}`"
                 + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url,
+            thumbnail=c.badge.url,
             color='success')
 
         await add_msg.delete()
         return await ctx.send(embed=final_embed)
+
 
     @clan_manage.command(name="remove")
     @commands.is_owner()
@@ -341,8 +341,8 @@ class AriXLeaderCommands(commands.Cog):
             message=f"Leader: <@{c.leader}>\u3000Abbreviation: `{c.abbreviation}`"
                 + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url,
-            url=c.c.share_link)
+            thumbnail=c.badge.url,
+            url=c.share_link)
 
         confirm_remove = await ctx.send(
             content=f"{ctx.author.mention}, please confirm you would like to remove the below clan.",
@@ -364,8 +364,8 @@ class AriXLeaderCommands(commands.Cog):
             message=f"Leader: <@{c.leader}>\u3000Abbreviation: `{c.abbreviation}`"
                 + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url,
-            url=c.c.share_link,
+            thumbnail=c.badge.url,
+            url=c.share_link,
             color='success')
     
         await confirm_remove.delete()
@@ -398,7 +398,7 @@ class AriXLeaderCommands(commands.Cog):
             message=f"**New Leader: {new_leader.mention}**"
                 + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url)
+            thumbnail=c.badge.url)
 
         confirm_remove = await ctx.send(
             content=f"{ctx.author.mention}, please confirm you would like to assign {new_leader.mention} as the Leader of the above clan.",
@@ -407,7 +407,7 @@ class AriXLeaderCommands(commands.Cog):
             return
 
         try:
-            await c.add_staff(ctx,new_leader,"Leader")
+            await c.update_member_rank(ctx,new_leader,"Leader")
         except Exception as e:
             err_embed = await clash_embed(ctx,
                 message=f"Error encountered while updating clan: {e}.",
@@ -420,8 +420,8 @@ class AriXLeaderCommands(commands.Cog):
                 + f"\n\n**New Leader: <@{c.leader}>**"
                 + f"\n\n{c.desc_full_text}"
                 + f"\n\n>>> {c.description}",
-            thumbnail=c.c.badge.url,
-            url=c.c.share_link,
+            thumbnail=c.badge.url,
+            url=c.share_link,
             color='success')
     
         await confirm_remove.delete()
@@ -429,7 +429,7 @@ class AriXLeaderCommands(commands.Cog):
 
 
     @clan_manage.command(name="settings")
-    async def clan_manage_settings(self, ctx, clan_abbreviation):
+    async def clan_manage_settings(self,ctx,clan_abbreviation):
         """
         Change Clan Settings.
 
@@ -476,11 +476,11 @@ class AriXLeaderCommands(commands.Cog):
                     all_check = True
             return all_check
 
-
         c = await get_alliance_clan(ctx,clan_abbreviation)
         if not c:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
         c = c[0]
+
 
         menu_dict = []
 
@@ -1015,7 +1015,6 @@ class AriXLeaderCommands(commands.Cog):
             clan_selection = []
             clan_selection_str = ""
             for c in alliance_clans:
-                await c.update_member_count(ctx)
 
                 th_str = ""
                 for th in c.recruitment_level:
@@ -1033,7 +1032,7 @@ class AriXLeaderCommands(commands.Cog):
                     clan_selection_str += "\n\n"
 
             try:
-                p = await aPlayer.create(ctx,tag,fetch=True)
+                p = await aPlayer.create(ctx,tag=tag,refresh=True)
             except TerminateProcessing as e:
                 return await error_end_processing(ctx,
                     preamble=f"Error encountered while retrieving data for {tag}",
@@ -1052,8 +1051,8 @@ class AriXLeaderCommands(commands.Cog):
                 existing_user = None
 
             #Discord User on file does not match new user: request confirmation.
-            if p.discord_user and p.discord_user != user.id:
-                player_notes += f"\n- This account has been previously linked to <@{p.discord_user}>."
+            if p.discord_user and p.discord_user.user_id != user.id:
+                player_notes += f"\n- This account has been previously linked to <@{p.discord_user.user_id}>."
             
             #Is a current active member, but in a different clan: request confirmation.
             if p.is_member:
@@ -1115,56 +1114,55 @@ class AriXLeaderCommands(commands.Cog):
         new_applicant_role = ctx.bot.alliance_server.get_role(811204363263410187)
 
         if added_count > 0:
-            try:
-                discord_member = ctx.guild.get_member(user.id)
-            except:
-                discord_member = None
+            member = await aMember.create(user.id)
 
-            if discord_member:
+            if member.discord_member:
+                await member.sync_roles(ctx)
+
                 try:
-                    await discord_member.edit(nick=new_nickname)
+                    new_nickname = await member.set_nickname(ctx)
                     report_str += f"<a:check_black:1050969577556811876> Nickname set to {new_nickname}.\n"
                 except Exception as e:
-                    report_str += f"<a:aa_warning:1050970131863453746> Could not change nicknames: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Error while changing nickname: {e}\n"
 
-                if ex_member_role in discord_member.roles:
+                if ex_member_role in member.discord_member.roles:
                     try:
                         await discord_member.remove_roles(ex_member_role)
                         report_str += f"<a:check_black:1050969577556811876> Removed {ex_member_role.mention}.\n"
                     except Exception as e:
                         report_str += f"<a:aa_warning:1050970131863453746> Could not remove {ex_member_role.mention}: {e}\n"
 
-                if new_applicant_role in discord_member.roles:
+                if new_applicant_role in member.discord_member.roles:
                     try:
                         await discord_member.remove_roles(new_applicant_role)
                         report_str += f"<a:check_black:1050969577556811876> Removed {new_applicant_role.mention}.\n"
                     except Exception as e:
                         report_str += f"<a:aa_warning:1050970131863453746> Could not remove {new_applicant_role.mention}: {e}\n"
 
-                if visitor_role in discord_member.roles:
+                if visitor_role in member.discord_member.roles:
                     try:
                         await discord_member.remove_roles(visitor_role)
                         report_str += f"<a:check_black:1050969577556811876> Removed {visitor_role.mention}.\n"
                     except Exception as e:
                         report_str += f"<a:aa_warning:1050970131863453746> Could not remove {visitor_role.mention}: {e}\n"
 
-        if not silent_mode and added_count > 0:
-            intro_embed = await resc.get_welcome_embed(ctx,user)
+            if not silent_mode:
+                intro_embed = await resc.get_welcome_embed(ctx,user)
 
-            try:
-                await user.send(embed=intro_embed)
-                await user.send(content="https://discord.gg/tYBh3Gk")
-            except:
-                await ctx.send(content=f"{user.mention}",embed=intro_embed)
-                await ctx.send(content="https://discord.gg/tYBh3Gk")
+                try:
+                    await user.send(embed=intro_embed)
+                    await user.send(content="https://discord.gg/tYBh3Gk")
+                except:
+                    await ctx.send(content=f"{user.mention}",embed=intro_embed)
+                    await ctx.send(content="https://discord.gg/tYBh3Gk")
 
-            else:
-                sent_welcome = True
-                welcome_embed = await clash_embed(ctx,
-                    message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.",
-                    show_author=False)
+                else:
+                    sent_welcome = True
+                    welcome_embed = await clash_embed(ctx,
+                        message=f"**Welcome to AriX, {user.mention}**!\n\nI've sent you some information and instructions in your DMs. Please review them ASAP.",
+                        show_author=False)
 
-                report_str += f"<a:check_black:1050969577556811876> Welcome DM sent.\n"
+                    report_str += f"<a:check_black:1050969577556811876> Welcome DM sent.\n"
 
         result_embed = await clash_embed(ctx,
             title=f"Member Add: {user.name}#{user.discriminator}",
@@ -1234,7 +1232,7 @@ class AriXLeaderCommands(commands.Cog):
         else:
             for tag in player_tags:
                 try:
-                    p = await aPlayer.create(ctx,tag)
+                    p = await aPlayer.create(ctx,tag=tag)
                 except Exception as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
                     return await ctx.send(embed=eEmbed)
@@ -1344,29 +1342,25 @@ class AriXLeaderCommands(commands.Cog):
                     discord_users.append(p.discord_user)
 
         for u in discord_users:
-            user_home_clans, user_accounts = await get_user_profile(ctx,u)
-            member_accounts = [a for a in user_accounts if a.is_member]
 
-            try:
-                discord_member = await ctx.bot.alliance_server.fetch_member(p.discord_user)
-            except:
-                discord_member = None
+            member = await aMember.create(ctx,user_id=u.user_id)
 
-            if discord_member:
-                new_nickname = await resc.user_nickname_handler(ctx,discord_member,selection=False)
+            if member.discord_member:
                 try:
-                    await discord_member.edit(nick=new_nickname)
-                    report_str += f"<a:check_black:1050969577556811876> Changed nickname for {discord_member.name}#{discord_member.discriminator} to {new_nickname}.\n"
+                    new_nickname = await member.set_nickname(ctx)
+                    report_str += f"<a:check_black:1050969577556811876> Changed nickname for {member.discord_member.name}#{member.discord_member.discriminator} to {new_nickname}.\n"
                 except Exception as e:
-                    report_str += f"<a:aa_warning:1050970131863453746> Could not change nickname for {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                    report_str += f"<a:aa_warning:1050970131863453746> Could not change nickname for {member.discord_member.name}#{member.discord_member.discriminator}: {e}\n"
 
-                if len(member_accounts) == 0:
+                await member.sync_roles(ctx)
+
+                if len(member.home_clans) == 0:
                     ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
                     try:
-                        await discord_member.add_roles(ex_member_role)
-                        report_str += f"<a:check_black:1050969577556811876> {ex_member_role.mention} assigned to {discord_member.mention}.\n"
+                        await member.discord_member.add_roles(ex_member_role)
+                        report_str += f"<a:check_black:1050969577556811876> {ex_member_role.mention} assigned to {member.discord_member.mention}.\n"
                     except Exception as e:
-                        report_str += f"<a:aa_warning:1050970131863453746> Could not add Ex-Member Role to {discord_member.name}#{discord_member.discriminator}: {e}\n"
+                        report_str += f"<a:aa_warning:1050970131863453746> Could not add Ex-Member Role to {member.discord_member.name}#{member.discord_member.discriminator}: {e}\n"
 
         result_embed = await clash_embed(ctx,
             title="**Remove Members**",
@@ -1578,45 +1572,31 @@ class AriXLeaderCommands(commands.Cog):
         leader_ct = 0
         member_ct = 0
 
-        user_home_clans, user_accounts = await get_user_profile(ctx,user.id)
+        member = await aMember.create(user_id=user.id)
 
-        if not user_home_clans:
+        if len(member.home_clans) == 0:
             not_member_embed = await clash_embed(ctx,
                 message=f"{user.mention} was not good enough to be an AriX Member and doesn't deserve your attention.",
                 color='fail')
             return await ctx.send(content=ctx.author.mention,embed=not_member_embed)
 
-        for c in user_home_clans:
-            clan_accounts = [a for a in user_accounts if a.home_clan.tag == c.tag]
-
+        for c in member.home_clans:
             #do nothing to Leaders
-            if clan_accounts[0].arix_rank == 'Leader':
+            if member.user_id == c.leader:
                 leader_ct += 1
                 pass
 
             #Only Leaders can promote/demote Co-Leaders
-            elif clan_accounts[0].arix_rank == 'Co-Leader' and ctx.author.id == c.leader:
-                d = {
-                    'clan': c,
-                    'emoji': c.emoji,
-                    'rank': 'Co-Leader',
-                    'accounts': clan_accounts
-                    }
-                eligible_ranks.append(d)
+            elif member.user_id in c.co_leaders and ctx.author.id == c.leader:
+                eligible_ranks.append(c)
 
             #Leaders or Co-Leaders can promote/demote Members/Elders
             elif ctx.author.id == c.leader or ctx.author.id in c.co_leaders:
-                if action == 'demote' and clan_accounts[0].arix_rank == 'Member':
+                if action == 'demote' and member.user_id not in (c.co_leaders + c.elders):
                     member_ct += 1
                     pass
                 else:
-                    d = {
-                        'clan': c,
-                        'emoji': c.emoji,
-                        'rank': clan_accounts[0].arix_rank,
-                        'accounts': clan_accounts
-                        }
-                    eligible_ranks.append(d)
+                    eligible_ranks.append(c)
 
         if len(eligible_ranks) == 0:
             if leader_ct > 0:
@@ -1635,21 +1615,27 @@ class AriXLeaderCommands(commands.Cog):
             return await ctx.send(content=ctx.author.mention,embed=ineligible_embed)
 
         if len(eligible_ranks) == 1:
-            handle_rank = eligible_ranks[0]
+            rank_clan = eligible_ranks[0]
 
-            new_rank = handle_rank['rank']
+            if member.user_id in rank_clan.co_leaders:
+                current_rank = 'Co-Leader'
+            elif member.user_id in rank_clan.elders:
+                current_rank = 'Elder'
+            else:
+                current_rank = 'Member'
+
             if action == 'demote':
-                new_rank = clanRanks[clanRanks.index(handle_rank['rank'])-1]
+                new_rank = clanRanks[clanRanks.index(current_rank)-1]
             if action == 'promote':
-                new_rank = clanRanks[clanRanks.index(handle_rank['rank'])+1]
+                new_rank = clanRanks[clanRanks.index(current_rank)+1]
 
             confirm_embed = await clash_embed(ctx,
                 title=f"{action.capitalize()} {user.name}#{user.discriminator}",
                 message=f"**Please confirm this action.**"
-                    + f"\n\n**{handle_rank['clan'].emoji} {handle_rank['clan'].name}**"
-                    + f"\nCurrent Rank: {handle_rank['rank']}"
+                    + f"\n\n**{rank_clan.emoji} {rank_clan.name}**"
+                    + f"\nCurrent Rank: {current_rank}"
                     + f"\nNew Rank: *{new_rank}*"
-                    + f"\nAccounts: {len(handle_rank['accounts'])}")
+                    + f"\nAccounts: {len([a for a in member.accounts if a.home_clan.tag == rank_clan.tag])}")
 
             confirm = await ctx.send(content=ctx.author.mention,embed=confirm_embed)
             if not await user_confirmation(ctx,confirm):
@@ -1661,16 +1647,23 @@ class AriXLeaderCommands(commands.Cog):
             selection_list = ""
             selection_str = ""
             for i in eligible_ranks:
-                new_rank = i['rank']
+                if member.user_id in rank_clan.co_leaders:
+                    current_rank = 'Co-Leader'
+                elif member.user_id in rank_clan.elders:
+                    current_rank = 'Elder'
+                else:
+                    current_rank = 'Member'
+
                 if action == 'demote':
-                    new_rank = clanRanks[clanRanks.index(i['rank'])-1]
+                    new_rank = clanRanks[clanRanks.index(current_rank)-1]
                 if action == 'promote':
-                    new_rank = clanRanks[clanRanks.index(i['rank'])+1]
+                    new_rank = clanRanks[clanRanks.index(current_rank)+1]
+
                 d = {
-                    'id': i['clan'].tag,
-                    'title': i['clan'].desc_title,
-                    'emoji': i['emoji'],
-                    'description': f"Current Rank: {i['rank']}\u3000New Rank: {new_rank}\nAccounts: {len(i['accounts'])}"
+                    'id': i.tag,
+                    'title': i.desc_title,
+                    'emoji': i.emoji,
+                    'description': f"Current Rank: {current_rank}\u3000New Rank: {new_rank}\nAccounts: {len([a for a in member.accounts if a.home_clan.tag == rank_clan.tag])}"
                     }
                 selection_list.append(d)
                 selection_str += f"{d['emoji']} **{d['title']}**\n{d['description']}"
@@ -1694,7 +1687,7 @@ class AriXLeaderCommands(commands.Cog):
                 await select.edit(embed=end_embed)
                 return None
 
-            handle_rank = [i for i in eligible_ranks if i['clan'].tag == selected_clan['id']][0]
+            rank_clan = [i for i in eligible_ranks if i.tag == selected_clan['id']][0]
 
             await select.delete()
 
@@ -1779,90 +1772,6 @@ class AriXLeaderCommands(commands.Cog):
             ctx=ctx,
             action='demote',
             user=user)
-
-
-    # @commands.command(name="whois")
-    # async def member_whois(self,ctx,user:discord.User):
-    #     """
-    #     Get information about a Discord user.
-    #     """
-
-    #     def build_str(a):
-    #         a_str = ""
-    #         if a.is_member:
-    #             clan_des = f"*{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}*"
-    #         else:
-    #             clan_des = f"<:Clan:825654825509322752> {a.clan_description}"
-    #         a_str += f"> {clan_des}"
-    #         a_str += f"\n> <:Exp:825654249475932170> {a.exp_level}\u3000{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies}"
-    #         a_str += f"\n> <:TotalTroopStrength:827730290491129856> {a.troop_strength} / {a.max_troop_strength}"
-    #         if a.town_hall.level >= 5:
-    #             a_str += f"\u3000<:TotalSpellStrength:827730290294259793> {a.spell_strength} / {a.max_spell_strength}"
-    #         if a.town_hall.level >= 7:
-    #             a_str += f"\u3000<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength}"
-    #             a_str += f"\n> {a.hero_description}"
-    #         return a_str
-
-    #     info_embed = await clash_embed(ctx,
-    #         title=f"Member Profile: {user.name}#{user.discriminator}",
-    #         thumbnail=user.avatar_url)
-
-    #     user_alliance_accounts_tags = await get_user_accounts(ctx,user.id)
-    #     user_linked_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
-
-    #     user_alliance_accounts = []
-    #     user_other_accounts = []
-    #     user_error_tags = []
-        
-    #     for tag in user_alliance_accounts_tags:
-    #         try:
-    #             p = await aPlayer.create(ctx,tag)
-    #             if p.trophies == 0:
-    #                 await p.retrieve_data()
-    #         except TerminateProcessing as e:
-    #             eEmbed = await clash_embed(ctx,message=e,color='fail')
-    #             return await ctx.send(eEmbed)
-    #         except Exception as e:
-    #             p = None
-    #             err_dict = {'tag':tag,'reason':e}
-    #             user_error_tags.append(err_dict)
-    #             continue
-    #         user_alliance_accounts.append(p)
-
-    #     for tag in [u for u in user_linked_accounts if u not in user_alliance_accounts_tags]:
-    #         try:
-    #             p = await aPlayer.create(ctx,tag)
-    #             await p.retrieve_data()
-    #         except TerminateProcessing as e:
-    #             eEmbed = await clash_embed(ctx,message=e,color='fail')
-    #             return await ctx.send(eEmbed)
-    #         except Exception as e:
-    #             p = None
-    #             err_dict = {'tag':tag,'reason':e}
-    #             user_error_tags.append(err_dict)
-    #             continue
-    #         user_other_accounts.append(p)
-
-    #     user_alliance_accounts = sorted(user_alliance_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
-    #     user_other_accounts = sorted(user_other_accounts,key=lambda a:(a.exp_level, a.town_hall.level),reverse=True)
-
-    #     info_embed = await clash_embed(ctx,title=f"Member Profile: {user.name}#{user.discriminator}")
-
-    #     for a in user_alliance_accounts:
-    #         al_str = build_str(a)
-    #         info_embed.add_field(
-    #             name=f"{a.name} ({a.tag})",
-    #             value=al_str+"\n\u200b",
-    #             inline=False)
-
-    #     for a in user_other_accounts:
-    #         al_str = build_str(a)
-    #         info_embed.add_field(
-    #             name=f"{a.name} ({a.tag})",
-    #             value=al_str+"\n\u200b",
-    #             inline=False)
-
-    #     await ctx.send(embed=info_embed)
 
     ####################################################################################################
 
@@ -1975,7 +1884,7 @@ class AriXLeaderCommands(commands.Cog):
                     message=f"**Welcome to the Report Hub.**"
                         + f"\n\nHere, you'll be able to generate various in-discord reports for your selected clan. "
                         + f"Alternatively, extract all data in the bot into an Excel spreadsheet.\n\u200b",
-                    thumbnail=c.c.badge.url)
+                    thumbnail=c.badge)
 
                 main_menu_embed.add_field(
                     name="```**To get started, please select a report from the list below.**```",

@@ -28,10 +28,9 @@ from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capita
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from aa_resourcecog.clan import aClan
-from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.clan_war import aClanWar
+from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 from aa_resourcecog.eclipse_functions import eclipse_main_menu, eclipse_base_vault, eclipse_army_analyzer, eclipse_army_analyzer_main, get_eclipse_bases, eclipse_personal_vault, eclipse_personal_bases
@@ -109,7 +108,7 @@ async def userprofile_warlog(ctx,account,message=None):
     nav_options.append(rushed_dict)
     nav_str += "💩 To view Rushed Levels\n"
 
-    current_season = await get_current_season()
+    current_season = ctx.bot.current_season
 
     # won = [w for wid,w in a.warlog.items() if w.result in ['won','winning']]
     # lost = [w for wid,w in a.warlog.items() if w.result in ['lost','losing']]
@@ -117,45 +116,50 @@ async def userprofile_warlog(ctx,account,message=None):
 
     warlog_embed = await clash_embed(ctx,
         title=f"**War Log: {a.name} ({a.tag})**",
-        message=f"**Stats for: {current_season} Season**"
-            + f"\n<:TotalWars:827845123596746773> `{a.war_stats.wars_participated:^3}`\u3000"
-            + f"<:Triple:1034033279411687434> `{a.war_stats.triples:^3}`\u3000"
-            + f"<:MissedHits:825755234412396575> `{a.war_stats.missed_attacks:^3}`"
-            + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> `{a.war_stats.offense_stars:<3}`\u3000:fire: `{a.war_stats.offense_destruction:>3}%`"
-            + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.war_stats.defense_stars:<3}`\u3000:fire: `{a.war_stats.defense_destruction:>3}%`"
+        message=f"**Stats for: {current_season.season_description} Season**"
+            + f"\n<:TotalWars:827845123596746773> `{a.current_season.war_stats.wars_participated:^3}`\u3000"
+            + f"<:Triple:1034033279411687434> `{a.current_season.war_stats.triples:^3}`\u3000"
+            + f"<:MissedHits:825755234412396575> `{a.current_season.war_stats.unused_attacks:^3}`"
+            + f"\n<:Attack:828103854814003211>\u3000<:WarStars:825756777844178944> `{a.current_season.war_stats.offense_stars:<3}`\u3000:fire: `{a.current_season.war_stats.offense_destruction:>3}%`"
+            + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.current_season.war_stats.defense_stars:<3}`\u3000:fire: `{a.current_season.war_stats.defense_destruction:>3}%`"
             + f"\n\u200b")
 
-    war_id_sort = [wid for wid,war in a.warlog.items()]
+    war_id_sort = [wid for wid,war in a.current_season.warlog.items()]
     war_id_sort.sort(reverse=True)
 
     for wid in war_id_sort:
-        war = a.warlog[wid]
-        try:
-            wid = float(wid)
-        except:
-            continue
+        war = a.current_season.warlog[wid]
 
         if war.result != '':
             attack_str = ""
-            for att in war.attacks:
-                if war.attacks.index(att) > 0:
-                    attack_str += "\n"
-                attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker_townhall]} vs {emotes_townhall[att.defender_townhall]}\u3000<:WarStars:825756777844178944> `{att.stars:^3}`\u3000:fire: `{att.destruction:>3}%`"
 
-            if len(war.defenses) > 0:
-                if len(war.attacks) > 0:
+            wm = [m for m in war.members if m.tag == a.tag][0]
+            for att in wm.attacks:
+                if wm.attacks.index(att) > 0:
+                    attack_str += "\n"
+                attack_str += f"<:Attack:828103854814003211>\u3000{emotes_townhall[att.attacker.town_hall]} vs {emotes_townhall[att.defender.town_hall]}\u3000<:WarStars:825756777844178944> `{att.stars:^3}`\u3000:fire: `{att.destruction:>3}%`"
+
+            if len(wm.defenses) > 0:
+                if len(wm.attacks) > 0:
                     attack_str += "\n"
 
-                for defe in war.defenses:
-                    if war.defenses.index(defe) > 0:
+                for defe in wm.defenses:
+                    if wm.defenses.index(defe) > 0:
                         attack_str += "\n"
-                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker_townhall]} vs {emotes_townhall[defe.defender_townhall]}\u3000<:WarStars:825756777844178944> `{defe.stars:^3}`\u3000:fire: `{defe.destruction:>3}%`"
+                    attack_str += f"<:Defense:828103708956819467>\u3000{emotes_townhall[defe.attacker.town_hall]} vs {emotes_townhall[defe.defender.town_hall]}\u3000<:WarStars:825756777844178944> `{defe.stars:^3}`\u3000:fire: `{defe.destruction:>3}%`"
 
             attack_str += "\n\u200b"
 
+            if wm.is_opponent:
+                war_clan = war.opponent
+                war_opponent = war.clan
+            else:
+                war_clan = war.clan
+                war_opponent = war.opponent
+
             warlog_embed.add_field(
-                name=f"{war.clan.name} vs {war.opponent.name}",
-                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(war.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{war.total_attacks - len(war.attacks):^3}`\u3000<:Defense:828103708956819467> `{len(war.defenses):^3}`"
+                name=f"{war_clan.name} vs {war_opponent.name}",
+                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(wm.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{wm.unused_attacks:^3}`\u3000<:Defense:828103708956819467> `{len(wm.defenses):^3}`"
                     + f"\n{attack_str}",
                 inline=False
                 )
@@ -198,33 +202,30 @@ async def userprofile_raidlog(ctx,account,message=None):
     nav_options.append(rushed_dict)
     nav_str += "💩 To view Rushed Levels\n"
 
-    current_season = await get_current_season()
+    current_season = ctx.bot.current_season
 
     raidlog_embed = await clash_embed(ctx,
         title=f"**Raid Log: {a.name} ({a.tag})**",
-        message=f"**Stats for: {current_season} Season**"
-            + f"\n<:CapitalRaids:1034032234572816384> {a.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.raid_stats.raids_participated * 6) - a.raid_stats.raid_attacks}"
-            + f"\n<:CapitalGoldLooted:1045200974094028821> {a.raid_stats.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned:,}"
+        message=f"**Stats for: {current_season.season_description} Season**"
+            + f"\n<:CapitalRaids:1034032234572816384> {a.current_season.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.current_season.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.current_season.raid_stats.raids_participated * 6) - a.current_season.raid_stats.raid_attacks}"
+            + f"\n<:CapitalGoldLooted:1045200974094028821> {a.current_season.raid_stats.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {a.current_season.raid_stats.medals_earned:,}"
             + f"\n\u200b"
             )
 
-    raid_id_sort = [rid for rid,raid in a.raidlog.items()]
+    raid_id_sort = [rid for rid,raid in a.current_season.raidlog.items()]
     raid_id_sort.sort(reverse=True)
 
     for rid in raid_id_sort:
-        raid = a.raidlog[rid]
+        raid = a.current_season.raidlog[rid]
 
-        try:
-            rid = float(rid)
-        except:
-            continue
+        raid_date = datetime.fromtimestamp(raid.end_time).strftime('%d %b %Y')
 
-        raid_date = datetime.fromtimestamp(rid).strftime('%d %b %Y')
+        raid_member = [m for m in raid.members if m.tag == a.tag][0]
 
         raidlog_embed.add_field(
             name=f"Raid Weekend: {raid_date}",
-            value=f"<:Clan:825654825509322752> {raid.clan_name}\n<:Attack:828103854814003211> {raid.attack_count} / 6"
-                + f"\u3000<:CapitalGoldLooted:1045200974094028821> {raid.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {raid.medals_earned:,}"
+            value=f"<:Clan:825654825509322752> {raid.clan_name}\n<:Attack:828103854814003211> {raid_member.attack_count} / 6"
+                + f"\u3000<:CapitalGoldLooted:1045200974094028821> {raid_member.capital_resources_looted:,}\u3000<:RaidMedals:983374303552753664> {raid_member.medals_earned:,}"
                 + f"\n\u200b",
             inline=False
             )
@@ -299,10 +300,10 @@ async def userprofile_trooplevels(ctx,account,message=None):
             value=f"{hero_str}\n\u200b",
             inline=False)
 
-    if len(a.pets) > 0:
+    if len(a.hero_pets) > 0:
         pets_str = ""
         ct = 0
-        for p in a.pets:
+        for p in a.hero_pets:
             if ct % 2 == 0:
                 pets_str += "\n"
             else:
@@ -464,7 +465,7 @@ async def userprofile_rushed(ctx,account,message=None):
             + f"\n*Percentages exclude Pets.*")
 
     heroes = [h for h in a.heroes if h.is_rushed]
-    pets = [p for p in a.pets if p.level < p.minlevel_for_townhall]
+    pets = [p for p in a.hero_pets if p.level < p.minlevel_for_townhall]
     elixir_troops = [t for t in a.troops if t.is_elixir_troop and t.is_rushed]
     darkelixir_troops = [t for t in a.troops if t.is_dark_troop and t.is_rushed]
     siege_machines = [t for t in a.troops if t.is_siege_machine and t.is_rushed]

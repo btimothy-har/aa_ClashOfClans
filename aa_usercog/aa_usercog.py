@@ -31,10 +31,9 @@ from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, ecl
 from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize, badge_emotes, xp_rank_roles
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from aa_resourcecog.clan import aClan
-from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
+from aa_resourcecog.clan_war import aClanWar
+from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 from aa_resourcecog.eclipse_functions import eclipse_main_menu, eclipse_base_vault, eclipse_army_analyzer, eclipse_army_analyzer_main, get_eclipse_bases, eclipse_personal_vault, eclipse_personal_bases
@@ -47,9 +46,7 @@ class AriXMemberCommands(commands.Cog):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {}
         default_guild = {}
-        defaults_user = {
-            "default_clan": []
-            }       
+        defaults_user = {}
         self.config.register_global(**default_global)
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
@@ -62,23 +59,15 @@ class AriXMemberCommands(commands.Cog):
         Your server nickname can be changed to match one of your registered accounts.
         """
 
-        new_nickname = await resc.user_nickname_handler(ctx,ctx.author)
+        user_id = ctx.author.id
 
-        if not new_nickname:
-            return
+        member = await aMember.create(ctx,user_id=user_id)
 
         try:
-            discord_member = ctx.guild.get_member(ctx.author.id)
-            await discord_member.edit(nick=new_nickname)
-            success_embed = await clash_embed(ctx,
-                message=f"{ctx.author.mention} your nickname has been set to {new_nickname}.",
-                color='success')
-            return await ctx.send(embed=success_embed)
-        except:
-            end_embed = await clash_embed(ctx,
-                message=f"{ctx.author.mention}, I don't have permissions to change your nickname.",
-                color='fail')
-            return await ctx.send(embed=end_embed)
+            await member.set_nickname(ctx,selection=True)
+        except Exception as e:
+            embed = await clash_embed(ctx,
+                message=f"Oops! I don't seem to have permissions to change your nickname.\n\n`{e}`")
 
     @commands.command(name="register")
     async def user_add_guest_account(self,ctx):
@@ -136,7 +125,7 @@ class AriXMemberCommands(commands.Cog):
             return await ctx.author.send(embed=embed)
 
         try:
-            new_account = await aPlayer.create(ctx,new_tag,fetch=True)
+            new_account = await aPlayer.create(ctx,tag=new_tag)
         except Exception as e:
             return await error_end_processing(ctx,
                 preamble=f"Error encountered while fetching this account.",
@@ -205,7 +194,7 @@ class AriXMemberCommands(commands.Cog):
                 except Exception as e:
                     err_embed = await clash_embed(ctx,message=f"I ran into a problem while saving your account. I've contacted my masters.",color='fail')
                     await ctx.author.send(embed=err_embed)
-                    return await ctx.bot.send_to_owners(f"I ran into an error while adding {p.tag} {p.name} as a Guest account for {ctx.author.mention}.\n\nError: {e}")
+                    return await ctx.bot.send_to_owners(f"I ran into an error while adding {new_account.tag} {new_account.name} as a Guest account for {ctx.author.mention}.\n\nError: ```{e}```")
 
                 player_embed = await clash_embed(ctx,
                     message=f"You've successfully linked the account **{new_account.tag} {new_account.name}** to AriX!",
@@ -222,7 +211,7 @@ class AriXMemberCommands(commands.Cog):
 
         alliance_clans = await get_alliance_clan(ctx)
 
-        if len(alliance_clans) == 0:
+        if not alliance_clans:
             eEmbed = await clash_embed(ctx=ctx,message=f"There are no clans registered.",color="fail")
             return await ctx.send(embed=eEmbed)
 
@@ -296,13 +285,13 @@ class AriXMemberCommands(commands.Cog):
                 for th in c.recruitment_level:
                     clan_str += f"{emotes_townhall[th]} "
 
-            clan_str += f"\n\n**[Clan Link: {c.tag}]({c.c.share_link})**"
+            clan_str += f"\n\n**[Clan Link: {c.tag}]({c.share_link})**"
             clan_str += f"\n\n{c.description}"
 
             rEmbed = await clash_embed(ctx=ctx,
                 title=f"{c.emoji} {c.desc_title}",
                 message=clan_str,
-                thumbnail=c.c.badge.medium,
+                thumbnail=c.badge,
                 show_author=False)
 
             await ctx.send(embed=rEmbed)
@@ -319,39 +308,36 @@ class AriXMemberCommands(commands.Cog):
         user = Discord_User
         if not user:
             user = ctx.author
-        discord_member = ctx.bot.alliance_server.get_member(user.id)
-        if not discord_member:
-            discord_member = await ctx.bot.alliance_server.fetch_member(user.id)
 
-        alliance_clans = await get_alliance_clan(ctx)
-        home_clans, user_accounts = await get_user_profile(ctx,discord_member.id)
-        other_accounts = await ctx.bot.discordlinks.get_linked_players(user.id)
+        member = await aMember.create(ctx,user_id=user.id)
 
         is_staff = False
 
         leader_msg = ""
         coleader_msg = ""
         elder_msg = ""
-        for c in alliance_clans:
-            try:
-                if user.id == c.leader:
-                    is_staff = True
-                    leader_msg += f"\n<:Leader:1047060798192754688> **Leader of {c.name}**"
-                if user.id in c.co_leaders:
-                    is_staff = True
-                    coleader_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
-                if user.id in c.elders:
-                    is_staff = True
-                    elder_msg += f"\n{c.emoji} Elder of {c.name}"
-            except:
-                pass
+
+        if len(member.leader_clans) > 0:
+            is_staff = True
+            for c in member.leader_clans:
+                leader_msg += f"\n<:Leader:1047060798192754688> **Leader of {c.name}**"
+
+        if len(member.coleader_clans) > 0:
+            is_staff = True
+            for c in member.coleader_clans:
+                coleader_msg += f"\n{c.emoji} *Co-Leader of {c.name}*"
+
+        if len(member.elder_clans) > 0:
+            is_staff = True
+            for c in member.elder_clans:
+                elder_msg += f"\n{c.emoji} Elder of {c.name}"
 
         staff_msg = leader_msg + coleader_msg + elder_msg
 
         has_badge = False
         badge_msg = ""
 
-        roles_sorted = sorted(discord_member.roles,key=lambda x:(x.position),reverse=True)
+        roles_sorted = sorted(member.discord_member.roles,key=lambda x:(x.position),reverse=True)
 
         for i in list(badge_emotes.keys()):
             if i in [role.id for role in roles_sorted]:
@@ -359,7 +345,7 @@ class AriXMemberCommands(commands.Cog):
                 badge_msg += f"{badge_emotes[i]} "
 
         try:
-            for c in home_clans:
+            for c in member.home_clans:
                 has_badge = True
                 badge_msg += f"{c.emoji} "
         except:
@@ -369,7 +355,7 @@ class AriXMemberCommands(commands.Cog):
         if has_badge:
             profile_msg += f"{badge_msg}\n"
 
-        rank_role = [role for role in discord_member.roles if role.id in xp_rank_roles]
+        rank_role = [role for role in member.discord_member.roles if role.id in xp_rank_roles]
         if len(rank_role) > 0:
             profile_msg += f" \n`{rank_role[0].name}`"
 
@@ -379,8 +365,8 @@ class AriXMemberCommands(commands.Cog):
         #profile_msg += "\n\n**Joined AriX (Server)**"
         #profile_msg += f"\n<a:aa_AriX:1031773589231374407> {discord_member.joined_at.strftime('%d %b %Y')}"
 
-        if discord_member.premium_since:
-            profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since {discord_member.premium_since.strftime('%d %b %Y')}"
+        if member.discord_member.premium_since:
+            profile_msg += f"\n<:ServerBooster:1047016978759553056> Boosting AriX since {member.discord_member.premium_since.strftime('%d %b %Y')}"
 
         embed_color_role = [r for r in roles_sorted if r.color.value]
 
@@ -389,67 +375,24 @@ class AriXMemberCommands(commands.Cog):
         else:
             embed_color = None
 
-
-        member_accounts_embed = await clash_embed(ctx,
-            title=f"{discord_member.display_name}",
+        member_embed = await clash_embed(ctx,
+            title=f"{member.discord_member.display_name}",
             message=f"{profile_msg}\n\u200b",
-            thumbnail=discord_member.avatar_url,
+            thumbnail=member.discord_member.avatar_url,
             color=embed_color)
-        member_accounts_embed.set_author(name=f"{discord_member.name}#{discord_member.discriminator}",icon_url=discord_member.avatar_url)
-
-        other_accounts_embed = await clash_embed(ctx,
-            title=f"{discord_member.display_name}",
-            message=f"**Non-AriX Accounts\n\u200b**",
-            thumbnail=discord_member.avatar_url,
-            color=embed_color)
-        other_accounts_embed.set_author(name=f"{discord_member.name}#{discord_member.discriminator}",icon_url=discord_member.avatar_url)
 
         try:
             accounts_ct = 0
-            for a in [a for a in user_accounts if a.is_member]:
+            for a in member.accounts:
                 accounts_ct += 1
-                member_accounts_embed.add_field(
+                member_embed.add_field(
                     name=f"{a.desc_title}",
                     value=f"{a.home_clan.emoji} {a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
                     inline=False)
-
-            for a in [a for a in user_accounts if not a.is_member]:
-                accounts_ct += 1
-                member_accounts_embed.add_field(
-                    name=f"{a.desc_title}",
-                    value=f"<a:aa_AriX:1031773589231374407> {a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})\n{a.hero_description}\n[Player Link: {a.tag}]({a.share_link})\n\u200b",
-                    inline=False)
         except:
             pass
 
-        try:
-            other_accounts_ct = 0
-            for a in [a for a in other_accounts if a not in [u.tag for u in user_accounts]]:
-                other_accounts_ct += 1
-                try:
-                    p = await aPlayer.create(ctx,a)
-                except Exception as e:
-                    return await error_end_processing(ctx,
-                        preamble=f"Error encountered while retrieving data for Player Tag {a}.",
-                        err=e)
-
-                other_accounts_embed.add_field(
-                    name=f"{p.desc_title}",
-                    value=f"{p.desc_summary_text}\n{p.hero_description}\n[Player Link: {p.tag}]({p.share_link})\n\u200b",
-                    inline=False)
-        except:
-            pass
-
-        if accounts_ct > 0:
-            output_embed.append(member_accounts_embed)
-
-        if other_accounts_ct > 0:
-            output_embed.append(other_accounts_embed)
-
-        if len(output_embed) == 0:
-            output_embed.append(member_accounts_embed)
-
-        await paginate_embed(ctx,output_embed)
+        await ctx.send(embed=member_embed)
 
 
     @commands.command(name="player")
@@ -461,42 +404,48 @@ class AriXMemberCommands(commands.Cog):
         If no tags are provided, will return all of your accounts registered with AriX.
         """
 
-        author = ctx.bot.alliance_server.get_member(ctx.author.id)
-        discord_member = None
+        member = None
         player_tags = []
         output_embed = []
         accounts = []
 
         if len(tags_or_user_mention) == 0:
-            discord_member = ctx.bot.alliance_server.get_member(ctx.author.id)
+            member = await aMember.create(ctx,user_id=ctx.author.id)
         else:
             try:
                 check_for_discord_mention = int(re.search('@(.*)>',tags_or_user_mention[0]).group(1))
-                discord_member = ctx.bot.alliance_server.get_member(check_for_discord_mention)
+                member = await aMember.create(ctx,user_id=check_for_discord_mention)
             except:
-                for t in tags_or_user_mention:
-                    t = coc.utils.correct_tag(t)
-                    if not coc.utils.is_valid_tag(t):
-                        continue
-                    player_tags.append(t)
+                member = None
 
-        if player_tags:
-            for tag in player_tags:
+        if not member:
+            for t in tags_or_user_mention:
+                t = coc.utils.correct_tag(t)
+                if not coc.utils.is_valid_tag(t):
+                    continue
+
                 try:
-                    p = await aPlayer.create(ctx,tag)
+                    p = await aPlayer.create(ctx,tag=t)
                 except Exception as e:
                     eEmbed = await clash_embed(ctx,message=e,color='fail')
                     return await ctx.send(embed=eEmbed)
                 accounts.append(p)
 
-        elif discord_member:
-            home_clans, accounts = await get_user_profile(ctx,discord_member.id)
+        elif member:
+            accounts = member.accounts
 
         if not accounts:
             no_account_embed = await clash_embed(ctx,message="I couldn't find any accounts to show. Check your input, maybe?")
             return await ctx.send(embed=no_account_embed)
 
         for a in accounts:
+
+            await ctx.send(f"{a.current_season.season.id} {a.is_member} {a.current_season.is_member}")
+
+            for (s,p) in a.season_data.items():
+                await ctx.send(f"{s} {p.is_member}")
+
+
             member_status = ""
             if a.is_member:
                 member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
@@ -505,8 +454,7 @@ class AriXMemberCommands(commands.Cog):
 
             discord_msg = ""
             if a.discord_user:
-                user_object = await ctx.bot.fetch_user(a.discord_user)
-                discord_msg += f"\n<:Discord:1040423151760314448> {user_object.mention}"
+                discord_msg += f"\n<:Discord:1040423151760314448> <@{a.discord_user}>"
 
             if a.league.name == 'Unranked':
                 league_img = "https://i.imgur.com/TZF5r54.png"
@@ -532,7 +480,7 @@ class AriXMemberCommands(commands.Cog):
                 base_strength += f"\n<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength} *(rushed: {a.hero_rushed_pct}%)*"
             base_strength += "\n\u200b"
 
-            currently_boosting = [f"{emotes_army[t.name]}" for t in a.p.troops if t.name in coc.SUPER_TROOP_ORDER]
+            currently_boosting = [f"{emotes_army[t.name]}" for t in a.troops if t.name in coc.SUPER_TROOP_ORDER]
 
             home_village_str = f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})"
             home_village_str +=f"\n**Heroes**\n{a.hero_description}"
@@ -553,7 +501,7 @@ class AriXMemberCommands(commands.Cog):
             if a.is_member:
                 home_clan_str = ""
                 if a.home_clan.tag:
-                    d, h, m, s = await convert_seconds_to_str(ctx,a.time_in_home_clan)
+                    d, h, m, s = await convert_seconds_to_str(ctx,a.current_season.time_in_home_clan)
                     home_clan_str += f"\n{a.home_clan.emoji} {int(d)} days spent in {a.home_clan.name}"
 
                 last_update_str = ""
@@ -568,12 +516,12 @@ class AriXMemberCommands(commands.Cog):
                 if last_update_str == "":
                     last_update_str = "a few seconds "
 
-                clangames_str = f"<:ClanGames:834063648494190602> {a.clangames.score:,}"
+                clangames_str = f"<:ClanGames:834063648494190602> {a.current_season.clangames.score:,}"
 
-                if a.clangames.ending_time > 0:
+                if a.current_season.clangames.ending_time > 0:
                     clangames_str += " (:stopwatch:"
 
-                    cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.clangames.ending_time-a.clangames.starting_time))
+                    cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.current_season.clangames.ending_time-a.clangames.games_start))
                     if cd > 0:
                         clangames_str += f" {int(cd)}d"
                     if ch > 0:
@@ -588,17 +536,17 @@ class AriXMemberCommands(commands.Cog):
                     value=f":stopwatch: Last updated: {last_update_str}ago"
                         + f"{home_clan_str}"
                         + f"\n\n**Attacks Won**"
-                        + f"\n<:Attack:828103854814003211> {a.attack_wins.statdisplay}"
+                        + f"\n<:Attack:828103854814003211> {a.current_season.attacks.statdisplay}"
                         + f"\n**Defenses Won**"
-                        + f"\n<:Defense:828103708956819467> {a.defense_wins.statdisplay}"
+                        + f"\n<:Defense:828103708956819467> {a.current_season.defenses.statdisplay}"
                         + f"\n**Donations**"
-                        + f"\n<:donated:825574412589858886> {a.donations_sent.statdisplay}\u3000<:received:825574507045584916> {a.donations_rcvd.statdisplay}"
+                        + f"\n<:donated:825574412589858886> {a.current_season.donations_sent.statdisplay}\u3000<:received:825574507045584916> {a.current_season.donations_rcvd.statdisplay}"
                         + f"\n**Loot**"
-                        + f"\n<:gold:825613041198039130> {a.loot_gold.statdisplay}\u3000<:elixir:825612858271596554> {a.loot_elixir.statdisplay}\u3000<:darkelixir:825640568973033502> {a.loot_darkelixir.statdisplay}"
+                        + f"\n<:gold:825613041198039130> {a.current_season.loot_gold.statdisplay}\u3000<:elixir:825612858271596554> {a.current_season.loot_elixir.statdisplay}\u3000<:darkelixir:825640568973033502> {a.current_season.loot_darkelixir.statdisplay}"
                         + f"\n**Clan Capital**"
-                        + f"\n<:CapitalGoldContributed:971012592057339954> {a.capitalcontribution.statdisplay}\u3000<:CapitalRaids:1034032234572816384> {a.raid_stats.raids_participated}\u3000<:RaidMedals:983374303552753664> {a.raid_stats.medals_earned:,}"
+                        + f"\n<:CapitalGoldContributed:971012592057339954> {a.current_season.capitalcontribution.statdisplay}\u3000<:CapitalRaids:1034032234572816384> {a.current_season.raid_stats.raids_participated}\u3000<:RaidMedals:983374303552753664> {a.current_season.raid_stats.medals_earned:,}"
                         + f"\n**War Performance**"
-                        + f"\n<:TotalWars:827845123596746773> {a.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.war_stats.missed_attacks}"
+                        + f"\n<:TotalWars:827845123596746773> {a.current_season.war_stats.wars_participated}\u3000<:WarStars:825756777844178944> {a.current_season.war_stats.offense_stars}\u3000<:Triple:1034033279411687434> {a.current_season.war_stats.triples}\u3000<:MissedHits:825755234412396575> {a.current_season.war_stats.unused_attacks}"
                         + f"\n**Clan Games**"
                         + f"\n{clangames_str}\n\u200b",
                     inline=False)
@@ -607,14 +555,14 @@ class AriXMemberCommands(commands.Cog):
                 pEmbed.add_field(
                     name=f"**Season Activity**",
                     value=f"**Attacks Won**"
-                        + f"\n<:Attack:828103854814003211> {a.p.attack_wins}"
+                        + f"\n<:Attack:828103854814003211> {a.attack_wins}"
                         + f"\n**Defenses Won**"
-                        + f"\n<:Defense:828103708956819467> {a.p.defense_wins}"
+                        + f"\n<:Defense:828103708956819467> {a.defense_wins}"
                         + f"\n**Donations**"
-                        + f"\n<:donated:825574412589858886> {a.p.donations}\u3000<:received:825574507045584916> {a.p.received}\n\u200b",
+                        + f"\n<:donated:825574412589858886> {a.donations}\u3000<:received:825574507045584916> {a.received}\n\u200b",
                     inline=False)
 
-                for achievement in a.p.achievements:
+                for achievement in a.achievements:
                     if achievement.name == 'Gold Grab':
                         gold_value = achievement.value
                     if achievement.name == 'Elixir Escapade':
@@ -633,9 +581,9 @@ class AriXMemberCommands(commands.Cog):
                     value=f"**Loot**"
                         + f"\n<:gold:825613041198039130> {numerize.numerize(gold_value,1)}\u3000<:elixir:825612858271596554> {numerize.numerize(elixir_value,1)}\u3000<:darkelixir:825640568973033502> {numerize.numerize(darkelixir_value,1)}"
                         + f"\n**Clan Capital**"
-                        + f"\n<:CapitalGoldContributed:971012592057339954> {numerize.numerize(a.p.clan_capital_contributions,1)}\u3000<:CapitalRaids:1034032234572816384> {numerize.numerize(capitalraided_value,1)}"
+                        + f"\n<:CapitalGoldContributed:971012592057339954> {numerize.numerize(a.clan_capital_contributions,1)}\u3000<:CapitalRaids:1034032234572816384> {numerize.numerize(capitalraided_value,1)}"
                         + f"\n**War Stats**"
-                        + f"\n<:WarStars:825756777844178944> {a.p.war_stars:,}\u3000<:ClanWarLeagues:825752759948279848> {warleague_value:,}"
+                        + f"\n<:WarStars:825756777844178944> {a.war_stars:,}\u3000<:ClanWarLeagues:825752759948279848> {warleague_value:,}"
                         + f"\n**Clan Games**"
                         + f"\n<:ClanGames:834063648494190602> {clangames_value:,}\n\u200b")
 
@@ -647,7 +595,7 @@ class AriXMemberCommands(commands.Cog):
             #nav_str += "<:laboratory:1044904659917209651> To view remaining Lab Upgrades\n"
             nav_str += "💩 To view Rushed Levels"
 
-            if (ctx.bot.leader_role in author.roles or ctx.bot.coleader_role in author.roles) and len(a.notes)>0:
+            if (ctx.bot.leader_role in ctx.author.roles or ctx.bot.coleader_role in ctx.author.roles) and len(a.notes)>0:
                 nav_str += f"\n\n:mag: View Member Notes ({len(a.notes)})"
 
             if len(accounts) > 1:
@@ -663,32 +611,17 @@ class AriXMemberCommands(commands.Cog):
         await userprofile_main(ctx,output_embed,accounts)
 
     @commands.command(name="leaderboard",aliases=['leaderboards','lb'])
-    async def arix_leaderboard(self,ctx,*command_params):
+    async def arix_leaderboard(self,ctx,season='current'):
         """
         Alliance Leaderboards for Warlords, Heistlords, and Clan Games.
         """
 
         user = ctx.bot.get_user(ctx.author.id)
 
-        param = None
-        if len(command_params) > 0:
-            param = command_params[0]
-
-        if param == 'warlords':
-            warlord = await leaderboard_warlord(ctx)
-            return await ctx.send(embed=warlord)
-
-        if param == 'heistlord':
-            heistlord = await leaderboard_heistlord(ctx)
-            return await ctx.send(embed=heistlord)
-
-        if param == 'clangames':
-            clangames = await leaderboard_clangames(ctx)
-            return await ctx.send(embed=clangames)
-
-        if param == 'donations':
-            donations = await leaderboard_donations(ctx)
-            return await ctx.send(embed=donations)
+        if season == 'current':
+            season = ctx.bot.current_season
+        else:
+            season = aClashSeason(season)
 
         navigation = []
         navigation_str = ""
@@ -713,18 +646,16 @@ class AriXMemberCommands(commands.Cog):
             'emoji': '<:clancastle:1054612010840641536>',
             'title': ''
             }
-        navigation_str += f"<:clancastle:1054612010840641536> Donations\n"
+        navigation_str += f"<:clancastle:1054612010840641536> Donations Leaderboard\n"
         navigation.append(donations_dict)
 
-        cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
-        if time.time() >= cg_start.timestamp():
-            clangames_dict = {
-                'id': 'clangames',
-                'emoji': "<:ClanGames:834063648494190602>",
-                'title': "",
-                }
-            navigation_str += f"<:ClanGames:834063648494190602> Clan Games Leaderboard\n"
-            navigation.append(clangames_dict)
+        clangames_dict = {
+            'id': 'clangames',
+            'emoji': "<:ClanGames:834063648494190602>",
+            'title': "",
+            }
+        navigation_str += f"<:ClanGames:834063648494190602> Clan Games Leaderboard\n"
+        navigation.append(clangames_dict)
 
         menu_state = True
         menu_option = 'start'
@@ -732,7 +663,7 @@ class AriXMemberCommands(commands.Cog):
 
         while menu_state:
             if menu_option in ['warlord','start']:
-                warlord = await leaderboard_warlord(ctx)
+                warlord = await leaderboard_warlord(ctx,season)
                 warlord.add_field(
                     name="**Navigation**",
                     value=navigation_str)
@@ -748,7 +679,7 @@ class AriXMemberCommands(commands.Cog):
                     pass
 
             if menu_option in ['heistlord']:
-                heistlord = await leaderboard_heistlord(ctx)
+                heistlord = await leaderboard_heistlord(ctx,season)
                 heistlord.add_field(
                     name="**Navigation**",
                     value=navigation_str)
@@ -764,7 +695,7 @@ class AriXMemberCommands(commands.Cog):
                     pass
 
             if menu_option in ['clangames']:
-                clangames = await leaderboard_clangames(ctx)
+                clangames = await leaderboard_clangames(ctx,season)
                 clangames.add_field(
                     name="**Navigation**",
                     value=navigation_str)
@@ -780,7 +711,7 @@ class AriXMemberCommands(commands.Cog):
                     pass
 
             if menu_option in ['donations']:
-                donations = await leaderboard_donations(ctx)
+                donations = await leaderboard_donations(ctx,season)
                 donations.add_field(
                     name="**Navigation**",
                     value=navigation_str)
@@ -806,6 +737,12 @@ class AriXMemberCommands(commands.Cog):
                 await menu_message.clear_reactions()
             except:
                 pass
+
+    @commands.command(name="pass")
+    async def challenge_pass(self,ctx):
+        """
+        Your personal challenge pass.
+        """
 
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):

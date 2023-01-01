@@ -6,7 +6,7 @@ import urllib
 from datetime import datetime
 
 from .discordutils import eclipse_embed
-from .file_functions import get_current_season, season_file_handler, alliance_file_handler, data_file_handler, eclipse_base_handler
+from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
 from .constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize
 
 class EclipseSession():

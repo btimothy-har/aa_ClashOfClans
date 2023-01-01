@@ -25,10 +25,9 @@ from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, use
 from aa_resourcecog.constants import clanRanks, emotes_army, emotes_townhall, emotes_league, emotes_capitalhall, clanRanks
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aTownHall, aPlayerStat, aHero, aHeroPet, aTroop, aSpell, aPlayerWarStats, aPlayerRaidStats
-from aa_resourcecog.clan import aClan
-from aa_resourcecog.clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
-from aa_resourcecog.raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aRaidAttack, aPlayerRaidLog
+from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.clan_war import aClanWar
+from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
 
@@ -57,7 +56,7 @@ async def report_paginate(ctx,message,clan,output):
 
     if len(output) > 1:
         for embed in output:
-            embed.set_author(name=f"{clan.name} ({clan.tag})",icon_url=clan.c.badge.url)
+            embed.set_author(name=f"{clan.name} ({clan.tag})",icon_url=clan.badge.url)
             embed.set_footer(text=f"(Page {output.index(embed)+1} of {len(output)}) AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
         nav_options.append(prev_dict)
         nav_options.append(next_dict)
@@ -117,27 +116,25 @@ async def report_member_summary(ctx,message,clan):
 
     for m in members:
         if m.discord_user not in list(user_count.keys()):
-            user_count[m.discord_user] = 0
-        user_count[m.discord_user] += 1
+            user_count[m.discord_user] = []
+        user_count[m.discord_user].append(m)
 
     users_accounts_output = []
     for user, accounts in user_count.items():
-        try:
-            d_user = ctx.bot.get_user(int(user))
-            d_user_display = d_user.display_name
-        except:
-            d_user_display = "<< Unknown User >>"
 
-        user_accounts_townhalls = [a.town_hall.level for a in members if a.discord_user==user]
+        if user.discord_member:
+            user_display = user.discord_member.display_name
+        else:
+            user_display = "<< Unknown User >>"
 
         townhalls_only = []
-        [townhalls_only.append(str(t)) for t in user_accounts_townhalls if t not in townhalls_only]
+        [townhalls_only.append(str(t)) for t in [a.town_hall.level for a in accounts] if t not in townhalls_only]
 
         townhalls_only.sort(reverse=True)
 
         output = {
-            'User': f"{d_user_display}",
-            '# Accs': f"{accounts}",
+            'User': f"{user_display}",
+            '# Accs': f"{len(accounts)}",
             'Townhalls': f"{','.join(townhalls_only)}"
             }
         users_accounts_output.append(output)
@@ -241,7 +238,7 @@ async def report_super_troops(ctx,message,clan):
     output_pages = []
     super_troop_str = []
 
-    members = await get_clan_members(ctx,clan)
+    members = clan.arix_members
     if not members:
         return None
 
@@ -250,8 +247,8 @@ async def report_super_troops(ctx,message,clan):
         troop_str = ""
         boost_count = 0
         for m in members:
-            if super_troop in [t.name for t in m.p.troops]:
-                t = [t for t in m.p.troops][0]
+            if super_troop in [t.name for t in m.troops]:
+                t = [t for t in m.troops][0]
 
                 boost_count += 1
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
@@ -284,15 +281,15 @@ async def report_super_troops(ctx,message,clan):
 async def report_war_status(ctx,message,clan):
     output_pages = []
 
-    members = await get_clan_members(ctx,clan)
+    members = clan.arix_members
     if not members:
         return None
 
-    members = sorted(members,key=lambda x:(x.town_hall.level,x.war_stats.triples,x.war_stats.offense_stars),reverse=True)
+    members = sorted(members,key=lambda x:(x.town_hall.level,x.current_season.war_stats.triples,x.current_season.war_stats.offense_stars),reverse=True)
 
     #War Status
-    opted_in_clan = [m for m in members if m.war_optin and m.clan.tag == clan.tag]
-    opted_not_in_clan = [m for m in members if m.war_optin and m.clan.tag != clan.tag]
+    opted_in_clan = [m for m in members if m.war_opted_in and m.clan.tag == clan.tag]
+    opted_not_in_clan = [m for m in members if m.war_opted_in and m.clan.tag != clan.tag]
 
     war_opted_in = opted_in_clan + opted_not_in_clan
 
@@ -307,10 +304,10 @@ async def report_war_status(ctx,message,clan):
         for m in chunk:
             mem_str += f"\n\n**{emotes_townhall[m.town_hall.level]} {m.name}**"
             mem_str += f"\n> {m.hero_description}"
-            mem_str += f"\n> <:TotalWars:827845123596746773> {m.war_stats.wars_participated}\u3000"
-            mem_str += f"<:WarStars:825756777844178944> {m.war_stats.offense_stars}\u3000"
-            mem_str += f"<:Triple:1034033279411687434> {m.war_stats.triples}\u3000"
-            mem_str += f"<:MissedHits:825755234412396575> {m.war_stats.missed_attacks}"
+            mem_str += f"\n> <:TotalWars:827845123596746773> {m.current_season.war_stats.wars_participated}\u3000"
+            mem_str += f"<:WarStars:825756777844178944> {m.current_season.war_stats.offense_stars}\u3000"
+            mem_str += f"<:Triple:1034033279411687434> {m.current_season.war_stats.triples}\u3000"
+            mem_str += f"<:MissedHits:825755234412396575> {m.current_season.war_stats.unused_attacks}"
 
             if m.clan.tag != clan.tag:
                 mem_str += f"\n> <:Clan:825654825509322752> {m.clan.name}"
@@ -337,7 +334,7 @@ async def report_war_status(ctx,message,clan):
 async def report_all_members(ctx,message,clan):
     output_pages = []
 
-    members = await get_clan_members(ctx,clan)
+    members = clan.arix_members
     if not members:
         return None
 
@@ -389,7 +386,7 @@ async def report_all_members(ctx,message,clan):
 async def report_missing_members(ctx,message,clan):
     output_pages = []
 
-    members = await get_clan_members(ctx,clan)
+    members = clan.arix_members
     if not members:
         return None
 
@@ -441,11 +438,11 @@ async def report_missing_members(ctx,message,clan):
 async def report_unrecognized_members(ctx,message,clan):
     output_pages = []
 
-    members = await get_clan_members(ctx,clan)
+    members = clan.arix_members
     if not members:
         return None
 
-    unrecognized_members = [m for m in clan.c.members if m.tag not in [a.tag for a in members]]
+    unrecognized_members = [m for m in clan.members if m.tag not in [a.tag for a in members]]
 
     chunked_unrecognized = []
     for z in range(0, len(unrecognized_members), 10):
@@ -473,8 +470,6 @@ async def report_unrecognized_members(ctx,message,clan):
 
             if m.discord_user:
                 m_str += f"<:Discord:1040423151760314448> <@{m.discord_user}>\u3000"
-            elif m.discord_link:
-                m_str += f"<:Discord:1040423151760314448> <@{m.discord_link}\u3000"
 
             # m_str += f"<:Clan:825654825509322752> {m.clan_description}"
 
@@ -539,6 +534,7 @@ async def report_to_excel(ctx,clan):
         'Elixir Looted',
         'Dark Elixir Looted',
         'Clan Games Points',
+        'Clan Games Timer',
         'Wars Participated',
         'Total Attacks',
         'Missed Attacks',
@@ -568,6 +564,8 @@ async def report_to_excel(ctx,clan):
         m_data.append(m.tag)
         m_data.append(m.name)
 
+        stats = m.current_season
+
         try:
             m_user = ctx.bot.get_user(int(m.discord_user))
             m_user_display = m_user.display_name
@@ -578,7 +576,7 @@ async def report_to_excel(ctx,clan):
         m_data.append(m.home_clan.name)
         m_data.append(m.arix_rank)
 
-        dd, hh, mm, ss = await convert_seconds_to_str(ctx,m.time_in_home_clan)
+        dd, hh, mm, ss = await convert_seconds_to_str(ctx,stats.time_in_home_clan)
         m_data.append(dd)
 
         m_data.append(m.exp_level)
@@ -609,36 +607,36 @@ async def report_to_excel(ctx,clan):
         m_data.append(m.spell_strength)
         m_data.append(f"{spell_completion}%")
 
-        m_data.append(m.attack_wins.season)
-        m_data.append(m.defense_wins.season)
+        m_data.append(stats.attacks.season)
+        m_data.append(stats.defenses.season)
 
-        m_data.append(m.donations_sent.season)
+        m_data.append(stats.donations_sent.season)
         m_data.append(m.donations_rcvd.season)
 
-        m_data.append(m.loot_gold.season)
-        m_data.append(m.loot_elixir.season)
-        m_data.append(m.loot_darkelixir.season)
+        m_data.append(stats.loot_gold.season)
+        m_data.append(stats.loot_elixir.season)
+        m_data.append(stats.loot_darkelixir.season)
 
-        m_data.append(m.clangames.season)
+        m_data.append(stats.clangames.score)
+        m_data.append(max(stats.clangames.ending_time - stats.clangames.games_start,0))
 
-        m_data.append(m.war_stats.wars_participated)
-        m_data.append(m.war_stats.total_attacks)
-        m_data.append(m.war_stats.missed_attacks)
+        m_data.append(stats.war_stats.wars_participated)
+        m_data.append(stats.war_stats.attack_count)
+        m_data.append(stats.war_stats.unused_attacks)
 
-        m_data.append(m.war_stats.triples)
-        m_data.append(m.war_stats.offense_stars)
+        m_data.append(stats.war_stats.triples)
+        m_data.append(stats.war_stats.offense_stars)
+        m_data.append(stats.war_stats.offense_destruction)
 
-        m_data.append(m.war_stats.offense_destruction)
+        m_data.append(stats.war_stats.defense_stars)
+        m_data.append(stats.war_stats.defense_destruction)
 
-        m_data.append(m.war_stats.defense_stars)
-        m_data.append(m.war_stats.defense_destruction)
+        m_data.append(stats.raid_stats.raids_participated)
 
-        m_data.append(m.raid_stats.raids_participated)
-
-        m_data.append(m.raid_stats.raid_attacks)
-        m_data.append(m.raid_stats.resources_looted)
-        m_data.append(m.raid_stats.medals_earned)
-        m_data.append(m.capitalcontribution.season)
+        m_data.append(stats.raid_stats.raid_attacks)
+        m_data.append(stats.raid_stats.resources_looted)
+        m_data.append(stats.raid_stats.medals_earned)
+        m_data.append(stats.capitalcontribution.season)
 
         for d in m_data:
             mem_worksheet.write(row,col,d)
@@ -697,7 +695,7 @@ async def report_to_excel(ctx,clan):
                 mwar_data.append(datetime.fromtimestamp(war.start_time).strftime('%b %d %Y %H:%M:%S'))
                 mwar_data.append(datetime.fromtimestamp(war.end_time).strftime('%b %d %Y %H:%M:%S'))
                 mwar_data.append(war.state)
-                mwar_data.append(war.size)
+                mwar_data.append(war.team_size)
                 mwar_data.append(war.attacks_per_member)
                 mwar_data.append(war.result)
 
@@ -712,7 +710,7 @@ async def report_to_excel(ctx,clan):
                 try:
                     a = m.attacks[i]
                     mwar_data.append(a.order)
-                    mwar_data.append(a.defender)
+                    mwar_data.append(a.defender_tag)
                     mwar_data.append(a.stars)
                     mwar_data.append(a.destruction)
                     mwar_data.append(a.duration)
@@ -726,7 +724,7 @@ async def report_to_excel(ctx,clan):
                 if i == 0:
                     try:
                         mwar_data.append(m.best_opponent_attack.order)
-                        mwar_data.append(m.best_opponent_attack.attacker)
+                        mwar_data.append(m.best_opponent_attack.attacker_tag)
                         mwar_data.append(m.best_opponent_attack.stars)
                         mwar_data.append(m.best_opponent_attack.destruction)
                         mwar_data.append(m.best_opponent_attack.duration)
@@ -776,23 +774,23 @@ async def report_to_excel(ctx,clan):
         for m in r.members:
             raid_data = []
 
-            raid_data.append(r.clan.name)
-            raid_data.append(r.clan.tag)
+            raid_data.append(r.clan_name)
+            raid_data.append(r.clan_tag)
             raid_data.append(datetime.fromtimestamp(r.start_time).strftime('%b %d %Y'))
             raid_data.append(datetime.fromtimestamp(r.end_time).strftime('%b %d %Y'))
             raid_data.append(r.state)
             raid_data.append(r.total_loot)
             raid_data.append(r.offense_raids_completed)
             raid_data.append(r.defense_raids_completed)
-            raid_data.append(r.raid_attack_count)
-            raid_data.append(r.districts_destroyed)
-            raid_data.append(r.offense_rewards)
-            raid_data.append(r.defense_rewards)
+            raid_data.append(r.attack_count)
+            raid_data.append(r.destroyed_district_count)
+            raid_data.append(r.offensive_reward)
+            raid_data.append(r.defensive_reward)
             #m_data = raid_data
             raid_data.append(m.tag)
             raid_data.append(m.name)
             raid_data.append(m.attack_count)
-            raid_data.append(m.resources_looted)
+            raid_data.append(m.capital_resources_looted)
             raid_data.append(m.medals_earned)
 
             col = 0
