@@ -1709,6 +1709,7 @@ class AriXLeaderCommands(commands.Cog):
 
         try:
             await rank_clan.update_member_rank(ctx,user_id,new_rank)
+            await member.sync_roles(ctx)
         except:
             err_embed = await clash_embed(ctx,
                 message=f"I ran into an error while updating Ranks: {rank_clan.tag} {e}.",

@@ -1499,9 +1499,6 @@ class aClan(coc.Clan):
 
             self.leader = user_id
 
-        member = await aMember.create(ctx,user_id=user_id,refresh=True)
-        await member.sync_roles(ctx)
-
         await self.save_to_json(ctx)
 
     async def set_abbreviation(self,ctx,new_abbr:str):
@@ -1564,23 +1561,6 @@ class aMember():
 
     @classmethod
     async def create(cls,ctx,user_id,**kwargs):
-
-        refresh = kwargs.get('refresh',False)
-        cached_data = None
-
-        if user_id in list(ctx.bot.user_cache.keys()):
-            cached_data = ctx.bot.user_cache[user_id]
-
-            #override refresh if last 1min
-            if (time.time() - cached_data.timestamp) < 60:
-                refresh = False
-
-            #if more than 10mins, force refresh
-            if (time.time() - cached_data.timestamp) > 600:
-                refresh = True
-
-        if cached_data and not refresh:
-            return cached_data
 
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
