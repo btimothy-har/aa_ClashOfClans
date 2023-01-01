@@ -394,8 +394,8 @@ class AriXClashDataMgr(commands.Cog):
 
             for (tag,member) in ctx.bot.member_cache.items():
                 if tag in [m.tag for m in clan_war.members]:
-                    if clan_war.war_id not in [war.war_id for war in member.current_season.warlog]:
-                        member.current_season.war_log[clan_war.war_id] = clan_war
+                    if clan_war.war_id not in [war.war_id for (wid,war) in member.current_season.warlog.items()]:
+                        member.current_season.warlog[clan_war.war_id] = clan_war
 
         await ctx.send("completed")
 
