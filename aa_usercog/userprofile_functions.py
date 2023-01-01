@@ -127,7 +127,11 @@ async def userprofile_warlog(ctx,account,message=None):
     war_id_sort = [wid for wid,war in a.current_season.warlog.items()]
     war_id_sort.sort(reverse=True)
 
+    war_count = 0
     for wid in war_id_sort:
+        if war_count >= 5:
+            break
+
         war = a.current_season.warlog[wid]
 
         if war.result != '':
@@ -163,6 +167,8 @@ async def userprofile_warlog(ctx,account,message=None):
                     + f"\n{attack_str}",
                 inline=False
                 )
+
+            war_count += 1
 
     warlog_embed.add_field(
         name="Navigation",

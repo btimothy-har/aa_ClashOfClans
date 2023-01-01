@@ -50,6 +50,7 @@ class AriXClashDataMgr(commands.Cog):
         self.master_bot = bot
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
+            "last_role_sync":0,
             "clan_update_last":0,
             "clan_update_runtime":[],
             "member_update_last":0,
@@ -1168,6 +1169,7 @@ class AriXClashDataMgr(commands.Cog):
         bot = self.master_bot
         ctx = self.placeholder_context
         send_logs = False
+        role_sync = False
 
         if bot.refresh_loop < 0:
             return None
@@ -1202,6 +1204,11 @@ class AriXClashDataMgr(commands.Cog):
             try:
                 member_update_last = await self.config.member_update_last()
                 member_update_runtime = await self.config.member_update_runtime()
+                last_role_sync = await self.config.last_role_sync()
+
+                #sync roles every 10mins
+                if st - last_role_sync > 600:
+                    role_sync = True
 
                 role_sync_completed = []
                 error_log = []
@@ -1237,9 +1244,9 @@ class AriXClashDataMgr(commands.Cog):
                             error_log.append(err)
                             continue
 
-                    if m.discord_user:
+                    if m.discord_user and role_sync:
                         try:
-                            memo = await aMember.create(ctx,user_id=m.discord_user)
+                            memo = await aMember.create(ctx,user_id=m.discord_user,refresh=True)
                         except Exception as e:
                             err = DataError(category='getme',tag=m.tag,error=e)
                             error_log.append(err)

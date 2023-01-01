@@ -1473,33 +1473,33 @@ class aClan(coc.Clan):
 
         await self.save_to_json(ctx)
 
-    async def update_member_rank(self,ctx,user,rank):
+    async def update_member_rank(self,ctx,user_id,rank):
         if rank == 'Member':
-            if user.id in self.elders:
-                self.elders.remove(user.id)
-            if user.id in self.co_leaders:
-                self.co_leaders.remove(user.id)
+            if user_id in self.elders:
+                self.elders.remove(user_id)
+            if user_id in self.co_leaders:
+                self.co_leaders.remove(user_id)
 
         if rank == 'Elder':
-            if user.id not in self.elders:
-                self.elders.append(user.id)
-            if user.id in self.co_leaders:
-                self.co_leaders.remove(user.id)
+            if user_id not in self.elders:
+                self.elders.append(user_id)
+            if user_id in self.co_leaders:
+                self.co_leaders.remove(user_id)
 
         if rank in 'Co-Leader':
-            if user.id not in self.co_leaders:
-                self.co_leaders.append(user.id)
-            if user.id in self.elders:
-                self.elders.remove(user.id)
+            if user_id not in self.co_leaders:
+                self.co_leaders.append(user_id)
+            if user_id in self.elders:
+                self.elders.remove(user_id)
 
         if rank == 'Leader':
             #demote existing leader to Co
             if self.leader not in self.co_leaders:
                 self.co_leaders.append(self.leader)
 
-            self.leader = user.id
+            self.leader = user_id
 
-        member = await aMember.create(ctx,user_id=int(user.id),refresh=True)
+        member = await aMember.create(ctx,user_id=user_id,refresh=True)
         await member.sync_roles(ctx)
 
         await self.save_to_json(ctx)
@@ -1553,7 +1553,6 @@ class aMember():
     def __init__(self,ctx,user_id):
         self.timestamp = time.time()
         self.user_id = user_id
-        self.discord_member = ctx.bot.alliance_server.get_member(user_id)
 
         self.elder_clans = []
         self.coleader_clans = []
@@ -1587,6 +1586,10 @@ class aMember():
 
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
+
+        self.discord_member = ctx.bot.alliance_server.get_member(user_id)
+        if not self.discord_member:
+            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
 
         self.accounts = [member for (m_tag,member) in ctx.bot.member_cache.items() if member.discord_user == self.user_id]
 

@@ -1572,7 +1572,9 @@ class AriXLeaderCommands(commands.Cog):
         leader_ct = 0
         member_ct = 0
 
-        member = await aMember.create(ctx,user_id=user.id)
+        user_id = user.id
+
+        member = await aMember.create(ctx,user_id=user_id)
 
         if len(member.home_clans) == 0:
             not_member_embed = await clash_embed(ctx,
@@ -1704,7 +1706,7 @@ class AriXLeaderCommands(commands.Cog):
             new_rank = clanRanks[clanRanks.index(current_rank)+1]
 
         try:
-            await rank_clan.update_member_rank(ctx,user,new_rank)
+            await rank_clan.update_member_rank(ctx,user_id,new_rank)
         except:
             err_embed = await clash_embed(ctx,
                 message=f"I ran into an error while updating Ranks: {rank_clan.tag} {e}.",

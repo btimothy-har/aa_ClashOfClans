@@ -514,7 +514,7 @@ class AriXMemberCommands(commands.Cog):
                 if a.current_season.clangames.ending_time > 0:
                     clangames_str += " (:stopwatch:"
 
-                    cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.current_season.clangames.ending_time-a.clangames.games_start))
+                    cd, ch, cm, cs = await convert_seconds_to_str(ctx,(a.current_season.clangames.ending_time-a.current_season.clangames.games_start))
                     if cd > 0:
                         clangames_str += f" {int(cd)}d"
                     if ch > 0:
