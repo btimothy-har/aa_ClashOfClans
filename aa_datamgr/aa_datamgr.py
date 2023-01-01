@@ -718,7 +718,7 @@ class AriXClashDataMgr(commands.Cog):
         if send_logs:
             ch = bot.get_channel(1033390608506695743)
 
-            await ctx.send(test_str)
+            await ctx.send(test_str[0:1800])
             await ch.send(embed=season_embed)
 
 
