@@ -580,6 +580,7 @@ class AriXClashDataMgr(commands.Cog):
 
         if update_type == 'season':
             bot = self.master_bot
+            update_season = False
 
             season = aClashSeason.get_current_season()
 
