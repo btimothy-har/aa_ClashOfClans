@@ -1207,7 +1207,7 @@ class AriXClashDataMgr(commands.Cog):
                 last_role_sync = await self.config.last_role_sync()
 
                 #sync roles every 10mins
-                if st - last_role_sync > 600:
+                if last_role_sync == 0 or (st - last_role_sync > 600):
                     role_sync = True
 
                 role_sync_completed = []
@@ -1292,6 +1292,9 @@ class AriXClashDataMgr(commands.Cog):
 
             await self.config.member_update_last.set(st)
             await self.config.member_update_runtime.set(member_update_runtime)
+
+            if role_sync:
+                await self.config.last_role_sync.set(st)
 
             if len(error_log) > 0:
                 error_title = "Error Log"
