@@ -228,7 +228,7 @@ class AriXClashDataMgr(commands.Cog):
         await save_raid_cache(ctx)
         await save_clan_cache(ctx)
         await save_member_cache(ctx)
-        await ctx.send("**Data saved, goodbye!**")
+        await ctx.send("**Data saved!**")
 
         self.master_bot.remove_cog('AriXMemberCommands')
         self.master_bot.remove_cog('AriXLeaderCommands')
@@ -240,6 +240,8 @@ class AriXClashDataMgr(commands.Cog):
         self.clan_lock.release()
         self.member_lock.release()
         self.master_lock.release()
+
+        await ctx.send("**All done here! Goodbye!**")
 
 
     @commands.command(name="fileconvert")
