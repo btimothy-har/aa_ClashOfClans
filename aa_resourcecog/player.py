@@ -659,6 +659,7 @@ class aPlayerSeason():
 
         if player.tag == "#8G9L8JV2R":
             ch = ctx.bot.get_channel(856433806142734346)
+            await ch.send(f"..{season.season_description}")
             await ch.send(f"..{minfo}")
             await ch.send(f"..{stats}")
 
