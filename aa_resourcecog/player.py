@@ -788,7 +788,10 @@ class aPlayerClanGames():
     @classmethod
     async def create(cls,ctx,stats,**kwargs):
         input_json = kwargs.get('json',None)
-        season = kwargs.get('season',aClashSeason.get_current_season())
+        season = kwargs.get('season',None)
+
+        if not season:
+            season = aClashSeason.get_current_season()
 
         self = aPlayerClanGames(stats=stats,season=season)
 
