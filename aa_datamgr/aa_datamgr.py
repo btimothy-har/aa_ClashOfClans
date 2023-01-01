@@ -570,26 +570,22 @@ class AriXClashDataMgr(commands.Cog):
             if c.is_alliance_clan:
                 await c.compute_arix_membership(ctx)
 
+                embed = await c.current_raid_weekend.get_results_embed(ctx)
+
+                await ctx.send(embed=embed)
+
             war_update = await c.update_clan_war(ctx)
             raid_update = await c.update_raid_weekend(ctx)
 
-            for war_id in list(clanwar_json.keys()):
-                war = await aClanWar.get(ctx,war_id=war_id)
-
+            for (war_id,war) in ctx.bot.war_cache.items():
                 if war.state not in ['warEnded']:
                     war_clan = await aClan.create(ctx,tag=war.clan.tag)
                     war = await aClanWar.get(ctx,clan=war_clan)
 
-            for raid_id in list(capitalraid_json.keys()):
-                raid = await aRaidWeekend.get(ctx,raid_id=raid_id)
-
+            for (raid_id,raid) in ctx.bot.raid_cache.items():
                 if raid.state not in ['ended']:
                     raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                     raid = await aRaidWeekend.get(ctx,clan=raid_clan)
-
-                embed = await raid.get_results_embed(ctx)
-
-                await ctx.send(embed=embed)
 
         if update_type == 'season':
             bot = self.master_bot
