@@ -658,7 +658,7 @@ class aPlayerSeason():
             ch = ctx.bot.get_channel(856433806142734346)
             await ch.send(f"..{self.season.season_description}")
             await ch.send(f"..{minfo}")
-            await ch.send(f"..{stats}")
+            #await ch.send(f"..{stats}")
 
         if minfo:
             self.is_archive_season = True
