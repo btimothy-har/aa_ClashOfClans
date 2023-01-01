@@ -216,7 +216,7 @@ async def userprofile_raidlog(ctx,account,message=None):
     raid_id_sort.sort(reverse=True)
 
     for rid in raid_id_sort:
-        raid = a.raidlog[rid]
+        raid = a.current_season.raidlog[rid]
 
         raid_date = datetime.fromtimestamp(raid.end_time).strftime('%d %b %Y')
 

@@ -65,12 +65,6 @@ class AriXClashDataMgr(commands.Cog):
         self.clan_lock = asyncio.Lock()
         self.member_lock = asyncio.Lock()
 
-    async def initialize_config(self,bot):
-        ctx = EmptyContext(bot)
-
-
-
-
     @commands.command(name="nstart")
     @commands.is_owner()
     async def start_nebula(self,ctx):

@@ -46,7 +46,7 @@ class aPlayer(coc.Player):
         else:
             self.clan_description = "No Clan"
 
-        self.heroes = []
+        hero_ph = []
         hero_d = [hero for (th,hero) in hero_availability.items() if th <= self.town_hall.level]
         for hero_name in list(chain.from_iterable(hero_d)):
             is_unlocked_at_this_level = False
@@ -60,9 +60,10 @@ class aPlayer(coc.Player):
             if not hero:
                 hero = ctx.bot.coc_client.get_hero(name=hero_name,townhall=self.town_hall.level)
             hero = aHero(hero,self.town_hall.level,is_unlocked_at_this_level)
-            self.heroes.append(hero)
+            hero_ph.append(hero)
+        self.heroes = hero_ph
 
-        self.troops = []
+        troops_ph = []
         troop_d = [troop for (th,troop) in troop_availability.items() if th <= self.town_hall.level]
         for troop_name in list(chain.from_iterable(troop_d)):
             is_unlocked_at_this_level = False
@@ -76,9 +77,10 @@ class aPlayer(coc.Player):
             if not troop:
                 troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
             troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
-            self.troops.append(troop)
+            troops_ph.append(troop)
+        self.troops = troops_ph
 
-        self.spells = []
+        spells_ph = []
         spell_d = [spell for (th,spell) in spell_availability.items() if th<=self.town_hall.level]
         for spell_name in list(chain.from_iterable(spell_d)):
             is_unlocked_at_this_level = False
@@ -92,7 +94,8 @@ class aPlayer(coc.Player):
             if not spell:
                 spell = ctx.bot.coc_client.get_spell(name=spell_name,townhall=self.town_hall.level)
             spell = aSpell(spell,self.town_hall.level,is_unlocked_at_this_level)
-            self.spells.append(spell)
+            spells_ph.append(spell)
+        self.spells = spells_ph
 
         pets_placeholder = []
         pets_d = {th:pets for (th,pets) in pet_availability.items() if th<=self.town_hall.level}
@@ -230,7 +233,7 @@ class aPlayer(coc.Player):
             return cached_data
 
         try:
-            self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx,cache=cached_data)
+            2
         except Exception as exc:
             raise TerminateProcessing(exc) from exc
             return None
@@ -973,6 +976,7 @@ class aPlayerRaidStats():
                 self.raids_participated += 1
                 self.raid_attacks += raidmember.attack_count
                 self.resources_looted += raidmember.capital_resources_looted
+                self.medals_earned += raidmember.medals_earned
         return self
 
 ########################################
@@ -1172,6 +1176,7 @@ class aClan(coc.Clan):
         return self
 
     async def compute_arix_membership(self,ctx):
+        self.arix_members = []
         for (m_tag,member) in ctx.bot.member_cache.items():
             if member.is_member and member.home_clan.tag == self.tag:
                 self.arix_members.append(member)
