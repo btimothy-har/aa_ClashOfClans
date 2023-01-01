@@ -60,8 +60,8 @@ class WarLord_Player():
                         self.total_stars += att.stars
                         self.total_destruction += att.destruction
 
-                    if att.is_triple:
-                        self.total_triples += 1
+                        if att.is_triple:
+                            self.total_triples += 1
 
         if self.total_attacks > 0:
             self.hit_rate = int(round((self.total_triples / self.total_attacks) * 100,0))
@@ -256,7 +256,7 @@ async def leaderboard_donations(ctx):
                 break
 
             sent = f"{m.current_season.donations_sent.season:,}"
-            rcvd = f"{m.current_season.donations_rcvd.season:,}"
+            rcvd = f"{m.current_season.1donations_rcvd.season:,}"
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
