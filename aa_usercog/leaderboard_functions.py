@@ -71,7 +71,7 @@ class WarLord_Player():
 
 async def leaderboard_warlord(ctx,season):
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
+        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.current_season.is_member and member.current_season.war_stats.wars_participated > 0]
     else:
         all_participants = []
         for (tag,member) in ctx.bot.member_cache.items():

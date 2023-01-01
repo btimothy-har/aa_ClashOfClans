@@ -434,7 +434,7 @@ class AriXMemberCommands(commands.Cog):
 
         for a in accounts:
 
-            await ctx.send(f"{a.current_season.season.id} {a.current_season.is_member}")
+            await ctx.send(f"{a.current_season.season.id} {a.is_member} {a.current_season.is_member}")
 
             for (s,p) in a.season_data.items():
                 await ctx.send(f"{s} {p.is_member}")
