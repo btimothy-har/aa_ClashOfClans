@@ -452,7 +452,7 @@ class aPlayer(coc.Player):
             'time_in_home_clan': self.current_season.time_in_home_clan,
             'other_clans': [c.tag for c in self.current_season.other_clans],
             'attacks': self.current_season.attacks.to_json(),
-            'townhall': self.townhall.level,
+            'townhall': self.town_hall.level,
             'defenses': self.current_season.defenses.to_json(),
             'donations_sent': self.current_season.donations_sent.to_json(),
             'donations_rcvd': self.current_season.donations_rcvd.to_json(),
