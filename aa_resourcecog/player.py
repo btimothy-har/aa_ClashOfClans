@@ -1565,7 +1565,7 @@ class aMember():
 
             nick_embed = await clash_embed(ctx,
                 title=f"Nickname Change: {self.discord_member.name}#{self.discord_member.discriminator}",
-                thumbnail=f"{user.avatar_url}")
+                thumbnail=f"{self.discord_member.avatar_url}")
 
             nick_embed.add_field(
                 name="Select an account from the list below to be the new server nickname.",
