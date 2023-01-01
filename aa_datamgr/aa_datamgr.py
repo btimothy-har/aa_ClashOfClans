@@ -692,7 +692,7 @@ class AriXClashDataMgr(commands.Cog):
                 test_str += f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
                 test_str += f"\n"
                 test_str += f"__Files Created__"
-                test_str += f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}
+                test_str += f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}"
 
                 bot.current_season = season
                 bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
