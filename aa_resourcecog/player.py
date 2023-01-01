@@ -1500,7 +1500,7 @@ class aClan(coc.Clan):
             self.leader = user.id
 
         member = await aMember.create(ctx,user_id=user.id,refresh=True)
-        await member.sync_roles()
+        await member.sync_roles(ctx)
 
         await self.save_to_json(ctx)
 
