@@ -106,9 +106,9 @@ async def leaderboard_warlord(ctx,season):
             if lb_rank > 5:
                 break
 
-            p_name = f"{m.player.name} {m.is_member}"
+            p_name = f"{m.player.name} {m.player_stats.is_member}"
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}"
+            leaderboard_str += f"{emotes_townhall[th]}{m.player_stats.home_clan.emoji}"
             leaderboard_str += f"`{p_name:<18}"
             leaderboard_str += f"{m.total_triples:^5}"
             leaderboard_str += f"{m.total_attacks:^5}"
