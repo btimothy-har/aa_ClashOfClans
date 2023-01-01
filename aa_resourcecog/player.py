@@ -295,10 +295,9 @@ class aPlayer(coc.Player):
                     season=season.id)
                 if season_stats:
                     mem_info = await read_file_handler(ctx,
-                        file='alliance',
+                        file='mem_info',
                         tag=self.tag,
-                        season=season.id,
-                        atype='members')
+                        season=season.id)
 
                     stats = await aPlayerSeason.create(ctx,
                         player=self,
@@ -341,9 +340,8 @@ class aPlayer(coc.Player):
             member_info = alli_json_input
         else:
             member_info = await read_file_handler(ctx,
-                file='alliance',
-                tag=self.tag,
-                atype='members')
+                file='mem_info',
+                tag=self.tag)
 
         #From AriX Data File
         if member_info:
@@ -474,10 +472,9 @@ class aPlayer(coc.Player):
         alliance_json, member_json = self.to_json()
 
         await write_file_handler(ctx=ctx,
-            file='alliance',
+            file='mem_info',
             tag=self.tag,
-            new_data=alliance_json,
-            atype='members')
+            new_data=alliance_json)
 
         await write_file_handler(ctx=ctx,
             file='members',
@@ -1192,8 +1189,7 @@ class aClan(coc.Clan):
         if not json_data:
             clanInfo = await read_file_handler(ctx=ctx,
                 file='alliance',
-                tag=self.tag,
-                atype='clans')
+                tag=self.tag)
         else:
             clanInfo = json_data
 
@@ -1306,8 +1302,7 @@ class aClan(coc.Clan):
         await write_file_handler(ctx=ctx,
             file='alliance',
             tag=self.tag,
-            new_data=clan_json,
-            atype='clans')
+            new_data=clan_json)
 
     async def update_clan_war(self,ctx):
         update_summary = ""

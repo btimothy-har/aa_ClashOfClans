@@ -147,8 +147,12 @@ class AriXClashDataMgr(commands.Cog):
 
         if not partial:
             with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
-                    a_json = json.load(file)
+                with open(ctx.bot.clash_dir_path+'/clans.json','r') as file:
+                    ac_json = json.load(file)
+
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/memberinfo.json','r') as file:
+                    am_json = json.load(file)
 
             with ctx.bot.clash_file_lock.read_lock():
                 with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
@@ -165,7 +169,7 @@ class AriXClashDataMgr(commands.Cog):
             for (tag,clan) in a_json['clans'].items():
                 await aClan.create(ctx,tag=tag,json=clan)
 
-            for (tag,member) in a_json['members'].items():
+            for (tag,member) in am_json.items():
                 if tag in list(m_json.keys()):
                     a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
                 else:
@@ -431,7 +435,8 @@ class AriXClashDataMgr(commands.Cog):
             embed.add_field(
                 name="__Core Data Files__",
                 value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
-                    + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
+                    + f"\n> **clans.json**: {os.path.exists(ctx.bot.clash_dir_path+'/clans.json')}"
+                    + f"\n> **memberinfo.json**: {os.path.exists(ctx.bot.clash_dir_path+'/memberinfo.json')}"
                     + f"\n> **players.json**: {os.path.exists(ctx.bot.clash_dir_path+'/players.json')}"
                     + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
@@ -660,7 +665,8 @@ class AriXClashDataMgr(commands.Cog):
                             json.dump(s_json,file,indent=2)
                             file.truncate()
 
-                        shutil.copy2(bot.clash_dir_path+'/alliance.json',new_path)
+                        shutil.copy2(bot.clash_dir_path+'/clans.json',new_path)
+                        shutil.copy2(bot.clash_dir_path+'/memberinfo.json',new_path)
                         shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
                         with open(bot.clash_dir_path+'/players.json','w+') as file:
                             json.dump({},file,indent=2)
@@ -844,7 +850,8 @@ class AriXClashDataMgr(commands.Cog):
                         json.dump(s_json,file,indent=2)
                         file.truncate()
 
-                    shutil.copy2(bot.clash_dir_path+'/alliance.json',new_path)
+                    shutil.copy2(bot.clash_dir_path+'/clans.json',new_path)
+                    shutil.copy2(bot.clash_dir_path+'/memberinfo.json',new_path)
                     shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
                     with open(bot.clash_dir_path+'/players.json','w+') as file:
                         json.dump({},file,indent=2)
