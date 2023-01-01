@@ -1709,15 +1709,16 @@ class AriXLeaderCommands(commands.Cog):
 
         try:
             await rank_clan.update_member_rank(ctx,user_id,new_rank)
+
+            for a in [a for a in member.accounts if a.is_member and a.home_clan.tag == rank_clan.tag]:
+                await aPlayer.create(ctx,a.tag,fetch=True)
+
             await member.sync_roles(ctx)
         except:
             err_embed = await clash_embed(ctx,
                 message=f"I ran into an error while updating Ranks: {rank_clan.tag} {e}.",
                 color='fail')
             return await ctx.send(embed=err_embed)
-
-        for a in handle_rank['accounts']:
-            await aPlayer.create(ctx,a.tag,fetch=True)
 
         result_embed = await clash_embed(ctx,
             message=f"{user.mention} is now a **{new_rank}** in {rank_clan.emoji} **{rank_clan.desc_title}**.",
