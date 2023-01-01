@@ -68,10 +68,9 @@ class WarLord_Player():
         else:
             self.hit_rate = 0
 
-async def leaderboard_warlord(ctx):
-    current_season = ctx.bot.current_season
-
-    all_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
+async def leaderboard_warlord(ctx,season):
+    if season == ctx.bot.current_season:
+        all_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
     th_leaderboard = [15,14,13,12,11,10,9]
 
     warlord_leaderboard_embed = await clash_embed(ctx,

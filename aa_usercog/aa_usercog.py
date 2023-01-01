@@ -598,32 +598,22 @@ class AriXMemberCommands(commands.Cog):
         await userprofile_main(ctx,output_embed,accounts)
 
     @commands.command(name="leaderboard",aliases=['leaderboards','lb'])
-    async def arix_leaderboard(self,ctx,*command_params):
+    async def arix_leaderboard(self,ctx,season='current'):
         """
         Alliance Leaderboards for Warlords, Heistlords, and Clan Games.
         """
 
         user = ctx.bot.get_user(ctx.author.id)
 
+        if season == 'current':
+            season = ctx.bot.current_season
+        else:
+            season = aClashSeason(season)
+
+
         param = None
         if len(command_params) > 0:
             param = command_params[0]
-
-        if param == 'warlords':
-            warlord = await leaderboard_warlord(ctx)
-            return await ctx.send(embed=warlord)
-
-        if param == 'heistlord':
-            heistlord = await leaderboard_heistlord(ctx)
-            return await ctx.send(embed=heistlord)
-
-        if param == 'clangames':
-            clangames = await leaderboard_clangames(ctx)
-            return await ctx.send(embed=clangames)
-
-        if param == 'donations':
-            donations = await leaderboard_donations(ctx)
-            return await ctx.send(embed=donations)
 
         navigation = []
         navigation_str = ""
