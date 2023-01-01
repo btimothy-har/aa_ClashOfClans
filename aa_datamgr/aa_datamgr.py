@@ -618,9 +618,9 @@ class AriXClashDataMgr(commands.Cog):
                 for (c_tag,clan) in ctx.bot.clan_cache.items():
 
                     if clan.is_alliance_clan:
-                        if clan.current_war.state == 'inWar':
+                        if clan.war_state == 'inWar':
                             update_season = False
-                        if clan.current_raid_weekend.state == 'ongoing':
+                        if clan.raid_weekend_state == 'ongoing':
                             update_season = False
 
                         log_str += f"**{clan.name} ({clan.tag})**"
@@ -798,9 +798,9 @@ class AriXClashDataMgr(commands.Cog):
             for (c_tag,clan) in ctx.bot.clan_cache.items():
 
                 if clan.is_alliance_clan:
-                    if clan.current_war.state == 'inWar':
+                    if clan.war_state == 'inWar':
                         update_season = False
-                    if clan.current_raid_weekend.state == 'ongoing':
+                    if clan.raid_weekend_state == 'ongoing':
                         update_season = False
 
                     log_str += f"**{clan.name} ({clan.tag})**"
