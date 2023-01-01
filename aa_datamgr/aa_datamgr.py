@@ -176,9 +176,6 @@ class AriXClashDataMgr(commands.Cog):
 
         ctx.bot.refresh_loop = 0
 
-        self.season_update.start()
-        self.clan_update.start()
-        self.member_update.start()
         self.data_backup_save.start()
 
         await msg.delete()
@@ -375,9 +372,9 @@ class AriXClashDataMgr(commands.Cog):
 
         else:
             ctx.bot.master_refresh = True
-            self.season_update.stop()
-            self.clan_update.stop()
-            self.member_update.stop()
+            self.season_update.start()
+            self.clan_update.start()
+            self.member_update.start()
             await ctx.send("Bot Data Refresh is now activated.")
 
         await m.delete()
