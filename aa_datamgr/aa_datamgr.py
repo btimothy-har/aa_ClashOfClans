@@ -436,7 +436,7 @@ class AriXClashDataMgr(commands.Cog):
                 name="__Core Data Files__",
                 value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     + f"\n> **clans.json**: {os.path.exists(ctx.bot.clash_dir_path+'/clans.json')}"
-                    + f"\n> **memberinfo.json**: {os.path.exists(ctx.bot.clash_dir_path+'/memberinfo.json')}"
+                    + f"\n> **membership.json**: {os.path.exists(ctx.bot.clash_dir_path+'/membership.json')}"
                     + f"\n> **players.json**: {os.path.exists(ctx.bot.clash_dir_path+'/players.json')}"
                     + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",

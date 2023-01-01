@@ -295,7 +295,7 @@ class aPlayer(coc.Player):
                     season=season.id)
                 if season_stats:
                     mem_info = await read_file_handler(ctx,
-                        file='mem_info',
+                        file='meminfo',
                         tag=self.tag,
                         season=season.id)
 
@@ -340,7 +340,7 @@ class aPlayer(coc.Player):
             member_info = alli_json_input
         else:
             member_info = await read_file_handler(ctx,
-                file='mem_info',
+                file='meminfo',
                 tag=self.tag)
 
         #From AriX Data File
@@ -472,7 +472,7 @@ class aPlayer(coc.Player):
         alliance_json, member_json = self.to_json()
 
         await write_file_handler(ctx=ctx,
-            file='mem_info',
+            file='meminfo',
             tag=self.tag,
             new_data=alliance_json)
 
