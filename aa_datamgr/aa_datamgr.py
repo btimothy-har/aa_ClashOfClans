@@ -928,7 +928,8 @@ class AriXClashDataMgr(commands.Cog):
                     value=error_text,
                     inline=False)
 
-                await bot.data_log_channel.send(embed=data_embed)
+                ch = bot.get_channel(1033390608506695743)
+                await ch.send(embed=data_embed)
 
             activity_types = [
                 discord.ActivityType.playing,
@@ -1106,7 +1107,8 @@ class AriXClashDataMgr(commands.Cog):
                     value=error_text,
                     inline=False)
 
-                await bot.data_log_channel.send(embed=data_embed)
+                ch = bot.get_channel(1033390608506695743)
+                await ch.send(embed=data_embed)
 
         except Exception as e:
             await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")

@@ -36,4 +36,3 @@ async def setup(bot:Red):
     await cog.initialize_config(bot)
 
     bot.load_cache = True
-    bot.data_log_channel = bot.get_channel(1033390608506695743)
