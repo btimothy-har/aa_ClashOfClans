@@ -47,7 +47,7 @@ class aClashSeason():
         self.clangames_end = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
     @classmethod
-    def get_current_season():
+    def get_current_season(cls):
         utc = pytz.timezone("UTC")
 
         current_id = f"{datetime.now(utc).month}-{datetime.now(utc).year}"
