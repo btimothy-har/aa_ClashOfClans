@@ -117,7 +117,7 @@ async def leaderboard_warlord(ctx,season):
     return warlord_leaderboard_embed
 
 
-async def leaderboard_heistlord(ctx):
+async def leaderboard_heistlord(ctx,season):
     if season == ctx.bot.current_season:
         all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
 
@@ -166,7 +166,7 @@ async def leaderboard_heistlord(ctx):
 
     return heistlord_leaderboard_embed
 
-async def leaderboard_clangames(ctx):
+async def leaderboard_clangames(ctx,season):
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
 
     if season == ctx.bot.current_season:
@@ -249,7 +249,7 @@ async def leaderboard_clangames(ctx):
 
     return clangames_leaderboard_embed
 
-async def leaderboard_donations(ctx):
+async def leaderboard_donations(ctx,season):
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
 
     if season == ctx.bot.current_season:

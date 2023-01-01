@@ -610,11 +610,6 @@ class AriXMemberCommands(commands.Cog):
         else:
             season = aClashSeason(season)
 
-
-        param = None
-        if len(command_params) > 0:
-            param = command_params[0]
-
         navigation = []
         navigation_str = ""
         warlord_dict = {
@@ -673,7 +668,7 @@ class AriXMemberCommands(commands.Cog):
                     pass
 
             if menu_option in ['heistlord']:
-                heistlord = await leaderboard_heistlord(ctx)
+                heistlord = await leaderboard_heistlord(ctx,season)
                 heistlord.add_field(
                     name="**Navigation**",
                     value=navigation_str)
@@ -689,7 +684,7 @@ class AriXMemberCommands(commands.Cog):
                     pass
 
             if menu_option in ['clangames']:
-                clangames = await leaderboard_clangames(ctx)
+                clangames = await leaderboard_clangames(ctx,season)
                 clangames.add_field(
                     name="**Navigation**",
                     value=navigation_str)
@@ -705,7 +700,7 @@ class AriXMemberCommands(commands.Cog):
                     pass
 
             if menu_option in ['donations']:
-                donations = await leaderboard_donations(ctx)
+                donations = await leaderboard_donations(ctx,season)
                 donations.add_field(
                     name="**Navigation**",
                     value=navigation_str)
