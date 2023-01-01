@@ -15,6 +15,15 @@ from .aa_datamgr import AriXClashDataMgr
 async def setup(bot:Red):
     cog = AriXClashDataMgr(bot)
 
+    bot.alliance_server = None
+    bot.leader_role = None
+    bot.coleader_role = None
+    bot.elder_role = None
+    bot.member_role = None
+    bot.base_vault_role = None
+    bot.base_channel = None
+    bot.update_channel = None
+
     bot.load_cache = False
     bot.current_season = None
 
