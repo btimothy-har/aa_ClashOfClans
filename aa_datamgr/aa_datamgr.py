@@ -241,9 +241,9 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send("**Bye!**")
 
-        self.master_bot.remove_cog('aa_usercog')
-        self.master_bot.remove_cog('aa_leadercog')
-        self.master_bot.remove_cog('aa_datamgr')
+        self.master_bot.remove_cog('AriXMemberCommands')
+        self.master_bot.remove_cog('AriXLeaderCommands')
+        self.master_bot.remove_cog('AriXClashDataMgr')
 
 
     @commands.command(name="fileconvert")
