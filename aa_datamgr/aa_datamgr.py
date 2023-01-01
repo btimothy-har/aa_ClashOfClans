@@ -238,13 +238,13 @@ class AriXClashDataMgr(commands.Cog):
         self.data_backup_save.stop()
 
         #save data
-        await ctx.invoke(self.bot.get_command('nsave'))
+        await ctx.invoke(self.master_bot.get_command('nsave'))
 
         await ctx.send("**Bye!**")
 
-        self.bot.remove_cog('aa_usercog')
-        self.bot.remove_cog('aa_leadercog')
-        self.bot.remove_cog('aa_datamgr')
+        self.master_bot.remove_cog('aa_usercog')
+        self.master_bot.remove_cog('aa_leadercog')
+        self.master_bot.remove_cog('aa_datamgr')
 
 
     @commands.command(name="fileconvert")
@@ -632,6 +632,12 @@ class AriXClashDataMgr(commands.Cog):
         self.clan_lock.release()
         self.member_lock.release()
         self.master_lock.release()
+
+
+
+        season_embed = discord.Embed(
+            title="**Season Update**",
+            color=0x0000)
 
 
     @tasks.loop(minutes=5.0)

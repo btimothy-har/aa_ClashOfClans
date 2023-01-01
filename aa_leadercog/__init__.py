@@ -7,5 +7,6 @@ from redbot.core.bot import Red
 from .aa_leadercog import AriXLeaderCommands
 
 async def setup(bot:Red):
-    cog = AriXLeaderCommands()
-    bot.add_cog(cog)
+    if bot.refresh_loop > 0:
+        cog = AriXLeaderCommands()
+        bot.add_cog(cog)
