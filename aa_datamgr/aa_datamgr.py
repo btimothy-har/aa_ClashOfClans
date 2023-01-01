@@ -381,16 +381,10 @@ class AriXClashDataMgr(commands.Cog):
 
         if ctx.bot.master_refresh:
             ctx.bot.master_refresh = False
-            self.season_update.stop()
-            self.clan_update.stop()
-            self.member_update.stop()
             await ctx.send("Bot Data Refresh is now stopped.")
 
         else:
             ctx.bot.master_refresh = True
-            self.season_update.start()
-            self.clan_update.start()
-            self.member_update.start()
             await ctx.send("Bot Data Refresh is now activated.")
 
         await m.delete()
@@ -603,6 +597,10 @@ class AriXClashDataMgr(commands.Cog):
                 if raid.state not in ['ended']:
                     raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                     raid = await aRaidWeekend.get(ctx,clan=raid_clan)
+
+                embed = await raid.get_results_embed(ctx)
+
+                await ctx.send(embed=embed)
 
         if update_type == 'season':
             bot = self.master_bot
