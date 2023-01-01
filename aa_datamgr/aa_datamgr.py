@@ -178,6 +178,9 @@ class AriXClashDataMgr(commands.Cog):
             ctx.bot.refresh_loop = 0
 
             self.data_backup_save.start()
+            self.season_update.start()
+            self.clan_update.start()
+            self.member_update.start()
 
         await msg.delete()
         await ctx.send("**Setup complete.**")
