@@ -623,11 +623,11 @@ class AriXClashDataMgr(commands.Cog):
                         if clan.current_raid_weekend.state == 'ongoing':
                             update_season = False
 
-                    log_str += f"**{clan.name} ({clan.tag})**"
-                    log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
-                    log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
+                        log_str += f"**{clan.name} ({clan.tag})**"
+                        log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
+                        log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
 
-                    log_str += "\n\n"
+                        log_str += "\n\n"
 
                 season_embed.add_field(
                     name=f"__Clan Activities__",
@@ -717,11 +717,7 @@ class AriXClashDataMgr(commands.Cog):
 
         if send_logs:
             ch = bot.get_channel(1033390608506695743)
-
-            await ctx.send(test_str[0:1800])
             await ch.send(embed=season_embed)
-
-
 
         await ctx.send('update completed')
 
@@ -807,11 +803,11 @@ class AriXClashDataMgr(commands.Cog):
                     if clan.current_raid_weekend.state == 'ongoing':
                         update_season = False
 
-                log_str += f"**{clan.name} ({clan.tag})**"
-                log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
-                log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
+                    log_str += f"**{clan.name} ({clan.tag})**"
+                    log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
+                    log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
 
-                log_str += "\n\n"
+                    log_str += "\n\n"
 
             season_embed.add_field(
                 name=f"__Clan Activities__",
