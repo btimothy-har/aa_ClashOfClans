@@ -36,7 +36,8 @@ from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_regi
 
 class WarLord_Player():
     def __init__(self,ctx,player,th_level):
-        self.player = player
+        self.player = player.player
+        self.player_stats = player
 
         self.wars_participated = 0
         self.total_attacks = 0
@@ -44,13 +45,13 @@ class WarLord_Player():
         self.total_stars = 0
         self.total_destruction = 0.0
 
-        war_ids = [wid for wid,war in self.player.current_season.warlog.items()]
+        war_ids = [wid for wid,war in self.player_stats.warlog.items()]
 
         for wid in war_ids:
-            war = self.player.current_season.warlog[wid]
+            war = self.player_stats.warlog[wid]
 
             if war:
-                war_member = [m for m in war.members if m.tag == self.player.tag][0]
+                war_member = [m for m in war.members if m.tag == self.player_stats.player.tag][0]
 
                 if war_member.town_hall == th_level:
                     self.wars_participated += 1
@@ -70,11 +71,19 @@ class WarLord_Player():
 
 async def leaderboard_warlord(ctx,season):
     if season == ctx.bot.current_season:
-        all_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
+        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
+    else:
+        all_participants = []
+        for (tag,member) in ctx.bot.member_cache.items():
+            season_stats = member.season_data[season]
+
+            if season_stats.is_member and season_stats.war_stats.wars_participated > 0:
+                all_participants.append(season_stats)
+
     th_leaderboard = [15,14,13,12,11,10,9]
 
     warlord_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Warlord Leaderboard: {current_season.season_description}**",
+        title=f"**AriX Warlord Leaderboard: {season.season_description}**",
         message=f"The AriX Member with the most triples against higher or equal Townhalls during the AriX Season is rewarded with the **Warlord** title."
             + f"\n\n> - Only regular Clan Wars with our Arix Clans are counted (friendly & CWL wars excluded)."
             + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
@@ -109,14 +118,21 @@ async def leaderboard_warlord(ctx,season):
 
 
 async def leaderboard_heistlord(ctx):
-    current_season = ctx.bot.current_season
+    if season == ctx.bot.current_season:
+        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
 
-    all_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
+    else:
+        all_participants = []
+        for (tag,member) in ctx.bot.member_cache.items():
+            season_stats = member.season_data[season]
+
+            if season_stats.is_member and season_stats.loot_darkelixir.season > 0:
+                all_participants.append(season_stats)
 
     th_leaderboard = [15,14,13,12,11,10,9]
 
     heistlord_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Heistlord Leaderboard: {current_season.season_description}**",
+        title=f"**AriX Heistlord Leaderboard: {season.season_description}**",
         message=f"The AriX Member with most Dark Elixir <:DarkElixir:825640568973033502> looted during the AriX Season is rewarded with the **Heistlord** title."
             + f"\n\n> - Only activity while you're in our AriX Clans are counted."
             + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
@@ -125,8 +141,8 @@ async def leaderboard_heistlord(ctx):
 
     for th in th_leaderboard:
 
-        leaderboard_members = [hp for hp in all_participants if hp.town_hall.level==th]
-        leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.current_season.loot_darkelixir.season),reverse=True)
+        leaderboard_members = [hp for hp in all_participants if hp.town_hall == th]
+        leaderboard_sorted = sorted(leaderboard_members,key=lambda x:(x.loot_darkelixir.season),reverse=True)
 
         leaderboard_str = ""
 
@@ -136,11 +152,11 @@ async def leaderboard_heistlord(ctx):
             if lb_rank > 5:
                 break
 
-            value = f"{m.current_season.loot_darkelixir.season:,}"
+            value = f"{m.loot_darkelixir.season:,}"
 
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[th]}{m.home_clan.emoji}"
-            leaderboard_str += f"`{m.name:<18}"
+            leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}"
+            leaderboard_str += f"`{m.player.name:<18}"
             leaderboard_str += f"{value:>9}`<:DarkElixir:825640568973033502>"
 
         heistlord_leaderboard_embed.add_field(
@@ -151,13 +167,21 @@ async def leaderboard_heistlord(ctx):
     return heistlord_leaderboard_embed
 
 async def leaderboard_clangames(ctx):
-    current_season = ctx.bot.current_season
-
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
-    cg_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.clangames.score > 0]
+
+    if season == ctx.bot.current_season:
+        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.clangames.score > 0]
+
+    else:
+        all_participants = []
+        for (tag,member) in ctx.bot.member_cache.items():
+            season_stats = member.season_data[season]
+
+            if season_stats.is_member and season_stats.clangames.score > 0:
+                all_participants.append(season_stats)
 
     clangames_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Clan Games Leaderboard: {current_season.season_description}**",
+        title=f"**AriX Clan Games Leaderboard: {season.season_description}**",
         message=f"Win one of the following awards by participating in the Clan Games!"
             + f"\n\n**Speedrunner**"
             + f"\n> Be the first to finish Clan Games for your Clan."
@@ -169,18 +193,18 @@ async def leaderboard_clangames(ctx):
             + f"\n> Achieve 1,000 Clan Games Points."
             + f"\n> Reward(s): `1,000XP`\n\u200b")
 
-    if time.time() < current_season.clangames_start:
+    if time.time() < season.clangames_start:
         clangames_leaderboard_embed.add_field(
             name=f"Leaderboard Unavailable",
             value=f"The Clan Games Leaderboard is only available once the games begin!"
-                + f"\n\nThe next Clan Games will start on <t:{int(current_season.clangames_start)}:f>. Time shown in your local timezone.",
+                + f"\n\nThe next Clan Games will start on <t:{int(season.clangames_start)}:f>. Time shown in your local timezone.",
             inline=False)
 
         return clangames_leaderboard_embed
 
     for c in alliance_clans:
-        leaderboard_participants = [m for m in cg_participants if m.current_season.clangames.clan_tag == c.tag]
-        leaderboard_sorted = sorted(leaderboard_participants,key=lambda x:(x.current_season.clangames.score,(x.current_season.clangames.ending_time*-1)),reverse=True)
+        leaderboard_participants = [m for m in all_participants if m.clangames.clan_tag == c.tag]
+        leaderboard_sorted = sorted(leaderboard_participants,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1)),reverse=True)
 
         leaderboard_str = f"`{'':<24}{'Score':^6}{'Time':^10}`"
 
@@ -189,22 +213,22 @@ async def leaderboard_clangames(ctx):
 
         for m in leaderboard_sorted:
 
-            if m.current_season.clangames.ending_time > 0:
-                if m.current_season.clangames.ending_time != prev_ts:
+            if m.clangames.ending_time > 0:
+                if m.clangames.ending_time != prev_ts:
                     lb_rank += 1
             else:
                 lb_rank += 1
 
-            prev_ts = m.current_season.clangames.ending_time
+            prev_ts = m.clangames.ending_time
 
             if lb_rank > 5:
                 break
 
-            sc = f"{m.current_season.clangames.score:,}"
+            sc = f"{m.clangames.score:,}"
             ct = ""
 
-            if m.current_season.clangames.ending_time:
-                cd, ch, cm, cs = await convert_seconds_to_str(ctx,(m.current_season.clangames.ending_time-m.current_season.clangames.games_start))
+            if m.clangames.ending_time:
+                cd, ch, cm, cs = await convert_seconds_to_str(ctx,(m.clangames.ending_time-m.clangames.games_start))
                 if cd > 0:
                     ct += f"{int(cd)}d "
                 if ch > 0:
@@ -213,8 +237,8 @@ async def leaderboard_clangames(ctx):
                     ct += f"{int(cm)}m"
 
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
-            leaderboard_str += f"`{lb_rank:<3}{m.name:<18}"
+            leaderboard_str += f"{emotes_townhall[m.town_hall]}"
+            leaderboard_str += f"`{lb_rank:<3}{m.player.name:<18}"
             leaderboard_str += f"{sc:^6}"
             leaderboard_str += f"{ct:^10}`"
 
@@ -226,21 +250,29 @@ async def leaderboard_clangames(ctx):
     return clangames_leaderboard_embed
 
 async def leaderboard_donations(ctx):
-    current_season = ctx.bot.current_season
-
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
-    don_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member]
+
+    if season == ctx.bot.current_season:
+        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.donations_sent.season > 0]
+
+    else:
+        all_participants = []
+        for (tag,member) in ctx.bot.member_cache.items():
+            season_stats = member.season_data[season]
+
+            if season_stats.is_member and season_stats.donations_sent.season > 0:
+                all_participants.append(season_stats)
 
     donations_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Donations Leaderboard: {current_season.season_description}**",
+        title=f"**AriX Donations Leaderboard: {season.season_description}**",
         message=f"**Donate troops, spells and sieges to your Clan mates!**"
             + f"\n> XP will be given only to the users that have 1,000+ donations across their accounts."
             + f"\n> **Reward(s):** The amount of XP awarded will be determined by the sum of the donations rounded up to the nearest multiple of 100 across every account owned by the user inside one of the AriX Clans."
             + f"\n\u200b")
 
     for c in alliance_clans:
-        donation_participants = [m for m in don_participants if m.home_clan.tag == c.tag]
-        leaderboard_sorted = sorted(donation_participants,key=lambda x:(x.current_season.donations_sent.season),reverse=True)
+        donation_participants = [m for m in all_participants if m.home_clan.tag == c.tag]
+        leaderboard_sorted = sorted(donation_participants,key=lambda x:(x.donations_sent.season),reverse=True)
 
         leaderboard_str = f"`{'':<21}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
 
@@ -252,12 +284,12 @@ async def leaderboard_donations(ctx):
             if lb_rank > 5:
                 break
 
-            sent = f"{m.current_season.donations_sent.season:,}"
-            rcvd = f"{m.current_season.donations_rcvd.season:,}"
+            sent = f"{m.donations_sent.season:,}"
+            rcvd = f"{m.donations_rcvd.season:,}"
 
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
-            leaderboard_str += f"`{m.name:<18}"
+            leaderboard_str += f"{emotes_townhall[m.town_hall]}"
+            leaderboard_str += f"`{m.player.name:<18}"
             leaderboard_str += f"{sent:>8}{'':^2}"
             leaderboard_str += f"{rcvd:>8}{'':^2}`"
 

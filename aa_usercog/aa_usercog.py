@@ -657,7 +657,7 @@ class AriXMemberCommands(commands.Cog):
 
         while menu_state:
             if menu_option in ['warlord','start']:
-                warlord = await leaderboard_warlord(ctx)
+                warlord = await leaderboard_warlord(ctx,season)
                 warlord.add_field(
                     name="**Navigation**",
                     value=navigation_str)

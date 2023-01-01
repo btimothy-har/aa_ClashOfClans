@@ -452,6 +452,7 @@ class aPlayer(coc.Player):
             'time_in_home_clan': self.current_season.time_in_home_clan,
             'other_clans': [c.tag for c in self.current_season.other_clans],
             'attacks': self.current_season.attacks.to_json(),
+            'townhall': self.townhall.level,
             'defenses': self.current_season.defenses.to_json(),
             'donations_sent': self.current_season.donations_sent.to_json(),
             'donations_rcvd': self.current_season.donations_rcvd.to_json(),
@@ -617,9 +618,11 @@ class aPlayerSeason():
             self.season = aClashSeason(season)
 
         self.is_archive_season = False
-        self.home_clan = None
-        self.is_member = False
-        self.is_arix_account = False
+        self.home_clan = self.player.home_clan
+        self.is_member = self.player.is_member
+        self.is_arix_account = self.player.is_arix_account
+
+        self.town_hall = self.player.town_hall.level
 
         self.time_in_home_clan = 0
         self.other_clans = []
@@ -670,6 +673,11 @@ class aPlayerSeason():
             debug = ctx.bot.get_channel(856433806142734346)
 
             self.time_in_home_clan = stats['time_in_home_clan']
+
+            try:
+                self.town_hall = stats['town_hall']
+            except KeyError:
+                self.town_hall = self.player.town_hall.level
 
             for c in stats['other_clans']:
                 nc = await aClan.create(ctx,tag=c)
@@ -1443,7 +1451,7 @@ class aClan(coc.Clan):
                             unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **HAVE NOT** used all your Raid Attacks.\n\n"
                         else:
                             unfinished_raid_str = f"You started your Raid Weekend but **HAVE NOT** used all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
-c
+
                         for (u,accounts) in ping_dict.items():
                             account_str = [f"{emotes_townhall[a.town_hall.level]} {a.name}" for a in accounts]
                             unfinished_raid_str += f"{u.discord_member.mention} ({', '.join(account_str)})\n"
