@@ -421,6 +421,8 @@ class aPlayer(coc.Player):
 
             if len(get_links) > 0:
                 self.discord_user = get_links[0][1]
+
+        member = await aMember.create(ctx,user_id=self.discord_user)
         return self
 
     def to_json(self):
@@ -1567,9 +1569,6 @@ class aMember():
         refresh = kwargs.get('refresh',False)
         cached_data = None
 
-        if not user_id:
-            return None
-
         if user_id in list(ctx.bot.user_cache.keys()):
             cached_data = ctx.bot.user_cache[user_id]
 
@@ -1589,7 +1588,10 @@ class aMember():
 
         self.discord_member = ctx.bot.alliance_server.get_member(user_id)
         if not self.discord_member:
-            self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+            try:
+                self.discord_member = await ctx.bot.alliance_server.fetch_member(user_id)
+            except:
+                self.discord_member = None
 
         self.accounts = [member for (m_tag,member) in ctx.bot.member_cache.items() if member.discord_user == self.user_id]
 

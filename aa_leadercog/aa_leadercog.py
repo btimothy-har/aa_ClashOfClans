@@ -384,6 +384,8 @@ class AriXLeaderCommands(commands.Cog):
 
         """
 
+        new_id = new_leader.id
+
         if ctx.author.id not in ctx.bot.owner_ids:
             embed = await clash_embed(ctx,message="To use this command please contact <@644530507505336330>.")
             return await ctx.send(embed=embed)
@@ -407,7 +409,7 @@ class AriXLeaderCommands(commands.Cog):
             return
 
         try:
-            await c.update_member_rank(ctx,new_leader,"Leader")
+            await c.update_member_rank(ctx,new_id,"Leader")
         except Exception as e:
             err_embed = await clash_embed(ctx,
                 message=f"Error encountered while updating clan: {e}.",
