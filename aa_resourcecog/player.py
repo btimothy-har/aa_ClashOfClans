@@ -18,7 +18,7 @@ from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog,
 from .raid_weekend import aRaidWeekend, aRaidClan, aRaidDistrict, aRaidMember, aPlayerRaidLog
 from .errors import TerminateProcessing, InvalidTag, error_end_processing
 
-from .discordutils import convert_seconds_to_str, clash_embed
+from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 
 class ClashPlayerError(Exception):
     def __init__(self,message):

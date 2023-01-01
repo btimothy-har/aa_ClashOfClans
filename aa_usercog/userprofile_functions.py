@@ -224,7 +224,7 @@ async def userprofile_raidlog(ctx,account,message=None):
 
         raidlog_embed.add_field(
             name=f"Raid Weekend: {raid_date}",
-            value=f"<:Clan:825654825509322752> {raid.clan_name}\n<:Attack:828103854814003211> {raid.attack_count} / 6"
+            value=f"<:Clan:825654825509322752> {raid.clan_name}\n<:Attack:828103854814003211> {raid_member.attack_count} / 6"
                 + f"\u3000<:CapitalGoldLooted:1045200974094028821> {raid_member.capital_resources_looted:,}\u3000<:RaidMedals:983374303552753664> {raid_member.medals_earned:,}"
                 + f"\n\u200b",
             inline=False
@@ -465,7 +465,7 @@ async def userprofile_rushed(ctx,account,message=None):
             + f"\n*Percentages exclude Pets.*")
 
     heroes = [h for h in a.heroes if h.is_rushed]
-    pets = [p for p in a.pets if p.level < p.minlevel_for_townhall]
+    pets = [p for p in a.hero_pets if p.level < p.minlevel_for_townhall]
     elixir_troops = [t for t in a.troops if t.is_elixir_troop and t.is_rushed]
     darkelixir_troops = [t for t in a.troops if t.is_dark_troop and t.is_rushed]
     siege_machines = [t for t in a.troops if t.is_siege_machine and t.is_rushed]
