@@ -597,12 +597,6 @@ class AriXClashDataMgr(commands.Cog):
                 update_season = True
                 send_logs = True
 
-                season_embed.add_field(
-                    name=f"__New Season Detected__",
-                    value=f"> Current Season: {bot.current_season.id}"
-                        + f"\n> New Season: {season.id}",
-                    inline=False)
-
             if update_season:
                 log_str = ""
 
