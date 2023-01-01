@@ -59,7 +59,9 @@ class AriXMemberCommands(commands.Cog):
         Your server nickname can be changed to match one of your registered accounts.
         """
 
-        member = await aMember.create(ctx,user_id=ctx.author.id)
+        user_id = ctx.author.id
+
+        member = await aMember.create(ctx,user_id=user_id)
 
         await member.set_nickname(ctx,selection=True)
 
