@@ -256,7 +256,7 @@ async def leaderboard_donations(ctx):
                 break
 
             sent = f"{m.current_season.donations_sent.season:,}"
-            rcvd = f"{m.current_season.1donations_rcvd.season:,}"
+            rcvd = f"{m.current_season.donations_rcvd.season:,}"
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[m.town_hall.level]}"
