@@ -1581,6 +1581,7 @@ class aMember():
         self.coleader_clans = [hc for hc in self.home_clans if self.user_id in hc.co_leaders]
         self.elder_clans = [hc for hc in self.home_clans if self.user_id in hc.elders]
 
+        return self
 
     async def fetch_discord_user(self,ctx):
         self.discord_member = ctx.bot.alliance_server.get_member(user_id)
