@@ -281,13 +281,15 @@ class AriXClashDataMgr(commands.Cog):
 
             mm = await aPlayer.create(ctx,tag=tag,stats_json_input=member,reset=True)
 
-            await mm.save_to_json(ctx)
+            aa_json, mm_json = mm.to_json()
 
+            file_json[tag] = mm_json
 
-        # async with ctx.bot.async_file_lock:
-        #     with ctx.bot.clash_file_lock.write_lock():
-        #         with open(file_path,'w') as file:
-        #             json.dump(file_json,file,indent=2)
+        file_path = ctx.bot.clash_dir_path + '/' + 'players.json'
+        async with ctx.bot.async_file_lock:
+            with ctx.bot.clash_file_lock.write_lock():
+                with open(file_path,'w') as file:
+                    json.dump(file_json,file,indent=2)
 
         await ctx.send('all done')
 
