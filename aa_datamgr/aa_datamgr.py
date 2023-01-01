@@ -283,8 +283,6 @@ class AriXClashDataMgr(commands.Cog):
 
             await mm.save_to_json(ctx)
 
-            file_json[tag] = mm_mjson
-
 
         # async with ctx.bot.async_file_lock:
         #     with ctx.bot.clash_file_lock.write_lock():
