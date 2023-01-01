@@ -35,8 +35,8 @@ class aClashSeason():
 
         self.id = season_id
 
-        self.season_month = int(season.split('-')[0])
-        self.season_year = int(season.split('-')[1])
+        self.season_month = int(self.id.split('-')[0])
+        self.season_year = int(self.id.split('-')[1])
 
         self.season_description = f"{calendar.month_name[self.season_month]} {self.season_year}"
 
