@@ -81,9 +81,6 @@ async def read_file_handler(ctx,file:str,tag:str,**kwargs):
 async def write_file_handler(ctx,file:str,tag:str,new_data,**kwargs):
     season = kwargs.get('season',None)
 
-    if file == 'alliance' and not atype:
-        return None
-
     file_path = filename_handler(ctx,name_input=file,season=season)
     if not file_path:
         return None
