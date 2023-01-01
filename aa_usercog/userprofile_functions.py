@@ -116,7 +116,7 @@ async def userprofile_warlog(ctx,account,message=None):
 
     warlog_embed = await clash_embed(ctx,
         title=f"**War Log: {a.name} ({a.tag})**",
-        message=f"**Stats for: {current_season} Season**"
+        message=f"**Stats for: {current_season.season_description} Season**"
             + f"\n<:TotalWars:827845123596746773> `{a.current_season.war_stats.wars_participated:^3}`\u3000"
             + f"<:Triple:1034033279411687434> `{a.current_season.war_stats.triples:^3}`\u3000"
             + f"<:MissedHits:825755234412396575> `{a.current_season.war_stats.unused_attacks:^3}`"
@@ -206,7 +206,7 @@ async def userprofile_raidlog(ctx,account,message=None):
 
     raidlog_embed = await clash_embed(ctx,
         title=f"**Raid Log: {a.name} ({a.tag})**",
-        message=f"**Stats for: {current_season} Season**"
+        message=f"**Stats for: {current_season.season_description} Season**"
             + f"\n<:CapitalRaids:1034032234572816384> {a.current_season.raid_stats.raids_participated}\u3000<:Attack:828103854814003211> {a.current_season.raid_stats.raid_attacks}\u3000<:MissedHits:825755234412396575> {(a.current_season.raid_stats.raids_participated * 6) - a.current_season.raid_stats.raid_attacks}"
             + f"\n<:CapitalGoldLooted:1045200974094028821> {a.current_season.raid_stats.resources_looted:,}\u3000<:RaidMedals:983374303552753664> {a.current_season.raid_stats.medals_earned:,}"
             + f"\n\u200b"
