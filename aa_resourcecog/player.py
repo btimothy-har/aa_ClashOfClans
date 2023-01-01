@@ -644,7 +644,7 @@ class aPlayerSeason():
     @classmethod
     async def create(cls,ctx,player,season,**kwargs):
 
-        stats = kwargs.['stats']
+        stats = kwargs['stats']
         minfo = kwargs.get('minfo',None)
 
         self = aPlayerSeason(ctx,player,season)
