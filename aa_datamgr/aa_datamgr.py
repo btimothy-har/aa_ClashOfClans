@@ -561,6 +561,10 @@ class AriXClashDataMgr(commands.Cog):
         if update_type not in ['clan','member','season']:
             await ctx.send("Invalid data type.")
 
+        hi = ctx
+
+        ctx = EmptyContext(bot=bot)
+
         if update_type == 'member':
             is_cwl = False
 
@@ -598,10 +602,6 @@ class AriXClashDataMgr(commands.Cog):
 
             if c.is_alliance_clan:
                 await c.compute_arix_membership(ctx)
-
-                embed = await c.current_raid_weekend.get_results_embed(ctx)
-
-                await ctx.send(embed=embed)
 
             war_update = await c.update_clan_war(ctx)
             raid_update = await c.update_raid_weekend(ctx)
@@ -645,8 +645,6 @@ class AriXClashDataMgr(commands.Cog):
                     inline=False)
 
             if update_season:
-                log_str = ""
-
                 for (c_tag,clan) in ctx.bot.clan_cache.items():
 
                     if clan.is_alliance_clan:
@@ -665,8 +663,6 @@ class AriXClashDataMgr(commands.Cog):
                     name=f"__Clan Activities__",
                     value=log_str,
                     inline=False)
-
-                test_str += log_str
 
             if update_season:
                 #lock processes
@@ -755,7 +751,7 @@ class AriXClashDataMgr(commands.Cog):
                 ch = bot.get_channel(1033390608506695743)
                 await ch.send(embed=season_embed)
 
-        await ctx.send('update completed')
+        await hi.send('update completed')
 
     @tasks.loop(minutes=28.0)
     async def data_backup_save(self):
