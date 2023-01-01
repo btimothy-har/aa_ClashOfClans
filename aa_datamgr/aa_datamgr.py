@@ -68,6 +68,15 @@ class AriXClashDataMgr(commands.Cog):
     async def initialize_config(self,bot):
         ctx = EmptyContext(bot)
 
+
+
+
+    @commands.command(name="nstart")
+    @commands.is_owner()
+    async def start_nebula(self,ctx):
+        bot = self.master_bot
+        msg = await ctx.send("**Initializing N.E.B.U.LA.** ...")
+
         resource_cog = bot.get_cog("AriXClashResources")
 
         alliance_server_id = await resource_cog.config.alliance_server()
@@ -131,12 +140,6 @@ class AriXClashDataMgr(commands.Cog):
 
         bot.current_season = s_json['current']
         bot.tracked_seasons = s_json['tracked']
-
-
-    @commands.command(name="nstart")
-    @commands.is_owner()
-    async def start_nebula(self,ctx):
-        msg = await ctx.send("**Initializing N.E.B.U.LA.** ...")
 
         ctx.bot.user_cache = {}
         ctx.bot.member_cache = {}

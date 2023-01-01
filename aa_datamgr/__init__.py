@@ -33,6 +33,3 @@ async def setup(bot:Red):
     bot.member_refresh_status = False
 
     bot.add_cog(cog)
-    await cog.initialize_config(bot)
-
-    bot.load_cache = True

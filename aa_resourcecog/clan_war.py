@@ -167,6 +167,7 @@ class aClanWar():
         else:
             return None
 
+        ctx.bot.war_cache[self.war_id] = self
         return self
 
     def to_json(self):
