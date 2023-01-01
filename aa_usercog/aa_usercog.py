@@ -63,7 +63,11 @@ class AriXMemberCommands(commands.Cog):
 
         member = await aMember.create(ctx,user_id=user_id)
 
-        await member.set_nickname(ctx,selection=True)
+        try:
+            await member.set_nickname(ctx,selection=True)
+        except Exception as e:
+            embed = await clash_embed(ctx,
+                message=f"Oops! I don't seem to have permissions to change your nickname.\n\n`{e}`")
 
     @commands.command(name="register")
     async def user_add_guest_account(self,ctx):

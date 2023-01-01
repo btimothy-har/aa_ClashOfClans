@@ -1616,11 +1616,21 @@ class aMember():
     async def set_nickname(self,ctx,selection=False):
         await self.fetch_discord_user(ctx)
 
+        nickname_accounts = [a for a in self.accounts if a.is_member]
+
         if len(self.accounts) == 0 or not self.discord_member:
             return None
 
-        if len(self.accounts) == 1 or not selection:
+        if len(nickname_accounts) == 0:
             a = self.accounts[0]
+            selected_account = {
+                'id': f"{a.tag}",
+                'title': f"{a.name} {a.tag}",
+                'description': f"{a.town_hall.emote} {a.town_hall.description}\u3000{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}\u3000{emotes_league[a.league.name]} {a.trophies}"
+                }
+
+        elif len(nickname_accounts) == 1 or not selection:
+            a = nickname_accounts[0]
             selected_account = {
                 'id': f"{a.tag}",
                 'title': f"{a.name} {a.tag}",
@@ -1629,7 +1639,7 @@ class aMember():
         else:
             selection_list = []
             selection_str = ""
-            for a in self.accounts:
+            for a in nickname_accounts:
                 a_dict = {
                     'id': f"{a.tag}",
                     'title': f"{a.name} ({a.tag})",
@@ -1683,7 +1693,6 @@ class aMember():
 
         if len(abb_clans) > 0:
             new_nickname += f" | {' + '.join(abb_clans)}"
-
 
         await self.discord_member.edit(nick=new_nickname)
         return new_nickname
