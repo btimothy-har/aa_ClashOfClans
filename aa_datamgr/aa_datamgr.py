@@ -232,6 +232,9 @@ class AriXClashDataMgr(commands.Cog):
         self.master_bot.remove_cog('AriXLeaderCommands')
         self.master_bot.remove_cog('AriXClashDataMgr')
 
+        await bot.coc_client.close()
+        await bot.discordlinks.close()
+
 
     @commands.command(name="fileconvert")
     @commands.is_owner()
