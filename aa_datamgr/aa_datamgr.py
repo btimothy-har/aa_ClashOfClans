@@ -311,10 +311,10 @@ class AriXClashDataMgr(commands.Cog):
                 file_json = json.load(file)
 
         file_path = ctx.bot.clash_dir_path + '/' + 'alliance.json'
-            await ctx.send(f'gettingalliance {file_path}')
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(file_path,'r') as file:
-                    alliance_json = json.load(file)
+        await ctx.send(f'gettingalliance {file_path}')
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(file_path,'r') as file:
+                alliance_json = json.load(file)
 
         for (tag,member) in file_json.items():
 
