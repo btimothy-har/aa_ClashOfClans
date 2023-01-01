@@ -633,18 +633,16 @@ class AriXMemberCommands(commands.Cog):
             'emoji': '<:clancastle:1054612010840641536>',
             'title': ''
             }
-        navigation_str += f"<:clancastle:1054612010840641536> Donations\n"
+        navigation_str += f"<:clancastle:1054612010840641536> Donations Leaderboard\n"
         navigation.append(donations_dict)
 
-        cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
-        if time.time() >= cg_start.timestamp():
-            clangames_dict = {
-                'id': 'clangames',
-                'emoji': "<:ClanGames:834063648494190602>",
-                'title': "",
-                }
-            navigation_str += f"<:ClanGames:834063648494190602> Clan Games Leaderboard\n"
-            navigation.append(clangames_dict)
+        clangames_dict = {
+            'id': 'clangames',
+            'emoji': "<:ClanGames:834063648494190602>",
+            'title': "",
+            }
+        navigation_str += f"<:ClanGames:834063648494190602> Clan Games Leaderboard\n"
+        navigation.append(clangames_dict)
 
         menu_state = True
         menu_option = 'start'
