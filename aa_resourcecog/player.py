@@ -656,6 +656,9 @@ class aPlayerSeason():
 
         self = aPlayerSeason(ctx,player,season)
 
+        if self.player.tag == '#8G9L8JV2R':
+            print(f"..123{minfo}")
+
         if minfo:
             self.is_archive_season = True
             home_clan_json = minfo.get('home_clan',None)
