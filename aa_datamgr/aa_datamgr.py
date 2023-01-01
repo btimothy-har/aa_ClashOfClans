@@ -217,6 +217,10 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send("**Stopping...**")
 
+        master_lock = await self.master_lock.acquire()
+        clan_lock = await self.clan_lock.acquire()
+        member_lock = await self.member_lock.acquire()
+
         ctx.bot.master_refresh = False
         self.season_update.stop()
         self.clan_update.stop()
@@ -234,6 +238,10 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.bot.coc_client.close()
         await ctx.bot.discordlinks.close()
+
+        self.clan_lock.release()
+        self.member_lock.release()
+        self.master_lock.release()
 
 
     @commands.command(name="fileconvert")
