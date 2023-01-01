@@ -586,6 +586,7 @@ class AriXClashDataMgr(commands.Cog):
 
         if update_type == 'season':
             bot = self.master_bot
+            test_str = ""
             update_season = False
 
             season_embed = discord.Embed(
@@ -601,6 +602,9 @@ class AriXClashDataMgr(commands.Cog):
             if season.id != bot.current_season.id:
                 update_season = True
                 send_logs = True
+
+                test_str += f"> Current Season: {bot.current_season.season_description}"
+                test_str += f"\n> New Season: {season.season_description}"
 
                 season_embed.add_field(
                     name=f"__New Season Detected__",
@@ -629,6 +633,8 @@ class AriXClashDataMgr(commands.Cog):
                     name=f"__Clan Activities__",
                     value=log_str,
                     inline=False)
+
+                test_str += log_str
 
             if update_season:
                 #lock processes
@@ -682,6 +688,12 @@ class AriXClashDataMgr(commands.Cog):
                         + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
                     inline=False)
 
+                test_str += f"__Files Saved__"
+                test_str += f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
+                test_str += f"\n"
+                test_str += f"__Files Created__"
+                test_str += f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}
+
                 bot.current_season = season
                 bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
@@ -706,7 +718,7 @@ class AriXClashDataMgr(commands.Cog):
         if send_logs:
             ch = bot.get_channel(1033390608506695743)
 
-            await ctx.send(season_embed.description[0:500])
+            await ctx.send(test_str)
             await ch.send(embed=season_embed)
 
 
