@@ -653,12 +653,6 @@ class aPlayerSeason():
 
         self = aPlayerSeason(ctx,player,season)
 
-        if player.tag == "#8G9L8JV2R":
-            ch = ctx.bot.get_channel(856433806142734346)
-            await ch.send(f"..{self.season.season_description}")
-            await ch.send(f"..{minfo}")
-            #await ch.send(f"..{stats}")
-
         if minfo:
             self.is_archive_season = True
             home_clan_json = minfo.get('home_clan',None)
