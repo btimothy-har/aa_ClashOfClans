@@ -27,7 +27,7 @@ from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults, clanRanks
 from aa_resourcecog.notes import aNote
-from aa_resourcecog.file_functions import get_current_season, save_cache_data, read_file_handler, write_file_handler, eclipse_base_handler
+from aa_resourcecog.file_functions import get_current_season, save_war_cache, save_raid_cache, save_clan_cache, save_member_cache, read_file_handler, write_file_handler, eclipse_base_handler
 from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
@@ -738,7 +738,10 @@ class AriXClashDataMgr(commands.Cog):
         st = time.time()
 
         try:
-            await save_cache_data(ctx)
+            await save_war_cache(ctx)
+            await save_raid_cache(ctx)
+            await save_clan_cache(ctx)
+            await save_member_cache(ctx)
 
         except Exception as e:
             await bot.send_to_owners(f"Error encountered during File Save:\n\n```{e}```")
