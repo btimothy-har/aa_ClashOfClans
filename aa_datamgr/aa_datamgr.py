@@ -72,7 +72,7 @@ class AriXClashDataMgr(commands.Cog):
 
     @commands.command(name="nstart")
     @commands.is_owner()
-    async def start_nebula(self,ctx):
+    async def start_nebula(self,ctx,partial=False):
         bot = self.master_bot
         msg = await ctx.send("**Initializing N.E.B.U.LA.** ...")
 
@@ -145,38 +145,35 @@ class AriXClashDataMgr(commands.Cog):
         ctx.bot.clan_cache = {}
         ctx.bot.pass_cache = {}
 
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
-                s_json = json.load(file)
+        if not partial:
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
+                    a_json = json.load(file)
 
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/alliance.json','r') as file:
-                a_json = json.load(file)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
+                    m_json = json.load(file)
 
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
-                m_json = json.load(file)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/warlog.json','r') as file:
+                    w_json = json.load(file)
 
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/warlog.json','r') as file:
-                w_json = json.load(file)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/capitalraid.json','r') as file:
+                    cr_json = json.load(file)
 
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/capitalraid.json','r') as file:
-                cr_json = json.load(file)
+            for (tag,clan) in a_json['clans'].items():
+                await aClan.create(ctx,tag=tag,json=clan)
 
-        for (tag,clan) in a_json['clans'].items():
-            await aClan.create(ctx,tag=tag,json=clan)
+            for (tag,member) in a_json['members'].items():
+                if tag in list(m_json.keys()):
+                    a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
+                else:
+                    a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
-        for (tag,member) in a_json['members'].items():
-            if tag in list(m_json.keys()):
-                a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
-            else:
-                a = await aPlayer.create(ctx,tag=tag,a_json=member)
+            ctx.bot.refresh_loop = 0
 
-        ctx.bot.refresh_loop = 0
-
-        self.data_backup_save.start()
+            self.data_backup_save.start()
 
         await msg.delete()
         await ctx.send("**Setup complete.**")
