@@ -609,7 +609,7 @@ class aPlayerSeason():
 
         if season == 'current':
             self.season = ctx.bot.current_season
-        else
+        else:
             self.season = aClashSeason(season)
 
         self.is_archive_season = False
