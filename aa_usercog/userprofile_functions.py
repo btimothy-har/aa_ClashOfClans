@@ -220,7 +220,7 @@ async def userprofile_raidlog(ctx,account,message=None):
 
         raid_date = datetime.fromtimestamp(raid.end_time).strftime('%d %b %Y')
 
-        raid_member = [m for m in raid.members if m.tag == a.tag]
+        raid_member = [m for m in raid.members if m.tag == a.tag][0]
 
         raidlog_embed.add_field(
             name=f"Raid Weekend: {raid_date}",

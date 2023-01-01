@@ -1547,7 +1547,7 @@ class aMember():
         else:
             selection_list = []
             selection_str = ""
-            for a in p_user_accounts:
+            for a in self.accounts:
                 a_dict = {
                     'id': f"{a.tag}",
                     'title': f"{a.name} ({a.tag})",
