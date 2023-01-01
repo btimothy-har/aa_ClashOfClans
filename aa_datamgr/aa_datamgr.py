@@ -388,7 +388,7 @@ class AriXClashDataMgr(commands.Cog):
                 war_json = json.load(file)
 
         for (warid,warj) in war_json.items():
-            clan_war = await aClanWar.get(ctx,json=war)
+            clan_war = await aClanWar.get(ctx,json=warj)
 
             for (tag,member) in ctx.bot.member_cache.items():
                 if tag in [m.tag for m in clan_war.members]:
