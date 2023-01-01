@@ -977,7 +977,7 @@ class AriXClashDataMgr(commands.Cog):
                     activity=discord.Activity(
                     type=activity_select,
                     name=f"{mem_count} AriX members"))
-                await self.last_status_update = st
+                self.last_status_update = st
 
         except Exception as e:
             await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
