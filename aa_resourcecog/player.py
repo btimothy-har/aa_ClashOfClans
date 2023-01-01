@@ -1564,7 +1564,7 @@ class aMember():
                     selection_str += "\n\n"
 
             nick_embed = await clash_embed(ctx,
-                title=f"Nickname Change: {user.name}#{user.discriminator}",
+                title=f"Nickname Change: {self.discord_member.name}#{self.discord_member.discriminator}",
                 thumbnail=f"{user.avatar_url}")
 
             nick_embed.add_field(
