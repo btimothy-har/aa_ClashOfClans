@@ -615,7 +615,7 @@ class aPlayerSeason():
         if season == 'current':
             self.season = ctx.bot.current_season
         else:
-            self.season = aClashSeason(season)
+            self.season = season
 
         self.is_archive_season = False
         self.home_clan = self.player.home_clan
