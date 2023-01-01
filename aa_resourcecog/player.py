@@ -687,7 +687,7 @@ class aPlayerSeason():
             self.clangames = await aPlayerClanGames.create(ctx,
                 stats=self,
                 json=stats['clangames'],
-                season=season)
+                season=self.season)
 
             self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
 
