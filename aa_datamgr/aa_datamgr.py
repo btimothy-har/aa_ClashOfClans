@@ -573,17 +573,6 @@ class AriXClashDataMgr(commands.Cog):
             war_update = await c.update_clan_war(ctx)
             raid_update = await c.update_raid_weekend(ctx)
 
-            clanwar_json = await data_file_handler(
-                ctx=ctx,
-                action='read',
-                entry_type='warlog',
-                tag="**")
-            capitalraid_json = await data_file_handler(
-                ctx=ctx,
-                action='read',
-                entry_type='capitalraid',
-                tag="**")
-
             for war_id in list(clanwar_json.keys()):
                 war = await aClanWar.get(ctx,war_id=war_id)
 
