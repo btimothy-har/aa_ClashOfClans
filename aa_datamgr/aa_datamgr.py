@@ -375,6 +375,9 @@ class AriXClashDataMgr(commands.Cog):
 
         else:
             ctx.bot.master_refresh = True
+            self.season_update.stop()
+            self.clan_update.stop()
+            self.member_update.stop()
             await ctx.send("Bot Data Refresh is now activated.")
 
         await m.delete()
