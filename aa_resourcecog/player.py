@@ -1499,13 +1499,7 @@ class aMember():
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
 
-        memberInfo = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='members',
-            tag="**")
-        memberTags = list(memberInfo.keys())
-
-        self.accounts = [a for a in [await aPlayer.create(ctx,tag=tag) for tag in memberTags] if a.discord_user == self.user_id]
+        self.accounts = [member for member in [for (m_tag,member) in ctx.bot.member_cache.items()] if member.discord_user == self.user_id]
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)
@@ -1616,12 +1610,7 @@ class aMember():
         is_arix_elder = False
         is_arix_leader = False
 
-        allianceClans = await alliance_file_handler(
-            ctx=ctx,
-            entry_type='clans',
-            tag="**")
-
-        allianceClans = [await aClan.create(ctx,tag=c) for c in list(allianceClans.keys())]
+        allianceClans = [clan for (c_tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
 
         if len(self.home_clans) > 0:
             is_arix_member = True
