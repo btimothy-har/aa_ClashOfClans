@@ -41,7 +41,7 @@ async def save_member_cache(ctx):
 def filename_handler(ctx,name_input,**kwargs):
     season = kwargs.get('season',None)
 
-    if name_input not in ['alliance','members','warlog','capitalraid','challengepass']:
+    if name_input not in ['alliance','meminfo','members','warlog','capitalraid','challengepass']:
         return None
 
     file_name = {
