@@ -666,7 +666,7 @@ class aPlayerSeason():
                 home_clan_tag = home_clan_json
 
             self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
-            self.is_member = minfo['discord_user']
+            self.is_member = minfo['is_member']
             self.is_arix_account = True
 
         if stats:
