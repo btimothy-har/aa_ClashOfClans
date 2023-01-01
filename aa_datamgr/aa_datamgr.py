@@ -234,6 +234,8 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def stop_nebula(self,ctx):
 
+        await ctx.send("**Stopping...**")
+
         ctx.bot.master_refresh = False
         self.season_update.stop()
         self.clan_update.stop()
@@ -440,7 +442,7 @@ class AriXClashDataMgr(commands.Cog):
                 name="__Core Data Files__",
                 value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
                     + f"\n> **alliance.json**: {os.path.exists(ctx.bot.clash_dir_path+'/alliance.json')}"
-                    + f"\n> **member_info.json**: {os.path.exists(ctx.bot.clash_dir_path+'/member_info.json')}"
+                    + f"\n> **players.json**: {os.path.exists(ctx.bot.clash_dir_path+'/players.json')}"
                     + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
                     + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                     inline=False)
