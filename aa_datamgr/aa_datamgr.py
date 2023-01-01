@@ -262,10 +262,10 @@ class AriXClashDataMgr(commands.Cog):
                     c.war_log[war_id] = w
                     new_warlog[war_id] = w.to_json()
 
+                await c.save_to_json(ctx)
+
             else:
                 new_warlog[clan] = warlog
-
-            await c.save_to_json(ctx)
 
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
@@ -290,10 +290,10 @@ class AriXClashDataMgr(commands.Cog):
 
                     c.raid_log[raid_id] = r
                     new_raidlog[raid_id] = r.to_json()
+
+                await c.save_to_json(ctx)
             else:
                 new_raidlog[clan] = raidlog
-
-            await c.save_to_json(ctx)
 
         async with ctx.bot.async_file_lock:
             with ctx.bot.clash_file_lock.write_lock():
