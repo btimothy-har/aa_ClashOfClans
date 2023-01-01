@@ -433,6 +433,13 @@ class AriXMemberCommands(commands.Cog):
             return await ctx.send(embed=no_account_embed)
 
         for a in accounts:
+
+            await ctx.send(f"{a.current_season.season.id} {a.current_season.is_member}")
+
+            for (s,p) in a.season_data.items():
+                await ctx.send(f"{s} {p.is_member}")
+
+
             member_status = ""
             if a.is_member:
                 member_status = f"***{a.home_clan.emoji} {a.arix_rank} of {a.home_clan.name}***\n"
