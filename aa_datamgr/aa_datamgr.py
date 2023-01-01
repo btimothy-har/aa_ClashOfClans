@@ -404,7 +404,8 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Data Cache__",
-                value=f"> Seasons: {', '.join(ctx.bot.tracked_seasons)}"
+                value=f"> Current Season: {ctx.bot.current_season.season_description}"
+                    + f"> Seasons: {', '.join([s.season_description for s in ctx.bot.tracked_seasons])}"
                     + f"\n> Players: {len(ctx.bot.member_cache)}"
                     + f"\n> Clans: {len(ctx.bot.clan_cache)}"
                     + f"\n> Users: {len(ctx.bot.user_cache)}"
