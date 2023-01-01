@@ -1572,7 +1572,7 @@ class AriXLeaderCommands(commands.Cog):
         leader_ct = 0
         member_ct = 0
 
-        member = await aMember.create(user_id=user.id)
+        member = await aMember.create(ctx,user_id=user.id)
 
         if len(member.home_clans) == 0:
             not_member_embed = await clash_embed(ctx,
