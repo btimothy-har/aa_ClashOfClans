@@ -591,11 +591,25 @@ class AriXClashDataMgr(commands.Cog):
             bot = self.master_bot
             update_season = False
 
+            season_embed = discord.Embed(
+                title="**Season Update**",
+                color=0x0000)
+
+            season_embed.set_footer(
+                text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
+                icon_url="https://i.imgur.com/TZF5r54.png")
+
             season = aClashSeason.get_current_season()
 
             if season.id != bot.current_season.id:
                 update_season = True
                 send_logs = True
+
+                season_embed.add_field(
+                    name=f"__New Season Detected__",
+                    value=f"> Current Season: {bot.current_season.id}"
+                        + f"\n> New Season: {season.id}",
+                    inline=False)
 
             if update_season:
                 log_str = ""
@@ -613,6 +627,11 @@ class AriXClashDataMgr(commands.Cog):
                     log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
 
                     log_str += "\n\n"
+
+                season_embed.add_field(
+                    name=f"__Clan Activities__",
+                    value=log_str,
+                    inline=False)
 
                 season_embed.add_field(
                     name=f"__Clan Activities__",
@@ -671,6 +690,15 @@ class AriXClashDataMgr(commands.Cog):
                         + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
                     inline=False)
 
+                season_embed.add_field(
+                    name=f"**New Season Initialized: {season.id}**",
+                    value=f"__Files Saved__"
+                        + f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
+                        + f"\n"
+                        + f"__Files Created__"
+                        + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
+                    inline=False)
+
                 bot.current_season = season
                 bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
@@ -696,6 +724,10 @@ class AriXClashDataMgr(commands.Cog):
                     type=activity_select,
                     name=f"start of the {new_season} Season! Clash on!"))
                 self.last_status_update = st
+
+        if send_logs:
+            ch = bot.get_channel(1033390608506695743)
+            await ch.send(embed=season_embed)
 
         await ctx.send('update completed')
 
