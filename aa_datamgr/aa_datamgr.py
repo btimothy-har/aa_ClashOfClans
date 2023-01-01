@@ -563,7 +563,7 @@ class AriXClashDataMgr(commands.Cog):
 
         hi = ctx
 
-        ctx = EmptyContext(bot=bot)
+        ctx = EmptyContext(bot=self.bot)
 
         if update_type == 'member':
             is_cwl = False
