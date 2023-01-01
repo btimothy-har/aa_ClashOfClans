@@ -233,7 +233,7 @@ class aPlayer(coc.Player):
             return cached_data
 
         try:
-            2
+            self = await ctx.bot.coc_client.get_player(tag,cls=aPlayer,ctx=ctx,cache=cached_data)
         except Exception as exc:
             raise TerminateProcessing(exc) from exc
             return None
