@@ -108,7 +108,7 @@ async def userprofile_warlog(ctx,account,message=None):
     nav_options.append(rushed_dict)
     nav_str += "💩 To view Rushed Levels\n"
 
-    current_season = await get_current_season()
+    current_season = ctx.bot.current_season
 
     # won = [w for wid,w in a.warlog.items() if w.result in ['won','winning']]
     # lost = [w for wid,w in a.warlog.items() if w.result in ['lost','losing']]
@@ -202,7 +202,7 @@ async def userprofile_raidlog(ctx,account,message=None):
     nav_options.append(rushed_dict)
     nav_str += "💩 To view Rushed Levels\n"
 
-    current_season = await get_current_season()
+    current_season = ctx.bot.current_season
 
     raidlog_embed = await clash_embed(ctx,
         title=f"**Raid Log: {a.name} ({a.tag})**",
