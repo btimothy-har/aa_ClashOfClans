@@ -75,10 +75,13 @@ async def leaderboard_warlord(ctx,season):
     else:
         all_participants = []
         for (tag,member) in ctx.bot.member_cache.items():
-            season_stats = member.season_data[season]
-
-            if season_stats.is_member and season_stats.war_stats.wars_participated > 0:
-                all_participants.append(season_stats)
+            try:
+                season_stats = member.season_data[season.id]
+            except KeyError:
+                continue
+            else:
+                if season_stats.is_member and season_stats.war_stats.wars_participated > 0:
+                    all_participants.append(season_stats)
 
     th_leaderboard = [15,14,13,12,11,10,9]
 
@@ -124,10 +127,13 @@ async def leaderboard_heistlord(ctx,season):
     else:
         all_participants = []
         for (tag,member) in ctx.bot.member_cache.items():
-            season_stats = member.season_data[season]
-
-            if season_stats.is_member and season_stats.loot_darkelixir.season > 0:
-                all_participants.append(season_stats)
+            try:
+                season_stats = member.season_data[season.id]
+            except KeyError:
+                continue
+            else:
+                if season_stats.is_member and season_stats.loot_darkelixir.season > 0:
+                    all_participants.append(season_stats)
 
     th_leaderboard = [15,14,13,12,11,10,9]
 
@@ -175,10 +181,13 @@ async def leaderboard_clangames(ctx,season):
     else:
         all_participants = []
         for (tag,member) in ctx.bot.member_cache.items():
-            season_stats = member.season_data[season]
-
-            if season_stats.is_member and season_stats.clangames.score > 0:
-                all_participants.append(season_stats)
+            try:
+                season_stats = member.season_data[season.id]
+            except KeyError:
+                continue
+            else:
+                if season_stats.is_member and season_stats.clangames.score > 0:
+                    all_participants.append(season_stats)
 
     clangames_leaderboard_embed = await clash_embed(ctx,
         title=f"**AriX Clan Games Leaderboard: {season.season_description}**",
@@ -258,10 +267,13 @@ async def leaderboard_donations(ctx,season):
     else:
         all_participants = []
         for (tag,member) in ctx.bot.member_cache.items():
-            season_stats = member.season_data[season]
-
-            if season_stats.is_member and season_stats.donations_sent.season > 0:
-                all_participants.append(season_stats)
+            try:
+                season_stats = member.season_data[season.id]
+            except KeyError:
+                continue
+            else:
+                if season_stats.is_member and season_stats.donations_sent.season > 0:
+                    all_participants.append(season_stats)
 
     donations_leaderboard_embed = await clash_embed(ctx,
         title=f"**AriX Donations Leaderboard: {season.season_description}**",

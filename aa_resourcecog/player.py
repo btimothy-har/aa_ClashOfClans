@@ -304,7 +304,7 @@ class aPlayer(coc.Player):
                         season=season,
                         minfo=mem_info,
                         stats=season_stats)
-                    self.season_data[season] = stats
+                    self.season_data[season.id] = stats
 
         if not self.clan:
             clan_tag = None
