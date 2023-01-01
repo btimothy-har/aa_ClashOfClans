@@ -289,16 +289,17 @@ class aPlayer(coc.Player):
 
         if not cached_data:
             for season in ctx.bot.tracked_seasons:
-                mem_info = await read_file_handler(ctx,
-                    file='alliance',
-                    tag=self.tag,
-                    season=season.id,
-                    atype='members')
                 season_stats = await read_file_handler(ctx,
                     file='members',
                     tag=self.tag,
                     season=season.id)
                 if season_stats:
+                    mem_info = await read_file_handler(ctx,
+                        file='alliance',
+                        tag=self.tag,
+                        season=season.id,
+                        atype='members')
+
                     stats = await aPlayerSeason.create(ctx,
                         player=self,
                         season=season,
@@ -355,7 +356,7 @@ class aPlayer(coc.Player):
 
             self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
             self.readable_name = member_info.get('readable_name',self.name)
-            self.is_member = member_info['discord_user']
+            self.is_member = member_info['is_member']
             self.is_arix_account = True
 
             self.discord_user = member_info['discord_user']
@@ -656,8 +657,10 @@ class aPlayerSeason():
 
         self = aPlayerSeason(ctx,player,season)
 
-        if self.player.tag == '#8G9L8JV2R':
-            print(f"..123{minfo}")
+        if player.tag == "#8G9L8JV2R":
+            ch = ctx.bot.get_channel(856433806142734346)
+            await ch.send(f"..{minfo}")
+            await ch.send(f"..{stats}")
 
         if minfo:
             self.is_archive_season = True
