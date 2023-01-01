@@ -197,7 +197,7 @@ class AriXClashDataMgr(commands.Cog):
 
         master_lock = await self.master_lock.acquire()
         clan_lock = await self.clan_lock.acquire()
-        member_lock = self.member_lock.acquire()
+        member_lock = await self.member_lock.acquire()
 
         await ctx.send(f"{master_lock} {clan_lock} {member_lock}")
 
@@ -221,11 +221,9 @@ class AriXClashDataMgr(commands.Cog):
 
         await self.config.last_data_save.set(st)
 
-        await self.clan_lock.release()
-        await self.member_lock.release()
-        await self.master_lock.release()
-
-
+        self.clan_lock.release()
+        self.member_lock.release()
+        self.master_lock.release()
 
 
     @commands.command(name="fileconvert")
