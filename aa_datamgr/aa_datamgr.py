@@ -181,6 +181,7 @@ class AriXClashDataMgr(commands.Cog):
         self.season_update.start()
         self.clan_update.start()
         self.member_update.start()
+        self.data_backup_save.start()
 
         await msg.delete()
         await ctx.send("**Setup complete.**")
@@ -198,8 +199,6 @@ class AriXClashDataMgr(commands.Cog):
         master_lock = await self.master_lock.acquire()
         clan_lock = await self.clan_lock.acquire()
         member_lock = await self.member_lock.acquire()
-
-        await ctx.send(f"{master_lock} {clan_lock} {member_lock}")
 
         st = time.time()
 
@@ -224,6 +223,28 @@ class AriXClashDataMgr(commands.Cog):
         self.clan_lock.release()
         self.member_lock.release()
         self.master_lock.release()
+
+        await ctx.send("Save complete.")
+
+
+    @commands.command(name="nstop")
+    @commands.is_owner()
+    async def stop_nebula(self,ctx):
+
+        ctx.bot.master_refresh = False
+        self.season_update.stop()
+        self.clan_update.stop()
+        self.member_update.stop()
+        self.data_backup_save.stop()
+
+        #save data
+        await ctx.invoke(self.bot.get_command('nsave'))
+
+        await ctx.send("**Bye!**")
+
+        self.bot.remove_cog('aa_usercog')
+        self.bot.remove_cog('aa_leadercog')
+        self.bot.remove_cog('aa_datamgr')
 
 
     @commands.command(name="fileconvert")
@@ -582,27 +603,35 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
 
-        for (war_id,war) in ctx.bot.war_cache.items():
-            if war:
-                await war.save_to_json(ctx)
+        try:
+            for (war_id,war) in ctx.bot.war_cache.items():
+                if war:
+                    await war.save_to_json(ctx)
 
-        for (raid_id,raid) in ctx.bot.raid_cache.items():
-            if raid:
-                await raid.save_to_json(ctx)
+            for (raid_id,raid) in ctx.bot.raid_cache.items():
+                if raid:
+                    await raid.save_to_json(ctx)
 
-        for (c_tag,clan) in ctx.bot.clan_cache.items():
-            if clan.is_alliance_clan:
-                await clan.save_to_json(ctx)
+            for (c_tag,clan) in ctx.bot.clan_cache.items():
+                if clan.is_alliance_clan:
+                    await clan.save_to_json(ctx)
 
-        for (m_tag,member) in ctx.bot.member_cache.items():
-            if member.is_arix_account:
-                await member.save_to_json(ctx)
+            for (m_tag,member) in ctx.bot.member_cache.items():
+                if member.is_arix_account:
+                    await member.save_to_json(ctx)
+
+        except Exception as e:
+            await bot.send_to_owners(f"Error encountered during File Save:\n\n```{e}```")
+            self.clan_lock.release()
+            self.member_lock.release()
+            self.master_lock.release()
+            return
 
         await self.config.last_data_save.set(st)
 
-        await self.clan_lock.release()
-        await self.member_lock.release()
-        await self.master_lock.release()
+        self.clan_lock.release()
+        self.member_lock.release()
+        self.master_lock.release()
 
 
     @tasks.loop(minutes=5.0)
