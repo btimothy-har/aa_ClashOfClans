@@ -281,7 +281,7 @@ class AriXClashDataMgr(commands.Cog):
 
             mm = await aPlayer.create(ctx,tag=tag,json=member,reset=True)
 
-            mm_ajson, mm_mjson = await mm.to_json(ctx)
+            mm_ajson, mm_mjson = await mm.to_json()
 
             file_json[tag] = mm_mjson
 
