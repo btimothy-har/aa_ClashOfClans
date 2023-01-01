@@ -1443,7 +1443,7 @@ class aClan(coc.Clan):
                             unfinished_raid_str = f"There is **less than 1 hour** left in Raid Weekend and you **HAVE NOT** used all your Raid Attacks.\n\n"
                         else:
                             unfinished_raid_str = f"You started your Raid Weekend but **HAVE NOT** used all your Raid Attacks. Raid Weekend ends in **{remaining_time_str}**.\n\n"
-
+c
                         for (u,accounts) in ping_dict.items():
                             account_str = [f"{emotes_townhall[a.town_hall.level]} {a.name}" for a in accounts]
                             unfinished_raid_str += f"{u.discord_member.mention} ({', '.join(account_str)})\n"

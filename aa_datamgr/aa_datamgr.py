@@ -197,8 +197,6 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
 
-        await save_cache_data(ctx)
-
         await self.config.last_data_save.set(st)
 
         self.clan_lock.release()
@@ -225,9 +223,8 @@ class AriXClashDataMgr(commands.Cog):
         self.data_backup_save.stop()
 
         #save data
-        await ctx.invoke(self.master_bot.get_command('nsave'))
-
-        await ctx.send("**Bye!**")
+        await save_cache_data(ctx)
+        await ctx.send("**Data saved, goodbye!**")
 
         self.master_bot.remove_cog('AriXMemberCommands')
         self.master_bot.remove_cog('AriXLeaderCommands')
@@ -708,9 +705,11 @@ class AriXClashDataMgr(commands.Cog):
 
         if send_logs:
             ch = bot.get_channel(1033390608506695743)
-            await ch.send(embed=season_embed)
 
             await ctx.send(season_embed.description[0:500])
+            await ch.send(embed=season_embed)
+
+
 
         await ctx.send('update completed')
 
