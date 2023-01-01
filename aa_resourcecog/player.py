@@ -11,7 +11,7 @@ from datetime import datetime
 from coc.ext import discordlinks
 
 from .constants import clanRanks, emotes_townhall, emotes_builderhall, emotes_capitalhall, emotes_league, emotes_army, hero_availability, troop_availability, spell_availability, pet_availability
-from .file_functions import get_current_season, read_file_handler, write_file_handler, eclipse_base_handler
+from .file_functions import read_file_handler, write_file_handler, eclipse_base_handler
 
 from .notes import aNote
 from .clan_war import aClanWar, aWarClan, aWarPlayer, aWarAttack, aPlayerWarLog, aPlayerWarClan
@@ -23,6 +23,48 @@ from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation
 class ClashPlayerError(Exception):
     def __init__(self,message):
         self.message = message
+
+########################################
+
+### SEASON OBJECT
+
+########################################
+
+class aClashSeason():
+    def __init__(self,season_id):
+
+        self.id = season_id
+
+        self.season_month = int(season.split('-')[0])
+        self.season_year = int(season.split('-')[1])
+
+        self.season_description = f"{calendar.month_name[self.season_month]} {self.season_year}"
+
+        self.season_start = datetime(self.season_year, self.season_month, 1, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+
+        self.clangames_start = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+        self.clangames_end = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+
+    @classmethod
+    def get_current_season():
+        utc = pytz.timezone("UTC")
+
+        current_id = f"{datetime.now(utc).month}-{datetime.now(utc).year}"
+
+        self = aClashSeason(current_id)
+
+        if time.time() < self.season_start:
+            if datetime.now(utc).month == 1:
+                yy = datetime.now(utc).year - 1
+                mm = 12
+            else:
+                yy = datetime.now(utc).year
+                mm = datetime.now(utc).month - 1
+
+            self = aClashSeason(f"{mm}-{yy}")
+
+        return self
+
 
 ########################################
 
@@ -243,14 +285,20 @@ class aPlayer(coc.Player):
 
         if not cached_data:
             for season in ctx.bot.tracked_seasons:
+                mem_info = await read_file_handler(ctx,
+                    file='alliance',
+                    tag=self.tag,
+                    season=season.id,
+                    atype='members')
                 season_stats = await read_file_handler(ctx,
                     file='members',
                     tag=self.tag,
-                    season=season)
+                    season=season.id)
                 if season_stats:
                     stats = await aPlayerSeason.create(ctx,
                         player=self,
                         season=season,
+                        minfo=mem_info,
                         stats=season_stats)
                     self.season_data[season] = stats
 
@@ -558,7 +606,17 @@ class aPlayer(coc.Player):
 class aPlayerSeason():
     def __init__(self,ctx,player,season):
         self.player = player
-        self.season = season
+
+        if season == 'current':
+            self.season = ctx.bot.current_season
+        else
+            self.season = aClashSeason(season)
+
+        self.is_archive_season = False
+        self.home_clan = None
+        self.is_member = False
+        self.is_arix_account = False
+
         self.time_in_home_clan = 0
         self.other_clans = []
         self.attacks = aPlayerStat({})
@@ -584,8 +642,25 @@ class aPlayerSeason():
         self.raid_stats = aPlayerRaidStats()
 
     @classmethod
-    async def create(cls,ctx,player,season,stats):
+    async def create(cls,ctx,player,season,**kwargs):
+
+        stats = kwargs.['stats']
+        minfo = kwargs.get('minfo',None)
+
         self = aPlayerSeason(ctx,player,season)
+
+        if minfo:
+            self.is_archive_season = True
+            home_clan_json = minfo.get('home_clan',None)
+
+            if isinstance(home_clan_json,dict):
+                home_clan_tag = home_clan_json['tag']
+            else:
+                home_clan_tag = home_clan_json
+
+            self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
+            self.is_member = minfo['discord_user']
+            self.is_arix_account = True
 
         if stats:
             debug = ctx.bot.get_channel(856433806142734346)
@@ -684,17 +759,9 @@ class aPlayerStat():
 class aPlayerClanGames():
     def __init__(self,stats,season):
 
-        if season == 'current':
-            sm = datetime.now(pytz.utc).month
-            sy = datetime.now(pytz.utc).year
-        else:
-            season = season.split('-')
-            sm = int(season[0])
-            sy = int(season[1])
-
         self.stats = stats
-        self.games_start = datetime(sy, sm, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
-        self.games_end = datetime(sy, sm, 28, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+        self.games_start = season.clangames_start
+        self.games_end = season.clangames_end
         self.score = 0
         self.clan_tag = None
         self.clan = None
@@ -705,7 +772,7 @@ class aPlayerClanGames():
     @classmethod
     async def create(cls,ctx,stats,**kwargs):
         input_json = kwargs.get('json',None)
-        season = kwargs.get('season','current')
+        season = kwargs.get('season',aClashSeason.get_current_season())
 
         self = aPlayerClanGames(stats=stats,season=season)
 

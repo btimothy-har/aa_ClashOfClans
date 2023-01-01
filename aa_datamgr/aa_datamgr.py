@@ -28,7 +28,7 @@ from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, use
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults, clanRanks
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season, save_cache_data, read_file_handler, write_file_handler, eclipse_base_handler
-from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag
@@ -137,8 +137,8 @@ class AriXClashDataMgr(commands.Cog):
             with open(bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
 
-        bot.current_season = s_json['current']
-        bot.tracked_seasons = s_json['tracked']
+        ctx.bot.current_season = aClashSeason(s_json['current'])
+        ctx.bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
         ctx.bot.user_cache = {}
         ctx.bot.member_cache = {}
@@ -164,10 +164,6 @@ class AriXClashDataMgr(commands.Cog):
         with ctx.bot.clash_file_lock.read_lock():
             with open(ctx.bot.clash_dir_path+'/capitalraid.json','r') as file:
                 cr_json = json.load(file)
-
-        ctx.bot.current_season = s_json['current']
-        ctx.bot.tracked_seasons = s_json['tracked']
-
 
         for (tag,clan) in a_json['clans'].items():
             await aClan.create(ctx,tag=tag,json=clan)
@@ -478,7 +474,7 @@ class AriXClashDataMgr(commands.Cog):
             with ctx.bot.clash_file_lock.write_lock():
                 with open(ctx.bot.clash_dir_path+'/seasons.json','w') as file:
                     season_default = json_file_defaults['seasons']
-                    season_default['current'] = await get_current_season()
+                    season_default['current'] = aClashSeason.get_current_season()
                     json.dump(season_default,file,indent=2)
 
                 with open(ctx.bot.clash_dir_path+'/alliance.json','w') as file:
@@ -508,7 +504,7 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def data_simulation(self,ctx,update_type,tag):
 
-        if update_type not in ['clan','member']:
+        if update_type not in ['clan','member','season']:
             await ctx.send("Invalid data type.")
 
 
@@ -578,6 +574,121 @@ class AriXClashDataMgr(commands.Cog):
                     raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                     raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
+        if update_type == 'season':
+            bot = self.master_bot
+
+            season = aClashSeason.get_current_season()
+
+            if season.id != bot.current_season.id:
+                update_season = True
+                send_logs = True
+
+                season_embed.add_field(
+                    name=f"__New Season Detected__",
+                    value=f"> Current Season: {bot.current_season.id}"
+                        + f"\n> New Season: {season.id}",
+                    inline=False)
+
+            if update_season:
+                log_str = ""
+
+                for (c_tag,clan) in ctx.bot.clan_cache.items():
+
+                    if clan.is_alliance_clan:
+                        if clan.current_war.state == 'inWar':
+                            update_season = False
+                        if clan.current_raid_weekend.state == 'ongoing':
+                            update_season = False
+
+                    log_str += f"**{clan.name} ({clan.tag})**"
+                    log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
+                    log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
+
+                    log_str += "\n\n"
+
+                season_embed.add_field(
+                    name=f"__Clan Activities__",
+                    value=log_str,
+                    inline=False)
+
+            if update_season:
+                #lock processes
+                await self.master_lock.acquire()
+                await self.clan_lock.acquire()
+                await self.member_lock.acquire()
+
+                await save_cache_data(ctx)
+
+                async with bot.async_file_lock:
+                    with bot.clash_file_lock.write_lock():
+                        new_path = bot.clash_dir_path+'/'+bot.current_season.id
+                        os.makedirs(new_path)
+
+                        with open(bot.clash_dir_path+'/seasons.json','r+') as file:
+                            s_json = json.load(file)
+                            s_json['tracked'].append(bot.current_season.id)
+                            s_json['current'] = season.id
+                            file.seek(0)
+                            json.dump(s_json,file,indent=2)
+                            file.truncate()
+
+                        shutil.copy2(bot.clash_dir_path+'/alliance.json',new_path)
+                        shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
+                        with open(bot.clash_dir_path+'/players.json','w+') as file:
+                            json.dump({},file,indent=2)
+
+                for (c_tag,clan) in ctx.bot.clan_cache.items():
+                    try:
+                        c = await aClan.create(ctx,tag=c_tag,refresh=True,reset=True)
+                    except Exception as e:
+                        err = DataError(category='clan',tag=c_tag,error=e)
+                        error_log.append(err)
+                        continue
+
+                for (m_tag,member) in ctx.bot.member_cache.items():
+                    try:
+                        m = await aPlayer.create(ctx,tag=m_tag,refresh=True,reset=True)
+                        await m.set_baselines(ctx)
+                    except Exception as e:
+                        err = DataError(category='player',tag=m_tag,error=e)
+                        error_log.append(err)
+                        continue
+
+                season_embed.add_field(
+                    name=f"**New Season Initialized: {season.id}**",
+                    value=f"__Files Saved__"
+                        + f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
+                        + f"\n"
+                        + f"__Files Created__"
+                        + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
+                    inline=False)
+
+                bot.current_season = season
+                bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
+
+                await self.clan_lock.release()
+                await self.member_lock.release()
+                await self.master_lock.release()
+
+                try:
+                    await bot.update_channel.send(f"**The new season {bot.current_season.id} has started!**")
+                except:
+                    pass
+
+                activity_types = [
+                    discord.ActivityType.playing,
+                    discord.ActivityType.streaming,
+                    discord.ActivityType.listening,
+                    discord.ActivityType.watching
+                    ]
+                activity_select = random.choice(activity_types)
+
+                await bot.change_presence(
+                    activity=discord.Activity(
+                    type=activity_select,
+                    name=f"start of the {new_season} Season! Clash on!"))
+                self.last_status_update = st
+
         await ctx.send('update completed')
 
     @tasks.loop(minutes=28.0)
@@ -639,15 +750,16 @@ class AriXClashDataMgr(commands.Cog):
             text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
             icon_url="https://i.imgur.com/TZF5r54.png")
 
-        season = await get_current_season()
-        if season != bot.current_season:
+        season = aClashSeason.get_current_season()
+
+        if season.id != bot.current_season.id:
             update_season = True
             send_logs = True
 
             season_embed.add_field(
                 name=f"__New Season Detected__",
-                value=f"> Current Season: {bot.current_season}"
-                    + f"\n> New Season: {season}",
+                value=f"> Current Season: {bot.current_season.id}"
+                    + f"\n> New Season: {season.id}",
                 inline=False)
 
         if update_season:
@@ -678,19 +790,17 @@ class AriXClashDataMgr(commands.Cog):
             await self.clan_lock.acquire()
             await self.member_lock.acquire()
 
-            new_season = season
-
             await save_cache_data(ctx)
 
             async with bot.async_file_lock:
                 with bot.clash_file_lock.write_lock():
-                    new_path = bot.clash_dir_path+'/'+current_season
+                    new_path = bot.clash_dir_path+'/'+bot.current_season.id
                     os.makedirs(new_path)
 
                     with open(bot.clash_dir_path+'/seasons.json','r+') as file:
                         s_json = json.load(file)
-                        s_json['tracked'].append(current_season)
-                        s_json['current'] = new_season
+                        s_json['tracked'].append(bot.current_season.id)
+                        s_json['current'] = season.id
                         file.seek(0)
                         json.dump(s_json,file,indent=2)
                         file.truncate()
@@ -718,20 +828,23 @@ class AriXClashDataMgr(commands.Cog):
                     continue
 
             season_embed.add_field(
-                name=f"**New Season Initialized: {new_season}**",
+                name=f"**New Season Initialized: {season.id}**",
                 value=f"__Files Saved__"
-                    + f"\n**{current_season}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+current_season+'/players.json')}"
+                    + f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
                     + f"\n"
                     + f"__Files Created__"
                     + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
                 inline=False)
+
+            bot.current_season = season
+            bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
             await self.clan_lock.release()
             await self.member_lock.release()
             await self.master_lock.release()
 
             try:
-                await bot.update_channel.send(f"**The new season {season} has started!**")
+                await bot.update_channel.send(f"**The new season {bot.current_season.id} has started!**")
             except:
                 pass
 

@@ -8,7 +8,7 @@ import calendar
 
 from datetime import datetime
 
-async def get_current_season(params=None):
+async def get_current_season():
     helsinkiTz = pytz.timezone("Europe/Helsinki")
     current_season = f"{datetime.now(helsinkiTz).month}-{datetime.now(helsinkiTz).year}"
 

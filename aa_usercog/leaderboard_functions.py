@@ -69,13 +69,13 @@ class WarLord_Player():
             self.hit_rate = 0
 
 async def leaderboard_warlord(ctx):
-    current_season = await get_current_season(params='readable')
+    current_season = ctx.bot.current_season
 
     all_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
     th_leaderboard = [15,14,13,12,11,10,9]
 
     warlord_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Warlord Leaderboard: {current_season}**",
+        title=f"**AriX Warlord Leaderboard: {current_season.season_description}**",
         message=f"The AriX Member with the most triples against higher or equal Townhalls during the AriX Season is rewarded with the **Warlord** title."
             + f"\n\n> - Only regular Clan Wars with our Arix Clans are counted (friendly & CWL wars excluded)."
             + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
@@ -110,14 +110,14 @@ async def leaderboard_warlord(ctx):
 
 
 async def leaderboard_heistlord(ctx):
-    current_season = await get_current_season(params='readable')
+    current_season = ctx.bot.current_season
 
     all_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
 
     th_leaderboard = [15,14,13,12,11,10,9]
 
     heistlord_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Heistlord Leaderboard: {current_season}**",
+        title=f"**AriX Heistlord Leaderboard: {current_season.season_description}**",
         message=f"The AriX Member with most Dark Elixir <:DarkElixir:825640568973033502> looted during the AriX Season is rewarded with the **Heistlord** title."
             + f"\n\n> - Only activity while you're in our AriX Clans are counted."
             + f"\n> - Each AriX Season runs from the 10th to the last day of every month."
@@ -152,13 +152,13 @@ async def leaderboard_heistlord(ctx):
     return heistlord_leaderboard_embed
 
 async def leaderboard_clangames(ctx):
-    current_season = await get_current_season(params='readable')
+    current_season = ctx.bot.current_season
 
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
     cg_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.clangames.score > 0]
 
     clangames_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Clan Games Leaderboard: {current_season}**",
+        title=f"**AriX Clan Games Leaderboard: {current_season.season_description}**",
         message=f"Win one of the following awards by participating in the Clan Games!"
             + f"\n\n**Speedrunner**"
             + f"\n> Be the first to finish Clan Games for your Clan."
@@ -170,16 +170,14 @@ async def leaderboard_clangames(ctx):
             + f"\n> Achieve 1,000 Clan Games Points."
             + f"\n> Reward(s): `1,000XP`\n\u200b")
 
-    #cg_start = datetime(datetime.now(pytz.utc).year, datetime.now(pytz.utc).month, 22, 8, 0, 0, 0, tzinfo=pytz.utc)
+    if time.time() < current_season.clangames_start:
+        clangames_leaderboard_embed.add_field(
+            name=f"Leaderboard Unavailable",
+            value=f"The Clan Games Leaderboard is only available once the games begin!"
+                + f"\n\nThe next Clan Games will start on <t:{int(current_season.clangames_start)}:f>. Time shown in your local timezone.",
+            inline=False)
 
-    #if time.time() < cg_start.timestamp():
-    #    clangames_leaderboard_embed.add_field(
-    #        name=f"Leaderboard Unavailable",
-    #        value=f"The Clan Games Leaderboard is only available once the games begin!"
-    #            + f"\n\nThe next Clan Games will start on <t:{int(cg_start.timestamp())}:f>. Time shown in your local timezone.",
-    #        inline=False)
-
-    #    return clangames_leaderboard_embed
+        return clangames_leaderboard_embed
 
     for c in alliance_clans:
         leaderboard_participants = [m for m in cg_participants if m.current_season.clangames.clan_tag == c.tag]
@@ -229,13 +227,13 @@ async def leaderboard_clangames(ctx):
     return clangames_leaderboard_embed
 
 async def leaderboard_donations(ctx):
-    current_season = await get_current_season(params='readable')
+    current_season = ctx.bot.current_season
 
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
     don_participants = [member for (tag,member) in ctx.bot.member_cache.items() if member.is_member]
 
     donations_leaderboard_embed = await clash_embed(ctx,
-        title=f"**AriX Donations Leaderboard: {current_season}**",
+        title=f"**AriX Donations Leaderboard: {current_season.season_description}**",
         message=f"**Donate troops, spells and sieges to your Clan mates!**"
             + f"\n> XP will be given only to the users that have 1,000+ donations across their accounts."
             + f"\n> **Reward(s):** The amount of XP awarded will be determined by the sum of the donations rounded up to the nearest multiple of 100 across every account owned by the user inside one of the AriX Clans."
