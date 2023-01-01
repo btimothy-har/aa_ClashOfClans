@@ -152,7 +152,7 @@ class AriXClashDataMgr(commands.Cog):
                 a_json = json.load(file)
 
         with ctx.bot.clash_file_lock.read_lock():
-            with open(ctx.bot.clash_dir_path+'/members.json','r') as file:
+            with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
                 m_json = json.load(file)
 
         ctx.bot.current_season = s_json['current']
@@ -640,8 +640,8 @@ class AriXClashDataMgr(commands.Cog):
                         file.truncate()
 
                     shutil.copy2(bot.clash_dir_path+'/alliance.json',new_path)
-                    shutil.copy2(bot.clash_dir_path+'/members.json',new_path)
-                    with open(bot.clash_dir_path+'/members.json','w+') as file:
+                    shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
+                    with open(bot.clash_dir_path+'/players.json','w+') as file:
                         json.dump({},file,indent=2)
 
             for (c_tag,clan) in ctx.bot.clan_cache.items():
@@ -664,10 +664,10 @@ class AriXClashDataMgr(commands.Cog):
             season_embed.add_field(
                 name=f"**New Season Initialized: {new_season}**",
                 value=f"__Files Saved__"
-                    + f"\n**{current_season}/members.json**: {os.path.exists(bot.clash_dir_path+'/'+current_season+'/members.json')}"
+                    + f"\n**{current_season}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+current_season+'/players.json')}"
                     + f"\n"
                     + f"__Files Created__"
-                    + f"\n**members.json**: {os.path.exists(bot.clash_dir_path+'/members.json')}",
+                    + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
                 inline=False)
 
             await self.clan_lock.release()
