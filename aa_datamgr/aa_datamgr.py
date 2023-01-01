@@ -1093,7 +1093,7 @@ class AriXClashDataMgr(commands.Cog):
             activity_select = random.choice(activity_types)
 
             #update active events after 1 hours
-            if self.last_status_update - st > 3600 and len(active_events) > 0:
+            if (self.last_status_update - st > 3600 or self.last_status_update == 0) and len(active_events) > 0:
                 event = random.choice(active_events)
                 await bot.change_presence(
                     activity=discord.Activity(
@@ -1102,7 +1102,7 @@ class AriXClashDataMgr(commands.Cog):
                 await self.config.last_status_update.set(st)
 
             #update passive events after 2 hours
-            elif self.last_status_update - st > 7200 and len(passive_events) > 0:
+            elif (self.last_status_update - st > 7200 or self.last_status_update == 0) and len(passive_events) > 0:
                 event = random.choice(passive_events)
                 await bot.change_presence(
                     activity=discord.Activity(
@@ -1110,7 +1110,7 @@ class AriXClashDataMgr(commands.Cog):
                     name=event))
                 await self.config.last_status_update.set(st)
 
-            elif self.last_status_update - st > 14400:
+            elif self.last_status_update - st > 14400 or self.last_status_update == 0:
                 await bot.change_presence(
                     activity=discord.Activity(
                     type=activity_select,
