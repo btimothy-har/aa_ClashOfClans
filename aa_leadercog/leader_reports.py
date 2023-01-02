@@ -144,7 +144,7 @@ async def report_member_summary(ctx,message,clan):
         if user == clan.leader:
             leaders.append(output)
 
-        elif user in clan.coleaders:
+        elif user in clan.co_leaders:
             coleaders.append(output)
 
         elif user in clan.elders:
