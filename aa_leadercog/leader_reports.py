@@ -725,7 +725,7 @@ async def report_to_excel(ctx,clan):
 
     row = 0
     col = 0
-    for h in xp_headers:
+    for h in mem_headers:
         mem_worksheet.write(row,col,h,bold)
         col += 1
 
