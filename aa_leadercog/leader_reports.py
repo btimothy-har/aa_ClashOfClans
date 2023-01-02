@@ -11,6 +11,7 @@ import time
 import re
 import fasteners
 import xlsxwriter
+import math
 
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
@@ -491,9 +492,112 @@ async def report_unrecognized_members(ctx,message,clan):
     response = await report_paginate(ctx,message,clan,output_pages)
     return response
 
+async def get_xp_report(ctx,season):
+    alliance_clans = [clan for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
+    members = ctx.bot.member_cache
+    season = season
+
+    dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
+    report_file = f"{ctx.bot.clash_report_path}/{ctx.author.name}_EXPREPORT_{dt}.xlsx"
+
+    rp_workbook = xlsxwriter.Workbook(report_file)
+    bold = rp_workbook.add_format({'bold': True})
+
+    sheet_name = f"{season.season_description}"
+    xp_worksheet = rp_workbook.add_worksheet(sheet_name)
+
+    completed_users = []
+
+    xp_headers = ['ID',
+        'Discord Name',
+        '# Accounts',
+        'Total XP',
+        'Total Donations',
+        'Donation XP',
+        'Clan Games Tier 1',
+        'Clan Games Tier 2',
+        'Clan Games XP',
+        ]
+
+    row = 0
+    col = 0
+    for h in xp_headers:
+        xp_worksheet.write(row,col,h,bold)
+        col += 1
+
+    for m in [m for (t,m) in members.items()]:
+
+        accounts = 0
+        total_donations = 0
+        cg_tier1 = False
+        cg_tier2 = False
+
+        if m.discord_user in completed_users:
+            continue
+
+        if not m.discord_user:
+            continue
+
+        arix_member = await aMember.create(ctx,user_id=m.discord_user)
+
+        for account in arix_member.accounts:
+            try:
+                stats = m.season_data[season.id]
+            except KeyError:
+                continue
+
+            if stats.is_member:
+                accounts += 1
+                total_donations += stats.donations_sent.season
+
+                if stats.clangames.score >= 1000 and stats.clangames.clan.is_alliance_clan:
+                    cg_tier1 = True
+
+                if stats.clangames.score >= 4000 and stats.clangames.clan.is_alliance_clan:
+                    cg_tier2 = True
+
+        completed_users.append(arix_member.user_id)
+
+        donation_xp = 0
+        cg_xp = 0
+        if total_donations >= 1000:
+            donation_xp = math.ceil(total_donations / 100) * 100
+
+        if cg_tier1:
+            cg_xp = 1000
+
+        if cg_tier2:
+            cg_xp = 4000
+
+        col = 0
+        row += 1
+
+        m_data = []
+
+        m_data.append(str(arix_member.user_id))
+
+        if arix_member.discord_member:
+            m_data.append(f"{arix_member.discord_member.name}#{arix_member.discord_member.discriminator}")
+        else:
+            m_data.append(None)
+
+        m_data.append(accounts)
+        m_data.append(donation_xp + cg_xp)
+        m_data.append(total_donations)
+        m_data.append(donation_xp)
+        m_data.append(cg_tier1)
+        m_data.append(cg_tier2)
+        m_data.append(cg_xp)
+
+        for d in m_data:
+            xp_worksheet.write(row,col,d)
+            col += 1
+
+    rp_workbook.close()
+    return report_file
+
 
 async def report_to_excel(ctx,clan):
-
     members = ctx.bot.member_cache
 
     dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
@@ -551,7 +655,7 @@ async def report_to_excel(ctx,clan):
 
     row = 0
     col = 0
-    for h in mem_headers:
+    for h in xp_headers:
         mem_worksheet.write(row,col,h,bold)
         col += 1
 
@@ -812,8 +916,8 @@ async def report_to_excel(ctx,clan):
                 mwar_data.append(war.result)
 
                 mwar_data.append(war.clan.stars)
-                mwar_data.append(war.clan.destruction)
-                mwar_data.append(war.clan.average_attack_duration)
+                mwar_data.append(round(war.clan.destruction,2))
+                mwar_data.append(int(war.clan.average_attack_duration))
 
                 mwar_data.append(m.tag)
                 mwar_data.append(m.name)

@@ -41,6 +41,8 @@ class aClashSeason():
 
         self.season_description = f"{calendar.month_name[self.season_month]} {self.season_year}"
 
+        self.description = self.season_description
+
         self.season_start = datetime(self.season_year, self.season_month, 1, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
         self.clangames_start = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
@@ -1297,7 +1299,9 @@ class aClan(coc.Clan):
 
     async def compute_arix_membership(self,ctx):
         self.arix_members = []
-        for (m_tag,member) in ctx.bot.member_cache.items():
+
+        members = ctx.bot.member_cache
+        for (m_tag,member) in members.items():
             if member.is_member and member.home_clan.tag == self.tag:
                 self.arix_members.append(member)
 
@@ -1611,7 +1615,9 @@ class aMember():
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
 
-        self.accounts = [member for (m_tag,member) in ctx.bot.member_cache.items() if member.discord_user == self.user_id]
+        accounts = ctx.bot.member_cache
+
+        self.accounts = [member for (m_tag,member) in accounts.items() if member.discord_user == self.user_id]
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)

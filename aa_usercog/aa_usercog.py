@@ -751,6 +751,9 @@ class AriXMemberCommands(commands.Cog):
         if season == 'current':
             season = ctx.bot.current_season
         else:
+            if season not in [season.id for season in ctx.bot.tracked_seasons]:
+                return await ctx.send(f"The season `{season}` is not valid.")
+
             season = aClashSeason(season)
 
         menu = []

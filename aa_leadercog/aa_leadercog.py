@@ -20,14 +20,14 @@ from string import ascii_letters, digits
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
-from .leader_reports import report_member_summary, report_super_troops, report_war_status, report_all_members, report_missing_members, report_unrecognized_members, report_to_excel
+from .leader_reports import report_member_summary, report_super_troops, report_war_status, report_all_members, report_missing_members, report_unrecognized_members, get_xp_report, report_to_excel
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
@@ -1826,7 +1826,28 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=rept_embed,delete_after=60)
         await ctx.send(file=discord.File(rpfile))
 
+    @commands.command(name="calculatexp")
+    async def leader_xp_report(self,ctx,season):
 
+        msg = await ctx.send("Please wait...")
+
+        if season not in [season.id for season in ctx.bot.tracked_seasons]:
+            await msg.delete()
+            return await ctx.send(f"The season `{season}` is not valid. Note: This command can only be used for **completed** seasons.")
+
+        season = aClashSeason(season)
+
+        rpfile = await get_xp_report(ctx,season)
+
+        rept_embed = await clash_embed(ctx,
+            title=f"Season XP Calculations",
+            message=f"XP Calculations for **{season.season_description}** is available for download below.",
+            color='success')
+
+        await ctx.send(embed=rept_embed,delete_after=60)
+        await ctx.send(file=discord.File(rpfile))
+
+        await msg.delete()
 
     @commands.command(name="getreport")
     async def leader_report(self,ctx,clan_abbreviation:str):
