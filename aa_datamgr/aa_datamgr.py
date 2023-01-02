@@ -698,8 +698,8 @@ class AriXClashDataMgr(commands.Cog):
                             update_season = False
 
                         log_str += f"**{clan.name} ({clan.tag})**"
-                        log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
-                        log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
+                        log_str += f"\n> Clan War: {clan.war_state}"
+                        log_str += f"\n> Capital Raid: {clan.raid_weekend_state}"
 
                         log_str += "\n\n"
 
