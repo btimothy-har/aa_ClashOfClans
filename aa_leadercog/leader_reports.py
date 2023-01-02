@@ -164,13 +164,13 @@ async def report_member_summary(ctx,message,clan):
             + f"\nUnique Members: {len(list(user_count.keys()))}\n\u200b")
 
     def get_table(text_input):
-        output_str = f"{'# AC':^4}{'':^2}{'Townhalls':<10}{'':^2}{'User':^15}"
+        output_str = f"{'# AC':^4}{'':^2}{'Townhalls':<10}{'':^2}{'User':<18}"
         for i in text_input:
             user_len = i['User'][0:15]
             output_str += f"\n"
             output_str += f"{i['# Accs']:^4}{'':^2}"
             output_str += f"{i['Townhalls']:<10}{'':^2}"
-            output_str += f"{user_len:<15}"
+            output_str += f"{user_len:<18}"
 
         return output_str
 
@@ -230,7 +230,7 @@ async def report_member_summary(ctx,message,clan):
     account_strength_output = []
     hero_strength_output = []
 
-    strength_members = sorted(clan_members,key=lambda x:(x.town_hall.level,x.exp_level),reverse=True)
+    strength_members = sorted(clan_members,key=lambda x:(x.town_hall.level,(x.hero_strength + x.troop_strength + x.spell_strength)),reverse=True)
 
     for m in strength_members:
         bk = ""
