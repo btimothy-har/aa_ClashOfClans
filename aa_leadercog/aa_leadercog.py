@@ -1226,9 +1226,8 @@ class AriXLeaderCommands(commands.Cog):
                     player_tags.append(t)
 
         if user:
-            accounts = ctx.bot.member_cache
-            accounts = [a for (t,a) in accounts.items() if a.is_member and a.discord_user == user.id]
-            accounts = sorted(accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
+            member = await aMember.create(ctx,user_id=user.id)
+            accounts = sorted(member.accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
         else:
             for tag in player_tags:
@@ -1254,8 +1253,8 @@ class AriXLeaderCommands(commands.Cog):
                 }
             account_selection.append(s_dict)
 
-            if len(home_clans) > 1:
-                for clan in home_clans:
+            if len(member.home_clans) > 1:
+                for clan in member.home_clans:
                     s_dict = {
                         'id': clan.tag,
                         'title': f'Only {clan.emoji} {clan.name}',
@@ -1299,7 +1298,7 @@ class AriXLeaderCommands(commands.Cog):
 
             if selected_account['id'] == 'all_accounts':
                 remove_accounts = accounts
-            elif selected_account['id'] in [c.tag for c in home_clans]:
+            elif selected_account['id'] in [c.tag for c in member.home_clans]:
                 remove_accounts = [a for a in accounts if a.home_clan.tag == selected_account['id']]
             else:
                 remove_accounts = [a for a in accounts if a.tag == selected_account['id']]
