@@ -164,19 +164,21 @@ async def report_member_summary(ctx,message,clan):
             + f"\nUnique Members: {len(list(user_count.keys()))}\n\u200b")
 
     def get_table(text_input):
-
         header_str = f"{'# AC':^4}{'':^2}{'Townhalls':<10}{'':^2}{'User':<18}"
 
+        count = 0
         output_list = []
         output_str = ""
+
         for i in text_input:
+            count += 1
             user_len = i['User'][0:15]
             output_str += f"\n"
             output_str += f"{i['# Accs']:^4}{'':^2}"
             output_str += f"{i['Townhalls']:<10}{'':^2}"
             output_str += f"{user_len:<18}"
 
-            if len(output_str) >= 800 or i == text_input[:-1]:
+            if len(output_str) >= 800 or count == len(text_input):
                 output_list.append(output_str)
                 output_str = ""
 
