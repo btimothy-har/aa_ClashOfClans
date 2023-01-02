@@ -1034,6 +1034,11 @@ class AriXClashDataMgr(commands.Cog):
         async with self.clan_lock:
             bot.clan_refresh_status = True
 
+            clan_dict = ctx.bot.clan_cache
+
+            war_dict = ctx.bot.war_cache
+            raid_dict = ctx.bot.raid_cache
+
             st = time.time()
 
             data_embed = discord.Embed(
@@ -1056,7 +1061,7 @@ class AriXClashDataMgr(commands.Cog):
                 ## CLAN UPDATE
                 clan_update = ''
                 mem_count = 0
-                for (c_tag,clan) in ctx.bot.clan_cache.items():
+                for (c_tag,clan) in clan_dict.items():
                     try:
                         c = await aClan.create(ctx,tag=c_tag,refresh=True)
                     except Exception as e:
@@ -1149,12 +1154,12 @@ class AriXClashDataMgr(commands.Cog):
                     value=clan_update,
                     inline=False)
 
-                for (war_id,war) in ctx.bot.war_cache.items():
+                for (war_id,war) in war_dict.items():
                     if war.state not in ['warEnded']:
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
                         war = await aClanWar.get(ctx,clan=war_clan)
 
-                for (raid_id,raid) in ctx.bot.raid_cache.items():
+                for (raid_id,raid) in raid_dict.items():
                     if raid.state not in ['ended']:
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
@@ -1258,6 +1263,8 @@ class AriXClashDataMgr(commands.Cog):
 
             bot.member_refresh_status = True
 
+            member_dict = ctx.bot.member_cache
+
             st = time.time()
 
             is_cwl = False
@@ -1287,7 +1294,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 count_members = 0
                 count_member_update = 0
-                for (m_tag, member) in ctx.bot.member_cache.items():
+                for (m_tag, member) in member_dict.items():
                     try:
                         m = await aPlayer.create(ctx,tag=m_tag,refresh=True)
                     except Exception as e:
@@ -1339,7 +1346,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 data_embed.add_field(
                     name=f"**Member Updates**",
-                    value=f"Number of Tags: {len(list(ctx.bot.member_cache.keys()))}"
+                    value=f"Number of Tags: {len(list(member_dict.keys()))}"
                         + f"\nAccounts Found: {count_members}"
                         + f"\nSuccessful Updates: {count_member_update}",
                     inline=False)

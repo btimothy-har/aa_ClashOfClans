@@ -494,6 +494,8 @@ async def report_unrecognized_members(ctx,message,clan):
 
 async def report_to_excel(ctx,clan):
 
+    members = ctx.bot.member_cache
+
     dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
     report_file = f"{ctx.bot.clash_report_path}/{ctx.author.name}_{clan.abbreviation}_{dt}.xlsx"
 
@@ -553,7 +555,7 @@ async def report_to_excel(ctx,clan):
         mem_worksheet.write(row,col,h,bold)
         col += 1
 
-    for m in [m for (t,m) in ctx.bot.member_cache.items() if m.home_clan.tag == clan.tag]:
+    for m in [m for (t,m) in members.items() if m.home_clan.tag == clan.tag]:
         col = 0
         row += 1
 
@@ -683,9 +685,12 @@ async def report_to_excel(ctx,clan):
             mem_worksheet.write(row,col,h,bold)
             col += 1
 
-        for m in [m for (t,m) in ctx.bot.member_cache.items()]:
+        for m in [m for (t,m) in members.items()]:
 
-            stats = m.season_data[season.id]
+            try:
+                stats = m.season_data[season.id]
+            except:
+                continue
 
             if stats.home_clan.tag != clan.tag:
                 continue
