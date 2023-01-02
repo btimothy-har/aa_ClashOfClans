@@ -806,7 +806,7 @@ class AriXMemberCommands(commands.Cog):
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Donations for {season.season_description} Season**"
-                        + f"\n\nSent: {sent_total:,} | Rcvd: {rcvd_total:,}"
+                        + f"\n\nSent: {sent_total:,}\u3000|\u3000 Rcvd: {rcvd_total:,}"
                         + f"\n\n```{stats_embed_str}```")
 
             if ctx.invoked_with == 'warstats':
@@ -846,7 +846,7 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"{m.player.name}"
 
                 if total_attacks > 0:
-                    average_stars = int(total_stars / total_attacks)
+                    average_stars = round(total_stars / total_attacks,1)
                     average_destruction = int(total_destruction / total_attacks)
 
                 clan_stats_embed = await clash_embed(ctx,
@@ -854,11 +854,12 @@ class AriXMemberCommands(commands.Cog):
                     message=f"**War Stats for {season.season_description} Season**"
                         + f"\n- Attacks (ATTKS) are shown as `Used/Total Available`."
                         + f"\n- TRP = War Triples. Only on bases of equivalent or higher Town Hall."
-                        + f"\n\nTotal Attacks: {total_attacks} | Total Triples: {total_triples} | Avg: {average_stars} <:WarStars:825756777844178944>\u3000{average_destruction} :fire:"
+                        + f"\n\nTotal Attacks: {total_attacks}\u3000|\u3000Total Triples: {total_triples}"
+                        + f"\nAverage per Attack: {average_stars} <:WarStars:825756777844178944>\u3000{average_destruction} :fire:"
                         + f"\n\n```{stats_embed_str}```")
 
             if ctx.invoked_with == 'raidstats':
-                clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.raid_stats.raids_participated),reverse=True)
+                clan_members = sorted(clan_members,key=lambda x:(x.raid_stats.raids_participated,x.town_hall),reverse=True)
 
                 total_attacks = 0
                 total_loot = 0
@@ -890,7 +891,8 @@ class AriXMemberCommands(commands.Cog):
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Capital Raid Stats for {season.season_description} Season**"
                         + f"\n- Attacks (ATTKS) are shown as `Used/Total Available` (assuming 6 attacks per Capital Raid)."
-                        + f"\n\nTotal Attacks: {total_attacks} | Total Loot: {total_loot:,} <:CapitalGoldLooted:1045200974094028821> | Avg: {average_loot:,} <:CapitalGoldLooted:1045200974094028821>"
+                        + f"\n\nTotal Attacks: {total_attacks}\u3000|\u3000Total Loot: {total_loot:,} <:CapitalGoldLooted:1045200974094028821>"
+                        + f"\nAverage per Attack: {average_loot:,} <:CapitalGoldLooted:1045200974094028821>"
                         + f"\n\n```{stats_embed_str}```")
 
             if ctx.invoked_with == 'clangames':
@@ -931,7 +933,7 @@ class AriXMemberCommands(commands.Cog):
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Clan Games Stats for {season.season_description} Season**"
-                        + f"\n\nTotal: {total_score:,}"
+                        + f"\n\nTotal Points: {total_score:,}"
                         + f"\n\n```{stats_embed_str}```")
 
             if message:
