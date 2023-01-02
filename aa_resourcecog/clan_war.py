@@ -158,9 +158,6 @@ class aClanWar():
 
         elif clan.public_war_log:
             try:
-                if ctx.invoked_with == 'nstart':
-                    ch = ctx.bot.get_channel(856433806142734346)
-                    await ch.send(clan.tag)
                 war = await ctx.bot.coc_client.get_current_war(clan.tag)
             except:
                 return None
@@ -186,7 +183,6 @@ class aClanWar():
             'team_size': self.team_size,
             'attacks_per_member': self.attacks_per_member,
             'war_tag': self.war_tag,
-            'league_group': self.league_group,
             'members': [m.to_json() for m in self.members],
             'attacks': [a.to_json() for a in self.attacks]
             }

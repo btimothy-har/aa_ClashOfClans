@@ -781,15 +781,13 @@ class AriXMemberCommands(commands.Cog):
             clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
 
             donation_embed_str = f"`{'':<4}{'':<20}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
-
-            donation_embed_str = ""
             for m in clan_members:
                 sent = f"{m.donations_sent.season:,}"
                 rcvd = f"{m.donations_rcvd.season:,}"
 
                 donation_embed_str += f"\n"
                 donation_embed_str += f"`{m.town_hall:<4}"
-                donation_embed_str += f"`{m.player.name:<18}{'':^2}"
+                donation_embed_str += f"{m.player.name:<18}{'':^2}"
                 donation_embed_str += f"{sent:>8}{'':^2}"
                 donation_embed_str += f"{rcvd:>8}{'':^2}`"
 

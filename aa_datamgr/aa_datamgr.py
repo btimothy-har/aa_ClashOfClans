@@ -761,14 +761,14 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send('update completed')
 
-    @tasks.loop(minutes=28.0)
+    @tasks.loop(hours=1.0)
     async def data_backup_save(self):
 
         bot = self.master_bot
         ctx = EmptyContext(bot=bot)
         send_logs = False
 
-        if bot.refresh_loop < 0:
+        if bot.refresh_loop < 1:
             return None
 
         await self.master_lock.acquire()
@@ -780,7 +780,7 @@ class AriXClashDataMgr(commands.Cog):
         try:
             backup_path = bot.clash_dir_path+'/backup'
             for file_name in os.listdir(backup_path):
-                file = path + file_name
+                file = backup_path + file_name
                 if os.path.isfile(file):
                     os.remove(file)
 
@@ -820,7 +820,7 @@ class AriXClashDataMgr(commands.Cog):
         self.backup_count += 1
 
 
-    @tasks.loop(minutes=10.0)
+    @tasks.loop(minutes=30.0)
     async def season_update(self):
 
         bot = self.master_bot
