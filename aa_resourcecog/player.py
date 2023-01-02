@@ -1296,6 +1296,7 @@ class aClan(coc.Clan):
         update_summary = ""
 
         self.war_state_change = False
+        war_change = False
 
         if not self.current_war:
             self.war_state = 'notInWar'
@@ -1303,13 +1304,14 @@ class aClan(coc.Clan):
 
         if self.current_war.state != self.war_state:
             self.war_state_change = True
+            war_change = True
 
         self.war_state = self.current_war.state
 
         self.war_log[self.current_war.war_id] = self.current_war
 
         if self.current_war.type == 'random':
-            if self.war_state_change and self.current_war.state == 'inWar':
+            if war_change and self.current_war.state == 'inWar':
                 self.war_reminder_tracking = self.war_reminder_intervals
                 update_summary += f"\n> - War vs {self.current_war.opponent.name} has started!"
 
@@ -1360,6 +1362,7 @@ class aClan(coc.Clan):
         update_summary = ""
 
         self.raid_state_change = False
+        raid_change = False
 
         if not self.current_raid_weekend:
             self.raid_state = 'Not In Raid'
@@ -1367,13 +1370,14 @@ class aClan(coc.Clan):
 
         if self.current_raid_weekend.state != self.raid_weekend_state:
             self.raid_state_change = True
+            raid_change = True
 
         self.raid_weekend_state = self.current_raid_weekend.state
 
         self.raid_log[self.current_raid_weekend.raid_id] = self.current_raid_weekend
 
         #new raid weekend
-        if self.raid_state_change:
+        if raid_change:
             if self.current_raid_weekend.state == 'ongoing':
                 self.raid_reminder_tracking = self.raid_reminder_intervals
                 update_summary += f"\n> - Raid Weekend has started!"
@@ -1381,7 +1385,7 @@ class aClan(coc.Clan):
             if self.announcement_channel and self.current_raid_weekend.state == 'ended':
                 results_embed = await self.current_raid_weekend.get_results_embed(ctx)
                 ch = ctx.bot.get_channel(self.announcement_channel)
-                await ch.send(embed=results_embed)
+                await ch.send(embed=r$esults_embed)
                 update_summary += f"\n> - Raid Weekend is now over."
 
         #raid reminders
