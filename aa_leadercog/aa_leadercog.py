@@ -1226,9 +1226,8 @@ class AriXLeaderCommands(commands.Cog):
                     player_tags.append(t)
 
         if user:
-            home_clans, user_accounts = await get_user_profile(ctx,user.id)
-
-            accounts = [a for a in user_accounts if a.is_member]
+            accounts = ctx.bot.member_cache
+            accounts = [a for a in user_accounts if a.is_member and a.discord_user == user.id]
             accounts = sorted(accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
         else:
@@ -1710,7 +1709,7 @@ class AriXLeaderCommands(commands.Cog):
             await rank_clan.update_member_rank(ctx,user_id,new_rank)
 
             for a in [a for a in member.accounts if a.is_member and a.home_clan.tag == rank_clan.tag]:
-                await aPlayer.create(ctx,a.tag,fetch=True)
+                await aPlayer.create(ctx,a.tag,reset=True)
 
             member = await aMember.create(ctx,user_id=user_id)
             await member.sync_roles(ctx)

@@ -588,6 +588,7 @@ class aPlayer(coc.Player):
 
         self.discord_user = discord_user.id
         await self.save_to_json(ctx)
+        await aPlayer.create(ctx,tag=self.tag,reset=True)
 
 
     async def remove_member(self,ctx):
@@ -596,6 +597,7 @@ class aPlayer(coc.Player):
         self.is_member = False
 
         await self.save_to_json(ctx)
+        await aPlayer.create(ctx,tag=self.tag,reset=True)
 
 
     async def add_note(self,ctx,message):
@@ -606,6 +608,7 @@ class aPlayer(coc.Player):
         self.notes = sorted_notes
 
         await self.save_to_json(ctx)
+        await aPlayer.create(ctx,tag=self.tag,reset=True)
 
 
 class aPlayerSeason():
