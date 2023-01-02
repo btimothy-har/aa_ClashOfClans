@@ -99,7 +99,7 @@ class AriXLeaderCommands(commands.Cog):
             clanEmbed = await clash_embed(ctx=ctx,
                 title=f"Clan Recruitment",
                 message=f"**{c.emoji} {c.name} ({c.tag})**"
-                    + f"\nMembers: {c.member_count} / 50\nRecruiting: {th_str}\n\u200b",
+                    + f"\nMembers: {c.arix_member_count} / 50\nRecruiting: {th_str}\n\u200b",
                 thumbnail="https://i.imgur.com/TZF5r54.png")
 
             for note in c.notes[:9]:

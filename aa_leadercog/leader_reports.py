@@ -645,7 +645,7 @@ async def report_to_excel(ctx,clan):
 
     for season in ctx.bot.tracked_seasons:
         sheet_name = f"Members - {season.season_description}"
-        mem_worksheet = rp_workbook.add_worksheet('sheet_name')
+        mem_worksheet = rp_workbook.add_worksheet(sheet_name)
 
         mem_headers = ['Tag',
             'Name',
@@ -683,7 +683,7 @@ async def report_to_excel(ctx,clan):
             mem_worksheet.write(row,col,h,bold)
             col += 1
 
-        for m in [m for (t,m) in ctx.bot.member_cache.items() if m.current_season.home_clan.tag == clan.tag]:
+        for m in [m for (t,m) in ctx.bot.member_cache.items()]y:
             col = 0
             row += 1
 
