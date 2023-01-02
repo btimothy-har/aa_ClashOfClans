@@ -1832,7 +1832,10 @@ class AriXLeaderCommands(commands.Cog):
         msg = await ctx.send("Please wait...")
 
         if season not in [season.id for season in ctx.bot.tracked_seasons]:
+            await msg.delete()
             return await ctx.send(f"The season `{season}` is not valid.")
+
+        season = aClashSeason(season)
 
         rpfile = await get_xp_report(ctx,season)
 
@@ -1844,7 +1847,7 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=rept_embed,delete_after=60)
         await ctx.send(file=discord.File(rpfile))
 
-        await msg.delete()
+        await msg.delete(
 
 
 
