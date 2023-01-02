@@ -683,7 +683,7 @@ async def report_to_excel(ctx,clan):
             mem_worksheet.write(row,col,h,bold)
             col += 1
 
-        for m in [m for (t,m) in ctx.bot.member_cache.items()]y:
+        for m in [m for (t,m) in ctx.bot.member_cache.items()]:
             col = 0
             row += 1
 
