@@ -1025,7 +1025,7 @@ class AriXLeaderCommands(commands.Cog):
                     'id': c.tag,
                     'emoji': c.emoji,
                     'title': f"**{c.abbreviation} {c.name} ({c.tag})**",
-                    'description': f"\u200b\u3000Members: {c.member_count}\u3000Recruiting: {th_str}"
+                    'description': f"\u200b\u3000Members: {c.arix_member_count}\u3000Recruiting: {th_str}"
                     }
                 clan_selection.append(c_dict)
                 clan_selection_str += f"{c_dict['emoji']} {c_dict['title']}\n{c_dict['description']}"
@@ -1066,7 +1066,7 @@ class AriXLeaderCommands(commands.Cog):
                 p_notes = ""
 
             player_embed = await clash_embed(ctx,
-                title=f"Add Member: {p.desc_title}",
+                title=f"**Add Member: {p.name}** ({p.tag})",
                 message=f"<:Discord:1040423151760314448> {user.mention}\n"
                     + f"{p.desc_full_text}"
                     + f"{p_notes}\n\u200b",
