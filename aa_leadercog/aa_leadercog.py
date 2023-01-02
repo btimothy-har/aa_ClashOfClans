@@ -1227,7 +1227,8 @@ class AriXLeaderCommands(commands.Cog):
 
         if user:
             member = await aMember.create(ctx,user_id=user.id)
-            accounts = sorted(member.accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
+            accounts = [a for a in member.accounts if a.is_member]
+            accounts = sorted(accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
         else:
             for tag in player_tags:
