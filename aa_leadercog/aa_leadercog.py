@@ -1812,7 +1812,7 @@ class AriXLeaderCommands(commands.Cog):
     async def leader_excel_extract(self,ctx,clan_abbreviation:str):
 
         try:
-            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation][0]
+            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation.upper()][0]
         except:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
 

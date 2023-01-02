@@ -124,13 +124,13 @@ class aClanWar():
 
         self.attacks = sorted(self.attacks, key=lambda x: x.order)
         self.members = sorted(self.members, key=lambda x:(x.map_position,(x.town_hall*-1)))
-        [a.compute_attack_stats() for a in self.attacks]
-        [m.compute_war_performance() for m in self.members]
+        [await a.compute_attack_stats() for a in self.attacks]
+        [await m.compute_war_performance() for m in self.members]
 
-        self.clan.get_members()
-        self.clan.get_attacks()
-        self.opponent.get_members()
-        self.opponent.get_attacks()
+        await self.clan.get_members()
+        await self.clan.get_attacks()
+        await self.opponent.get_members()
+        await self.opponent.get_attacks()
 
     @classmethod
     async def get(cls,ctx,**kwargs):
@@ -233,10 +233,10 @@ class aWarClan():
         self.attacks = []
         self.defenses = []
 
-    def get_members(self):
+    async def get_members(self):
         self.members = [m for m in self.war.members if m.clan_tag == self.tag]
 
-    def get_attacks(self):
+    async def get_attacks(self):
         self.attacks = [a for a in self.war.attacks if a.attacker_tag in [m.tag for m in self.members]]
         self.defenses = [a for a in self.war.attacks if a.defender_tag in [m.tag for m in self.members]]
 
@@ -292,7 +292,7 @@ class aWarPlayer():
         self.star_count = 0
         self.best_opponent_attack = None
 
-    def compute_war_performance(self):
+    async def compute_war_performance(self):
         best_defenses = sorted(self.defenses,key=lambda x:(x.order),reverse=True)
         for d in best_defenses:
             if d.new_stars > 0 or d.new_destruction > 0:
@@ -366,7 +366,7 @@ class aWarAttack():
         self.defender = None
 
 
-    def compute_attack_stats(self):
+    async def compute_attack_stats(self):
         self.attacker = [player for player in self.war.members if player.tag == self.attacker_tag][0]
         self.defender = [player for player in self.war.members if player.tag == self.defender_tag][0]
         self.is_triple = (self.stars==3 and self.attacker.town_hall <= self.defender.town_hall)
