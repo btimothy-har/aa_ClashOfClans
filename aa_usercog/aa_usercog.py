@@ -800,13 +800,13 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"\n"
                     stats_embed_str += f"{m.town_hall:^2}{'':^2}"
                     stats_embed_str += f"{sent:>8}{'':^2}"
-                    stats_embed_str += f"{rcvd:>8}{'':^2}`"
+                    stats_embed_str += f"{rcvd:>8}{'':^2}"
                     stats_embed_str += f"{m.player.name}"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Donations for {season.season_description} Season**"
-                        + f"\nSent: {sent_total} | Rcvd: {rcvd_total}"
+                        + f"\n\nSent: {sent_total:,} | Rcvd: {rcvd_total:,}"
                         + f"\n\n```{stats_embed_str}```")
 
             if ctx.invoked_with == 'warstats':
@@ -828,8 +828,8 @@ class AriXMemberCommands(commands.Cog):
 
                     total_attacks += ws.attack_count
                     total_triples += ws.triples
-                    total_stars += ws.stars
-                    total_destruction += ws.destruction
+                    total_stars += ws.offense_stars
+                    total_destruction += ws.offense_destruction
                     total_unused += ws.unused_attacks
 
                     attack_str = f"{ws.attack_count}/{ws.attack_count+ws.unused_attacks}"
@@ -870,7 +870,7 @@ class AriXMemberCommands(commands.Cog):
 
                     rs = m.raid_stats
 
-                    total_attacks += rs.raidattacks
+                    total_attacks += rs.raid_attacks
                     total_loot += rs.resources_looted
 
                     attack_str = f"{rs.raid_attacks}/{rs.raids_participated*6}"
@@ -903,6 +903,8 @@ class AriXMemberCommands(commands.Cog):
 
                 clan_members = sorted(clan_members,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1),x.town_hall),reverse=True)
 
+                total_score = 0
+
                 stats_embed_str = f"{'TH':>2}{'':>2}{'SCORE':>5}{'':^2}{'TIME':>10}{'':^2}"
                 for m in clan_members:
 
@@ -917,6 +919,8 @@ class AriXMemberCommands(commands.Cog):
                         if cm > 0:
                             ct += f"{int(cm)}m"
 
+                    total_score += cg.score
+
                     stats_embed_str += f"\n"
                     stats_embed_str += f"{m.town_hall:^2}{'':^2}"
                     stats_embed_str += f"{cg.score:>5}{'':^2}"
@@ -927,6 +931,7 @@ class AriXMemberCommands(commands.Cog):
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Clan Games Stats for {season.season_description} Season**"
+                        + f"\n\nTotal: {total_score:,}"
                         + f"\n\n```{stats_embed_str}```")
 
             if message:
