@@ -33,7 +33,6 @@ from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_regi
 
 
 async def report_paginate(ctx,message,clan,output):
-
     nav_options = []
     nav_str = ""
     paginate_state = True
@@ -106,25 +105,28 @@ async def report_paginate(ctx,message,clan,output):
 
 async def report_member_summary(ctx,message,clan):
     output_pages = []
+    clan_members = clan.arix_members
 
-    members = await get_clan_members(ctx,clan)
-
-    if not members:
+    if len(clan_members) == 0:
         return None
 
     #Users & Accounts
     user_count = {}
-
-    for m in members:
+    for m in clan_members:
         if m.discord_user not in list(user_count.keys()):
             user_count[m.discord_user] = []
         user_count[m.discord_user].append(m)
 
-    users_accounts_output = []
-    for user, accounts in user_count.items():
+    leaders = []
+    coleaders = []
+    elders = []
+    members = []
 
-        if user.discord_member:
-            user_display = user.discord_member.display_name
+    for user, accounts in user_count.items():
+        user_member = await aMember.create(ctx,user_id=user)
+
+        if user_member.discord_member:
+            user_display = user_member.discord_member.display_name
         else:
             user_display = "<< Unknown User >>"
 
@@ -138,19 +140,60 @@ async def report_member_summary(ctx,message,clan):
             '# Accs': f"{len(accounts)}",
             'Townhalls': f"{','.join(townhalls_only)}"
             }
-        users_accounts_output.append(output)
+
+        if user == clan.leader:
+            leaders.append(output)
+
+        elif user in clan.coleaders:
+            coleaders.append(output)
+
+        elif user in clan.elders:
+            elders.append(output)
+
+        else:
+            members.append(output)
 
     users_accounts_embed = await clash_embed(ctx,
         title=f"{clan.emoji} User Summary Report",
-        message=f"Total Members: {len(members)}"
-            + f"\nUnique Members: {len(list(user_count.keys()))}"
-            + f"\n\n{box(tabulate(users_accounts_output,headers='keys',tablefmt='pretty'))}")
+        message=f"Total Members: {len(clan_members)}"
+            + f"\nUnique Members: {len(list(user_count.keys()))}\n\u200b")
+
+    def get_table(text_input):
+        output_str = f"{'User':^15}{'':^2}{'# AC':^3}{'':^2}{'Townhalls':<10}"
+        for i in text_input:
+            user_len = i['User'][0:15]
+            output_str += f"\n"
+            output_str += f"{user_len:<15}{'':^2}"
+            output_str += f"{i['# Accs']:>3}{'':^2}"
+            output_str += f"{i['Townhalls']:<10}"
+
+        return output_str
+
+    leader_output = get_table(leaders)
+    users_accounts_embed.add_field(
+        name="**Leader(s)**",
+        value=f"```{leader_output}```\n\u200b")
+
+    coleader_output = get_table(coleaders)
+    users_accounts_embed.add_field(
+        name="**Co-Leader(s)**",
+        value=f"```{coleader_output}```\n\u200b")
+
+    elder_output = get_table(elders)
+    users_accounts_embed.add_field(
+        name="**Elder(s)**",
+        value=f"```{elder_output}```\n\u200b")
+
+    member_output = get_table(members)
+    users_accounts_embed.add_field(
+        name="**Member(s)**",
+        value=f"```{member_output}```\n\u200b")
 
     output_pages.append(users_accounts_embed)
 
 
     #TH Composition
-    all_townhall_levels = [a.town_hall.level for a in members]
+    all_townhall_levels = [a.town_hall.level for a in clan_members]
     average_townhall = sum(all_townhall_levels) / len(all_townhall_levels)
 
     individual_townhalls = []
@@ -160,25 +203,24 @@ async def report_member_summary(ctx,message,clan):
 
     composition_str = ""
     for th_level in individual_townhalls:
-        composition_str += f"{emotes_townhall[th_level]} **{len([a for a in members if a.town_hall.level==th_level])}** "
-        composition_str += f"({int(round((len([a for a in members if a.town_hall.level==th_level]) / len(members))*100,0))}%)"
+        composition_str += f"{emotes_townhall[th_level]} **{len([a for a in clan_members if a.town_hall.level==th_level])}** "
+        composition_str += f"({int(round((len([a for a in clan_members if a.town_hall.level==th_level]) / len(clan_members))*100,0))}%)"
 
         if individual_townhalls.index(th_level) < (len(individual_townhalls)-1):
             composition_str += "\n\n"
 
     townhall_composition_embed = await clash_embed(ctx,
         title=f"{clan.emoji} Clan Composition",
-        message=f"Total Members: {len(members)}"
+        message=f"Total Members: {len(clan_members)}"
             + f"\nAverage: {emotes_townhall[int(average_townhall)]} {round(average_townhall,1)}"
             + f"\n\n{composition_str}")
 
     output_pages.append(townhall_composition_embed)
 
-
     #TH/Hero/Strength
     account_strength_output = []
     hero_strength_output = []
-    for m in members:
+    for m in clan_members:
         bk = ""
         aq = ""
         gw = ""
@@ -219,14 +261,33 @@ async def report_member_summary(ctx,message,clan):
         account_strength_output.append(account_output)
         hero_strength_output.append(hero_output)
 
+    base_strength_str = f"{'Player':^15}{'':^2}{'TH':^2}{'':^1}{'Troops':^6}{'':^1}{'Spells':^6}{'':^1}{'Heroes':^6}"
+    for i in account_strength_output:
+        base_strength_str += "\n"
+        base_strength_str += f"{i['Name']:<15}{'':^2}"
+        base_strength_str += f"{i['TH']:^2}{'':^1}"
+        base_strength_str += f"{i['Troops']:^6}{'':^1}"
+        base_strength_str += f"{i['Spells']:^6}{'':^1}"
+        base_strength_str += f"{i['Heroes']:^6}"
+
     account_strength_embed = await clash_embed(ctx,
         title=f"{clan.emoji} Base Strength",
-        message=f"{box(tabulate(account_strength_output,headers='keys',tablefmt='pretty'))}")
+        message=f"```{base_strength_str}```")
     output_pages.append(account_strength_embed)
+
+    hero_strength_str = f"{'Player':^15}{'':^2}{'TH':^2}{'':^1}{'BK':^2}{'':^1}{'AQ':^2}{'':^1}{'GW':^2}{'':^1}{'RC':^2}"
+    for i in hero_strength_output:
+        hero_strength_str += "\n"
+        hero_strength_str += f"{i['Name']:<15}{'':^2}"
+        hero_strength_str += f"{i['TH']:^2}{'':^1}"
+        hero_strength_str += f"{i['BK']:^2}{'':^1}"
+        hero_strength_str += f"{i['AQ']:^2}{'':^1}"
+        hero_strength_str += f"{i['GW']:^2}{'':^1}"
+        hero_strength_str += f"{i['RC']:^2}"
 
     hero_strength_embed = await clash_embed(ctx,
         title=f"{clan.emoji} Hero Strength",
-        message=f"{box(tabulate(hero_strength_output,headers='keys',tablefmt='pretty'))}")
+        message=f"```{hero_strength_str}```")
     output_pages.append(hero_strength_embed)
 
     response = await report_paginate(ctx,message,clan,output_pages)
@@ -234,7 +295,6 @@ async def report_member_summary(ctx,message,clan):
 
 
 async def report_super_troops(ctx,message,clan):
-
     page_num = 0
     output_pages = []
     super_troop_str = []
@@ -248,9 +308,9 @@ async def report_super_troops(ctx,message,clan):
         troop_str = ""
         boost_count = 0
         for m in members:
-            if super_troop in [t.name for t in m.troops]:
-                t = [t for t in m.troops][0]
+            player_troop = m.get_troop(name=super_troop,is_home_troop=True)
 
+            if player_troop:
                 boost_count += 1
                 troop_str += f"\n> {emotes_townhall[m.town_hall.level]} {m.name}"
 
