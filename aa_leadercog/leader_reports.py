@@ -493,7 +493,7 @@ async def report_unrecognized_members(ctx,message,clan):
     return response
 
 async def get_xp_report(ctx,season):
-    alliance_clans = [clan for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
+    alliance_clans = [tag for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
     members = ctx.bot.member_cache
     season = season
 
@@ -531,15 +531,15 @@ async def get_xp_report(ctx,season):
             continue
 
         try:
-            stats = m.season_data[season.id]
+            season_stats = m.season_data[season.id]
         except KeyError:
             continue
 
         if m.discord_user not in list(xp_dict.keys()):
             xp_dict[m.discord_user] = []
 
-            if stats.is_member:
-                xp_dict[m.discord_user].append(stats)
+        if stats.is_member:
+            xp_dict[m.discord_user].append(season_stats)
 
     for (user,accounts) in xp_dict.items():
         total_donations = 0
@@ -551,7 +551,7 @@ async def get_xp_report(ctx,season):
         for a in accounts:
             total_donations += a.donations_sent.season
 
-            if a.clangames.clan_tag in [c.tag for c in alliance_clans] and a.clangames.score > cg_score:
+            if a.clangames.clan_tag in alliance_clans and a.clangames.score > cg_score:
                 cg_score = a.clangames.score
 
         if total_donations >= 1000:
