@@ -677,6 +677,7 @@ class AriXClashDataMgr(commands.Cog):
                     raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
         if update_type == 'season':
+            log_str = ""
             bot = self.master_bot
             update_season = False
 
