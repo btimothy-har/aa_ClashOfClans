@@ -176,7 +176,7 @@ async def report_member_summary(ctx,message,clan):
             output_str += f"{i['Townhalls']:<10}{'':^2}"
             output_str += f"{user_len:<18}"
 
-            if len(output_str) >= 800:
+            if len(output_str) >= 800 or i == text_input[:-1]:
                 output_list.append(output_str)
                 output_str = ""
 
@@ -186,28 +186,28 @@ async def report_member_summary(ctx,message,clan):
     for i in leader_output:
         users_accounts_embed.add_field(
             name="**Leader(s)**",
-            value=f"```{leader_output}```",
+            value=f"```{i}```",
             inline=False)
 
     coleader_output = get_table(coleaders)
     for i in coleader_output:
         users_accounts_embed.add_field(
             name="**Co-Leader(s)**",
-            value=f"```{coleader_output}```",
+            value=f"```{i}```",
             inline=False)
 
     elder_output = get_table(elders)
     for i in elder_output:
         users_accounts_embed.add_field(
             name="**Elder(s)**",
-            value=f"```{elder_output}```",
+            value=f"```{i}```",
             inline=False)
 
     member_output = get_table(members)
     for i in member_output:
         users_accounts_embed.add_field(
             name="**Member(s)**",
-            value=f"```{member_output}```",
+            value=f"```{i}```",
             inline=False)
 
     output_pages.append(users_accounts_embed)
