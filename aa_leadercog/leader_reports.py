@@ -230,7 +230,7 @@ async def report_member_summary(ctx,message,clan):
     account_strength_output = []
     hero_strength_output = []
 
-    strength_members = sorted(clan_members,key=lambda x:(x.exp_level,x.town_hall.level),reverse=True)
+    strength_members = sorted(clan_members,key=lambda x:(x.town_hall.level,x.exp_level),reverse=True)
 
     for m in strength_members:
         bk = ""
@@ -315,7 +315,7 @@ async def report_super_troops(ctx,message,clan):
     if not members:
         return None
 
-    members = sorted(members,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
+    members = sorted(members,key=lambda x:(x.town_hall.level,x.exp_level),reverse=True)
 
     for super_troop in coc.SUPER_TROOP_ORDER:
         troop_title = f"\n\n{emotes_army[super_troop]} **{super_troop}**"
