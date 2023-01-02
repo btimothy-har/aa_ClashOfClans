@@ -778,6 +778,27 @@ class AriXClashDataMgr(commands.Cog):
         st = time.time()
 
         try:
+            backup_path = bot.clash_dir_path+'/backup'
+            for file_name in os.listdir(backup_path):
+                file = path + file_name
+                if os.path.isfile(file):
+                    os.remove(file)
+
+            shutil.copy2(bot.clash_dir_path+'/clans.json',backup_path)
+            shutil.copy2(bot.clash_dir_path+'/membership.json',backup_path)
+            shutil.copy2(bot.clash_dir_path+'/players.json',backup_path)
+            shutil.copy2(bot.clash_dir_path+'/warlog.json',backup_path)
+            shutil.copy2(bot.clash_dir_path+'/capitalraid.json',backup_path)
+            shutil.copy2(bot.clash_dir_path+'/seasons.json',backup_path)
+
+        except Exception as e:
+            await bot.send_to_owners(f"Error encountered during backup:\n\n```{e}```")
+            self.clan_lock.release()
+            self.member_lock.release()
+            self.master_lock.release()
+            return
+
+        try:
             await save_war_cache(ctx)
             await save_raid_cache(ctx)
             await save_clan_cache(ctx)

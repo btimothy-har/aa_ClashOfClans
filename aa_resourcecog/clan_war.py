@@ -158,10 +158,10 @@ class aClanWar():
 
         elif clan:
             try:
-                war = await ctx.bot.coc_client.get_clan_war(clan.tag)
+                war = await ctx.bot.coc_client.get_current_war(clan.tag)
             except coc.errors.PrivateWarLog:
                 return None
-            if war.state == 'notInWar':
+            if not war or war.state == 'notInWar':
                 return None
             self = aClanWar(clan=clan,game=war)
         else:

@@ -734,6 +734,88 @@ class AriXMemberCommands(commands.Cog):
             except:
                 pass
 
+    @commands.command(name="donations")
+    async def arix_donations(self,ctx,season='current'):
+        """
+        Donation stats for AriX clans.
+        """
+
+        alliance_clans = [clan for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
+        alliance_clans = sorted(alliance_clans,key=lambda x:(x.level,x.capital_hall),reverse=True)
+
+        if season == 'current':
+            season = ctx.bot.current_season
+        else:
+            season = aClashSeason(season)
+
+        menu = []
+
+        for clan in alliance_clans:
+            select_menu = {
+                'id': clan.tag,
+                'emoji': clan.emoji,
+                'title': "",
+                }
+            menu.append(select_menu)
+
+        menu_state = True
+        clan_select = None
+        message = None
+
+        while menu_state:
+
+            if not clan_select:
+                clan_select = alliance_clans[0]
+
+            clan_members = []
+            for (tag,member) in ctx.bot.member_cache.items():
+
+                if season.id == ctx.bot.current_season.id:
+                    season_member = member.current_season
+                else:
+                    season_member = member.season_data[season.id]
+
+                if season_member.is_member and season_member.home_clan.tag == clan_select.tag:
+                    clan_members.append(season_member)
+
+            clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x:town_hall),reverse=True)
+
+            donation_embed_str = f"`{'':<4}{'':<20}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
+
+            donation_embed_str = ""
+            for m in clan_members:
+                sent = f"{m.donations_sent.season:,}"
+                rcvd = f"{m.donations_rcvd.season:,}"
+
+                donation_embed_str += f"\n"
+                donation_embed_str += f"`{m.town_hall:<4}"
+                donation_embed_str += f"`{m.player.name:<18}{'':^2}"
+                donation_embed_str += f"{sent:>8}{'':^2}"
+                donation_embed_str += f"{rcvd:>8}{'':^2}`"
+
+            clan_donation_embed = await clash_embed(ctx,
+                title=f"Donation: {clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                message=donation_embed_str)
+
+            if message:
+                await message.edit(embed=clan_donation_embed)
+            else:
+                message = await ctx.send(embed=clan_donation_embed)
+
+            selection = await multiple_choice_menu_select(ctx,message,menu,300)
+            if selection:
+                clan_select = [c for c in alliance_clans if c.tag == selection['id']][0]
+            else:
+                menu_state = False
+
+        if message:
+            try:
+                await message.clear_reactions()
+            except:
+                pass
+
+
+
     @commands.command(name="pass")
     async def challenge_pass(self,ctx):
         """
