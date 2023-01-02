@@ -512,6 +512,7 @@ async def get_xp_report(ctx,season):
         'Discord Name',
         'Nickname',
         '# Accounts',
+        'Account Tags',
         'Total XP',
         'Total Donations',
         'Donation XP',
@@ -526,7 +527,6 @@ async def get_xp_report(ctx,season):
         col += 1
 
     for m in [m for (t,m) in members.items()]:
-
         if not m.discord_user:
             continue
 
@@ -535,14 +535,13 @@ async def get_xp_report(ctx,season):
         except KeyError:
             continue
 
-        if m.discord_user not in list(xp_dict.keys()):
-            xp_dict[m.discord_user] = []
+        if str(m.discord_user) not in list(xp_dict.keys()):
+            xp_dict[str(m.discord_user)] = []
 
             if stats.is_member:
-                xp_dict[m.discord_user].append(stats)
+                xp_dict[str(m.discord_user)].append(stats)
 
     for (user,accounts) in xp_dict.items():
-
         total_donations = 0
         cg_score = 0
 
@@ -564,7 +563,7 @@ async def get_xp_report(ctx,season):
         if cg_score >= 4000:
             cg_xp = 4000
 
-        arix_member = await aMember.create(ctx,user_id=user)
+        arix_member = await aMember.create(ctx,user_id=int(user))
 
         col = 0
         row += 1
@@ -578,6 +577,7 @@ async def get_xp_report(ctx,season):
         else:
             m_data.append(None)
 
+        m_data.append(len(accounts))
         m_data.append(', '.join([a.player.tag for a in accounts]))
         m_data.append(donation_xp + cg_xp)
         m_data.append(total_donations)
