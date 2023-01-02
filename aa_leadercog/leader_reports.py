@@ -25,7 +25,7 @@ from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, use
 from aa_resourcecog.constants import clanRanks, emotes_army, emotes_townhall, emotes_league, emotes_capitalhall, clanRanks
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
@@ -493,9 +493,6 @@ async def report_unrecognized_members(ctx,message,clan):
 
 
 async def report_to_excel(ctx,clan):
-    members = await get_clan_members(ctx,clan)
-    if not members:
-        return None
 
     dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
     report_file = f"{ctx.bot.clash_report_path}/{ctx.author.name}_{clan.abbreviation}_{dt}.xlsx"
@@ -503,29 +500,13 @@ async def report_to_excel(ctx,clan):
     rp_workbook = xlsxwriter.Workbook(report_file)
     bold = rp_workbook.add_format({'bold': True})
 
-    mem_worksheet = rp_workbook.add_worksheet('Members')
+    mem_worksheet = rp_workbook.add_worksheet('Members - Current')
     mem_headers = ['Tag',
         'Name',
-        'Discord User',
         'Home Clan',
-        'Rank',
-        'Days in Home Clan',
-        'Exp',
         'Townhall',
-        'TH Weapon',
-        'Current Clan',
-        'Role in Clan',
-        'League',
-        'Trophies',
-        'Barbarian King',
-        'Archer Queen',
-        'Grand Warden',
-        'Royal Champion',
-        'Hero Completion',
-        'Troop Levels',
-        'Troop Completion',
-        'Spell Levels',
-        'Spell Completion',
+        'Days in Home Clan',
+        'Other Clans',
         'Attack Wins',
         'Defense Wins',
         'Donations Sent',
@@ -533,6 +514,7 @@ async def report_to_excel(ctx,clan):
         'Gold Looted',
         'Elixir Looted',
         'Dark Elixir Looted',
+        'Capital Contribution'
         'Clan Games Points',
         'Clan Games Timer',
         'Wars Participated',
@@ -547,7 +529,23 @@ async def report_to_excel(ctx,clan):
         'Raid Attacks',
         'Capital Gold Looted',
         'Raid Medals Earned',
-        'Capital Contribution']
+        'Discord User',
+        'Rank',
+        'Exp',
+        'Current Clan',
+        'Role in Clan',
+        'League',
+        'Trophies',
+        'Barbarian King',
+        'Archer Queen',
+        'Grand Warden',
+        'Royal Champion',
+        'Hero Completion',
+        'Troop Levels',
+        'Troop Completion',
+        'Spell Levels',
+        'Spell Completion',
+        ]
 
     row = 0
     col = 0
@@ -555,67 +553,40 @@ async def report_to_excel(ctx,clan):
         mem_worksheet.write(row,col,h,bold)
         col += 1
 
-    for m in members:
+    for m in [m for (t,m) in ctx.bot.member_cache.items() if m.current_season.home_clan.tag == clan.tag]:
         col = 0
         row += 1
+
+        stats = m.current_season
 
         m_data = []
 
         m_data.append(m.tag)
         m_data.append(m.name)
 
-        stats = m.current_season
+        m_data.append(f"{stats.home_clan.name}")
 
-        try:
-            m_user = ctx.bot.get_user(int(m.discord_user))
-            m_user_display = m_user.display_name
-        except:
-            m_user_display = str(m.discord_user)
-        m_data.append(m_user_display)
-
-        m_data.append(m.home_clan.name)
-        m_data.append(m.arix_rank)
+        m_data.append(stats.town_hall)
 
         dd, hh, mm, ss = await convert_seconds_to_str(ctx,stats.time_in_home_clan)
         m_data.append(dd)
 
-        m_data.append(m.exp_level)
-        m_data.append(m.town_hall.level)
-        m_data.append(m.town_hall.weapon)
-
-        m_data.append(f"{m.clan.name} ({m.clan.tag})")
-
-        m_data.append(m.role)
-
-        m_data.append(m.league.name)
-
-        m_data.append(m.trophies)
-
-        m_data.append(sum([h.level for h in m.heroes if h.name=='Barbarian King']))
-        m_data.append(sum([h.level for h in m.heroes if h.name=='Archer Queen']))
-        m_data.append(sum([h.level for h in m.heroes if h.name=='Grand Warden']))
-        m_data.append(sum([h.level for h in m.heroes if h.name=='Royal Champion']))
-
-        hero_completion = round((m.hero_strength/m.max_hero_strength)*100,1)
-        m_data.append(f"{hero_completion}%")
-
-        troop_completion = round((m.troop_strength/m.max_troop_strength)*100,1)
-        m_data.append(m.troop_strength)
-        m_data.append(f"{troop_completion}%")
-
-        spell_completion = round((m.spell_strength/m.max_spell_strength)*100,1)
-        m_data.append(m.spell_strength)
-        m_data.append(f"{spell_completion}%")
+        ocl = ""
+        for c in stats.other_clans:
+            if c.tag:
+                ocl += f"{c.name} ({c.tag})"
+        m_data.append(ocl)
 
         m_data.append(stats.attacks.season)
         m_data.append(stats.defenses.season)
 
         m_data.append(stats.donations_sent.season)
-        m_data.append(m.donations_rcvd.season)
+        m_data.append(stats.donations_rcvd.season)
 
         m_data.append(stats.loot_gold.season)
         m_data.append(stats.loot_elixir.season)
         m_data.append(stats.loot_darkelixir.season)
+        m_data.append(stats.capitalcontribution.season)
 
         m_data.append(stats.clangames.score)
         m_data.append(max(stats.clangames.ending_time - stats.clangames.games_start,0))
@@ -636,11 +607,140 @@ async def report_to_excel(ctx,clan):
         m_data.append(stats.raid_stats.raid_attacks)
         m_data.append(stats.raid_stats.resources_looted)
         m_data.append(stats.raid_stats.medals_earned)
-        m_data.append(stats.capitalcontribution.season)
+
+        try:
+            m_user = await aMember.create(ctx,user_id=m.discord_user)
+            if m_user.discord_member:
+                m_user_display = f"{m_user.discord_member.name}#{m_user.discord_member.discriminator}"
+        except:
+            m_user_display = str(m.discord_user)
+        m_data.append(m_user_display)
+
+        m_data.append(m.arix_rank)
+        m_data.append(m.exp_level)
+        m_data.append(f"{m.clan.name} ({m.clan.tag})")
+        m_data.append(str(m.role))
+        m_data.append(m.league.name)
+        m_data.append(m.trophies)
+
+        m_data.append(sum([h.level for h in m.heroes if h.name=='Barbarian King']))
+        m_data.append(sum([h.level for h in m.heroes if h.name=='Archer Queen']))
+        m_data.append(sum([h.level for h in m.heroes if h.name=='Grand Warden']))
+        m_data.append(sum([h.level for h in m.heroes if h.name=='Royal Champion']))
+
+        hero_completion = round((m.hero_strength/m.max_hero_strength)*100,1)
+        m_data.append(f"{hero_completion}%")
+
+        troop_completion = round((m.troop_strength/m.max_troop_strength)*100,1)
+        m_data.append(m.troop_strength)
+        m_data.append(f"{troop_completion}%")
+
+        spell_completion = round((m.spell_strength/m.max_spell_strength)*100,1)
+        m_data.append(m.spell_strength)
+        m_data.append(f"{spell_completion}%")
 
         for d in m_data:
             mem_worksheet.write(row,col,d)
             col += 1
+
+    for season in ctx.bot.tracked_seasons:
+        sheet_name = f"Members - {season.season_description}"
+        mem_worksheet = rp_workbook.add_worksheet('sheet_name')
+
+        mem_headers = ['Tag',
+            'Name',
+            'Home Clan',
+            'Townhall',
+            'Days in Home Clan',
+            'Other Clans',
+            'Attack Wins',
+            'Defense Wins',
+            'Donations Sent',
+            'Donations Received',
+            'Gold Looted',
+            'Elixir Looted',
+            'Dark Elixir Looted',
+            'Capital Contribution'
+            'Clan Games Points',
+            'Clan Games Timer',
+            'Wars Participated',
+            'Total Attacks',
+            'Missed Attacks',
+            'Triples',
+            'Offense Stars',
+            'Offense Destruction',
+            'Defense Stars',
+            'Defense Destruction',
+            'Raids Participated',
+            'Raid Attacks',
+            'Capital Gold Looted',
+            'Raid Medals Earned',
+            ]
+
+        row = 0
+        col = 0
+        for h in mem_headers:
+            mem_worksheet.write(row,col,h,bold)
+            col += 1
+
+        for m in [m for (t,m) in ctx.bot.member_cache.items() if m.current_season.home_clan.tag == clan.tag]:
+            col = 0
+            row += 1
+
+            stats = m.season_data[season.id]
+
+            m_data = []
+
+            m_data.append(m.tag)
+            m_data.append(m.name)
+
+            m_data.append(f"{stats.home_clan.name}")
+
+            m_data.append(stats.town_hall)
+
+            dd, hh, mm, ss = await convert_seconds_to_str(ctx,stats.time_in_home_clan)
+            m_data.append(dd)
+
+            ocl = ""
+            for c in stats.other_clans:
+                if c.tag:
+                    ocl += f"{c.name} ({c.tag})"
+            m_data.append(ocl)
+
+            m_data.append(stats.attacks.season)
+            m_data.append(stats.defenses.season)
+
+            m_data.append(stats.donations_sent.season)
+            m_data.append(stats.donations_rcvd.season)
+
+            m_data.append(stats.loot_gold.season)
+            m_data.append(stats.loot_elixir.season)
+            m_data.append(stats.loot_darkelixir.season)
+            m_data.append(stats.capitalcontribution.season)
+
+            m_data.append(stats.clangames.score)
+            m_data.append(max(stats.clangames.ending_time - stats.clangames.games_start,0))
+
+            m_data.append(stats.war_stats.wars_participated)
+            m_data.append(stats.war_stats.attack_count)
+            m_data.append(stats.war_stats.unused_attacks)
+
+            m_data.append(stats.war_stats.triples)
+            m_data.append(stats.war_stats.offense_stars)
+            m_data.append(stats.war_stats.offense_destruction)
+
+            m_data.append(stats.war_stats.defense_stars)
+            m_data.append(stats.war_stats.defense_destruction)
+
+            m_data.append(stats.raid_stats.raids_participated)
+
+            m_data.append(stats.raid_stats.raid_attacks)
+            m_data.append(stats.raid_stats.resources_looted)
+            m_data.append(stats.raid_stats.medals_earned)
+
+            for d in m_data:
+                mem_worksheet.write(row,col,d)
+                col += 1
 
     war_worksheet = rp_workbook.add_worksheet('Clan Wars')
     war_headers = [
@@ -664,11 +764,13 @@ async def report_to_excel(ctx,clan):
         'Member Map Position',
         'Attack Order',
         'Attack Defender',
+        'Attack Defender TH',
         'Attack Stars',
         'Attack Destruction',
         'Attack Duration',
         'Defense Order',
         'Defense Attacker',
+        'Defense Attacker TH',
         'Defense Stars',
         'Defense Destruction',
         'Defense Duration',
@@ -680,9 +782,9 @@ async def report_to_excel(ctx,clan):
         war_worksheet.write(row,col,h,bold)
         col += 1
 
-    wid_sorted = sorted([wid for wid in list(clan.war_log.keys())],reverse=True)
-    for wid in wid_sorted:
-        war = clan.war_log[wid]
+    clan_wars_list = [war for (wid,war) in clan.war_log.items() if war]
+    clan_wars_sorted = sorted(clan_wars_list,key=lambda x:x.end_time,reverse=True)
+    for war in clan_wars_sorted:
         for m in war.clan.members:
             for i in range(0,war.attacks_per_member):
 
@@ -710,7 +812,8 @@ async def report_to_excel(ctx,clan):
                 try:
                     a = m.attacks[i]
                     mwar_data.append(a.order)
-                    mwar_data.append(a.defender_tag)
+                    mwar_data.append(f"{a.defender_tag} {a.defender.name}")
+                    mwar_data.append(a.defender.town_hall)
                     mwar_data.append(a.stars)
                     mwar_data.append(a.destruction)
                     mwar_data.append(a.duration)
@@ -720,15 +823,18 @@ async def report_to_excel(ctx,clan):
                     mwar_data.append(None)
                     mwar_data.append(None)
                     mwar_data.append(None)
+                    mwar_data.append(None)
 
                 if i == 0:
                     try:
                         mwar_data.append(m.best_opponent_attack.order)
-                        mwar_data.append(m.best_opponent_attack.attacker_tag)
+                        mwar_data.append(f"{m.best_opponent_attack.attacker_tag} {m.best_opponent_attack.attacker.name}")
+                        mwar_data.append(m.best_opponent_attack.attacker.town_hall)
                         mwar_data.append(m.best_opponent_attack.stars)
                         mwar_data.append(m.best_opponent_attack.destruction)
                         mwar_data.append(m.best_opponent_attack.duration)
                     except:
+                        mwar_data.append(None)
                         mwar_data.append(None)
                         mwar_data.append(None)
                         mwar_data.append(None)
@@ -768,9 +874,9 @@ async def report_to_excel(ctx,clan):
         raid_worksheet.write(row,col,h,bold)
         col += 1
 
-    rid_sorted = sorted([rid for rid in list(clan.raid_log.keys())],reverse=True)
-    for rid in rid_sorted:
-        r = clan.raid_log[rid]
+    raids_list = [raid for (rid,raid) in clan.raid_log.items() if raid]
+    raids_sorted = sorted(raids_list,key=lambda x:x.end_time,reverse=True)
+    for r in raids_sorted:
         for m in r.members:
             raid_data = []
 

@@ -199,6 +199,8 @@ class AriXClashDataMgr(commands.Cog):
     @commands.is_owner()
     async def save_json_data(self,ctx):
 
+        await ctx.send("Saving...")
+
         bot = self.master_bot
         send_logs = False
 

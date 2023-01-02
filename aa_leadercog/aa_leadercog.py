@@ -1808,6 +1808,26 @@ class AriXLeaderCommands(commands.Cog):
 
     ####################################################################################################
 
+    @commands.command(name="getexcel")
+    async def leader_excel_extract(self,ctx,clan_abbreviation:str):
+
+        try:
+            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation][0]
+        except:
+            return await error_not_valid_abbreviation(ctx,clan_abbreviation)
+
+        rpfile = await report_to_excel(ctx,clan)
+
+        rept_embed = await clash_embed(ctx,
+            title=f"Download Excel Report",
+            message=f"Your report for **{clan.emoji} {clan.name}** is available for download below.",
+            color='success')
+
+        await ctx.send(embed=rept_embed,delete_after=60)
+        await ctx.send(file=discord.File(rpfile))
+
+
+
     @commands.command(name="getreport")
     async def leader_report(self,ctx,clan_abbreviation:str):
         """
