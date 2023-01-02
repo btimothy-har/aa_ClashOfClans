@@ -564,13 +564,13 @@ async def get_xp_report(ctx,season):
         if cg_score >= 4000:
             cg_xp = 4000
 
+        arix_member = await aMember.create(ctx,user_id=user)
+
         col = 0
         row += 1
 
         m_data = []
         m_data.append(str(arix_member.user_id))
-
-        arix_member = await aMember.create(ctx,user_id=user)
 
         if arix_member.discord_member:
             m_data.append(f"{arix_member.discord_member.name}#{arix_member.discord_member.discriminator}")
