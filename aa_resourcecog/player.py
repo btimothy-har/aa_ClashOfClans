@@ -332,57 +332,58 @@ class aPlayer(coc.Player):
                     if self.tag in [m.tag for m in check_raid.members]:
                         self.current_raid_weekend = check_raid
 
-        if alli_json_input:
-            member_info = alli_json_input
-        else:
-            member_info = await read_file_handler(ctx,
-                file='meminfo',
-                tag=self.tag)
-
         #From AriX Data File
-        if member_info:
-            home_clan_json = member_info.get('home_clan',None)
-
-            if isinstance(home_clan_json,dict):
-                home_clan_tag = home_clan_json['tag']
+        if not cached_data:
+            if alli_json_input:
+                member_info = alli_json_input
             else:
-                home_clan_tag = home_clan_json
+                member_info = await read_file_handler(ctx,
+                    file='meminfo',
+                    tag=self.tag)
 
-            self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
-            self.readable_name = member_info.get('readable_name',self.name)
-            self.is_member = member_info['is_member']
-            self.is_arix_account = True
+            if member_info:
+                home_clan_json = member_info.get('home_clan',None)
 
-            self.discord_user = member_info['discord_user']
-
-            if self.is_member:
-                if self.discord_user == self.home_clan.leader:
-                    self.arix_rank = 'Leader'
-                elif self.discord_user in self.home_clan.co_leaders:
-                    self.arix_rank = 'Co-Leader'
-                elif self.discord_user in self.home_clan.elders:
-                    self.arix_rank = 'Elder'
+                if isinstance(home_clan_json,dict):
+                    home_clan_tag = home_clan_json['tag']
                 else:
-                    self.arix_rank = 'Member'
+                    home_clan_tag = home_clan_json
+
+                self.home_clan = await aClan.create(ctx,tag=home_clan_tag)
+                self.readable_name = member_info.get('readable_name',self.name)
+                self.is_member = member_info['is_member']
+                self.is_arix_account = True
+
+                self.discord_user = member_info['discord_user']
+
+                if self.is_member:
+                    if self.discord_user == self.home_clan.leader:
+                        self.arix_rank = 'Leader'
+                    elif self.discord_user in self.home_clan.co_leaders:
+                        self.arix_rank = 'Co-Leader'
+                    elif self.discord_user in self.home_clan.elders:
+                        self.arix_rank = 'Elder'
+                    else:
+                        self.arix_rank = 'Member'
+                else:
+                    self.arix_rank = 'Non-Member'
+
+                notes = [aNote.from_json(ctx,n) for n in member_info.get('notes',[])]
+                self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
+
+            if not stats_json_input:
+                member_stats = await read_file_handler(ctx,
+                    file='members',
+                    tag=self.tag)
             else:
-                self.arix_rank = 'Non-Member'
+                member_stats = stats_json_input
 
-            notes = [aNote.from_json(ctx,n) for n in member_info.get('notes',[])]
-            self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
-
-        if not stats_json_input:
-            member_stats = await read_file_handler(ctx,
-                file='members',
-                tag=self.tag)
-        else:
-            member_stats = stats_json_input
-
-        if member_stats:
-            self.last_update = member_stats['last_update']
-            self.current_season = await aPlayerSeason.create(ctx,
-                player=self,
-                season='current',
-                stats=member_stats)
+            if member_stats:
+                self.last_update = member_stats['last_update']
+                self.current_season = await aPlayerSeason.create(ctx,
+                    player=self,
+                    season='current',
+                    stats=member_stats)
 
         self.desc_title = f"{self.name}"
 
@@ -1086,53 +1087,101 @@ class aClan(coc.Clan):
             self.badge = ""
 
         #Alliance Attributes
-        self.is_alliance_clan = getattr(cache,'is_alliance_clan',False)
-        self.abbreviation = getattr(cache,'abbreviation',"")
-        self.emoji = getattr(cache,'emoji','<:Clan:825654825509322752>')
+        if cache:
+            self.is_alliance_clan = cache.is_alliance_clan
+            self.abbreviation = cache.abbreviation
+            self.emoji = cache.emoji
 
-        self.description = getattr(cache,'description',getattr(self,'description',None))
+            self.description = cache.description
 
-        self.leader = getattr(cache,'leader',0)
-        self.co_leaders = getattr(cache,'co_leaders',[])
-        self.elders = getattr(cache,'elders',[])
+            self.leader = cache.leader
+            self.co_leaders = cache.co_leaders
+            self.elders = cache.elders
 
-        self.recruitment_level = getattr(cache,'recruitment_level',[])
-        self.notes = getattr(cache,'notes',[])
+            self.recruitment_level = cache.recruitment_level
+            self.notes = cache.notes
 
-        self.member_role = getattr(cache,'member_role',0)
-        self.elder_role = getattr(cache,'elder_role',0)
-        self.coleader_role = getattr(cache,'coleader_role',0)
+            self.member_role = cache.member_role
+            self.elder_role = cache.elder_role
+            self.coleader_role = cache.coleader_role
 
-        self.announcement_channel = getattr(cache,'announcement_channel',0)
-        self.reminder_channel = getattr(cache,'reminder_channel',0)
-        self.send_war_reminder = getattr(cache,'send_war_reminder',False)
-        self.send_raid_reminder = getattr(cache,'send_raid_reminder',False)
+            self.announcement_channel = cache.announcement_channel
+            self.reminder_channel = cache.reminder_channel
+            self.send_war_reminder = cache.send_war_reminder
+            self.send_raid_reminder = cache.send_raid_reminder
 
-        self.war_reminder_intervals = getattr(cache,'war_reminder_intervals',[])
-        self.raid_reminder_intervals = getattr(cache,'raid_reminder_intervals',[])
+            self.war_reminder_intervals = cache.war_reminder_intervals
+            self.raid_reminder_intervals = cache.raid_reminder_intervals
 
-        self.war_reminder_tracking = getattr(cache,'war_reminder_tracking',[])
-        self.raid_reminder_tracking = getattr(cache,'raid_reminder_tracking',[])
+            self.war_reminder_tracking = cache.war_reminder_tracking
+            self.raid_reminder_tracking = cache.raid_reminder_tracking
 
-        #Clan Statuses
-        self.war_state = getattr(cache,'war_state',"")
-        self.war_state_change = getattr(cache,'war_state_change',False)
+            #Clan Statuses
+            self.war_state = cache.war_state
+            self.war_state_change = cache.war_state_change
 
-        self.raid_weekend_state = getattr(cache,'raid_weekend_state',"")
-        self.raid_state_change = getattr(cache,'raid_state_change',False)
+            self.raid_weekend_state = cache.raid_weekend_state
+            self.raid_state_change = cache.raid_state_change
 
-        self.arix_members = getattr(cache,'arix_members',[])
-        self.arix_member_count = getattr(cache,'arix_member_count',0)
+            self.arix_members = cache.arix_members
+            self.arix_member_count = cache.arix_member_count
 
-        self.war_log = getattr(cache,'war_log',{})
-        self.raid_log = getattr(cache,'raid_log',{})
+            self.war_log = cache.war_log
+            self.raid_log = cache.raid_log
 
-        self.current_war = getattr(cache,'current_war',None)
-        self.current_raid_weekend = getattr(cache,'current_raid_weekend',None)
+            self.current_war = cache.current_war
+            self.current_raid_weekend = cache.current_raid_weekend
 
-        self.desc_title = getattr(cache,'desc_title',"")
-        self.desc_full_text = getattr(cache,'desc_full_text',"")
-        self.desc_summary_text = getattr(cache,'desc_summary_text',"")
+            self.desc_title = cache.desc_title
+            self.desc_full_text = cache.desc_full_text
+            self.desc_summary_text = cache.desc_summary_text
+
+        else:
+            self.is_alliance_clan = False
+            self.abbreviation = ""
+            self.emoji = '<:Clan:825654825509322752>'
+
+            self.leader = 0
+            self.co_leaders = []
+            self.elders = []
+
+            self.recruitment_level = []
+            self.notes = []
+
+            self.member_role = 0
+            self.elder_role = 0
+            self.coleader_role = 0
+
+            self.announcement_channel = 0
+            self.reminder_channel = 0
+            self.send_war_reminder = False
+            self.send_raid_reminder = False
+
+            self.war_reminder_intervals = []
+            self.raid_reminder_intervals = []
+
+            self.war_reminder_tracking = []
+            self.raid_reminder_tracking = []
+
+            #Clan Statuses
+            self.war_state = ""
+            self.war_state_change = False
+
+            self.raid_weekend_state = ""
+            self.raid_state_change = False
+
+            self.arix_members = []
+            self.arix_member_count = 0
+
+            self.war_log = {}
+            self.raid_log = {}
+
+            self.current_war = None
+            self.current_raid_weekend = None
+
+            self.desc_title = ""
+            self.desc_full_text = ""
+            self.desc_summary_text = ""
 
     def __repr__(self):
         return f"Clan {self.tag} {self.name} generated on {datetime.fromtimestamp(self.timestamp).strftime('%m%d%Y%H%M%S')}"
@@ -1174,55 +1223,56 @@ class aClan(coc.Clan):
         #add to cache
         ctx.bot.clan_cache[tag] = self
 
-        if not json_data:
-            clanInfo = await read_file_handler(ctx=ctx,
-                file='alliance',
-                tag=self.tag)
-        else:
-            clanInfo = json_data
-
         self.current_war = await aClanWar.get(ctx,clan=self)
         self.current_raid_weekend = await aRaidWeekend.get(ctx,clan=self)
 
         #Alliance Attributes
-        if clanInfo:
-            self.is_alliance_clan = True
-            self.abbreviation = clanInfo.get('abbr','')
-            self.emoji = clanInfo.get('emoji','')
-            if clanInfo.get('description',None):
-                self.description = clanInfo['description']
+        if not cached_data:
+            if not json_data:
+                clanInfo = await read_file_handler(ctx=ctx,
+                    file='alliance',
+                    tag=self.tag)
+            else:
+                clanInfo = json_data
 
-            self.leader = clanInfo.get('leader',0)
-            self.co_leaders = clanInfo.get('co_leaders',[])
-            self.elders = clanInfo.get('elders',[])
+            if clanInfo:
+                self.is_alliance_clan = True
+                self.abbreviation = clanInfo.get('abbr','')
+                self.emoji = clanInfo.get('emoji','')
+                if clanInfo.get('description',None):
+                    self.description = clanInfo['description']
 
-            self.recruitment_level = clanInfo.get('recruitment',[])
-            self.recruitment_level.sort()
+                self.leader = clanInfo.get('leader',0)
+                self.co_leaders = clanInfo.get('co_leaders',[])
+                self.elders = clanInfo.get('elders',[])
 
-            notes = [aNote.from_json(ctx,n) for n in clanInfo.get('notes',[])]
-            self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
+                self.recruitment_level = clanInfo.get('recruitment',[])
+                self.recruitment_level.sort()
 
-            self.member_role = clanInfo.get('member_role',0)
-            self.elder_role = clanInfo.get('elder_role',0)
-            self.coleader_role = clanInfo.get('coleader_role',0)
+                notes = [aNote.from_json(ctx,n) for n in clanInfo.get('notes',[])]
+                self.notes = sorted(notes,key=lambda n:(n.timestamp),reverse=True)
 
-            self.announcement_channel = clanInfo.get('announcement_channel',0)
-            self.reminder_channel = clanInfo.get('reminder_channel',0)
-            self.send_war_reminder = clanInfo.get('send_war_reminder',False)
-            self.send_raid_reminder = clanInfo.get('send_raid_reminder',False)
+                self.member_role = clanInfo.get('member_role',0)
+                self.elder_role = clanInfo.get('elder_role',0)
+                self.coleader_role = clanInfo.get('coleader_role',0)
 
-            self.war_reminder_intervals = clanInfo.get('war_reminder_intervals',[])
-            self.raid_reminder_intervals = clanInfo.get('raid_reminder_intervals',[])
+                self.announcement_channel = clanInfo.get('announcement_channel',0)
+                self.reminder_channel = clanInfo.get('reminder_channel',0)
+                self.send_war_reminder = clanInfo.get('send_war_reminder',False)
+                self.send_raid_reminder = clanInfo.get('send_raid_reminder',False)
 
-            self.war_reminder_tracking = clanInfo.get('war_reminder_tracking',[])
-            self.raid_reminder_tracking = clanInfo.get('raid_reminder_tracking',[])
+                self.war_reminder_intervals = clanInfo.get('war_reminder_intervals',[])
+                self.raid_reminder_intervals = clanInfo.get('raid_reminder_intervals',[])
 
-            self.war_state = clanInfo.get('war_state','')
-            self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
+                self.war_reminder_tracking = clanInfo.get('war_reminder_tracking',[])
+                self.raid_reminder_tracking = clanInfo.get('raid_reminder_tracking',[])
 
-            if not conv:
-                self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
-                self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
+                self.war_state = clanInfo.get('war_state','')
+                self.raid_weekend_state = clanInfo.get('raid_weekend_state','')
+
+                if not conv:
+                    self.war_log = {wid:await aClanWar.get(ctx,clan=self,war_id=wid) for wid in clanInfo.get('war_log',[])}
+                    self.raid_log = {rid:await aRaidWeekend.get(ctx,clan=self,raid_id=rid) for rid in clanInfo.get('raid_log',[])}
 
         if self.tag:
             self.desc_title = f"{self.name} ({self.tag})"

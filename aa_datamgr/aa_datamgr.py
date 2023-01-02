@@ -188,7 +188,7 @@ class AriXClashDataMgr(commands.Cog):
             ctx.bot.refresh_loop = 0
 
             self.data_backup_save.start()
-            self.season_update.start()
+            #self.season_update.start()
             self.clan_update.start()
             self.member_update.start()
 
@@ -678,7 +678,6 @@ class AriXClashDataMgr(commands.Cog):
 
         if update_type == 'season':
             bot = self.master_bot
-            test_str = ""
             update_season = False
 
             season_embed = discord.Embed(
@@ -920,8 +919,8 @@ class AriXClashDataMgr(commands.Cog):
                         update_season = False
 
                     log_str += f"**{clan.name} ({clan.tag})**"
-                    log_str += f"\n> Clan War: {getattr(clan.current_war,'state',None)}"
-                    log_str += f"\n> Capital Raid: {getattr(clan.current_raid_weekend,'state',None)}"
+                    log_str += f"\n> Clan War: {clan.war_state}"
+                    log_str += f"\n> Capital Raid: {clan.raid_weekend_state}"
 
                     log_str += "\n\n"
 
@@ -1019,7 +1018,7 @@ class AriXClashDataMgr(commands.Cog):
         self.season_update_count += 1
 
 
-    @tasks.loop(seconds=120.0)
+    @tasks.loop(seconds=30.0)
     async def clan_update(self):
 
         bot = self.master_bot
