@@ -182,35 +182,48 @@ async def report_member_summary(ctx,message,clan):
                 output_list.append(output_str)
                 output_str = ""
 
-        return output_list
+        final_output = []
+        for i in output_list:
+            n = header_str + i
+            final_output.append(n)
+
+        return final_output
 
     leader_output = get_table(leaders)
+    c = 0
     for i in leader_output:
         users_accounts_embed.add_field(
-            name="**Leader(s)**",
+            name=f"**Leader(s)** {'*- continued*' if c>0 else ''}",
             value=f"```{i}```",
             inline=False)
+        c += 1
 
+    c = 0
     coleader_output = get_table(coleaders)
     for i in coleader_output:
         users_accounts_embed.add_field(
-            name="**Co-Leader(s)**",
+            name=f"**Co-Leader(s)** {'*- continued*' if c>0 else ''}",
             value=f"```{i}```",
             inline=False)
+        c += 1
 
+    c = 0
     elder_output = get_table(elders)
     for i in elder_output:
         users_accounts_embed.add_field(
-            name="**Elder(s)**",
+            name=f"**Elder(s)** {'*- continued*' if c>0 else ''}",
             value=f"```{i}```",
             inline=False)
+        c += 1
 
+    c = 0
     member_output = get_table(members)
     for i in member_output:
         users_accounts_embed.add_field(
-            name="**Member(s)**",
+            name=f"**Member(s)** {'*- continued*' if c>0 else ''}",
             value=f"```{i}```",
             inline=False)
+        c += 1
 
     output_pages.append(users_accounts_embed)
 
