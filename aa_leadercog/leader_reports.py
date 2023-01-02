@@ -660,7 +660,7 @@ async def report_to_excel(ctx,clan):
             'Gold Looted',
             'Elixir Looted',
             'Dark Elixir Looted',
-            'Capital Contribution'
+            'Capital Contribution',
             'Clan Games Points',
             'Clan Games Timer',
             'Wars Participated',
