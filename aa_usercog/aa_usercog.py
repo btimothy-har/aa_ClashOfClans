@@ -786,16 +786,16 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'donations':
                 clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
 
-                stats_embed_str = f"`{'SENT':>8}{'':^2}{'RCVD':>8}{'':^2}{'':<4}{'':<25}`"
+                stats_embed_str = f"`{'TH':<2}{'':>2}{'SENT':>8}{'':^2}{'RCVD':>8}{'':^2}`"
                 for m in clan_members:
                     sent = f"{m.donations_sent.season:,}"
                     rcvd = f"{m.donations_rcvd.season:,}"
 
                     stats_embed_str += f"\n"
-                    stats_embed_str += f"`{sent:>8}{'':^2}"
-                    stats_embed_str += f"{rcvd:>8}{'':^2}"
-                    stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<25}`"
+                    stats_embed_str += f"`{m.town_hall:^2}{'':^2}"
+                    stats_embed_str += f"{sent:>8}{'':^2}"
+                    stats_embed_str += f"{rcvd:>8}{'':^2}`"
+                    stats_embed_str += f"{m.player.name}"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -805,7 +805,7 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'warstats':
                 clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.war_stats.wars_participated),reverse=True)
 
-                stats_embed_str = f"`{'TH':>2}{'':^2}{'WARS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'TRP':>3}{'':^2}{'STRS':<4}{'':^2}{'DEST':<5}{'':^2}{'TIME':<4}{'':<26}`"
+                stats_embed_str = f"`{'TH':>2}{'':^2}{'WARS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'TRP':>3}{'':^2}{'STRS':<4}{'':^2}{'DEST':<5}{'':^2}{'TIME':<4}{'':^2}`"
                 for m in clan_members:
 
                     ws = m.war_stats
@@ -819,9 +819,9 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"{ws.triples:>3}{'':^2}"
                     stats_embed_str += f"{ws.offense_stars:>4}{'':^2}"
                     stats_embed_str += f"{str(ws.offense_destruction)+'%':>5}{'':^2}"
-                    stats_embed_str += f"{int(ws.average_attack_duration):>4}"
+                    stats_embed_str += f"{int(ws.average_attack_duration):>4}{'':^2}`"
 
-                    stats_embed_str += f"{m.player.name:<16}`"
+                    stats_embed_str += f"{m.player.name}"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -832,7 +832,7 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'raidstats':
                 clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.raid_stats.raids_participated),reverse=True)
 
-                stats_embed_str = f"`{'RAIDS':>5}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}{'':<20}`"
+                stats_embed_str = f"`{'RAIDS':>5}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}`"
                 for m in clan_members:
 
                     rs = m.raid_stats
@@ -843,8 +843,9 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"`{rs.raids_participated:>5}{'':^2}"
                     stats_embed_str += f"{rs.raid_attacks:>5}{'':^2}"
                     stats_embed_str += f"{rs.resources_looted:>6}{'':^2}"
-                    stats_embed_str += f"{rs.medals_earned:>6}{'':^2}"
-                    stats_embed_str += f"{m.player.name:<20}`"
+                    stats_embed_str += f"{rs.medals_earned:>6}{'':^2}`"
+
+                    stats_embed_str += f"{m.player.name}"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -857,12 +858,12 @@ class AriXMemberCommands(commands.Cog):
                     clan_stats_embed = await clash_embed(ctx,
                         title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                         message=f"**Clan Games Stats for {season.season_description} Season**"
-                            + f"\n\nClan Gamaes has not started for this season. The games will start on:"
+                            + f"\n\nClan Games has not started for this season. The games will start on:"
                             + f"\n\n<t:{season.clangames_start}:F>")
 
                 clan_members = sorted(clan_members,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1),x.town_hall),reverse=True)
 
-                stats_embed_str = f"`{'SCORE':>5}{'':^2}{'TIME':>10}{'':^2}{'':<25}`"
+                stats_embed_str = f"`{'TH':>2}{'':>2}{'SCORE':>5}{'':^2}{'TIME':>10}{'':^2}`"
                 for m in clan_members:
 
                     cg = m.clangames
@@ -877,10 +878,11 @@ class AriXMemberCommands(commands.Cog):
                             ct += f"{int(cm)}m"
 
                     stats_embed_str += f"\n"
-                    stats_embed_str += f"`{cg.score:>5}{'':^2}"
-                    stats_embed_str += f"{ct:>10}{'':^2}"
-                    stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<21}`"
+                    stats_embed_str += f"`{m.town_hall:^2}{'':^2}"
+                    stats_embed_str += f"{cg.score:>5}{'':^2}"
+                    stats_embed_str += f"{ct:>10}{'':^2}`"
+
+                    stats_embed_str += f"{m.player.name}"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
