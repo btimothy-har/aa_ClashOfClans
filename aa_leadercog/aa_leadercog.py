@@ -27,7 +27,7 @@ from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, use
 from aa_resourcecog.constants import clanRanks, emotes_townhall, emotes_league, emotes_capitalhall
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
-from aa_resourcecog.player import aPlayer, aClan, aMember
+from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
