@@ -597,6 +597,22 @@ class AriXClashDataMgr(commands.Cog):
             color="success")
         return await ctx.send(embed=embed)
 
+    @commands.command(name="sendraid")
+    @commands.is_owner()
+    async def data_simulation(self,ctx,clan):
+
+        try:
+            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation][0]
+        except:
+            return await error_not_valid_abbreviation(ctx,clan_abbreviation)
+
+        if clan.announcement_channel and clan.current_raid_weekend.state == 'ended':
+            results_embed = await clan.current_raid_weekend.get_results_embed(ctx)
+            ch = ctx.bot.get_channel(self.announcement_channel)
+            await ch.send(embed=results_embed)
+
+        await ctx.send("done")
+
 
     @commands.command(name="simulate")
     @commands.is_owner()
