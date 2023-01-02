@@ -1847,9 +1847,7 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=rept_embed,delete_after=60)
         await ctx.send(file=discord.File(rpfile))
 
-        await msg.delete(
-
-
+        await msg.delete()
 
     @commands.command(name="getreport")
     async def leader_report(self,ctx,clan_abbreviation:str):
