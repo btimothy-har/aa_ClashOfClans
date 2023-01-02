@@ -1227,7 +1227,7 @@ class AriXLeaderCommands(commands.Cog):
 
         if user:
             accounts = ctx.bot.member_cache
-            accounts = [a for a in user_accounts if a.is_member and a.discord_user == user.id]
+            accounts = [a for a in accounts if a.is_member and a.discord_user == user.id]
             accounts = sorted(accounts,key=lambda x:(x.exp_level, x.town_hall.level),reverse=True)
 
         else:
