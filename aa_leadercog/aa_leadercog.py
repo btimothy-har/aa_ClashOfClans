@@ -1859,7 +1859,7 @@ class AriXLeaderCommands(commands.Cog):
         """
 
         try:
-            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation.upper()][0]
+            c = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation.upper()][0]
         except:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
 
