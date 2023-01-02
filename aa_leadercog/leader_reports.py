@@ -68,6 +68,9 @@ async def report_paginate(ctx,message,clan,output):
 
     browse_index = 0
 
+    if message:
+        await message.remove_reaction(selection['emoji'],user)
+
     while paginate_state:
 
         if browse_index < 0:
@@ -161,12 +164,12 @@ async def report_member_summary(ctx,message,clan):
             + f"\nUnique Members: {len(list(user_count.keys()))}\n\u200b")
 
     def get_table(text_input):
-        output_str = f"{'# AC':^3}{'':^2}{'Townhalls':<10}{'':^2}{'User':^15}"
+        output_str = f"{'# AC':^4}{'':^2}{'Townhalls':<10}{'':^2}{'User':^15}"
         for i in text_input:
             user_len = i['User'][0:15]
             output_str += f"\n"
-            output_str += f"{i['# Accs']:>3}{'':^2}"
-            output_str += f"{i['Townhalls']:<10}"
+            output_str += f"{i['# Accs']:^4}{'':^2}"
+            output_str += f"{i['Townhalls']:<10}{'':^2}"
             output_str += f"{user_len:<15}"
 
         return output_str
@@ -281,14 +284,14 @@ async def report_member_summary(ctx,message,clan):
         message=f"```{base_strength_str}```")
     output_pages.append(account_strength_embed)
 
-    hero_strength_str = f"{'TH':^2}{'':^2}{'BK':^2}{'':^2}{'AQ':^2}{'':^2}{'GW':^2}{'':^2}{'RC':^2}{'':^2}{'Player':^15}"
+    hero_strength_str = f"{'TH':^2}{'':^4}{'BK':^2}{'':^4}{'AQ':^2}{'':^4}{'GW':^2}{'':^4}{'RC':^2}{'':^4}{'Player':^15}"
     for i in hero_strength_output:
         hero_strength_str += "\n"
-        hero_strength_str += f"{i['TH']:^2}{'':^2}"
-        hero_strength_str += f"{i['BK']:^2}{'':^2}"
-        hero_strength_str += f"{i['AQ']:^2}{'':^2}"
-        hero_strength_str += f"{i['GW']:^2}{'':^2}"
-        hero_strength_str += f"{i['RC']:^2}{'':^2}"
+        hero_strength_str += f"{i['TH']:^2}{'':^4}"
+        hero_strength_str += f"{i['BK']:^2}{'':^4}"
+        hero_strength_str += f"{i['AQ']:^2}{'':^4}"
+        hero_strength_str += f"{i['GW']:^2}{'':^4}"
+        hero_strength_str += f"{i['RC']:^2}{'':^4}"
         hero_strength_str += f"{i['Name']:<15}"
 
     hero_strength_embed = await clash_embed(ctx,
