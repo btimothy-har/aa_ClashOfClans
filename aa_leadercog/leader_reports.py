@@ -172,22 +172,26 @@ async def report_member_summary(ctx,message,clan):
     leader_output = get_table(leaders)
     users_accounts_embed.add_field(
         name="**Leader(s)**",
-        value=f"```{leader_output}```\n\u200b")
+        value=f"```{leader_output}```\n\u200b",
+        inline=False)
 
     coleader_output = get_table(coleaders)
     users_accounts_embed.add_field(
         name="**Co-Leader(s)**",
-        value=f"```{coleader_output}```\n\u200b")
+        value=f"```{coleader_output}```\n\u200b",
+        inline=False)
 
     elder_output = get_table(elders)
     users_accounts_embed.add_field(
         name="**Elder(s)**",
-        value=f"```{elder_output}```\n\u200b")
+        value=f"```{elder_output}```\n\u200b",
+        inline=False)
 
     member_output = get_table(members)
     users_accounts_embed.add_field(
         name="**Member(s)**",
-        value=f"```{member_output}```\n\u200b")
+        value=f"```{member_output}```\n\u200b",
+        inline=False)
 
     output_pages.append(users_accounts_embed)
 
