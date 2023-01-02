@@ -1826,6 +1826,7 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=rept_embed,delete_after=60)
         await ctx.send(file=discord.File(rpfile))
 
+
     @commands.command(name="calculatexp")
     async def leader_xp_report(self,ctx,season):
 
@@ -1850,17 +1851,17 @@ class AriXLeaderCommands(commands.Cog):
         await msg.delete()
 
     @commands.command(name="getreport")
-    async def leader_report(self,ctx,clan_abbreviation:str):
+    async def leader_reports(self,ctx,clan_abbreviation:str):
         """
         Leader's Report Hub.
 
         Provides a one-stop repository of reports and data through an interactive menu.
         """
 
-        c = await get_alliance_clan(ctx,clan_abbreviation)
-        if not c:
-            return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-        c = c[0]
+        try:
+            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation.upper()][0]
+        except:
+            return await error_not_valid_abbreviation(ctx,clan_abbreviation)s
 
         menu_dict = [
             {
@@ -1893,16 +1894,6 @@ class AriXLeaderCommands(commands.Cog):
                 'title': 'War Opt-In Status',
                 'description': f"Gets a list of all members opted into war."
                 },
-            #{
-            #    'id': 'activity',
-            #    'title': 'Member Activity *(season-applicable)*',
-            #    'description': f"Donations, Loot, Clan Capital, War, Clan Games"
-            #    },
-            #{
-            #    'id': 'clan',
-            #    'title': 'Clan Performance Summary',
-            #    'description': f"War Trends, Raid Trends"
-            #    },
             {
                 'emoji': '<:download:1040800550373044304>',
                 'id': 'excel',
