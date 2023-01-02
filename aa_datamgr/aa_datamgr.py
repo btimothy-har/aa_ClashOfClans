@@ -620,6 +620,8 @@ class AriXClashDataMgr(commands.Cog):
 
         st = time.time()
 
+        await ctx.send("Running...")
+
         if update_type not in ['clan','member','season']:
             await ctx.send("Invalid data type.")
 
@@ -781,9 +783,9 @@ class AriXClashDataMgr(commands.Cog):
                 bot.current_season = season
                 bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
-                await self.clan_lock.release()
-                await self.member_lock.release()
-                await self.master_lock.release()
+                self.clan_lock.release()
+                self.member_lock.release()
+                self.master_lock.release()
 
                 activity_types = [
                     discord.ActivityType.playing,
@@ -981,9 +983,9 @@ class AriXClashDataMgr(commands.Cog):
             bot.current_season = season
             bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
-            await self.clan_lock.release()
-            await self.member_lock.release()
-            await self.master_lock.release()
+            self.clan_lock.release()
+            self.member_lock.release()
+            self.master_lock.release()
 
             try:
                 await bot.update_channel.send(f"**The new season {bot.current_season.id} has started!**")
