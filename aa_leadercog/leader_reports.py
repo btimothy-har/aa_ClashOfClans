@@ -538,7 +538,7 @@ async def get_xp_report(ctx,season):
         if not m.discord_user:
             continue
 
-        arix_member = await aMember.create(user_id=m.discord_user)
+        arix_member = await aMember.create(ctx,user_id=m.discord_user)
 
         for account in arix_member.accounts:
             try:
