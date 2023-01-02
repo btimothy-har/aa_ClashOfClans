@@ -20,7 +20,7 @@ from string import ascii_letters, digits
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 
-from .leader_reports import report_member_summary, report_super_troops, report_war_status, report_all_members, report_missing_members, report_unrecognized_members, report_to_excel
+from .leader_reports import report_member_summary, report_super_troops, report_war_status, report_all_members, report_missing_members, report_unrecognized_members, get_xp_report, report_to_excel
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
@@ -1821,6 +1821,22 @@ class AriXLeaderCommands(commands.Cog):
         rept_embed = await clash_embed(ctx,
             title=f"Download Excel Report",
             message=f"Your report for **{clan.emoji} {clan.name}** is available for download below.",
+            color='success')
+
+        await ctx.send(embed=rept_embed,delete_after=60)
+        await ctx.send(file=discord.File(rpfile))
+
+    @commands.command(name="getxp")
+    async def leader_xp_report(self,ctx,season):
+
+        if season not in [season.id for season in ctx.bot.tracked_seasons]:
+            return await ctx.send(f"The season `{season}` is not valid.")
+
+        rpfile = await get_xp_report(ctx,season)
+
+        rept_embed = await clash_embed(ctx,
+            title=f"Download Excel Report",
+            message=f"Your XP report for **{season.description}** is available for download below.",
             color='success')
 
         await ctx.send(embed=rept_embed,delete_after=60)

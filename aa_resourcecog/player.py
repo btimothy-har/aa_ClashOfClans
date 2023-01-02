@@ -1611,7 +1611,9 @@ class aMember():
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
 
-        self.accounts = [member for (m_tag,member) in ctx.bot.member_cache.items() if member.discord_user == self.user_id]
+        accounts = ctx.bot.member_cache
+
+        self.accounts = [member for (m_tag,member) in accounts.items() if member.discord_user == self.user_id]
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)
