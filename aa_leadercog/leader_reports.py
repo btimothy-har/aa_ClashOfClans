@@ -69,7 +69,7 @@ async def report_paginate(ctx,message,clan,output):
     browse_index = 0
 
     if message:
-        await message.remove_reaction(selection['emoji'],user)
+        await message.clear_reactions()
 
     while paginate_state:
 
