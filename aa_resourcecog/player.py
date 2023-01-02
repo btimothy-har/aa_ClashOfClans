@@ -41,6 +41,8 @@ class aClashSeason():
 
         self.season_description = f"{calendar.month_name[self.season_month]} {self.season_year}"
 
+        self.description = self.season_description
+
         self.season_start = datetime(self.season_year, self.season_month, 1, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
         self.clangames_start = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()

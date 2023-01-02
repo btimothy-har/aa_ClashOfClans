@@ -1841,7 +1841,7 @@ class AriXLeaderCommands(commands.Cog):
 
         rept_embed = await clash_embed(ctx,
             title=f"Download Excel Report",
-            message=f"Your XP report for **{season.description}** is available for download below.",
+            message=f"Your XP report for **{season.season_description}** is available for download below.",
             color='success')
 
         await ctx.send(embed=rept_embed,delete_after=60)
