@@ -793,7 +793,7 @@ class AriXMemberCommands(commands.Cog):
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"`{sent:>8}{'':^2}"
-                    stats_embed_str += f"{rcvd:>8}{'':^2}`"
+                    stats_embed_str += f"{rcvd:>8}{'':^2}"
                     stats_embed_str += f"{m.town_hall:^4}"
                     stats_embed_str += f"{m.player.name:<18}{'':^2}`"
 
@@ -814,7 +814,7 @@ class AriXMemberCommands(commands.Cog):
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"`{ws.wars_participated:>4}{'':^2}"
-                    stats_embed_str += f"`{attack_str:>5}{'':^2}"
+                    stats_embed_str += f"{attack_str:>5}{'':^2}"
                     stats_embed_str += f"{ws.triples:>3}{'':^2}"
                     stats_embed_str += f"{ws.offense_stars:>4}{'':^2}"
                     stats_embed_str += f"{ws.offense_destruction:>4}{'':^2}"
@@ -825,7 +825,7 @@ class AriXMemberCommands(commands.Cog):
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**War Stats for {season.season_description} Season**"
-                        + f"\n\n*Attacks (ATTKS) are shown as `Used/Total Available`."
+                        + f"\n\n*Attacks (ATTKS) are shown as `Used/Total Available`.*"
                         + f"\n\n{stats_embed_str}")
 
             if ctx.invoked_with == 'raidstats':
