@@ -778,7 +778,7 @@ class AriXMemberCommands(commands.Cog):
                 if season_member.is_member and season_member.home_clan.tag == clan_select.tag:
                     clan_members.append(season_member)
 
-            clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x:town_hall),reverse=True)
+            clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
 
             donation_embed_str = f"`{'':<4}{'':<20}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
 
@@ -794,8 +794,9 @@ class AriXMemberCommands(commands.Cog):
                 donation_embed_str += f"{rcvd:>8}{'':^2}`"
 
             clan_donation_embed = await clash_embed(ctx,
-                title=f"Donation: {clan_select.emoji} {clan_select.name} ({clan_select.tag})",
-                message=donation_embed_str)
+                title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                message=f"**Donations for {season.season_description} Season**"
+                f"\n\n{donation_embed_str}")
 
             if message:
                 await message.edit(embed=clan_donation_embed)
