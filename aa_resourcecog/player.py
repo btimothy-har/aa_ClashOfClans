@@ -1385,7 +1385,7 @@ class aClan(coc.Clan):
             if self.announcement_channel and self.current_raid_weekend.state == 'ended':
                 results_embed = await self.current_raid_weekend.get_results_embed(ctx)
                 ch = ctx.bot.get_channel(self.announcement_channel)
-                await ch.send(embed=r$esults_embed)
+                await ch.send(embed=results_embed)
                 update_summary += f"\n> - Raid Weekend is now over."
 
         #raid reminders
