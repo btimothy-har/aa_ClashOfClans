@@ -156,10 +156,8 @@ class aClanWar():
             else:
                 self = aClanWar(clan=clan,json=json_data)
 
-        elif clan:
+        elif clan.public_war_log:
             try:
-                ch = ctx.bot.get_channel(856433806142734346)
-                await ch.send(clan.tag)
                 war = await ctx.bot.coc_client.get_current_war(clan.tag)
             except coc.errors.PrivateWarLog:
                 return None
