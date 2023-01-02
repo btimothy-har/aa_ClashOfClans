@@ -578,7 +578,7 @@ async def get_xp_report(ctx,season):
         else:
             m_data.append(None)
 
-        m_data.append(', '.join([a.player.tag for a in accounts])
+        m_data.append(', '.join([a.player.tag for a in accounts]))
         m_data.append(donation_xp + cg_xp)
         m_data.append(total_donations)
         m_data.append(donation_xp)
