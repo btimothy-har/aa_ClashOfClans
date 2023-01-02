@@ -175,7 +175,7 @@ async def userprofile_warlog(ctx,account,message=None):
 
             time_text = ""
             if time.time() < war.end_time:
-                time_text = f"\n*Ends in <t:{int(war.end_time)}:R> at <t:{int(war.end_time)}:f>.*"
+                time_text = f"\n*Ends <t:{int(war.end_time)}:R> at <t:{int(war.end_time)}:f>.*"
 
             warlog_embed.add_field(
                 name=f"{war_emoji}{war_clan.name} vs {war_opponent.name}",
