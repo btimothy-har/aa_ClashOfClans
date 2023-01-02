@@ -574,7 +574,7 @@ async def get_xp_report(ctx,season):
 
         m_data = []
 
-        m_data.append(arix_member.user_id)
+        m_data.append(str(arix_member.user_id))
 
         if arix_member.discord_member:
             m_data.append(f"{arix_member.discord_member.name}#{arix_member.discord_member.discriminator}")

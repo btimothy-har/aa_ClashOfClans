@@ -1826,22 +1826,22 @@ class AriXLeaderCommands(commands.Cog):
         await ctx.send(embed=rept_embed,delete_after=60)
         await ctx.send(file=discord.File(rpfile))
 
-    @commands.command(name="getxp")
+    @commands.command(name="calculatexp")
     async def leader_xp_report(self,ctx,season):
 
         msg = await ctx.send("Please wait...")
 
         if season not in [season.id for season in ctx.bot.tracked_seasons]:
             await msg.delete()
-            return await ctx.send(f"The season `{season}` is not valid.")
+            return await ctx.send(f"The season `{season}` is not valid. Note: This command can only be used for **completed** seasons.")
 
         season = aClashSeason(season)
 
         rpfile = await get_xp_report(ctx,season)
 
         rept_embed = await clash_embed(ctx,
-            title=f"Download Excel Report",
-            message=f"Your XP report for **{season.season_description}** is available for download below.",
+            title=f"Season XP Calculations",
+            message=f"XP Calculations for **{season.season_description}** is available for download below.",
             color='success')
 
         await ctx.send(embed=rept_embed,delete_after=60)
