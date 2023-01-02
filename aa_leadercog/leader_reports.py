@@ -56,7 +56,7 @@ async def report_paginate(ctx,message,clan,output):
 
     if len(output) > 1:
         for embed in output:
-            embed.set_author(name=f"{clan.name} ({clan.tag})",icon_url=clan.badge.url)
+            embed.set_author(name=f"{clan.name} ({clan.tag})",icon_url=clan.badge)
             embed.set_footer(text=f"(Page {output.index(embed)+1} of {len(output)}) AriX Alliance | Clash of Clans",icon_url="https://i.imgur.com/TZF5r54.png")
         nav_options.append(prev_dict)
         nav_options.append(next_dict)
