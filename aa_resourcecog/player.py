@@ -1297,7 +1297,9 @@ class aClan(coc.Clan):
 
     async def compute_arix_membership(self,ctx):
         self.arix_members = []
-        for (m_tag,member) in ctx.bot.member_cache.items():
+
+        members = ctx.bot.member_cache
+        for (m_tag,member) in members.items():
             if member.is_member and member.home_clan.tag == self.tag:
                 self.arix_members.append(member)
 
