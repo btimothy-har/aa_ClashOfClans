@@ -70,11 +70,12 @@ class WarLord_Player():
             self.hit_rate = 0
 
 async def leaderboard_warlord(ctx,season):
+    members = ctx.bot.member_cache
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
+        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
     else:
         all_participants = []
-        for (tag,member) in ctx.bot.member_cache.items():
+        for (tag,member) in members.items():
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
@@ -123,12 +124,13 @@ async def leaderboard_warlord(ctx,season):
 
 
 async def leaderboard_heistlord(ctx,season):
+    members = ctx.bot.member_cache
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
+        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
 
     else:
         all_participants = []
-        for (tag,member) in ctx.bot.member_cache.items():
+        for (tag,member) in members.items():
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
@@ -175,14 +177,15 @@ async def leaderboard_heistlord(ctx,season):
     return heistlord_leaderboard_embed
 
 async def leaderboard_clangames(ctx,season):
+    members = ctx.bot.member_cache
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
 
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.clangames.score > 0]
+        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.clangames.score > 0]
 
     else:
         all_participants = []
-        for (tag,member) in ctx.bot.member_cache.items():
+        for (tag,member) in members.items():
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
@@ -263,12 +266,14 @@ async def leaderboard_clangames(ctx,season):
 async def leaderboard_donations(ctx,season):
     alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
 
+    members = ctx.bot.member_cache
+
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in ctx.bot.member_cache.items() if member.is_member and member.current_season.donations_sent.season > 0]
+        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.donations_sent.season > 0]
 
     else:
         all_participants = []
-        for (tag,member) in ctx.bot.member_cache.items():
+        for (tag,member) in members.items():
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
