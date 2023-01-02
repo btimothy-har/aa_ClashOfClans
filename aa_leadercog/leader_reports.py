@@ -526,7 +526,7 @@ async def get_xp_report(ctx,season):
         xp_worksheet.write(row,col,h,bold)
         col += 1
 
-    for m in [m for (t,m) in members.items()]:
+    for (t,m) in members.items():
         if not m.discord_user:
             continue
 
@@ -535,11 +535,11 @@ async def get_xp_report(ctx,season):
         except KeyError:
             continue
 
-        if str(m.discord_user) not in list(xp_dict.keys()):
-            xp_dict[str(m.discord_user)] = []
+        if m.discord_user not in list(xp_dict.keys()):
+            xp_dict[m.discord_user] = []
 
             if stats.is_member:
-                xp_dict[str(m.discord_user)].append(stats)
+                xp_dict[m.discord_user].append(stats)
 
     for (user,accounts) in xp_dict.items():
         total_donations = 0
@@ -551,7 +551,7 @@ async def get_xp_report(ctx,season):
         for a in accounts:
             total_donations += a.donations_sent.season
 
-            if a.clangames.clan.is_alliance_clan and a.clangames.score > cg_score:
+            if a.clangames.clan_tag in [c.tag for c in alliance_clans] and a.clangames.score > cg_score:
                 cg_score = a.clangames.score
 
         if total_donations >= 1000:
