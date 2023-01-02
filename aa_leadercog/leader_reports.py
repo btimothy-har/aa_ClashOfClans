@@ -539,7 +539,7 @@ async def get_xp_report(ctx,season):
             xp_dict[m.discord_user] = []
 
             if stats.is_member:
-                xp_dict[m.discord_user].append(m.stats)
+                xp_dict[m.discord_user].append(stats)
 
     for (user,accounts) in xp_dict.items():
 
@@ -578,7 +578,7 @@ async def get_xp_report(ctx,season):
         else:
             m_data.append(None)
 
-        m_data.append(accounts)
+        m_data.append(len(accounts))
         m_data.append(donation_xp + cg_xp)
         m_data.append(total_donations)
         m_data.append(donation_xp)
