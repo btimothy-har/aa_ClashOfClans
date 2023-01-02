@@ -778,10 +778,15 @@ class AriXMemberCommands(commands.Cog):
                 if season.id == ctx.bot.current_season.id:
                     season_member = member.current_season
                 else:
-                    season_member = member.season_data[season.id]
+                    try:
+                        season_member = member.season_data[season.id]
+                    except KeyError:
+                        continue
 
                 if season_member.is_member and season_member.home_clan.tag == clan_select.tag:
                     clan_members.append(season_member)
+                else:
+                    continue
 
             if ctx.invoked_with == 'donations':
                 clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
