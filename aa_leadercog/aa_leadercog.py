@@ -1829,6 +1829,8 @@ class AriXLeaderCommands(commands.Cog):
     @commands.command(name="getxp")
     async def leader_xp_report(self,ctx,season):
 
+        msg = await ctx.send("Please wait...")
+
         if season not in [season.id for season in ctx.bot.tracked_seasons]:
             return await ctx.send(f"The season `{season}` is not valid.")
 
@@ -1841,6 +1843,8 @@ class AriXLeaderCommands(commands.Cog):
 
         await ctx.send(embed=rept_embed,delete_after=60)
         await ctx.send(file=discord.File(rpfile))
+
+        await msg.delete()
 
 
 
