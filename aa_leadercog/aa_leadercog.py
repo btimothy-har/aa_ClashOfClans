@@ -976,7 +976,7 @@ class AriXLeaderCommands(commands.Cog):
         if not silent_mode:
             silent_mode = await self.config.guild(ctx.guild).silent_member_add()
 
-        alliance_clans = await get_alliance_clan(ctx)
+        alliance_clans = [c for c in [ctx.bot.clan_cache[c_tag] for c_tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
 
         if not len(alliance_clans) >= 1:
             return await no_clans_registered(ctx)
@@ -1053,8 +1053,8 @@ class AriXLeaderCommands(commands.Cog):
                 existing_user = None
 
             #Discord User on file does not match new user: request confirmation.
-            if p.discord_user and p.discord_user.user_id != user.id:
-                player_notes += f"\n- This account has been previously linked to <@{p.discord_user.user_id}>."
+            if p.discord_user and p.discord_user != user.id:
+                player_notes += f"\n- This account has been previously linked to <@{p.discord_user}>."
             
             #Is a current active member, but in a different clan: request confirmation.
             if p.is_member:
@@ -1110,22 +1110,27 @@ class AriXLeaderCommands(commands.Cog):
 
             report_str += f"<a:check_black:1050969577556811876> **{p.tag} {p.name}** added as **{p.arix_rank}** to **{p.home_clan.emoji} {p.home_clan.name}**.\n"
 
-        new_nickname = await resc.user_nickname_handler(ctx,user,selection=False)
         ex_member_role = ctx.bot.alliance_server.get_role(870193115703697448)
         visitor_role = ctx.bot.alliance_server.get_role(733362618647183531)
         new_applicant_role = ctx.bot.alliance_server.get_role(811204363263410187)
 
         if added_count > 0:
-            member = await aMember.create(user.id)
+            member = await aMember.create(ctx,user.id)
 
             if member.discord_member:
-                await member.sync_roles(ctx)
+                roles_added, roles_removed = await member.sync_roles(ctx)
 
                 try:
                     new_nickname = await member.set_nickname(ctx)
                     report_str += f"<a:check_black:1050969577556811876> Nickname set to {new_nickname}.\n"
                 except Exception as e:
                     report_str += f"<a:aa_warning:1050970131863453746> Error while changing nickname: {e}\n"
+
+                for role in roles_added:
+                    report_str += f"<a:check_black:1050969577556811876> Added {role.mention}.\n"
+
+                for role in roles_removed:
+                    report_str += f"<a:check_black:1050969577556811876> Removed {role.mention}.\n"
 
                 if ex_member_role in member.discord_member.roles:
                     try:
