@@ -719,7 +719,7 @@ async def report_to_excel(ctx,clan):
         'Dark Elixir Looted',
         'Capital Contribution',
         'Clan Games Points',
-        'Clan Games Timer',
+        'Clan Games Timer (Minutes)',
         'Wars Participated',
         'Total Attacks',
         'Missed Attacks',
@@ -792,7 +792,7 @@ async def report_to_excel(ctx,clan):
         m_data.append(stats.capitalcontribution.season)
 
         m_data.append(stats.clangames.score)
-        m_data.append(max(stats.clangames.ending_time - stats.clangames.games_start,0))
+        m_data.append(int(max(stats.clangames.ending_time - stats.clangames.games_start,0))/60)
 
         m_data.append(stats.war_stats.wars_participated)
         m_data.append(stats.war_stats.attack_count)
@@ -929,7 +929,7 @@ async def report_to_excel(ctx,clan):
             m_data.append(stats.capitalcontribution.season)
 
             m_data.append(stats.clangames.score)
-            m_data.append(max(stats.clangames.ending_time - stats.clangames.games_start,0))
+            m_data.append(int(max(stats.clangames.ending_time - stats.clangames.games_start,0))/60)
 
             m_data.append(stats.war_stats.wars_participated)
             m_data.append(stats.war_stats.attack_count)
