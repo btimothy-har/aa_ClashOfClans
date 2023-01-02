@@ -538,7 +538,7 @@ async def get_xp_report(ctx,season):
         if m.discord_user not in list(xp_dict.keys()):
             xp_dict[m.discord_user] = []
 
-        if stats.is_member:
+        if season_stats.is_member:
             xp_dict[m.discord_user].append(season_stats)
 
     for (user,accounts) in xp_dict.items():
