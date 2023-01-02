@@ -124,13 +124,6 @@ class aClanWar():
 
         self.attacks = sorted(self.attacks, key=lambda x: x.order)
         self.members = sorted(self.members, key=lambda x:(x.map_position,(x.town_hall*-1)))
-        [await a.compute_attack_stats() for a in self.attacks]
-        [await m.compute_war_performance() for m in self.members]
-
-        await self.clan.get_members()
-        await self.clan.get_attacks()
-        await self.opponent.get_members()
-        await self.opponent.get_attacks()
 
     @classmethod
     async def get(cls,ctx,**kwargs):
@@ -166,6 +159,14 @@ class aClanWar():
             self = aClanWar(clan=clan,game=war)
         else:
             return None
+
+        [await a.compute_attack_stats() for a in self.attacks]
+        [await m.compute_war_performance() for m in self.members]
+
+        await self.clan.get_members()
+        await self.clan.get_attacks()
+        await self.opponent.get_members()
+        await self.opponent.get_attacks()
 
         ctx.bot.war_cache[self.war_id] = self
         return self
