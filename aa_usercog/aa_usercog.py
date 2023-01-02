@@ -735,15 +735,15 @@ class AriXMemberCommands(commands.Cog):
                 pass
 
     @commands.command(name="clanstats",aliases=['donations','warstats','raidstats','clangames'])
-    async def arix_donations(self,ctx,season='current'):
+    async def arix_clanstats(self,ctx,season='current'):
         """
-        Donation stats for AriX clans.
+        Displays stats for Clans.
         """
 
         user = ctx.author
 
         if ctx.invoked_with == 'clanstats':
-            await ctx.send("To use this command, run either `donations`, `warstats`, `raidstats` or `clangames`.")
+            return await ctx.send("To use this command, run either `donations`, `warstats`, `raidstats` or `clangames`.")
 
         alliance_clans = [clan for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
         alliance_clans = sorted(alliance_clans,key=lambda x:(x.level,x.capital_hall),reverse=True)
@@ -795,7 +795,7 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"`{sent:>8}{'':^2}"
                     stats_embed_str += f"{rcvd:>8}{'':^2}`"
                     stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<18}{'':^2}"
+                    stats_embed_str += f"{m.player.name:<18}{'':^2}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -815,12 +815,12 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"\n"
                     stats_embed_str += f"`{ws.wars_participated:>4}{'':^2}"
                     stats_embed_str += f"`{attack_str:>5}{'':^2}"
-                    stats_embed_str += f"{ws.triples:>3}{'':^2}`"
-                    stats_embed_str += f"{m.offense_stars:>4}{'':^2}"
-                    stats_embed_str += f"{m.offense_destruction:>4}{'':^2}"
-                    stats_embed_str += f"{m.average_attack_duration:>4}"
+                    stats_embed_str += f"{ws.triples:>3}{'':^2}"
+                    stats_embed_str += f"{ws.offense_stars:>4}{'':^2}"
+                    stats_embed_str += f"{ws.offense_destruction:>4}{'':^2}"
+                    stats_embed_str += f"{ws.average_attack_duration:>4}"
                     stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<16}"
+                    stats_embed_str += f"{m.player.name:<16}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -838,10 +838,10 @@ class AriXMemberCommands(commands.Cog):
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"`{rs.raids_participated:>4}{'':^2}"
-                    stats_embed_str += f"`{rs.raid_attacks:>5}{'':^2}"
-                    stats_embed_str += f"{rs.resources_looted:>6}{'':^2}`"
-                    stats_embed_str += f"{m.medals_earned:>6}{'':^2}"
-                    stats_embed_str += f"{m.player.name:<16}"
+                    stats_embed_str += f"{rs.raid_attacks:>5}{'':^2}"
+                    stats_embed_str += f"{rs.resources_looted:>6}{'':^2}"
+                    stats_embed_str += f"{rs.medals_earned:>6}{'':^2}"
+                    stats_embed_str += f"{m.player.name:<16}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -874,9 +874,9 @@ class AriXMemberCommands(commands.Cog):
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"`{cg.score:>5}{'':^2}"
-                    stats_embed_str += f"`{ct:>10}{'':^2}"
+                    stats_embed_str += f"{ct:>10}{'':^2}"
                     stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<16}"
+                    stats_embed_str += f"{m.player.name:<16}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
