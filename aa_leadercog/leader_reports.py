@@ -594,8 +594,8 @@ async def report_unrecognized_members(ctx,message,clan):
     return response
 
 async def get_xp_report(ctx,season):
-    alliance_clans = [tag for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
-    members = ctx.bot.member_cache
+    alliance_clans = [c for c in [ctx.bot.clan_cache[c_tag] for c_tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
+    members = [ctx.bot.member_cache[m_tag] for m_tag in list(ctx.bot.member_cache)]
     season = season
 
     dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
@@ -695,7 +695,7 @@ async def get_xp_report(ctx,season):
 
 
 async def report_to_excel(ctx,clan):
-    members = ctx.bot.member_cache
+    members = [ctx.bot.member_cache[m_tag] for m_tag in list(ctx.bot.member_cache)]
 
     dt = f"{datetime.fromtimestamp(time.time()).strftime('%m%d%Y%H%M%S')}"
     report_file = f"{ctx.bot.clash_report_path}/{ctx.author.name}_{clan.abbreviation}_{dt}.xlsx"

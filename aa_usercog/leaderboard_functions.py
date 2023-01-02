@@ -45,7 +45,7 @@ class WarLord_Player():
         self.total_stars = 0
         self.total_destruction = 0.0
 
-        war_ids = [wid for (wid,war) in self.player_stats.warlog.items()]
+        war_ids = list(self.player_stats.warlog)
 
         for wid in war_ids:
             war = self.player_stats.warlog[wid]
@@ -70,12 +70,12 @@ class WarLord_Player():
             self.hit_rate = 0
 
 async def leaderboard_warlord(ctx,season):
-    members = ctx.bot.member_cache
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.war_stats.wars_participated > 0]
+        all_participants = [m.current_season for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.war_stats.wars_participated > 0]
     else:
         all_participants = []
-        for (tag,member) in members.items():
+        for tag in list(ctx.bot.member_cache):
+            member = ctx.bot.member_cache[tag]
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
@@ -124,13 +124,12 @@ async def leaderboard_warlord(ctx,season):
 
 
 async def leaderboard_heistlord(ctx,season):
-    members = ctx.bot.member_cache
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.loot_darkelixir.season > 0]
-
+        all_participants = [m.current_season for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.loot_darkelixir.season > 0]
     else:
         all_participants = []
-        for (tag,member) in members.items():
+        for tag in list(ctx.bot.member_cache):
+            member = ctx.bot.member_cache[tag]
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
@@ -177,15 +176,15 @@ async def leaderboard_heistlord(ctx,season):
     return heistlord_leaderboard_embed
 
 async def leaderboard_clangames(ctx,season):
-    members = ctx.bot.member_cache
-    alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
+    alliance_clans = [c for c in [ctx.bot.clan_cache[tag] for tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
 
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.clangames.score > 0]
+        all_participants = [m for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.clangames.score > 0]
 
     else:
         all_participants = []
-        for (tag,member) in members.items():
+        for tag in list(ctx.bot.member_cache):
+            member = ctx.bot.member_cache[tag]
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:
@@ -264,16 +263,15 @@ async def leaderboard_clangames(ctx,season):
     return clangames_leaderboard_embed
 
 async def leaderboard_donations(ctx,season):
-    alliance_clans = [c for (tag,c) in ctx.bot.clan_cache.items() if c.is_alliance_clan]
-
-    members = ctx.bot.member_cache
+    alliance_clans = [c for c in [ctx.bot.clan_cache[tag] for tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
 
     if season.id == ctx.bot.current_season.id:
-        all_participants = [member.current_season for (tag,member) in members.items() if member.is_member and member.current_season.donations_sent.season > 0]
+        all_participants = [m for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.donations_sent.season > 0]
 
     else:
         all_participants = []
-        for (tag,member) in members.items():
+        for tag in list(ctx.bot.member_cache):
+            member = ctx.bot.member_cache[tag]
             try:
                 season_stats = member.season_data[season.id]
             except KeyError:

@@ -188,7 +188,7 @@ class AriXClashDataMgr(commands.Cog):
             ctx.bot.refresh_loop = 0
 
             self.data_backup_save.start()
-            #self.season_update.start()
+            self.season_update.start()
             self.clan_update.start()
             self.member_update.start()
 
@@ -1034,11 +1034,6 @@ class AriXClashDataMgr(commands.Cog):
         async with self.clan_lock:
             bot.clan_refresh_status = True
 
-            clan_dict = ctx.bot.clan_cache
-
-            war_dict = ctx.bot.war_cache
-            raid_dict = ctx.bot.raid_cache
-
             st = time.time()
 
             data_embed = discord.Embed(
@@ -1061,7 +1056,7 @@ class AriXClashDataMgr(commands.Cog):
                 ## CLAN UPDATE
                 clan_update = ''
                 mem_count = 0
-                for (c_tag,clan) in clan_dict.items():
+                for c_tag in list(ctx.bot.clan_cache):
                     try:
                         c = await aClan.create(ctx,tag=c_tag,refresh=True)
                     except Exception as e:
@@ -1154,12 +1149,14 @@ class AriXClashDataMgr(commands.Cog):
                     value=clan_update,
                     inline=False)
 
-                for (war_id,war) in war_dict.items():
+                for war_id in list(ctx.bot.war_cache):
+                    war = ctx.bot.war_cache[war_id]
                     if war.state not in ['warEnded']:
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
                         war = await aClanWar.get(ctx,clan=war_clan)
 
-                for (raid_id,raid) in raid_dict.items():
+                for raid_id in list(ctx.bot.raid_cache):
+                    raid = ctx.bot.raid_cache[raid_id]
                     if raid.state not in ['ended']:
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
@@ -1263,8 +1260,6 @@ class AriXClashDataMgr(commands.Cog):
 
             bot.member_refresh_status = True
 
-            member_dict = ctx.bot.member_cache
-
             st = time.time()
 
             is_cwl = False
@@ -1294,7 +1289,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 count_members = 0
                 count_member_update = 0
-                for (m_tag, member) in member_dict.items():
+                for m_tag in list(ctx.bot.member_cache):
                     try:
                         m = await aPlayer.create(ctx,tag=m_tag,refresh=True)
                     except Exception as e:

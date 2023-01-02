@@ -110,10 +110,6 @@ async def userprofile_warlog(ctx,account,message=None):
 
     current_season = ctx.bot.current_season
 
-    # won = [w for wid,w in a.warlog.items() if w.result in ['won','winning']]
-    # lost = [w for wid,w in a.warlog.items() if w.result in ['lost','losing']]
-    # tied = [w for wid,w in a.warlog.items() if w.result in ['tied']]
-
     warlog_embed = await clash_embed(ctx,
         title=f"**War Log: {a.name} ({a.tag})**",
         message=f"**Stats for: {current_season.season_description} Season**"
@@ -124,15 +120,13 @@ async def userprofile_warlog(ctx,account,message=None):
             + f"\n<:Defense:828103708956819467>\u3000<:WarStars:825756777844178944> `{a.current_season.war_stats.defense_stars:<3}`\u3000:fire: `{a.current_season.war_stats.defense_destruction:>3}%`"
             + f"\n\u200b")
 
-    war_id_sort = [wid for wid,war in a.current_season.warlog.items()]
-    war_id_sort.sort(reverse=True)
+    wars = [a.current_season.warlog[war_id] for war_id in list(a.current_season.warlog)]
+    wars = sorted(wars,key=lambda x:(x.end_time),reverse=True)
 
     war_count = 0
-    for wid in war_id_sort:
+    for war in wars:
         if war_count >= 5:
             break
-
-        war = a.current_season.warlog[wid]
 
         if war.result != '':
             attack_str = ""
@@ -234,12 +228,10 @@ async def userprofile_raidlog(ctx,account,message=None):
             + f"\n\u200b"
             )
 
-    raid_id_sort = [rid for rid,raid in a.current_season.raidlog.items()]
-    raid_id_sort.sort(reverse=True)
+    raids = [a.current_season.raidlog[raid_id] for raid_id in list(a.current_season.raidlog)]
+    raids = sorted(raids,key=lambda x:(x.end_time),reverse=True)
 
-    for rid in raid_id_sort:
-        raid = a.current_season.raidlog[rid]
-
+    for raid in raids:
         raid_date = datetime.fromtimestamp(raid.end_time).strftime('%d %b %Y')
 
         raid_member = [m for m in raid.members if m.tag == a.tag][0]

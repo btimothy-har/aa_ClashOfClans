@@ -745,7 +745,7 @@ class AriXMemberCommands(commands.Cog):
         if ctx.invoked_with == 'clanstats':
             return await ctx.send("To use this command, run either `donations`, `warstats`, `raidstats` or `clangames`.")
 
-        alliance_clans = [clan for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
+        alliance_clans = [c for c in [ctx.bot.clan_cache[c_tag] for c_tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
         alliance_clans = sorted(alliance_clans,key=lambda x:(x.level,x.capital_hall),reverse=True)
 
         if season == 'current':
@@ -776,7 +776,9 @@ class AriXMemberCommands(commands.Cog):
                 clan_select = alliance_clans[0]
 
             clan_members = []
-            for (tag,member) in ctx.bot.member_cache.items():
+            for tag in list(ctx.bot.member_cache):
+
+                member = ctx.bot.member_cache[tag]
 
                 if season.id == ctx.bot.current_season.id:
                     season_member = member.current_season

@@ -1010,7 +1010,8 @@ class aPlayerWarStats():
 
         total_duration = 0
 
-        for (wid,war) in warlog.items():
+        for wid in list(warlog):
+            war = warlog[wid]
             try:
                 warmember = [m for m in war.members if m.tag == player.tag][0]
             except:
@@ -1049,7 +1050,8 @@ class aPlayerRaidStats():
     async def compute(self,ctx,player,raidlog):
         self = aPlayerRaidStats()
 
-        for (rid,raid) in raidlog.items():
+        for rid in list(raidlog):
+            raid = raidlog[rid]
             try:
                 raidmember = [m for m in raid.members if m.tag == player.tag][0]
             except:
@@ -1307,8 +1309,8 @@ class aClan(coc.Clan):
     async def compute_arix_membership(self,ctx):
         self.arix_members = []
 
-        members = ctx.bot.member_cache
-        for (m_tag,member) in members.items():
+        for m_tag in list(ctx.bot.member_cache):
+            member = ctx.bot.member_cache[m_tag]
             if member.is_member and member.home_clan.tag == self.tag:
                 self.arix_members.append(member)
 
@@ -1338,9 +1340,9 @@ class aClan(coc.Clan):
             'war_reminder_tracking': self.war_reminder_tracking,
             'raid_reminder_tracking': self.raid_reminder_tracking,
             'war_state': self.war_state,
-            'war_log': [war.war_id for (wid,war) in self.war_log.items()],
+            'war_log': list(self.war_log),
             'raid_weekend_state': self.raid_weekend_state,
-            'raid_log': [raid.raid_id for (rid,raid) in self.raid_log.items()],
+            'raid_log': list(self.raid_log),
             }
 
         return clan_alliance_json
@@ -1622,9 +1624,10 @@ class aMember():
         self = aMember(ctx,user_id)
         ctx.bot.user_cache[user_id] = self
 
-        accounts = ctx.bot.member_cache
-
-        self.accounts = [member for (m_tag,member) in accounts.items() if member.discord_user == self.user_id]
+        for m_tag in list(ctx.bot.member_cache):
+            m = ctx.bot.member_cache[m_tag]
+            if m.discord_user == self.user_id:
+                self.accounts.append(m)
 
         if len(self.accounts) == 0:
             other_accounts = await ctx.bot.discordlinks.get_linked_players(self.user_id)
@@ -1751,7 +1754,7 @@ class aMember():
         is_arix_elder = False
         is_arix_leader = False
 
-        allianceClans = [clan for (c_tag,clan) in bot.clan_cache.items() if clan.is_alliance_clan]
+        allianceClans = [c for c in [bot.clan_cache[c_tag] for c_tag in list(bot.clan_cache)] if c.is_alliance_clan]
 
         if len(self.home_clans) > 0:
             is_arix_member = True

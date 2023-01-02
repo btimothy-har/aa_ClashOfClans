@@ -18,26 +18,26 @@ async def get_current_season():
     return current_season
 
 async def save_war_cache(ctx):
-    war_cache = ctx.bot.war_cache
-    for (war_id,war) in war_cache.items():
+    for war_id in list(ctx.bot.war_cache):
+        war = ctx.bot.war_cache[war_id]
         if war:
             await war.save_to_json(ctx)
 
 async def save_raid_cache(ctx):
-    raid_cache = ctx.bot.raid_cache
-    for (raid_id,raid) in raid_cache.items():
+    for raid_id in list(ctx.bot.raid_cache):
+        raid = ctx.bot.raid_cache[raid_id]
         if raid:
             await raid.save_to_json(ctx)
 
 async def save_clan_cache(ctx):
-    clan_cache = ctx.bot.clan_cache
-    for (c_tag,clan) in clan_cache.items():
+    for c_tag in list(ctx.bot.clan_cache):
+        clan = ctx.bot.clan_cache[c_tag]
         if clan.is_alliance_clan:
             await clan.save_to_json(ctx)
 
 async def save_member_cache(ctx):
-    member_cache = ctx.bot.member_cache
-    for (m_tag,member) in member_cache.items():
+    for m_tag in list(ctx.bot.member_cache):
+        member = ctx.bot.member_cache[m_tag]
         if member.is_arix_account:
             await member.save_to_json(ctx)
 
