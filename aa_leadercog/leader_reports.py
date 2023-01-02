@@ -33,6 +33,8 @@ from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_regi
 
 
 async def report_paginate(ctx,message,clan,output):
+    user = ctx.author
+
     nav_options = []
     nav_str = ""
     paginate_state = True
@@ -80,13 +82,13 @@ async def report_paginate(ctx,message,clan,output):
             message = await ctx.send(content=ctx.author.mention,embed=output[browse_index])
 
         try:
-            await message.clear_reactions()
             selection = await multiple_choice_menu_select(ctx,message,nav_options,timeout=300)
         except:
             selection = None
 
         if selection:
             response = selection['id']
+            await message.remove_reaction(selection['emoji'],user)
 
             if response == 'previous':
                 browse_index -= 1
@@ -159,38 +161,38 @@ async def report_member_summary(ctx,message,clan):
             + f"\nUnique Members: {len(list(user_count.keys()))}\n\u200b")
 
     def get_table(text_input):
-        output_str = f"{'User':^15}{'':^2}{'# AC':^3}{'':^2}{'Townhalls':<10}"
+        output_str = f"{'# AC':^3}{'':^2}{'Townhalls':<10}{'':^2}{'User':^15}"
         for i in text_input:
             user_len = i['User'][0:15]
             output_str += f"\n"
-            output_str += f"{user_len:<15}{'':^2}"
             output_str += f"{i['# Accs']:>3}{'':^2}"
             output_str += f"{i['Townhalls']:<10}"
+            output_str += f"{user_len:<15}"
 
         return output_str
 
     leader_output = get_table(leaders)
     users_accounts_embed.add_field(
         name="**Leader(s)**",
-        value=f"```{leader_output}```\n\u200b",
+        value=f"```{leader_output}```",
         inline=False)
 
     coleader_output = get_table(coleaders)
     users_accounts_embed.add_field(
         name="**Co-Leader(s)**",
-        value=f"```{coleader_output}```\n\u200b",
+        value=f"```{coleader_output}```",
         inline=False)
 
     elder_output = get_table(elders)
     users_accounts_embed.add_field(
         name="**Elder(s)**",
-        value=f"```{elder_output}```\n\u200b",
+        value=f"```{elder_output}```",
         inline=False)
 
     member_output = get_table(members)
     users_accounts_embed.add_field(
         name="**Member(s)**",
-        value=f"```{member_output}```\n\u200b",
+        value=f"```{member_output}```",
         inline=False)
 
     output_pages.append(users_accounts_embed)
