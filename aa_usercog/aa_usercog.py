@@ -805,7 +805,7 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'warstats':
                 clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.war_stats.wars_participated),reverse=True)
 
-                stats_embed_str = f"`{'WARS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'TRP':>3}{'':^2}{'STRS':<4}{'':^2}{'DEST':<4}{'':^2}{'TIME':<4}{'':<20}`"
+                stats_embed_str = f"`{'TH':>2}{'':^2}{'WARS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'TRP':>3}{'':^2}{'STRS':<4}{'':^2}{'DEST':<5}{'':^2}{'TIME':<4}{'':<26}`"
                 for m in clan_members:
 
                     ws = m.war_stats
@@ -813,13 +813,14 @@ class AriXMemberCommands(commands.Cog):
                     attack_str = f"{ws.attack_count}/{ws.attack_count+ws.unused_attacks}"
 
                     stats_embed_str += f"\n"
-                    stats_embed_str += f"`{ws.wars_participated:>4}{'':^2}"
+                    stats_embed_str += f"`{m.town_hall:^2}{'':^2}"
+                    stats_embed_str += f"{ws.wars_participated:>4}{'':^2}"
                     stats_embed_str += f"{attack_str:>5}{'':^2}"
                     stats_embed_str += f"{ws.triples:>3}{'':^2}"
                     stats_embed_str += f"{ws.offense_stars:>4}{'':^2}"
-                    stats_embed_str += f"{ws.offense_destruction:>4}{'':^2}"
-                    stats_embed_str += f"{ws.average_attack_duration:>4}"
-                    stats_embed_str += f"{m.town_hall:^4}"
+                    stats_embed_str += f"{ws.offense_destruction+'%':>5}{'':^2}"
+                    stats_embed_str += f"{int(ws.average_attack_duration):>4}"
+
                     stats_embed_str += f"{m.player.name:<16}`"
 
                 clan_stats_embed = await clash_embed(ctx,
@@ -831,13 +832,13 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'raidstats':
                 clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.raid_stats.raids_participated),reverse=True)
 
-                stats_embed_str = f"`{'RAIDS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}{'':<16}`"
+                stats_embed_str = f"`{'RAIDS':>5}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}{'':<16}`"
                 for m in clan_members:
 
                     rs = m.raid_stats
 
                     stats_embed_str += f"\n"
-                    stats_embed_str += f"`{rs.raids_participated:>4}{'':^2}"
+                    stats_embed_str += f"`{rs.raids_participated:>5}{'':^2}"
                     stats_embed_str += f"{rs.raid_attacks:>5}{'':^2}"
                     stats_embed_str += f"{rs.resources_looted:>6}{'':^2}"
                     stats_embed_str += f"{rs.medals_earned:>6}{'':^2}"
