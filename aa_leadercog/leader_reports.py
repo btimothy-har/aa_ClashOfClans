@@ -265,29 +265,29 @@ async def report_member_summary(ctx,message,clan):
         account_strength_output.append(account_output)
         hero_strength_output.append(hero_output)
 
-    base_strength_str = f"{'Player':^15}{'':^2}{'TH':^2}{'':^1}{'Troops':^6}{'':^1}{'Spells':^6}{'':^1}{'Heroes':^6}"
+    base_strength_str = f"{'TH':^2}{'':^2}{'Troops':^6}{'':^2}{'Spells':^6}{'':^2}{'Heroes':^6}{'':^2}{'Player':<15}"
     for i in account_strength_output:
         base_strength_str += "\n"
-        base_strength_str += f"{i['Name']:<15}{'':^2}"
-        base_strength_str += f"{i['TH']:^2}{'':^1}"
-        base_strength_str += f"{i['Troops']:^6}{'':^1}"
-        base_strength_str += f"{i['Spells']:^6}{'':^1}"
-        base_strength_str += f"{i['Heroes']:^6}"
+        base_strength_str += f"{i['TH']:^2}{'':^2}"
+        base_strength_str += f"{i['Troops']:^6}{'':^2}"
+        base_strength_str += f"{i['Spells']:^6}{'':^2}"
+        base_strength_str += f"{i['Heroes']:^6}{'':^2}"
+        base_strength_str += f"{i['Name']:<15}"
 
     account_strength_embed = await clash_embed(ctx,
         title=f"{clan.emoji} Base Strength",
         message=f"```{base_strength_str}```")
     output_pages.append(account_strength_embed)
 
-    hero_strength_str = f"{'Player':^15}{'':^2}{'TH':^2}{'':^1}{'BK':^2}{'':^1}{'AQ':^2}{'':^1}{'GW':^2}{'':^1}{'RC':^2}"
+    hero_strength_str = f"{'TH':^2}{'':^2}{'BK':^2}{'':^2}{'AQ':^2}{'':^2}{'GW':^2}{'':^2}{'RC':^2}{'':^2}{'Player':^15}"
     for i in hero_strength_output:
         hero_strength_str += "\n"
-        hero_strength_str += f"{i['Name']:<15}{'':^2}"
-        hero_strength_str += f"{i['TH']:^2}{'':^1}"
-        hero_strength_str += f"{i['BK']:^2}{'':^1}"
-        hero_strength_str += f"{i['AQ']:^2}{'':^1}"
-        hero_strength_str += f"{i['GW']:^2}{'':^1}"
-        hero_strength_str += f"{i['RC']:^2}"
+        hero_strength_str += f"{i['TH']:^2}{'':^2}"
+        hero_strength_str += f"{i['BK']:^2}{'':^2}"
+        hero_strength_str += f"{i['AQ']:^2}{'':^2}"
+        hero_strength_str += f"{i['GW']:^2}{'':^2}"
+        hero_strength_str += f"{i['RC']:^2}{'':^2}"
+        hero_strength_str += f"{i['Name']:<15}"
 
     hero_strength_embed = await clash_embed(ctx,
         title=f"{clan.emoji} Hero Strength",
