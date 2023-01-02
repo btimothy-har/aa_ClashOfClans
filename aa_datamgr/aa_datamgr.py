@@ -1289,7 +1289,9 @@ class AriXClashDataMgr(commands.Cog):
 
                 count_members = 0
                 count_member_update = 0
-                for m_tag in list(ctx.bot.member_cache):
+
+                member_tags = list(ctx.bot.member_cache)
+                for m_tag in member_tags:
                     try:
                         m = await aPlayer.create(ctx,tag=m_tag,refresh=True)
                     except Exception as e:
@@ -1341,7 +1343,7 @@ class AriXClashDataMgr(commands.Cog):
 
                 data_embed.add_field(
                     name=f"**Member Updates**",
-                    value=f"Number of Tags: {len(list(member_dict.keys()))}"
+                    value=f"Number of Tags: {len(member_tags)}"
                         + f"\nAccounts Found: {count_members}"
                         + f"\nSuccessful Updates: {count_member_update}",
                     inline=False)
