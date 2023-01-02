@@ -506,16 +506,16 @@ async def get_xp_report(ctx,season):
     sheet_name = f"{season.season_description}"
     xp_worksheet = rp_workbook.add_worksheet(sheet_name)
 
-    completed_users = []
+    xp_dict = {}
 
     xp_headers = ['ID',
         'Discord Name',
+        'Nickname',
         '# Accounts',
         'Total XP',
         'Total Donations',
         'Donation XP',
-        'Clan Games Tier 1',
-        'Clan Games Tier 2',
+        'Clan Games Score',
         'Clan Games XP',
         ]
 
@@ -527,57 +527,54 @@ async def get_xp_report(ctx,season):
 
     for m in [m for (t,m) in members.items()]:
 
-        accounts = 0
-        total_donations = 0
-        cg_tier1 = False
-        cg_tier2 = False
-
-        if m.discord_user in completed_users:
-            continue
-
         if not m.discord_user:
             continue
 
-        arix_member = await aMember.create(ctx,user_id=m.discord_user)
+        try:
+            stats = m.season_data[season.id]
+        except KeyError:
+            continue
 
-        for account in arix_member.accounts:
-            try:
-                stats = m.season_data[season.id]
-            except KeyError:
-                continue
+        if m.discord_user not in list(xp_dict.keys()):
+            xp_dict[m.discord_user] = []
 
             if stats.is_member:
-                accounts += 1
-                total_donations += stats.donations_sent.season
+                xp_dict[m.discord_user].append(m.stats)
 
-                if stats.clangames.score >= 1000 and stats.clangames.clan.is_alliance_clan:
-                    cg_tier1 = True
+    for (user,accounts) in xp_dict.items():
 
-                if stats.clangames.score >= 4000 and stats.clangames.clan.is_alliance_clan:
-                    cg_tier2 = True
-
-        completed_users.append(arix_member.user_id)
+        total_donations = 0
+        cg_score = 0
 
         donation_xp = 0
         cg_xp = 0
+
+        for a in accounts:
+            total_donations += a.donations_sent.season
+
+            if a.clangames.clan.is_alliance_clan and a.clangames.score > cg_score:
+                cg_score = a.clangames.score
+
         if total_donations >= 1000:
             donation_xp = math.ceil(total_donations / 100) * 100
 
-        if cg_tier1:
+        if cg_score >= 1000:
             cg_xp = 1000
 
-        if cg_tier2:
+        if cg_score >= 4000:
             cg_xp = 4000
 
         col = 0
         row += 1
 
         m_data = []
-
         m_data.append(str(arix_member.user_id))
+
+        arix_member = await aMember.create(ctx,user_id=user)
 
         if arix_member.discord_member:
             m_data.append(f"{arix_member.discord_member.name}#{arix_member.discord_member.discriminator}")
+            m_data.append(f"{arix_member.discord_member.display_name}")
         else:
             m_data.append(None)
 
@@ -585,8 +582,7 @@ async def get_xp_report(ctx,season):
         m_data.append(donation_xp + cg_xp)
         m_data.append(total_donations)
         m_data.append(donation_xp)
-        m_data.append(cg_tier1)
-        m_data.append(cg_tier2)
+        m_data.append(cg_score)
         m_data.append(cg_xp)
 
         for d in m_data:
