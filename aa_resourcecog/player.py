@@ -174,6 +174,7 @@ class aPlayer(coc.Player):
         self.max_hero_strength = sum([hero.maxlevel_for_townhall for hero in self.heroes])
         self.min_hero_strength = sum([hero.minlevel_for_townhall for hero in self.heroes])
 
+        self.hero_rushed_pct = 0
         rushed_heroes = sum([(h.minlevel_for_townhall - h.level) for h in self.heroes if h.is_rushed])
         if self.min_hero_strength > 0:
             self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,2)
@@ -182,6 +183,7 @@ class aPlayer(coc.Player):
         self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.hero_pets]))
         self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.hero_pets]))
 
+        self.troop_rushed_pct = 0
         rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.hero_pets if p.level < p.minlevel_for_townhall])
         if self.min_troop_strength > 0:
             self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,2)
@@ -190,10 +192,12 @@ class aPlayer(coc.Player):
         self.max_spell_strength = (sum([spell.maxlevel_for_townhall for spell in self.spells]))
         self.min_spell_strength = (sum([spell.minlevel_for_townhall for spell in self.spells]))
 
+        self.spell_rushed_pct = 0
         rushed_spells = sum([(s.minlevel_for_townhall - s.level) for s in self.spells if s.is_rushed])
         if self.min_spell_strength > 0:
             self.spell_rushed_pct = round((rushed_spells / self.min_spell_strength)*100,2)
 
+        self.overall_rushed_pct = 0
         if self.min_hero_strength + self.min_troop_strength + self.min_spell_strength > 0:
             rushed_pct = (rushed_heroes + rushed_troops + rushed_spells) / (self.min_hero_strength + self.min_troop_strength + self.min_spell_strength)
             self.overall_rushed_pct = round(rushed_pct*100,2)
