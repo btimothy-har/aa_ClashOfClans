@@ -866,7 +866,7 @@ class AriXMemberCommands(commands.Cog):
 
                 average_loot = 0
 
-                stats_embed_str = f"{'RAIDS':>5}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}"
+                stats_embed_str = f"{'RAIDS':>5}{'':^2}{'ATTKS':>6}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}"
                 for m in clan_members:
 
                     rs = m.raid_stats
@@ -878,7 +878,7 @@ class AriXMemberCommands(commands.Cog):
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"{rs.raids_participated:>5}{'':^2}"
-                    stats_embed_str += f"{rs.raid_attacks:>5}{'':^2}"
+                    stats_embed_str += f"{attack_str:>6}{'':^2}"
                     stats_embed_str += f"{rs.resources_looted:>6}{'':^2}"
                     stats_embed_str += f"{rs.medals_earned:>6}{'':^2}"
 
