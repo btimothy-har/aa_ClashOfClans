@@ -734,11 +734,16 @@ class AriXMemberCommands(commands.Cog):
             except:
                 pass
 
-    @commands.command(name="donations")
+    @commands.command(name="clanstats",aliases=['donations','warstats','raidstats','clangames'])
     async def arix_donations(self,ctx,season='current'):
         """
         Donation stats for AriX clans.
         """
+
+        user = ctx.author
+
+        if ctx.invoked_with == 'clanstats':
+            await ctx.send("To use this command, run either `donations`, `warstats`, `raidstats` or `clangames`.")
 
         alliance_clans = [clan for (tag,clan) in ctx.bot.clan_cache.items() if clan.is_alliance_clan]
         alliance_clans = sorted(alliance_clans,key=lambda x:(x.level,x.capital_hall),reverse=True)
@@ -778,32 +783,115 @@ class AriXMemberCommands(commands.Cog):
                 if season_member.is_member and season_member.home_clan.tag == clan_select.tag:
                     clan_members.append(season_member)
 
-            clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
+            if ctx.invoked_with == 'donations':
+                clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
 
-            donation_embed_str = f"`{'':<4}{'':<20}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
-            for m in clan_members:
-                sent = f"{m.donations_sent.season:,}"
-                rcvd = f"{m.donations_rcvd.season:,}"
+                stats_embed_str = f"`{'SENT':>8}{'':^2}{'RCVD':>8}{'':^2}{'':<4}{'':<20}`"
+                for m in clan_members:
+                    sent = f"{m.donations_sent.season:,}"
+                    rcvd = f"{m.donations_rcvd.season:,}"
 
-                donation_embed_str += f"\n"
-                donation_embed_str += f"`{m.town_hall:<4}"
-                donation_embed_str += f"{m.player.name:<18}{'':^2}"
-                donation_embed_str += f"{sent:>8}{'':^2}"
-                donation_embed_str += f"{rcvd:>8}{'':^2}`"
+                    stats_embed_str += f"\n"
+                    stats_embed_str += f"`{sent:>8}{'':^2}"
+                    stats_embed_str += f"{rcvd:>8}{'':^2}`"
+                    stats_embed_str += f"{m.town_hall:^4}"
+                    stats_embed_str += f"{m.player.name:<18}{'':^2}"
 
-            clan_donation_embed = await clash_embed(ctx,
-                title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
-                message=f"**Donations for {season.season_description} Season**"
-                f"\n\n{donation_embed_str}")
+                clan_stats_embed = await clash_embed(ctx,
+                    title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                    message=f"**Donations for {season.season_description} Season**"
+                        + f"\n\n{stats_embed_str}")
+
+            if ctx.invoked_with == 'warstats':
+                clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.war_stats.wars_participated),reverse=True)
+
+                stats_embed_str = f"`{'WARS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'TRP':>3}{'':^2}{'STRS':<4}{'':^2}{'DEST':<4}{'':^2}{'TIME':<4}{'':<20}`"
+                for m in clan_members:
+
+                    ws = m.war_stats
+
+                    attack_str = f"{ws.attack_count}/{ws.attack_count+ws.unused_attacks}"
+
+                    stats_embed_str += f"\n"
+                    stats_embed_str += f"`{ws.wars_participated:>4}{'':^2}"
+                    stats_embed_str += f"`{attack_str:>5}{'':^2}"
+                    stats_embed_str += f"{ws.triples:>3}{'':^2}`"
+                    stats_embed_str += f"{m.offense_stars:>4}{'':^2}"
+                    stats_embed_str += f"{m.offense_destruction:>4}{'':^2}"
+                    stats_embed_str += f"{m.average_attack_duration:>4}"
+                    stats_embed_str += f"{m.town_hall:^4}"
+                    stats_embed_str += f"{m.player.name:<16}"
+
+                clan_stats_embed = await clash_embed(ctx,
+                    title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                    message=f"**War Stats for {season.season_description} Season**"
+                        + f"\n\n*Attacks (ATTKS) are shown as `Used/Total Available`."
+                        + f"\n\n{stats_embed_str}")
+
+            if ctx.invoked_with == 'raidstats':
+                clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.raid_stats.raids_participated),reverse=True)
+
+                stats_embed_str = f"`{'RAIDS':>4}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}{'':<16}`"
+                for m in clan_members:
+
+                    rs = m.raid_stats
+
+                    stats_embed_str += f"\n"
+                    stats_embed_str += f"`{rs.raids_participated:>4}{'':^2}"
+                    stats_embed_str += f"`{rs.raid_attacks:>5}{'':^2}"
+                    stats_embed_str += f"{rs.resources_looted:>6}{'':^2}`"
+                    stats_embed_str += f"{m.medals_earned:>6}{'':^2}"
+                    stats_embed_str += f"{m.player.name:<16}"
+
+                clan_stats_embed = await clash_embed(ctx,
+                    title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                    message=f"**Capital Raid Stats for {season.season_description} Season**"
+                        + f"\n\n{stats_embed_str}")
+
+            if ctx.invoked_with == 'clangames':
+                if time.time() < season.clangames_start:
+                    clan_stats_embed = await clash_embed(ctx,
+                        title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                        message=f"**Clan Games Stats for {season.season_description} Season**"
+                            + f"\n\nClan Gamaes has not started for this season. The games will start on:"
+                            + f"\n\n<t:{season.clangames_start}:F>")
+
+                clan_members = sorted(clan_members,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1),x.town_hall),reverse=True)
+
+                stats_embed_str = f"`{'SCORE':>5}{'':^2}{'TIME':>10}{'':^2}{'':<20}`"
+                for m in clan_members:
+
+                    cg = m.clangames
+                    ct = ""
+                    if cg.ending_time:
+                        cd, ch, cm, cs = await convert_seconds_to_str(ctx,(cg.ending_time-cg.games_start))
+                        if cd > 0:
+                            ct += f"{int(cd)}d "
+                        if ch > 0:
+                            ct += f"{int(ch)}h "
+                        if cm > 0:
+                            ct += f"{int(cm)}m"
+
+                    stats_embed_str += f"\n"
+                    stats_embed_str += f"`{cg.score:>5}{'':^2}"
+                    stats_embed_str += f"`{ct:>10}{'':^2}"
+                    stats_embed_str += f"{m.town_hall:^4}"
+                    stats_embed_str += f"{m.player.name:<16}"
+
+                clan_stats_embed = await clash_embed(ctx,
+                    title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
+                    message=f"**Clan Games Stats for {season.season_description} Season**"
+                        + f"\n\n{stats_embed_str}")
 
             if message:
-                await message.edit(embed=clan_donation_embed)
+                await message.edit(embed=clan_stats_embed)
             else:
-                message = await ctx.send(embed=clan_donation_embed)
+                message = await ctx.send(embed=clan_stats_embed)
 
             selection = await multiple_choice_menu_select(ctx,message,menu,300)
             if selection:
                 clan_select = [c for c in alliance_clans if c.tag == selection['id']][0]
+                await message.remove_reaction(selection['emoji'],user)
             else:
                 menu_state = False
 
@@ -812,7 +900,6 @@ class AriXMemberCommands(commands.Cog):
                 await message.clear_reactions()
             except:
                 pass
-
 
 
     @commands.command(name="pass")
