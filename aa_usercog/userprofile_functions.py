@@ -163,19 +163,19 @@ async def userprofile_warlog(ctx,account,message=None):
 
             war_emoji = ""
             if war.type == 'cwl':
-                war_emoji = "<:ClanWarLeagues:825752759948279848>"
+                war_emoji = "<:ClanWarLeagues:825752759948279848> "
 
             elif war.type in ['classic','random']:
                 c = await aClan.create(ctx,tag=war_clan.tag)
                 if c.is_alliance_clan:
-                    war_emoji = c.emoji
+                    war_emoji = f"{c.emoji} "
 
             elif war.type in ['friendly']:
-                war_emoji = ":handshake:"
+                war_emoji = ":handshake: "
 
             time_text = ""
             if time.time() < war.end_time:
-                time_text = f"Ends in <t:{war.end_time}:R>\n"
+                time_text = f"Ends in <t:{int(war.end_time)}:R>\n"
 
             warlog_embed.add_field(
                 name=f"{war_emoji}{war_clan.name} vs {war_opponent.name}",

@@ -1364,7 +1364,7 @@ class aClan(coc.Clan):
 
         self.war_log[self.current_war.war_id] = self.current_war
 
-        if self.current_war.type == 'random':
+        if self.current_war.type in ['random','classic']:
             if war_change and self.current_war.state == 'inWar':
                 self.war_reminder_tracking = self.war_reminder_intervals
                 update_summary += f"\n> - War vs {self.current_war.opponent.name} has started!"
