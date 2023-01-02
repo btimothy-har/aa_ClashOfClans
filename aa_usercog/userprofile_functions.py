@@ -161,9 +161,25 @@ async def userprofile_warlog(ctx,account,message=None):
                 war_clan = war.clan
                 war_opponent = war.opponent
 
+            war_emoji = ""
+            if war.type == 'cwl':
+                war_emoji = "<:ClanWarLeagues:825752759948279848>"
+
+            elif war.type in ['classic','random']:
+                c = await aClan.create(ctx,tag=war_clan.tag)
+                if c.is_alliance_clan:
+                    war_emoji = c.emoji
+
+            elif war.type in ['friendly']:
+                war_emoji = ":handshake:"
+
+            time_text = ""
+            if time.time() < war.end_time:
+                time_text = f"Ends in <t:{war.end_time}:R>\n"
+
             warlog_embed.add_field(
-                name=f"{war_clan.name} vs {war_opponent.name}",
-                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(wm.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{wm.unused_attacks:^3}`\u3000<:Defense:828103708956819467> `{len(wm.defenses):^3}`"
+                name=f"{war_emoji}{war_clan.name} vs {war_opponent.name}",
+                value=f"{time_text}{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(wm.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{wm.unused_attacks:^3}`\u3000<:Defense:828103708956819467> `{len(wm.defenses):^3}`"
                     + f"\n{attack_str}",
                 inline=False
                 )

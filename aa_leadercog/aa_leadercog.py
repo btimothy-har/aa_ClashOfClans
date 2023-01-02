@@ -1344,8 +1344,7 @@ class AriXLeaderCommands(commands.Cog):
                     discord_users.append(p.discord_user)
 
         for u in discord_users:
-
-            member = await aMember.create(ctx,user_id=u.user_id)
+            member = await aMember.create(ctx,user_id=u)
 
             if member.discord_member:
                 try:

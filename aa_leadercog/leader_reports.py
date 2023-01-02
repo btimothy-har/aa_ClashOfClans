@@ -164,7 +164,11 @@ async def report_member_summary(ctx,message,clan):
             + f"\nUnique Members: {len(list(user_count.keys()))}\n\u200b")
 
     def get_table(text_input):
-        output_str = f"{'# AC':^4}{'':^2}{'Townhalls':<10}{'':^2}{'User':<18}"
+
+        header_str = f"{'# AC':^4}{'':^2}{'Townhalls':<10}{'':^2}{'User':<18}"
+
+        output_list = []
+        output_str = ""
         for i in text_input:
             user_len = i['User'][0:15]
             output_str += f"\n"
@@ -172,31 +176,39 @@ async def report_member_summary(ctx,message,clan):
             output_str += f"{i['Townhalls']:<10}{'':^2}"
             output_str += f"{user_len:<18}"
 
-        return output_str
+            if len(output_str) >= 800:
+                output_list.append(output_str)
+                output_str = ""
+
+        return output_list
 
     leader_output = get_table(leaders)
-    users_accounts_embed.add_field(
-        name="**Leader(s)**",
-        value=f"```{leader_output}```",
-        inline=False)
+    for i in leader_output:
+        users_accounts_embed.add_field(
+            name="**Leader(s)**",
+            value=f"```{leader_output}```",
+            inline=False)
 
     coleader_output = get_table(coleaders)
-    users_accounts_embed.add_field(
-        name="**Co-Leader(s)**",
-        value=f"```{coleader_output}```",
-        inline=False)
+    for i in coleader_output:
+        users_accounts_embed.add_field(
+            name="**Co-Leader(s)**",
+            value=f"```{coleader_output}```",
+            inline=False)
 
     elder_output = get_table(elders)
-    users_accounts_embed.add_field(
-        name="**Elder(s)**",
-        value=f"```{elder_output}```",
-        inline=False)
+    for i in elder_output:
+        users_accounts_embed.add_field(
+            name="**Elder(s)**",
+            value=f"```{elder_output}```",
+            inline=False)
 
     member_output = get_table(members)
-    users_accounts_embed.add_field(
-        name="**Member(s)**",
-        value=f"```{member_output}```",
-        inline=False)
+    for i in member_output:
+        users_accounts_embed.add_field(
+            name="**Member(s)**",
+            value=f"```{member_output}```",
+            inline=False)
 
     output_pages.append(users_accounts_embed)
 
