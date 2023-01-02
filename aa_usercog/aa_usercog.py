@@ -786,7 +786,7 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'donations':
                 clan_members = sorted(clan_members,key=lambda x:(x.donations_sent.season,x.town_hall),reverse=True)
 
-                stats_embed_str = f"`{'SENT':>8}{'':^2}{'RCVD':>8}{'':^2}{'':<4}{'':<20}`"
+                stats_embed_str = f"`{'SENT':>8}{'':^2}{'RCVD':>8}{'':^2}{'':<4}{'':<25}`"
                 for m in clan_members:
                     sent = f"{m.donations_sent.season:,}"
                     rcvd = f"{m.donations_rcvd.season:,}"
@@ -795,7 +795,7 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"`{sent:>8}{'':^2}"
                     stats_embed_str += f"{rcvd:>8}{'':^2}"
                     stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<18}{'':^2}`"
+                    stats_embed_str += f"{m.player.name:<25}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
@@ -818,7 +818,7 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"{attack_str:>5}{'':^2}"
                     stats_embed_str += f"{ws.triples:>3}{'':^2}"
                     stats_embed_str += f"{ws.offense_stars:>4}{'':^2}"
-                    stats_embed_str += f"{ws.offense_destruction+'%':>5}{'':^2}"
+                    stats_embed_str += f"{str(ws.offense_destruction)+'%':>5}{'':^2}"
                     stats_embed_str += f"{int(ws.average_attack_duration):>4}"
 
                     stats_embed_str += f"{m.player.name:<16}`"
@@ -832,21 +832,24 @@ class AriXMemberCommands(commands.Cog):
             if ctx.invoked_with == 'raidstats':
                 clan_members = sorted(clan_members,key=lambda x:(x.town_hall,x.raid_stats.raids_participated),reverse=True)
 
-                stats_embed_str = f"`{'RAIDS':>5}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}{'':<16}`"
+                stats_embed_str = f"`{'RAIDS':>5}{'':^2}{'ATTKS':>5}{'':^2}{'LOOT':>6}{'':^2}{'MEDALS':<6}{'':^2}{'':<20}`"
                 for m in clan_members:
 
                     rs = m.raid_stats
+
+                    attack_str = f"{rs.raid_attacks}/{rs.raids_participated*6}"
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"`{rs.raids_participated:>5}{'':^2}"
                     stats_embed_str += f"{rs.raid_attacks:>5}{'':^2}"
                     stats_embed_str += f"{rs.resources_looted:>6}{'':^2}"
                     stats_embed_str += f"{rs.medals_earned:>6}{'':^2}"
-                    stats_embed_str += f"{m.player.name:<16}`"
+                    stats_embed_str += f"{m.player.name:<20}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Capital Raid Stats for {season.season_description} Season**"
+                        + f"\n\n*Attacks (ATTKS) are shown as `Used/Total Available` (assuming 6 attacks per Capital Raid).*"
                         + f"\n\n{stats_embed_str}")
 
             if ctx.invoked_with == 'clangames':
@@ -859,7 +862,7 @@ class AriXMemberCommands(commands.Cog):
 
                 clan_members = sorted(clan_members,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1),x.town_hall),reverse=True)
 
-                stats_embed_str = f"`{'SCORE':>5}{'':^2}{'TIME':>10}{'':^2}{'':<20}`"
+                stats_embed_str = f"`{'SCORE':>5}{'':^2}{'TIME':>10}{'':^2}{'':<25}`"
                 for m in clan_members:
 
                     cg = m.clangames
@@ -877,7 +880,7 @@ class AriXMemberCommands(commands.Cog):
                     stats_embed_str += f"`{cg.score:>5}{'':^2}"
                     stats_embed_str += f"{ct:>10}{'':^2}"
                     stats_embed_str += f"{m.town_hall:^4}"
-                    stats_embed_str += f"{m.player.name:<16}`"
+                    stats_embed_str += f"{m.player.name:<21}`"
 
                 clan_stats_embed = await clash_embed(ctx,
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
