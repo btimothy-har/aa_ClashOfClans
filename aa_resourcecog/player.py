@@ -536,6 +536,7 @@ class aPlayer(coc.Player):
     async def set_readable_name(self,ctx,name):
         self.readable_name = name
         await self.save_to_json(ctx)
+        await aPlayer.create(ctx,tag=self.tag,reset=True)
 
 
     async def update_warlog(self,ctx):
@@ -1559,6 +1560,7 @@ class aClan(coc.Clan):
             self.leader = user_id
 
         await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
 
     async def set_abbreviation(self,ctx,new_abbr:str):
         self.abbreviation = new_abbr
@@ -1584,10 +1586,12 @@ class aClan(coc.Clan):
     async def set_announcement_channel(self,ctx,channel_id):
         self.announcement_channel = channel_id
         await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
 
     async def set_reminder_channel(self,ctx,channel_id):
         self.reminder_channel = channel_id
         await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
 
     async def toggle_war_reminders(self,ctx):
         if self.send_war_reminder:
@@ -1598,6 +1602,63 @@ class aClan(coc.Clan):
             if len(self.war_reminder_intervals) == 0:
                 self.war_reminder_intervals = [12,4,1]
         await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
+
+    async def set_war_reminder_interval(self,ctx,new_interval):
+        self.war_reminder_intervals = []
+        for i in new_interval:
+            i = int(i)
+            if i > 24:
+                pass
+
+            if i not in self.war_reminder_intervals:
+                self.war_reminder_intervals.append(i)
+
+        if 1 not in self.war_reminder_intervals:
+            self.war_reminder_intervals.append(1)
+
+        self.war_reminder_intervals.sort(reverse=True)
+
+        await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
+
+    async def set_raid_reminder_interval(self,ctx,new_interval):
+        self.raid_reminder_intervals = []
+        for i in new_interval:
+            i = int(i)
+            if i > 48:
+                pass
+
+            if i not in self.raid_reminder_intervals:
+                self.raid_reminder_intervals.append(i)
+
+        if 24 not in self.raid_reminder_intervals:
+            self.raid_reminder_intervals.append(24)
+
+        self.raid_reminder_intervals.sort(reverse=True)
+
+        await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
+
+    async def toggle_raid_reminders(self,ctx):
+        if self.send_raid_reminder:
+            self.send_raid_reminder = False
+        else:
+            self.send_raid_reminder = True
+
+            if len(self.raid_reminder_intervals) == 0:
+                self.raid_reminder_intervals = [36,24,12,4]
+        await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
+
+    async def add_note(self,ctx,message):
+        new_note = aNote.create_new(ctx,message)
+        self.notes.append(new_note)
+
+        sorted_notes = sorted(self.notes,key=lambda n:(n.timestamp),reverse=False)
+        self.notes = sorted_notes
+        await self.save_to_json(ctx)
+        await aClan.create(ctx,tag=self.tag,reset=True)
 
 
 ########################################
