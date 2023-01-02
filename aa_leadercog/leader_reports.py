@@ -514,7 +514,7 @@ async def report_to_excel(ctx,clan):
         'Gold Looted',
         'Elixir Looted',
         'Dark Elixir Looted',
-        'Capital Contribution'
+        'Capital Contribution',
         'Clan Games Points',
         'Clan Games Timer',
         'Wars Participated',
@@ -574,7 +574,7 @@ async def report_to_excel(ctx,clan):
         ocl = ""
         for c in stats.other_clans:
             if c.tag:
-                ocl += f"{c.name} ({c.tag})"
+                ocl += f"{c.name} ({c.tag}), "
         m_data.append(ocl)
 
         m_data.append(stats.attacks.season)
@@ -762,6 +762,7 @@ async def report_to_excel(ctx,clan):
         'Member Name',
         'Member Townhall',
         'Member Map Position',
+        'Member Defense Count',
         'Attack Order',
         'Attack Defender',
         'Attack Defender TH',
@@ -809,6 +810,7 @@ async def report_to_excel(ctx,clan):
                 mwar_data.append(m.name)
                 mwar_data.append(m.town_hall)
                 mwar_data.append(m.map_position)
+                mwar_data.append(m.defense_count)
                 try:
                     a = m.attacks[i]
                     mwar_data.append(a.order)

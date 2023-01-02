@@ -1124,7 +1124,7 @@ class AriXClashDataMgr(commands.Cog):
                                     active_events.append(f"Raid Weekend has started!")
 
                                 if c.current_raid_weekend.state == 'ended':
-                                    active_events.append(f"{(c.current_raid_weekend.offense_rewards * 6) + c.current_raid_weekend.defense_rewards:,} Raid Medals in {c.abbreviation}")
+                                    active_events.append(f"{(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,} Raid Medals in {c.abbreviation}")
 
                             if c.current_raid_weekend.state == 'ongoing':
                                 passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
