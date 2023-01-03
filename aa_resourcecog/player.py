@@ -1918,10 +1918,24 @@ class aMember():
                     roles_removed.append(coleader_role)
 
         if roles_added or roles_removed:
+
+            context_desc = ""
+            if ctx.invoked_with in ['nstart']:
+                context_desc = "Initiated by: `Background sync job.`"
+            else:
+                context_desc = f"Initiated by: {ctx.author.mention}"
+                context_desc += f"\nCommand run: {ctx.invoked_with}"
+                context_desc += f"\nChannel: {ctx.channel.name} `{ctx.channel.id}`"
+
+
             embed = await clash_embed(ctx,
                 title=f"Role(s) Updated for: {self.discord_member.name}#{self.discord_member.discriminator}",
                 message=f"User ID: `{self.discord_member.id}`\n\u200b",
                 thumbnail=self.discord_member.avatar_url)
+
+            data_embed.set_footer(
+                text=f"AriX Alliance | {datetime.fromtimestamp(time.time()).strftime('%d/%m/%Y %H:%M:%S')}+0000",
+                icon_url="https://i.imgur.com/TZF5r54.png")
 
             account_summary = ""
             for a in self.accounts:
