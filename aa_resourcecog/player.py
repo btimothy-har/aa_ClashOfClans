@@ -1931,7 +1931,8 @@ class aMember():
 
             embed.add_field(
                 name="**Member Accounts**",
-                value=account_summary)
+                value=f"{account_summary}\u200b",
+                inline=False)
 
             if roles_added:
                 text_roles_added = ""
@@ -1940,7 +1941,8 @@ class aMember():
 
                 embed.add_field(
                     name=f"**Roles Added**",
-                    value=text_roles_added)
+                    value=f"{text_roles_added}\u200b",
+                    inline=False)
 
             if roles_removed:
                 text_roles_removed = ""
@@ -1949,9 +1951,10 @@ class aMember():
 
                 embed.add_field(
                     name=f"**Roles Removed**",
-                    value=text_roles_removed)
+                    value=f"{text_roles_removed}\u200b",
+                    inline=False)
 
-            ch = bot.get_channel(1047747107248939078)
+            ch = bot.get_channel(1059866839791972362)
             await ch.send(embed=embed)
 
         return roles_added, roles_removed
