@@ -1930,7 +1930,7 @@ class aMember():
 
             embed = await clash_embed(ctx,
                 title=f"Role(s) Updated for: {self.discord_member.name}#{self.discord_member.discriminator}",
-                message=f"User ID: `{self.discord_member.id}`\n\u200b",
+                message=f"User ID: `{self.discord_member.id}`\n\n{context_desc}\n\u200b",
                 thumbnail=self.discord_member.avatar_url)
 
             embed.set_footer(
