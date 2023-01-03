@@ -395,9 +395,9 @@ class aPlayer(coc.Player):
 
         self.member_description = ""
         if self.is_member and self.arix_rank not in ['Guest','Non-Member']:
-            self.member_description = f"***{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}***"
+            self.member_description = f"{self.home_clan.emoji} {self.arix_rank} of {self.home_clan.name}"
         elif self.is_arix_account:
-            self.member_description = f"***<a:aa_AriX:1031773589231374407> AriX Guest Account***"
+            self.member_description = f"<a:aa_AriX:1031773589231374407> AriX Guest Account"
 
         self.desc_full_text = f"{self.member_description}"
         if self.member_description:
@@ -1925,7 +1925,7 @@ class aMember():
             else:
                 context_desc = f"Initiated from: {ctx.invoked_with}"
                 context_desc += f"\nUser: {ctx.author.mention} `{ctx.author.id}`"
-                context_desc += f"\nChannel: {ctx.channel.name} `{ctx.channel.id}`"
+                context_desc += f"\nChannel: <#{ctx.channel.id}> `{ctx.channel.id}`"
 
 
             embed = await clash_embed(ctx,
@@ -1941,7 +1941,7 @@ class aMember():
             for a in self.accounts:
                 account_summary += f"__{a.name} ({a.tag})__"
                 account_summary += f"\n{a.town_hall.emoji} {a.member_description}"
-                account_summary += "\n\n"
+                account_summary += "\n"
 
             embed.add_field(
                 name="**Member Accounts**",
