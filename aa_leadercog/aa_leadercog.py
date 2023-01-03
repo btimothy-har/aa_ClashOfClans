@@ -1718,7 +1718,7 @@ class AriXLeaderCommands(commands.Cog):
 
             member = await aMember.create(ctx,user_id=user_id)
             await member.sync_roles(ctx)
-        except:
+        except Exception as e:
             err_embed = await clash_embed(ctx,
                 message=f"I ran into an error while updating Ranks: {rank_clan.tag} {e}.",
                 color='fail')

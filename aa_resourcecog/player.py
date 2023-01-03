@@ -1933,7 +1933,7 @@ class aMember():
                 message=f"User ID: `{self.discord_member.id}`\n\u200b",
                 thumbnail=self.discord_member.avatar_url)
 
-            data_embed.set_footer(
+            embed.set_footer(
                 text=f"AriX Alliance | {datetime.fromtimestamp(time.time()).strftime('%d/%m/%Y %H:%M:%S')}+0000",
                 icon_url="https://i.imgur.com/TZF5r54.png")
 
