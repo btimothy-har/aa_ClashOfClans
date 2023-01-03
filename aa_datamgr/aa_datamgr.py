@@ -145,7 +145,6 @@ class AriXClashDataMgr(commands.Cog):
         ctx.bot.current_season = aClashSeason(s_json['current'])
         ctx.bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
 
-        ctx.bot.user_cache = {}
         ctx.bot.member_cache = {}
         ctx.bot.clan_cache = {}
         ctx.bot.pass_cache = {}
@@ -504,7 +503,6 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> Seasons: {', '.join([s.season_description for s in ctx.bot.tracked_seasons])}"
                     + f"\n> Players: {len(ctx.bot.member_cache)}"
                     + f"\n> Clans: {len(ctx.bot.clan_cache)}"
-                    + f"\n> Users: {len(ctx.bot.user_cache)}"
                     + f"\n> Clan Wars: {len(ctx.bot.war_cache)}"
                     + f"\n> Capital Raids: {len(ctx.bot.raid_cache)}"
                     + f"\n> Challenge Pass: {len(ctx.bot.pass_cache)}",
@@ -1151,13 +1149,17 @@ class AriXClashDataMgr(commands.Cog):
 
                 for war_id in list(ctx.bot.war_cache):
                     war = ctx.bot.war_cache[war_id]
-                    if war.state not in ['warEnded']:
+                    if war.state not in ['warEnded'] or ((war.end_time - st) < 14400):
+
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                        war = await aClanWar.get(ctx,clan=war_clan)
+                        if war.type == 'cwl':
+                            war = await aClanWar.get(ctx,clan=war_clan,tag=war.war_tag)
+                        else:
+                            war = await aClanWar.get(ctx,clan=war_clan)
 
                 for raid_id in list(ctx.bot.raid_cache):
                     raid = ctx.bot.raid_cache[raid_id]
-                    if raid.state not in ['ended']:
+                    if raid.state not in ['ended'] or ((raid.end_time - st) < 14400):
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 

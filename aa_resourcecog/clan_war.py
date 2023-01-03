@@ -129,7 +129,8 @@ class aClanWar():
     async def get(cls,ctx,**kwargs):
         clan = kwargs.get('clan',None)
         json_data = kwargs.get('json',None)
-        war_id = kwargs.get('war_id',0)
+        war_id = kwargs.get('war_id',None)
+        war_tag = kwargs.get('war_tag',None)
         z = kwargs.get('z',False)
 
         if war_id and war_id in list(ctx.bot.war_cache.keys()):
@@ -149,6 +150,12 @@ class aClanWar():
             else:
                 self = aClanWar(clan=clan,json=json_data)
 
+        elif war_tag:
+            try:
+                war = await coc_client.get_league_war(war_tag)
+            except:
+                return None
+            self = aClanWar(clan=clan,game=war)
         elif clan.public_war_log:
             try:
                 war = await ctx.bot.coc_client.get_current_war(clan.tag)

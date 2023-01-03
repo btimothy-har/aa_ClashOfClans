@@ -1683,7 +1683,6 @@ class aMember():
     async def create(cls,ctx,user_id,**kwargs):
 
         self = aMember(ctx,user_id)
-        ctx.bot.user_cache[user_id] = self
 
         for m_tag in list(ctx.bot.member_cache):
             m = ctx.bot.member_cache[m_tag]
