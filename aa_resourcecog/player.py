@@ -1921,9 +1921,9 @@ class aMember():
 
             context_desc = ""
             if ctx.invoked_with in ['nstart']:
-                context_desc = "Initiated from: `Background sync job.`"
+                context_desc = "Initiated from: `background sync job`"
             else:
-                context_desc = f"Initiated from: {ctx.invoked_with}"
+                context_desc = f"Initiated from: `{ctx.invoked_with}`"
                 context_desc += f"\nUser: {ctx.author.mention} `{ctx.author.id}`"
                 context_desc += f"\nChannel: <#{ctx.channel.id}> `{ctx.channel.id}`"
 
