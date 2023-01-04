@@ -164,7 +164,7 @@ async def leaderboard_heistlord(ctx,season):
             value = f"{m.loot_darkelixir.season:,}"
 
             leaderboard_str += f"\n"
-            leaderboard_str += f"{emotes_townhall[th]}{m.player.home_clan.emoji}"
+            leaderboard_str += f"{emotes_townhall[th]}{m.home_clan.emoji}"
             leaderboard_str += f"`{m.player.name:<18}"
             leaderboard_str += f"{value:>9}`<:DarkElixir:825640568973033502>"
 
