@@ -529,8 +529,7 @@ class AriXMemberCommands(commands.Cog):
 
                 pEmbed.add_field(
                     name=f"**Current Season Stats with AriX**",
-                    value=f":stopwatch: Last updated: {last_update_str}ago"
-                        + f"{home_clan_str}"
+                    value=f"{home_clan_str}"
                         + f"\n\n**Attacks Won**"
                         + f"\n<:Attack:828103854814003211> {a.current_season.attacks.statdisplay}"
                         + f"\n**Defenses Won**"

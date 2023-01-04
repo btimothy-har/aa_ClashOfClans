@@ -203,6 +203,8 @@ class aPlayer(coc.Player):
             self.overall_rushed_pct = round(rushed_pct*100,2)
 
         if cache:
+            self.last_save = self.timestamp
+
             self.discord_user = cache.discord_user
             self.current_war = cache.current_war
             self.current_raid_weekend = cache.current_raid_weekend
@@ -228,6 +230,8 @@ class aPlayer(coc.Player):
             self.desc_summary_text = cache.desc_summary_text
 
         else:
+            self.last_save = cache.last_save
+
             self.discord_user = 0
             self.current_war = None
             self.current_raid_weekend = None
@@ -465,7 +469,6 @@ class aPlayer(coc.Player):
             'capitalcontribution': self.current_season.capitalcontribution.to_json(),
             'raid_log': raidlogkeys,
             'war_log': warlogkeys,
-            'iamnotcrazy':'iamnotcrazy'
             }
 
         return allianceJson, memberJson
@@ -483,6 +486,7 @@ class aPlayer(coc.Player):
             tag=self.tag,
             new_data=member_json)
 
+        self.last_save = time.time()
 
     async def update_stats(self,ctx):
         if self.clan.tag == self.home_clan.tag:
@@ -546,11 +550,9 @@ class aPlayer(coc.Player):
         c_war_id = self.current_war.war_id
 
         if self.current_war.state in ['inWar','warEnded']:
-
             if self.current_war.state in ['warEnded']:
                 if self.current_war.war_id in list(self.current_season.warlog.keys()):
                     self.current_season.warlog[c_war_id] = self.current_war
-
             else:
                 self.current_season.warlog[c_war_id] = self.current_war
 
@@ -1102,6 +1104,8 @@ class aClan(coc.Clan):
 
         #Alliance Attributes
         if cache:
+            self.last_save = cache.last_save
+
             self.is_alliance_clan = cache.is_alliance_clan
             self.abbreviation = cache.abbreviation
             self.emoji = cache.emoji
@@ -1151,6 +1155,8 @@ class aClan(coc.Clan):
             self.desc_summary_text = cache.desc_summary_text
 
         else:
+            self.last_save = self.timestamp
+
             self.is_alliance_clan = False
             self.abbreviation = ""
             self.emoji = '<:Clan:825654825509322752>'
@@ -1357,6 +1363,8 @@ class aClan(coc.Clan):
             file='alliance',
             tag=self.tag,
             new_data=clan_json)
+
+        self.last_save = time.time()
 
     async def update_clan_war(self,ctx):
         update_summary = ""
