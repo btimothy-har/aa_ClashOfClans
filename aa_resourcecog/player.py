@@ -589,7 +589,8 @@ class aPlayer(coc.Player):
 
         self.discord_user = discord_user.id
         await self.save_to_json(ctx)
-        await aPlayer.create(ctx,tag=self.tag,reset=True)
+        new_p = await aPlayer.create(ctx,tag=self.tag,reset=True)
+        return new_p
 
 
     async def remove_member(self,ctx):
@@ -598,7 +599,8 @@ class aPlayer(coc.Player):
         self.is_member = False
 
         await self.save_to_json(ctx)
-        await aPlayer.create(ctx,tag=self.tag,reset=True)
+        new_p = await aPlayer.create(ctx,tag=self.tag,reset=True)
+        return new_p
 
 
     async def add_note(self,ctx,message):

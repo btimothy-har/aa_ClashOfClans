@@ -1098,7 +1098,7 @@ class AriXLeaderCommands(commands.Cog):
 
             previous_home_clan = p.home_clan
             try:
-                await p.new_member(ctx,user,target_clan)
+                p = await p.new_member(ctx,user,target_clan)
             except Exception as e:
                 err_dict = {'tag':p.tag,'reason':f"Error while adding: {e}"}
                 error_log.append(err_dict)
@@ -1134,21 +1134,21 @@ class AriXLeaderCommands(commands.Cog):
 
                 if ex_member_role in member.discord_member.roles:
                     try:
-                        await discord_member.remove_roles(ex_member_role)
+                        await member.discord_member.remove_roles(ex_member_role)
                         report_str += f"<a:check_black:1050969577556811876> Removed {ex_member_role.mention}.\n"
                     except Exception as e:
                         report_str += f"<a:aa_warning:1050970131863453746> Could not remove {ex_member_role.mention}: {e}\n"
 
                 if new_applicant_role in member.discord_member.roles:
                     try:
-                        await discord_member.remove_roles(new_applicant_role)
+                        await member.discord_member.remove_roles(new_applicant_role)
                         report_str += f"<a:check_black:1050969577556811876> Removed {new_applicant_role.mention}.\n"
                     except Exception as e:
                         report_str += f"<a:aa_warning:1050970131863453746> Could not remove {new_applicant_role.mention}: {e}\n"
 
                 if visitor_role in member.discord_member.roles:
                     try:
-                        await discord_member.remove_roles(visitor_role)
+                        await member.discord_member.remove_roles(visitor_role)
                         report_str += f"<a:check_black:1050969577556811876> Removed {visitor_role.mention}.\n"
                     except Exception as e:
                         report_str += f"<a:aa_warning:1050970131863453746> Could not remove {visitor_role.mention}: {e}\n"
@@ -1336,7 +1336,7 @@ class AriXLeaderCommands(commands.Cog):
             for p in remove_accounts:
                 home_clan = p.home_clan
                 try:
-                    await p.remove_member(ctx)
+                    p = await p.remove_member(ctx)
                 except Exception as e:
                     err_dict = {'tag':p.tag,'reason':f"Error while removing: {e}"}
                     error_log.append(err_dict)
