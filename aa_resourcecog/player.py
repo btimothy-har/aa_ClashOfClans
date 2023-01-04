@@ -203,7 +203,7 @@ class aPlayer(coc.Player):
             self.overall_rushed_pct = round(rushed_pct*100,2)
 
         if cache:
-            self.last_save = self.timestamp
+            self.last_save = cache.last_save
 
             self.discord_user = cache.discord_user
             self.current_war = cache.current_war
@@ -230,7 +230,7 @@ class aPlayer(coc.Player):
             self.desc_summary_text = cache.desc_summary_text
 
         else:
-            self.last_save = cache.last_save
+            self.last_save = self.timestamp
 
             self.discord_user = 0
             self.current_war = None
