@@ -209,7 +209,7 @@ class AriXMemberCommands(commands.Cog):
         Lists all clans in the Alliance.
         """
 
-        alliance_clans = await get_alliance_clan(ctx)
+        alliance_clans = [c for c in [ctx.bot.clan_cache[c_tag] for c_tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
 
         if not alliance_clans:
             eEmbed = await clash_embed(ctx=ctx,message=f"There are no clans registered.",color="fail")

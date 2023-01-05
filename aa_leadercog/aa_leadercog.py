@@ -88,7 +88,7 @@ class AriXLeaderCommands(commands.Cog):
         This includes the number of registered members, the (suggested) townhall levels, and the last 5 Leader's notes on file.
         """
 
-        clans = await get_alliance_clan(ctx)
+        clans = [c for c in [ctx.bot.clan_cache[c_tag] for c_tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
         output_embed = []
 
         for c in clans:
