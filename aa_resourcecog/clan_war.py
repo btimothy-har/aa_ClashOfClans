@@ -26,12 +26,6 @@ class aClanWar():
             self.start_time = json_data['start_time']
             self.end_time = json_data['end_time']
 
-            self.result = json_data['result']
-            if time.time() > self.end_time:
-                self.result = warResultEnded[self.result]
-            else:
-                self.result = warResultOngoing[self.result]
-
             if 'team_size' in list(json_data.keys()):
                 self.team_size = json_data['team_size']
             else:
@@ -65,6 +59,28 @@ class aClanWar():
             else:
                 self.clan = clan_1
                 self.opponent = clan_2
+
+            if self.clan.stars == self.opponent.stars:
+                if self.clan.destruction > self.opponent.destruction:
+                    self.result = 'winning'
+                elif self.clan.destruction < self.opponent.destruction:
+                    self.result = 'losing'
+                else:
+                    self.result = 'tie'
+
+            elif self.clan.stars > self.opponent.stars:
+                self.result = 'winning'
+
+            elif self.clan.stars < self.opponent.stars:
+                self.result = 'losing'
+
+            else:
+                self.result = 'tie'
+
+            if time.time() > self.end_time:
+                self.result = warResultEnded[self.result]
+            else:
+                self.result = warResultOngoing[self.result]
 
             self.attacks = []
             self.members = []
