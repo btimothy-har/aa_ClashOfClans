@@ -24,7 +24,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 from art import text2art
 
-from .data_functions import function_season_update, function_clan_update, function_member_update, function_war_update, function_raid_update
+from .data_functions import function_season_update, function_save_data, function_clan_update, function_member_update, function_war_update, function_raid_update
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
@@ -84,6 +84,7 @@ class AriXClashDataMgr(commands.Cog):
         self.raid_refresh_status = False
 
         self.last_status_update = 0
+        self.last_data_save = 0
 
         self.clan_update_count = 0
         self.member_update_count = 0
@@ -224,74 +225,10 @@ class AriXClashDataMgr(commands.Cog):
             self.member_update.start()
             self.war_update.start()
             self.raid_update.start()
+            self.save_data.start()
 
         await msg.delete()
         await ctx.send("**Setup complete.**")
-
-    @commands.command(name="nsave")
-    @commands.is_owner()
-    async def save_json_data(self,ctx):
-
-        await ctx.send("Saving...")
-
-        bot = self.master_bot
-        send_logs = False
-
-        if bot.refresh_loop < 0:
-            return None
-
-        await self.master_lock.acquire()
-        await self.clan_lock.acquire()
-        await self.member_lock.acquire()
-        await self.war_lock.acquire()
-        await self.raid_lock.acquire()
-
-        st = time.time()
-
-        try:
-            backup_path = bot.clash_dir_path+'/backup'
-            for file_name in os.listdir(backup_path):
-                file = backup_path + file_name
-                if os.path.isfile(file):
-                    os.remove(file)
-
-            shutil.copy2(bot.clash_dir_path+'/clans.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/membership.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/players.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/warlog.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/capitalraid.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/seasons.json',backup_path)
-
-        except Exception as e:
-            await bot.send_to_owners(f"Error encountered during backup:\n\n```{e}```")
-            self.clan_lock.release()
-            self.member_lock.release()
-            self.master_lock.release()
-            return
-
-        try:
-            await save_war_cache(ctx)
-            await save_raid_cache(ctx)
-            await save_clan_cache(ctx)
-            await save_member_cache(ctx)
-
-        except Exception as e:
-            await bot.send_to_owners(f"Error encountered during File Save:\n\n```{e}```")
-            self.clan_lock.release()
-            self.member_lock.release()
-            self.master_lock.release()
-            return
-
-        await self.config.last_data_save.set(st)
-
-        self.clan_lock.release()
-        self.member_lock.release()
-        self.war_lock.release()
-        self.raid_lock.release()
-        self.master_lock.release()
-
-        await ctx.send("Save complete.")
-
 
     @commands.command(name="nstop")
     @commands.is_owner()
@@ -299,15 +236,20 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send("**Stopping...**")
 
-        master_lock = await self.master_lock.acquire()
-        clan_lock = await self.clan_lock.acquire()
-        member_lock = await self.member_lock.acquire()
+        await self.master_lock.acquire()
+        await self.clan_lock.acquire()
+        await self.member_lock.acquire()
+        await self.war_lock.acquire()
+        await self.raid_lock.acquire()
 
-        ctx.bot.master_refresh = False
+        self.master_refresh = False
+
         self.season_update.stop()
         self.clan_update.stop()
         self.member_update.stop()
-        #self.data_backup_save.stop()
+        self.war_update.stop()
+        self.raid_update.stop()
+        self.save_data.stop()
 
         #save data
         await save_war_cache(ctx)
@@ -351,6 +293,9 @@ class AriXClashDataMgr(commands.Cog):
 
         self.clan_lock.release()
         self.member_lock.release()
+        self.war_lock.release()
+        self.raid_lock.release()
+
         self.master_lock.release()
 
         await ctx.send("**All done here! Goodbye!**")
@@ -376,18 +321,17 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send("completed")
 
-
     @commands.command(name="drefresh")
     @commands.is_owner()
     async def data_toggle(self,ctx):
         m = await ctx.send("Please wait...")
 
-        if ctx.bot.master_refresh:
-            ctx.bot.master_refresh = False
+        if self.master_refresh:
+            self.master_refresh = False
             await ctx.send("Bot Data Refresh is now stopped.")
 
         else:
-            ctx.bot.master_refresh = True
+            self.master_refresh = True
             await ctx.send("Bot Data Refresh is now activated.")
 
         await m.delete()
@@ -485,7 +429,8 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> **Clan Update**: {self.clan_refresh_status}"
                     + f"\n> **Member Update**: {self.member_refresh_status}"
                     + f"\n> **War Update**: {self.war_refresh_status}"
-                    + f"\n> **Raid Update**: {self.raid_refresh_status}",
+                    + f"\n> **Raid Update**: {self.raid_refresh_status}"
+                    + f"\n> **Last Data Save**: <t:{int(self.last_data_save)}:R>",
                 inline=False)
 
             embed.add_field(
@@ -561,7 +506,7 @@ class AriXClashDataMgr(commands.Cog):
         st = time.time()
         message = await ctx.send("Running...")
 
-        if update_type not in ['clan','member','season','war','raid']:
+        if update_type not in ['clan','member','season','war','raid','save']:
             await ctx.send("Invalid data type.")
 
         if update_type == 'clan':
@@ -578,6 +523,9 @@ class AriXClashDataMgr(commands.Cog):
 
         if update_type == 'raid':
             await function_raid_update(cog=self,ctx=ctx)
+
+        if update_type == 'save':
+            await function_save_data(cog=self,ctx=ctx)
 
         await ctx.send("Done")
         await message.delete()
@@ -602,3 +550,7 @@ class AriXClashDataMgr(commands.Cog):
     @tasks.loop(minutes=5.0)
     async def raid_update(self):
         await function_raid_update(cog=self,ctx=self.placeholder_context)
+
+    @tasks.loop(hours=1.0)
+    async def save_data(self):
+        await function_save_data(cog=self,ctx=self.placeholder_context)

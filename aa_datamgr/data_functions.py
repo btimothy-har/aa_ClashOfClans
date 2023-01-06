@@ -201,6 +201,54 @@ async def function_season_update(cog,ctx):
     cog.season_update_count += 1
 
 
+async def function_save_data(cog,ctx):
+    if ctx.bot.refresh_loop < 0:
+        return None
+    if not cog.master_refresh:
+        return None
+
+    await cog.master_lock.acquire()
+
+    await cog.clan_lock.acquire()
+    await cog.member_lock.acquire()
+    await cog.war_lock.acquire()
+    await cog.raid_lock.acquire()
+
+    clan_data = copy.deepcopy(ctx.bot.clan_data)
+    cog.clan_file.seek(0)
+    json.dump(clan_data,cog.clan_file,indent=2)
+    cog.clan_file.truncate()
+
+    membership_data = copy.deepcopy(ctx.bot.membership_data)
+    cog.membership_file.seek(0)
+    json.dump(membership_data,cog.membership_file,indent=2)
+    cog.membership_file.truncate()
+
+    players_data = copy.deepcopy(ctx.bot.players_data)
+    cog.players_file.seek(0)
+    json.dump(players_data,cog.players_file,indent=2)
+    cog.players_file.truncate()
+
+    warlog_data = copy.deepcopy(ctx.bot.warlog_data)
+    cog.warlog_file.seek(0)
+    json.dump(warlog_data,cog.warlog_file,indent=2)
+    cog.warlog_file.truncate()
+
+    capitalraid_data = copy.deepcopy(ctx.bot.capitalraid_data)
+    cog.capitalraid_file.seek(0)
+    json.dump(capitalraid_data,cog.capitalraid_file,indent=2)
+    cog.capitalraid_file.truncate()
+
+    cog.clan_lock.release()
+    cog.member_lock.release()
+    cog.war_lock.release()
+    cog.raid_lock.release()
+
+    cog.master_lock.release()
+
+    cog.last_data_save = time.time()
+
+
 async def function_clan_update(cog,ctx):
     if ctx.invoked_with in ['simulate']:
         send_logs = True
