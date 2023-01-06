@@ -646,7 +646,7 @@ async def function_war_update(cog,ctx):
                     wtype = war.type
                     wtag = war.war_tag
 
-                    if state not in ['ended'] or ((war.end_time - st) < 3600):
+                    if state not in ['ended'] or ((war.end_time - st) < 604800):
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
 
                         if wtype == 'cwl':
