@@ -202,10 +202,11 @@ async def function_season_update(cog,ctx):
 
 
 async def function_save_data(cog,ctx):
-    if ctx.bot.refresh_loop < 0:
-        return None
-    if not cog.master_refresh:
-        return None
+    if ctx.invoked_with not in ['simulate']:
+        if ctx.bot.refresh_loop < 0:
+            return None
+        if not cog.master_refresh:
+            return None
 
     await cog.master_lock.acquire()
 
