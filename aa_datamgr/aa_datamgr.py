@@ -205,25 +205,22 @@ class AriXClashDataMgr(commands.Cog):
             self.capitalraid_file = open(ctx.bot.clash_dir_path+'/capitalraid.json','r+')
             ctx.bot.capitalraid_data = json.load(self.capitalraid_file)
 
-            for (tag,clan) in ac_json.items():
+            for (tag,clan) in ctx.bot.clan_data.items():
                 await aClan.create(ctx,tag=tag,json=clan)
 
-            for (tag,member) in am_json.items():
-                if tag in list(m_json.keys()):
-                    a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
+            for (tag,member) in ctx.bot.membership_data.items():
+                if tag in list(ctx.bot.players_data.keys()):
+                    a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=ctx.bot.players_data[tag])
                 else:
                     a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
-            for (tag,member) in ctx.bot.member_cache.items():
-                if member.discord_user:
-                    await aMember.create(ctx,user_id=member.discord_user,refresh=True)
-
             ctx.bot.refresh_loop = 0
 
-            #self.data_backup_save.start()
             self.season_update.start()
             self.clan_update.start()
             self.member_update.start()
+            self.war_update.start()
+            self.raid_update.start()
 
         await msg.delete()
         await ctx.send("**Setup complete.**")
