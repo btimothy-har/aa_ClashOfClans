@@ -411,12 +411,12 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name=f"__Current Season: {ctx.bot.current_season.season_description}__",
-                value=f"**Started On**: <t:{int(ctx.bot.current_season.season_start)}:f>"
+                value=f"> **Started On**: <t:{int(ctx.bot.current_season.season_start)}:f>"
                     + f"\n> **CWL Start**: <t:{int(ctx.bot.current_season.cwl_start)}:f>"
                     + f"\n> **CWL End**: <t:{int(ctx.bot.current_season.cwl_end)}:f>"
                     + f"\n> **Clan Games Start**: <t:{int(ctx.bot.current_season.clangames_start)}:f>"
                     + f"\n> **Clan Games End**: <t:{int(ctx.bot.current_season.clangames_end)}:f>"
-                    + f"\n> \n**Other Seasons**: {', '.join([s.season_description for s in ctx.bot.tracked_seasons])}",
+                    + f"\n> \n> **Other Seasons**: {', '.join([s.season_description for s in ctx.bot.tracked_seasons])}",
                 inline=False)
 
             embed.add_field(

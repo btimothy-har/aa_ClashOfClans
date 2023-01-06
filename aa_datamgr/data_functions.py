@@ -45,9 +45,8 @@ async def function_season_update(cog,ctx):
         send_logs = True
     else:
         send_logs = False
-
-    if ctx.bot.refresh_loop < 0:
-        return None
+        if ctx.bot.refresh_loop < 0:
+            return None
 
     season_update_last = await cog.config.season_update_last()
     season_update_runtime = await cog.config.season_update_runtime()
@@ -201,12 +200,10 @@ async def function_clan_update(cog,ctx):
         send_logs = True
     else:
         send_logs = False
-
-    if ctx.bot.refresh_loop < 0:
-        return None
-
-    if not cog.master_refresh:
-        return None
+        if ctx.bot.refresh_loop < 0:
+            return None
+        if not cog.master_refresh:
+            return None
 
     if cog.master_lock.locked():
         return None
@@ -409,20 +406,17 @@ async def function_member_update(cog,ctx):
         send_logs = True
     else:
         send_logs = False
-
-    send_logs = False
-    role_sync = False
-
-    if ctx.bot.refresh_loop < 0:
-        return None
-
-    if not cog.master_refresh:
-        return None
+        if ctx.bot.refresh_loop < 0:
+            return None
+        if not cog.master_refresh:
+            return None
 
     if cog.master_lock.locked():
         return None
     if cog.member_lock.locked():
         return None
+
+    role_sync = False
 
     async with cog.member_lock:
         cog.member_refresh_status = True
@@ -566,12 +560,10 @@ async def function_war_update(cog,ctx):
         send_logs = True
     else:
         send_logs = False
-
-    if ctx.bot.refresh_loop < 0:
-        return None
-
-    if not cog.master_refresh:
-        return None
+        if ctx.bot.refresh_loop < 0:
+            return None
+        if not cog.master_refresh:
+            return None
 
     if cog.master_lock.locked():
         return None
@@ -660,13 +652,10 @@ async def function_raid_update(cog,ctx):
         send_logs = True
     else:
         send_logs = False
-
-    if ctx.bot.refresh_loop < 0:
-        return None
-
-    if not cog.master_refresh:
-        return None
-
+        if ctx.bot.refresh_loop < 0:
+            return None
+        if not cog.master_refresh:
+            return None
     if cog.master_lock.locked():
         return None
     if cog.raid_lock.locked():
