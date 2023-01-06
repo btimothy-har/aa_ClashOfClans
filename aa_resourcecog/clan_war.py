@@ -152,7 +152,7 @@ class aClanWar():
 
         elif war_tag:
             try:
-                war = await coc_client.get_league_war(war_tag)
+                war = await ctx.bot.coc_client.get_league_war(war_tag)
             except:
                 return None
             self = aClanWar(clan=clan,game=war)
