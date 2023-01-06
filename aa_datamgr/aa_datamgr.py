@@ -240,9 +240,11 @@ class AriXClashDataMgr(commands.Cog):
         if bot.refresh_loop < 0:
             return None
 
-        master_lock = await self.master_lock.acquire()
-        clan_lock = await self.clan_lock.acquire()
-        member_lock = await self.member_lock.acquire()
+        await self.master_lock.acquire()
+        await self.clan_lock.acquire()
+        await self.member_lock.acquire()
+        await self.war_lock.acquire()
+        await self.raid_lock.acquire()
 
         st = time.time()
 
@@ -284,6 +286,8 @@ class AriXClashDataMgr(commands.Cog):
 
         self.clan_lock.release()
         self.member_lock.release()
+        self.war_lock.release()
+        self.raid_lock.release()
         self.master_lock.release()
 
         await ctx.send("Save complete.")

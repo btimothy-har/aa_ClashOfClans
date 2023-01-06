@@ -24,7 +24,7 @@ from numerize import numerize
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
-from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize, warResultDesc
+from aa_resourcecog.constants import emotes_townhall, emotes_army, emotes_capitalhall, hero_availability, troop_availability, spell_availability, emotes_league, clan_castle_size, army_campsize, warResultOngoing, warResultEnded, warResultDesc
 from aa_resourcecog.notes import aNote
 from aa_resourcecog.file_functions import get_current_season
 from aa_resourcecog.alliance_functions import get_user_profile, get_alliance_clan, get_clan_members
@@ -167,13 +167,29 @@ async def userprofile_warlog(ctx,account,message=None):
             elif war.type in ['friendly']:
                 war_emoji = ":handshake: "
 
+            if war_clan.stars == war_opponent.stars:
+                if war_clan.destruction > war_opponent.destruction:
+                    wresult = 'won'
+                elif war_clan.destruction < war_opponent.destruction:
+                    wresult = 'lost'
+                else:
+                    wresult = 'tie'
+
+            elif war_clan.stars > war_opponent.stars:
+                wresult = 'won'
+            elif war_clan.stars < war_opponent.stars:
+                wresult = 'lost'
+            else:
+                wresult = 'tie'
+
             time_text = ""
             if time.time() < war.end_time:
                 time_text = f"\n*Ends <t:{int(war.end_time)}:R> at <t:{int(war.end_time)}:f>.*"
+                wresult = warResultOnGoing[wresult]
 
             warlog_embed.add_field(
                 name=f"{war_emoji}{war_clan.name} vs {war_opponent.name}",
-                value=f"{warResultDesc[war.result]}\u3000<:Attack:828103854814003211> `{len(wm.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{wm.unused_attacks:^3}`\u3000<:Defense:828103708956819467> `{len(wm.defenses):^3}`"
+                value=f"{warResultDesc[wresult]}\u3000<:Attack:828103854814003211> `{len(wm.attacks):^3}`\u3000<:MissedHits:825755234412396575> `{wm.unused_attacks:^3}`\u3000<:Defense:828103708956819467> `{len(wm.defenses):^3}`"
                     + f"{time_text}\n{attack_str}",
                 inline=False
                 )

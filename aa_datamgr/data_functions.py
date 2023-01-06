@@ -99,8 +99,11 @@ async def function_season_update(cog,ctx):
     if update_season:
         #lock processes
         await cog.master_lock.acquire()
+
         await cog.clan_lock.acquire()
         await cog.member_lock.acquire()
+        await cog.war_lock.acquire()
+        await cog.raid_lock.acquire()
 
         await save_war_cache(ctx)
         await save_raid_cache(ctx)
@@ -157,6 +160,9 @@ async def function_season_update(cog,ctx):
 
         cog.clan_lock.release()
         cog.member_lock.release()
+        cog.war_lock.release()
+        cog.raid_lock.release()
+
         cog.master_lock.release()
 
         et = time.time()
