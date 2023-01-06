@@ -214,6 +214,9 @@ class AriXClashDataMgr(commands.Cog):
                 else:
                     a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
+            for (war_id,war_json) in ctx.bot.warlog_data.items():
+                w = await aClanWar.get(ctx,war_id=war_id,json=war_json)
+
             ctx.bot.refresh_loop = 0
 
             self.season_update.start()
@@ -464,7 +467,7 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> **Last Member Update**: <t:{int(member_update_last)}:R>"
                     + f"\n> **Last War Update**: <t:{int(war_update_last)}:R>"
                     + f"\n> **Last Raid Update**: <t:{int(raid_update_last)}:R>"
-                    + f"\n> **Last Role Sync**: <t:{last_role_sync}:R>"
+                    + f"\n> **Last Role Sync**: <t:{int(last_role_sync)}:R>"
                     + f"\n> **Last Bot Status**: <t:{int(self.last_status_update)}:R>",
                 inline=False)
 
