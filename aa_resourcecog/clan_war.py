@@ -67,13 +67,11 @@ class aClanWar():
                     self.result = 'losing'
                 else:
                     self.result = 'tie'
-
             elif self.clan.stars > self.opponent.stars:
                 self.result = 'winning'
 
             elif self.clan.stars < self.opponent.stars:
                 self.result = 'losing'
-
             else:
                 self.result = 'tie'
 
