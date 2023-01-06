@@ -96,22 +96,27 @@ class AriXClashDataMgr(commands.Cog):
         self.clan_file.seek(0)
         json.dump(ctx.bot.clan_data,self.clan_file,indent=2)
         self.clan_file.truncate()
+        self.clan_file.close()
 
         self.membership_file.seek(0)
         json.dump(ctx.bot.membership_data,self.membership_file,indent=2)
         self.membership_file.truncate()
+        self.membership_file.close()
 
         self.players_file.seek(0)
         json.dump(ctx.bot.players_data,self.players_file,indent=2)
         self.players_file.truncate()
+        self.players_file.close()
 
         self.warlog_file.seek(0)
         json.dump(ctx.bot.warlog_data,self.warlog_file,indent=2)
         self.warlog_file.truncate()
+        self.warlog_file.close()
 
         self.capitalraid_file.seek(0)
         json.dump(ctx.bot.capitalraid_data,self.capitalraid_file,indent=2)
         self.capitalraid_file.truncate()
+        self.capitalraid_file.close()
 
 
     @commands.command(name="nstart")
