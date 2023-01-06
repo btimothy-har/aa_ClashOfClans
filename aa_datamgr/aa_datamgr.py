@@ -548,11 +548,11 @@ class AriXClashDataMgr(commands.Cog):
     async def member_update(self):
         await function_member_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(minutes=5.0)
+    @tasks.loop(minutes=15.0)
     async def war_update(self):
         await function_war_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(minutes=5.0)
+    @tasks.loop(minutes=15.0)
     async def raid_update(self):
         await function_raid_update(cog=self,ctx=self.placeholder_context)
 
