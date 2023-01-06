@@ -257,28 +257,33 @@ class AriXClashDataMgr(commands.Cog):
         await save_clan_cache(ctx)
         await save_member_cache(ctx)
 
+        clan_data = copy.deepcopy(ctx.bot.clan_data)
         self.clan_file.seek(0)
-        json.dump(ctx.bot.clan_data,self.clan_file,indent=2)
+        json.dump(clan_data,self.clan_file,indent=2)
         self.clan_file.truncate()
         self.clan_file.close()
 
+        membership_data = copy.deepcopy(ctx.bot.membership_data)
         self.membership_file.seek(0)
-        json.dump(ctx.bot.membership_data,self.membership_file,indent=2)
+        json.dump(membership_data,self.membership_file,indent=2)
         self.membership_file.truncate()
         self.membership_file.close()
 
+        players_data = copy.deepcopy(ctx.bot.players_data)
         self.players_file.seek(0)
-        json.dump(ctx.bot.players_data,self.players_file,indent=2)
+        json.dump(players_data,self.players_file,indent=2)
         self.players_file.truncate()
         self.players_file.close()
 
+        warlog_data = copy.deepcopy(ctx.bot.warlog_data)
         self.warlog_file.seek(0)
-        json.dump(ctx.bot.warlog_data,self.warlog_file,indent=2)
+        json.dump(warlog_data,self.warlog_file,indent=2)
         self.warlog_file.truncate()
         self.warlog_file.close()
 
+        capitalraid_data = copy.deepcopy(ctx.bot.capitalraid_data)
         self.capitalraid_file.seek(0)
-        json.dump(ctx.bot.capitalraid_data,self.capitalraid_file,indent=2)
+        json.dump(capitalraid_data,self.capitalraid_file,indent=2)
         self.capitalraid_file.truncate()
         self.capitalraid_file.close()
 
