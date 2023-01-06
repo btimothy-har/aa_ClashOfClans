@@ -588,16 +588,14 @@ async def function_war_update(cog,ctx):
 
                 if war:
                     state = war.state
-                    if war.state not in ['warEnded'] or ((war.end_time - st) < 259200):
-                        war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                        if war.type == 'cwl':
-                            war = await aClanWar.get(ctx,clan=war_clan,tag=war.war_tag)
-                        else:
-                            war = await aClanWar.get(ctx,clan=war_clan)
-
-                        if war:
-                            await war.save_to_json(ctx)
-                            war_count += 1
+                    war_clan = await aClan.create(ctx,tag=war.clan.tag)
+                    if war.type == 'cwl':
+                        war = await aClanWar.get(ctx,clan=war_clan,tag=war.war_tag)
+                    else:
+                        war = await aClanWar.get(ctx,clan=war_clan)
+                    if war:
+                        await war.save_to_json(ctx)
+                        war_count += 1
 
             except Exception as e:
                 err = DataError(category='warupdate',tag=war_id,error=e)
@@ -621,7 +619,7 @@ async def function_war_update(cog,ctx):
 
         data_embed = discord.Embed(
             title="Clan War Update",
-            description=f"*Checked {war_count} wars for updates.*",
+            description=f"{len(list(ctx.bot.war_cache))} Wars in database. *Checked {war_count} wars for updates.*",
             color=0x0000)
 
         data_embed.set_footer(
