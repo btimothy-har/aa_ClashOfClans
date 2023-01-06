@@ -331,20 +331,18 @@ class AriXClashDataMgr(commands.Cog):
 
         await ctx.send("starting")
 
-        all_wars = []
+        for warid in list(ctx.bot.warlog_data):
+            clan_war = ctx.bot.warlog_data[warid]
 
-        file_path = ctx.bot.clash_dir_path + '/' + 'warlog.json'
-        with ctx.bot.clash_file_lock.read_lock():
-            with open(file_path,'r') as file:
-                war_json = json.load(file)
+            if clan_war.start_time >= ctx.bot.current_season.season_start:
 
-        for (warid,warj) in war_json.items():
-            clan_war = await aClanWar.get(ctx,json=warj)
+                for tag in [m.tag for m in clan_war.members]:
 
-            for (tag,member) in ctx.bot.member_cache.items():
-                if tag in [m.tag for m in clan_war.members]:
-                    if clan_war.war_id not in [war.war_id for (wid,war) in member.current_season.warlog.items()]:
-                        member.current_season.warlog[clan_war.war_id] = clan_war
+                    if tag in list(ctx.bot.member_cache):
+                        member = ctx.bot.member_cache[tag]
+
+                        if clan_war.war_id not in [list(member.current_season.warlog)]:
+                            member.current_season.warlog[clan_war.war_id] = clan_war
 
         await ctx.send("completed")
 
