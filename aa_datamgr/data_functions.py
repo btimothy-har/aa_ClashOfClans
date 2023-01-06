@@ -590,7 +590,7 @@ async def function_war_update(cog,ctx):
                     state = war.state
                     war_clan = await aClan.create(ctx,tag=war.clan.tag)
                     if war.type == 'cwl':
-                        war = await aClanWar.get(ctx,clan=war_clan,tag=war.war_tag)
+                        war = await aClanWar.get(ctx,clan=war_clan,war_tag=war.war_tag)
                     else:
                         war = await aClanWar.get(ctx,clan=war_clan)
                     if war:
