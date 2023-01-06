@@ -24,6 +24,8 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 from art import text2art
 
+from .data_functions import function_season_update, function_clan_update, function_member_update, function_war_update, function_raid_update
+
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
 from aa_resourcecog.constants import confirmation_emotes, json_file_defaults, clanRanks
@@ -52,11 +54,16 @@ class AriXClashDataMgr(commands.Cog):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
             "last_role_sync":0,
+            "season_update_last":0,
+            "season_update_runtime":[],
             "clan_update_last":0,
             "clan_update_runtime":[],
             "member_update_last":0,
             "member_update_runtime":[],
-            "last_data_save":0,
+            "war_update_last":0,
+            "war_update_runtime":[],
+            "raid_update_last":0,
+            "raid_update_runtime":[]
             }
         default_guild = {}
         self.config.register_global(**default_global)
@@ -67,12 +74,45 @@ class AriXClashDataMgr(commands.Cog):
         self.master_lock = asyncio.Lock()
         self.clan_lock = asyncio.Lock()
         self.member_lock = asyncio.Lock()
+        self.war_lock = asyncio.Lock()
+        self.raid_lock = asyncio.Lock()
+
+        self.master_refresh = False
+        self.clan_refresh_status = False
+        self.member_refresh_status = False
+        self.war_refresh_status = False
+        self.raid_refresh_status = False
 
         self.last_status_update = 0
+
         self.clan_update_count = 0
         self.member_update_count = 0
+        self.war_update_count = 0
+        self.raid_update_count = 0
         self.season_update_count = 0
-        self.backup_count = 0
+
+
+    def cog_unload(self):
+        self.clan_file.seek(0)
+        json.dump(ctx.bot.clan_data,self.clan_file,indent=2)
+        self.clan_file.truncate()
+
+        self.membership_file.seek(0)
+        json.dump(ctx.bot.membership_data,self.membership_file,indent=2)
+        self.membership_file.truncate()
+
+        self.players_file.seek(0)
+        json.dump(ctx.bot.players_data,self.players_file,indent=2)
+        self.players_file.truncate()
+
+        self.warlog_file.seek(0)
+        json.dump(ctx.bot.warlog_data,self.warlog_file,indent=2)
+        self.warlog_file.truncate()
+
+        self.capitalraid_file.seek(0)
+        json.dump(ctx.bot.capitalraid_data,self.capitalraid_file,indent=2)
+        self.capitalraid_file.truncate()
+
 
     @commands.command(name="nstart")
     @commands.is_owner()
@@ -98,42 +138,34 @@ class AriXClashDataMgr(commands.Cog):
             bot.alliance_server = bot.get_guild(int(alliance_server_id))
         except:
             bot.alliance_server = None
-
         try:
             bot.leader_role = bot.alliance_server.get_role(int(alliance_leader_role))
         except:
             bot.leader_role = None
-
         try:
             bot.coleader_role = bot.alliance_server.get_role(int(alliance_coleader_role))
         except:
             bot.coleader_role = None
-
         try:
             bot.elder_role = bot.alliance_server.get_role(int(alliance_elder_role))
         except:
             bot.elder_role = None
-
         try:
             bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
         except:
             bot.member_role = None
-
         try:
             bot.member_role = bot.alliance_server.get_role(int(alliance_member_role))
         except:
             bot.member_role = None
-
         try:
             bot.base_vault_role = bot.alliance_server.get_role(int(base_vault_role))
         except:
             bot.base_vault_role = None
-
         try:
             bot.base_channel = bot.get_channel(int(base_channel))
         except:
             bot.base_channel = None
-
         try:
             bot.update_channel = bot.get_channel(int(update_channel))
         except:
@@ -149,27 +181,24 @@ class AriXClashDataMgr(commands.Cog):
         ctx.bot.member_cache = {}
         ctx.bot.clan_cache = {}
         ctx.bot.pass_cache = {}
+        ctx.bot.war_cache = {}
+        ctx.bot.raid_cache = {}
 
         if not partial:
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/clans.json','r') as file:
-                    ac_json = json.load(file)
+            self.clan_file = open(ctx.bot.clash_dir_path+'/clans.json', 'r+')
+            ctx.bot.clan_data = json.load(self.clan_file)
 
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/membership.json','r') as file:
-                    am_json = json.load(file)
+            self.membership_file = open(ctx.bot.clash_dir_path+'/membership.json','r+')
+            ctx.bot.membership_data = json.load(self.membership_file)
 
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
-                    m_json = json.load(file)
+            self.players_file = open(ctx.bot.clash_dir_path+'/players.json','r+')
+            ctx.bot.players_data = json.load(self.players_file)
 
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/warlog.json','r') as file:
-                    w_json = json.load(file)
+            self.warlog_file = open(ctx.bot.clash_dir_path+'/warlog.json','r+')
+            ctx.bot.warlog_data = json.load(self.warlog_file)
 
-            with ctx.bot.clash_file_lock.read_lock():
-                with open(ctx.bot.clash_dir_path+'/capitalraid.json','r') as file:
-                    cr_json = json.load(file)
+            self.capitalraid_file = open(ctx.bot.clash_dir_path+'/capitalraid.json','r+')
+            ctx.bot.capitalraid_data = json.load(self.capitalraid_file)
 
             for (tag,clan) in ac_json.items():
                 await aClan.create(ctx,tag=tag,json=clan)
@@ -179,7 +208,6 @@ class AriXClashDataMgr(commands.Cog):
                     a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=m_json[tag])
                 else:
                     a = await aPlayer.create(ctx,tag=tag,a_json=member)
-
 
             for (tag,member) in ctx.bot.member_cache.items():
                 if member.discord_user:
@@ -337,23 +365,37 @@ class AriXClashDataMgr(commands.Cog):
         """Manage the bot's Clash of Clans data."""
         if not ctx.invoked_subcommand:
 
+            season_update_last = await self.config.season_update_last()
             clan_update_last = await self.config.clan_update_last()
             member_update_last = await self.config.member_update_last()
-            last_data_save  = await self.config.last_data_save()
+            war_update_last = await self.config.war_update_last()
+            raid_update_last = await self.config.raid_update_last()
+            last_role_sync = await self.config.last_role_sync()
 
             try:
                 clan_update_runtime = await self.config.clan_update_runtime()
                 clan_update_average = round(sum(clan_update_runtime)/len(clan_update_runtime),2)
             except:
                 clan_update_average = 0
-
             try:
                 member_update_runtime = await self.config.member_update_runtime()
                 member_update_average = round(sum(member_update_runtime)/len(member_update_runtime),2)
             except:
                 member_update_average = 0
 
-            embed = await clash_embed(ctx=ctx,title="System Status Report")
+            try:
+                war_update_runtime = await self.config.war_update_runtime()
+                war_update_average = round(sum(war_update_runtime)/len(war_update_runtime),2)
+            except:
+                war_update_average = 0
+
+            try:
+                raid_update_runtime = await self.config.raid_update_runtime()
+                raid_update_average = round(sum(raid_update_runtime)/len(raid_update_runtime),2)
+            except:
+                raid_update_average = 0
+
+            embed = await clash_embed(ctx=ctx,title="N.E.B.U.L.A. Status Report")
             embed.add_field(
                 name="__Discord Configuration__",
                 value=f"> **Alliance Server**: {getattr(ctx.bot.alliance_server,'name','Not Set')} `({getattr(ctx.bot.alliance_server,'id',0)})`"
@@ -361,19 +403,18 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> **Co-Leader Role**: {getattr(ctx.bot.coleader_role,'name','Not Set')} `({getattr(ctx.bot.coleader_role,'id',0)})`"
                     + f"\n> **Elder Role**: {getattr(ctx.bot.elder_role,'name','Not Set')} `({getattr(ctx.bot.elder_role,'id',0)})`"
                     + f"\n> **Member Role**: {getattr(ctx.bot.member_role,'name','Not Set')} `({getattr(ctx.bot.member_role,'id',0)})`"
-                    + f"\n\n> **Base Vault Access**: {getattr(ctx.bot.base_channel,'name','Not Set')} `({getattr(ctx.bot.base_channel,'id',0)})`"
+                    + f"\n> \n> **Base Vault Access**: {getattr(ctx.bot.base_channel,'name','Not Set')} `({getattr(ctx.bot.base_channel,'id',0)})`"
                     + f"\n> **Bot Updates**: {getattr(ctx.bot.update_channel,'name','Not Set')} `({getattr(ctx.bot.update_channel,'id',0)})`",
                 inline=False)
 
             embed.add_field(
-                name="__Data Cache__",
-                value=f"> Current Season: {ctx.bot.current_season.season_description}"
-                    + f"\n> Seasons: {', '.join([s.season_description for s in ctx.bot.tracked_seasons])}"
-                    + f"\n> Players: {len(ctx.bot.member_cache)}"
-                    + f"\n> Clans: {len(ctx.bot.clan_cache)}"
-                    + f"\n> Clan Wars: {len(ctx.bot.war_cache)}"
-                    + f"\n> Capital Raids: {len(ctx.bot.raid_cache)}"
-                    + f"\n> Challenge Pass: {len(ctx.bot.pass_cache)}",
+                name=f"__Current Season: {ctx.bot.current_season.season_description}__",
+                value=f"**Started On**: <t:{int(ctx.bot.current_season.season_start)}:f>"
+                    + f"\n> **CWL Start**: <t:{int(ctx.bot.current_season.cwl_start)}:f>"
+                    + f"\n> **CWL End**: <t:{int(ctx.bot.current_season.cwl_end)}:f>"
+                    + f"\n> **Clan Games Start**: <t:{int(ctx.bot.current_season.clangames_start)}:f>"
+                    + f"\n> **Clan Games End**: <t:{int(ctx.bot.current_season.clangames_end)}:f>"
+                    + f"\n> \n**Other Seasons**: {', '.join([s.season_description for s in ctx.bot.tracked_seasons])}",
                 inline=False)
 
             embed.add_field(
@@ -384,12 +425,11 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Core Data Files__",
-                value=f"> **seasons.json**: {os.path.exists(ctx.bot.clash_dir_path+'/seasons.json')}"
-                    + f"\n> **clans.json**: {os.path.exists(ctx.bot.clash_dir_path+'/clans.json')}"
-                    + f"\n> **membership.json**: {os.path.exists(ctx.bot.clash_dir_path+'/membership.json')}"
-                    + f"\n> **players.json**: {os.path.exists(ctx.bot.clash_dir_path+'/players.json')}"
-                    + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
-                    + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
+                value=f"\n> **clans.json**: {not(isinstance(ctx.bot.clan_data,type(None)))}"
+                    + f"\n> **membership.json**: {not(isinstance(ctx.bot.membership_data,type(None)))}"
+                    + f"\n> **players.json**: {not(isinstance(ctx.bot.players_data,type(None)))}"
+                    + f"\n> **warlog.json**: {not(isinstance(ctx.bot.warlog_data,type(None)))}"
+                    + f"\n> **capitalraid.json**: {not(isinstance(ctx.bot.capitalraid_data,type(None)))}",
                     inline=False)
 
             embed.add_field(
@@ -398,23 +438,40 @@ class AriXClashDataMgr(commands.Cog):
                     inline=False)
 
             embed.add_field(
-                name="__Data Update Status__",
-                value=f"> **Master Switch**: {ctx.bot.master_refresh}"
-                    + f"\n> **Clan Update**: {ctx.bot.clan_refresh_status}"
-                    + f"\n> **Last Clan Update**: <t:{int(clan_update_last)}:R>"
-                    + f"\n> **Member Update**: {ctx.bot.member_refresh_status}"
-                    + f"\n> **Last Member Update**: <t:{int(member_update_last)}:R>",
-                    #+ f"\n> **Last Data Save**: <t:{int(last_data_save)}:R>",
+                name="__Data Cache__",
+                value=f"\n> **Players**: {len(ctx.bot.member_cache)}"
+                    + f"\n> **Clans**: {len(ctx.bot.clan_cache)}"
+                    + f"\n> **Clan Wars**: {len(ctx.bot.war_cache)}"
+                    + f"\n> **Capital Raids**: {len(ctx.bot.raid_cache)}"
+                    + f"\n> **Challenge Pass**: {len(ctx.bot.pass_cache)}",
                 inline=False)
 
             embed.add_field(
-                name="__Data Update Performance__",
-                value=f"> **Member Update Jobs**: {self.member_update_count}"
-                    + f"\n> **Clan Update Jobs**: {self.clan_update_count}"
-                    + f"\n> **Season Check Jobs**: {self.season_update_count}"
-                    + f"\n> **Backup Jobs**: {self.backup_count}"
-                    + f"\n> **Clan Update Runtime**: avg {clan_update_average} seconds"
-                    + f"\n> **Member Update Runtime**: avg {member_update_average} seconds",
+                name="__Data Update Status__",
+                value=f"> **Master Switch**: {self.master_refresh}"
+                    + f"\n> **Clan Update**: {self.clan_refresh_status}"
+                    + f"\n> **Member Update**: {self.member_refresh_status}"
+                    + f"\n> **War Update**: {self.war_refresh_status}"
+                    + f"\n> **Raid Update**: {self.raid_refresh_status}",
+                inline=False)
+
+            embed.add_field(
+                name="__Last Updates__",
+                value=f"> **Last Season Check**: <t:{int(season_update_last)}:R>"
+                    + f"\n> **Last Clan Update**: <t:{int(clan_update_last)}:R>"
+                    + f"\n> **Last Member Update**: <t:{int(member_update_last)}:R>"
+                    + f"\n> **Last War Update**: <t:{int(war_update_last)}:R>"
+                    + f"\n> **Last Raid Update**: <t:{int(raid_update_last)}:R>"
+                    + f"\n> **Last Role Sync**: <t:{last_role_sync}:R>"
+                    + f"\n> **Last Bot Status**: <t:{int(self.last_status_update)}:R>",
+                inline=False)
+
+            embed.add_field(
+                name="__Data Update Runtime__",
+                value=f"> **Clan Updates**: {clan_update_average}"
+                    + f"\n> **Member Updates**: {member_update_average}"
+                    + f"\n> **War Updates**: {war_update_average}"
+                    + f"\n> **Raid Updates**: {raid_update_average}",
                 inline=False)
 
             await ctx.send(embed=embed)
@@ -463,828 +520,52 @@ class AriXClashDataMgr(commands.Cog):
             color="success")
         return await ctx.send(embed=embed)
 
-    @commands.command(name="sendraid")
-    @commands.is_owner()
-    async def data_simulation(self,ctx,clan):
-
-        try:
-            clan = [c for (tag,c) in ctx.bot.clan_cache.items() if c.abbreviation == clan_abbreviation][0]
-        except:
-            return await error_not_valid_abbreviation(ctx,clan_abbreviation)
-
-        if clan.announcement_channel and clan.current_raid_weekend.state == 'ended':
-            results_embed = await clan.current_raid_weekend.get_results_embed(ctx)
-            ch = ctx.bot.get_channel(self.announcement_channel)
-            await ch.send(embed=results_embed)
-
-        await ctx.send("done")
-
 
     @commands.command(name="simulate")
     @commands.is_owner()
     async def data_simulation(self,ctx,update_type,tag):
 
         st = time.time()
+        message = await ctx.send("Running...")
 
-        await ctx.send("Running...")
-
-        if update_type not in ['clan','member','season']:
+        if update_type not in ['clan','member','season','war','raid']:
             await ctx.send("Invalid data type.")
 
-        ctx = self.placeholder_context
+        if update_type == 'clan':
+            await function_clan_update(cog=self,ctx=ctx)
 
         if update_type == 'member':
-            is_cwl = False
-
-            if st >= ctx.bot.current_season.cwl_start and st <= ctx.bot.current_season.cwl_end:
-                is_cwl = True
-
-            m = await aPlayer.create(ctx,tag=tag,refresh=True)
-
-            await m.update_warlog(ctx)
-            await m.update_raid_weekend(ctx)
-
-            if is_cwl:
-                await m.set_baselines(ctx)
-            else:
-                await m.current_season.clangames.calculate_clangames()
-
-                if m.clan.is_alliance_clan:
-                    await m.update_stats(ctx)
-                else:
-                    await m.set_baselines(ctx)
-
-            await m.save_to_json(ctx)
-
-            role_sync_completed = []
-            if m.discord_user:
-                memo = await aMember.create(ctx,user_id=m.discord_user)
-
-                if memo:
-                    if memo.discord_member and memo.user_id not in role_sync_completed:
-                        await memo.sync_roles(ctx)
-                        role_sync_completed.append(memo.user_id)
-
-        if update_type == 'clan':
-            c = await aClan.create(ctx,tag=tag,refresh=True)
-
-            if c.is_alliance_clan:
-                await c.compute_arix_membership(ctx)
-
-            war_update = await c.update_clan_war(ctx)
-            raid_update = await c.update_raid_weekend(ctx)
-
-            for (war_id,war) in ctx.bot.war_cache.items():
-                if war.state not in ['warEnded']:
-                    war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                    war = await aClanWar.get(ctx,clan=war_clan)
-
-            for (raid_id,raid) in ctx.bot.raid_cache.items():
-                if raid.state not in ['ended']:
-                    raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
-                    raid = await aRaidWeekend.get(ctx,clan=raid_clan)
+            await function_member_update(cog=self,ctx=ctx)
 
         if update_type == 'season':
-            log_str = ""
-            bot = self.master_bot
-            update_season = False
+            await function_season_update(cog=self,ctx=ctx)
 
-            season_embed = discord.Embed(
-                title="**Season Update**",
-                color=0x0000)
+        if update_type == 'war':
+            await function_war_update(cog=self,ctx=ctx)
 
-            season_embed.set_footer(
-                text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-                icon_url="https://i.imgur.com/TZF5r54.png")
+        if update_type == 'raid':
+            await function_raid_update(cog=self,ctx=ctx)
 
-            season = aClashSeason.get_current_season()
-
-            if season.id != bot.current_season.id:
-                update_season = True
-                send_logs = True
-
-                season_embed.add_field(
-                    name=f"__New Season Detected__",
-                    value=f"> Current Season: {bot.current_season.season_description}"
-                        + f"\n> New Season: {season.season_description}",
-                    inline=False)
-
-            if update_season:
-                for (c_tag,clan) in ctx.bot.clan_cache.items():
-
-                    if clan.is_alliance_clan:
-                        if clan.war_state == 'inWar':
-                            update_season = False
-                        if clan.raid_weekend_state == 'ongoing':
-                            update_season = False
-
-                        log_str += f"**{clan.name} ({clan.tag})**"
-                        log_str += f"\n> Clan War: {clan.war_state}"
-                        log_str += f"\n> Capital Raid: {clan.raid_weekend_state}"
-
-                        log_str += "\n\n"
-
-                season_embed.add_field(
-                    name=f"__Clan Activities__",
-                    value=log_str,
-                    inline=False)
-
-            if update_season:
-                #lock processes
-                await self.master_lock.acquire()
-                await self.clan_lock.acquire()
-                await self.member_lock.acquire()
-
-                await save_war_cache(ctx)
-                await save_raid_cache(ctx)
-                await save_clan_cache(ctx)
-                await save_member_cache(ctx)
-
-                async with bot.async_file_lock:
-                    with bot.clash_file_lock.write_lock():
-                        new_path = bot.clash_dir_path+'/'+bot.current_season.id
-                        os.makedirs(new_path)
-
-                        with open(bot.clash_dir_path+'/seasons.json','r+') as file:
-                            s_json = json.load(file)
-                            s_json['tracked'].append(bot.current_season.id)
-                            s_json['current'] = season.id
-                            file.seek(0)
-                            json.dump(s_json,file,indent=2)
-                            file.truncate()
-
-                        shutil.copy2(bot.clash_dir_path+'/clans.json',new_path)
-                        shutil.copy2(bot.clash_dir_path+'/membership.json',new_path)
-                        shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
-                        with open(bot.clash_dir_path+'/players.json','w+') as file:
-                            json.dump({},file,indent=2)
-
-                for (c_tag,clan) in ctx.bot.clan_cache.items():
-                    try:
-                        c = await aClan.create(ctx,tag=c_tag,refresh=True,reset=True)
-                    except Exception as e:
-                        err = DataError(category='clan',tag=c_tag,error=e)
-                        error_log.append(err)
-                        continue
-
-                for (m_tag,member) in ctx.bot.member_cache.items():
-                    try:
-                        m = await aPlayer.create(ctx,tag=m_tag,refresh=True,reset=True)
-                        await m.set_baselines(ctx)
-                    except Exception as e:
-                        err = DataError(category='player',tag=m_tag,error=e)
-                        error_log.append(err)
-                        continue
-
-                season_embed.add_field(
-                    name=f"**New Season Initialized: {season.id}**",
-                    value=f"__Files Saved__"
-                        + f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
-                        + f"\n"
-                        + f"__Files Created__"
-                        + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
-                    inline=False)
-
-
-                bot.current_season = season
-                bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
-
-                self.clan_lock.release()
-                self.member_lock.release()
-                self.master_lock.release()
-
-                activity_types = [
-                    discord.ActivityType.playing,
-                    discord.ActivityType.streaming,
-                    discord.ActivityType.listening,
-                    discord.ActivityType.watching
-                    ]
-                activity_select = random.choice(activity_types)
-
-                await bot.change_presence(
-                    activity=discord.Activity(
-                    type=activity_select,
-                    name=f"start of the {new_season} Season! Clash on!"))
-                self.last_status_update = st
-
-            if send_logs:
-                ch = bot.get_channel(1033390608506695743)
-                await ch.send(embed=season_embed)
-
-        await ctx.send('update completed')
-
-    @tasks.loop(hours=6.0)
-    async def data_backup_save(self):
-
-        bot = self.master_bot
-        ctx = EmptyContext(bot=bot)
-        send_logs = False
-
-        if bot.refresh_loop < 1:
-            return None
-
-        await self.master_lock.acquire()
-        await self.clan_lock.acquire()
-        await self.member_lock.acquire()
-
-        st = time.time()
-
-        try:
-            backup_path = bot.clash_dir_path+'/backup'
-            for file_name in os.listdir(backup_path):
-                file = backup_path + file_name
-                if os.path.isfile(file):
-                    os.remove(file)
-
-            shutil.copy2(bot.clash_dir_path+'/clans.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/membership.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/players.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/warlog.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/capitalraid.json',backup_path)
-            shutil.copy2(bot.clash_dir_path+'/seasons.json',backup_path)
-
-        except Exception as e:
-            await bot.send_to_owners(f"Error encountered during backup:\n\n```{e}```")
-            self.clan_lock.release()
-            self.member_lock.release()
-            self.master_lock.release()
-            return
-
-        #try:
-        #    await save_war_cache(ctx)
-        #    await save_raid_cache(ctx)
-        #    await save_clan_cache(ctx)
-        #    await save_member_cache(ctx)
-
-        #except Exception as e:
-        #    await bot.send_to_owners(f"Error encountered during File Save:\n\n```{e}```")
-        #    self.clan_lock.release()
-        #    self.member_lock.release()
-        #    self.master_lock.release()
-        #    return
-
-        await self.config.last_data_save.set(st)
-
-        self.clan_lock.release()
-        self.member_lock.release()
-        self.master_lock.release()
-
-        self.backup_count += 1
+        await ctx.send("Done")
+        await message.delete()
 
 
     @tasks.loop(minutes=30.0)
     async def season_update(self):
-
-        ctx = self.placeholder_context
-        bot = ctx.bot
-        send_logs = False
-
-        clans = []
-        members = []
-
-        if bot.refresh_loop < 0:
-            return None
-
-        st = time.time()
-        update_season = False
-
-        season_embed = discord.Embed(
-            title="**Season Update**",
-            color=0x0000)
-
-        season_embed.set_footer(
-            text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-            icon_url="https://i.imgur.com/TZF5r54.png")
-
-        season = aClashSeason.get_current_season()
-
-        if season.id != bot.current_season.id:
-            update_season = True
-            send_logs = True
-
-            season_embed.add_field(
-                name=f"__New Season Detected__",
-                value=f"> Current Season: {bot.current_season.season_description}"
-                    + f"\n> New Season: {season.season_description}",
-                inline=False)
-
-        if update_season:
-            log_str = ""
-
-            for c_tag in list(ctx.bot.clan_cache):
-
-                clan = ctx.bot.clan_cache[c_tag]
-                if clan.is_alliance_clan:
-                    if clan.war_state == 'inWar':
-                        update_season = False
-                    if clan.raid_weekend_state == 'ongoing':
-                        update_season = False
-
-                    log_str += f"**{clan.name} ({clan.tag})**"
-                    log_str += f"\n> Clan War: {clan.war_state}"
-                    log_str += f"\n> Capital Raid: {clan.raid_weekend_state}"
-
-                    log_str += "\n\n"
-
-            season_embed.add_field(
-                name=f"__Clan Activities__",
-                value=log_str,
-                inline=False)
-
-        if update_season:
-            #lock processes
-            await self.master_lock.acquire()
-            await self.clan_lock.acquire()
-            await self.member_lock.acquire()
-
-            await save_war_cache(ctx)
-            await save_raid_cache(ctx)
-            await save_clan_cache(ctx)
-            await save_member_cache(ctx)
-
-            async with bot.async_file_lock:
-                with bot.clash_file_lock.write_lock():
-                    new_path = bot.clash_dir_path+'/'+bot.current_season.id
-                    os.makedirs(new_path)
-
-                    with open(bot.clash_dir_path+'/seasons.json','r+') as file:
-                        s_json = json.load(file)
-                        s_json['tracked'].append(bot.current_season.id)
-                        s_json['current'] = season.id
-                        file.seek(0)
-                        json.dump(s_json,file,indent=2)
-                        file.truncate()
-
-                    shutil.copy2(bot.clash_dir_path+'/clans.json',new_path)
-                    shutil.copy2(bot.clash_dir_path+'/membership.json',new_path)
-                    shutil.copy2(bot.clash_dir_path+'/players.json',new_path)
-                    with open(bot.clash_dir_path+'/players.json','w+') as file:
-                        json.dump({},file,indent=2)
-
-            for c_tag in list(ctx.bot.clan_cache):
-                try:
-                    c = await aClan.create(ctx,tag=c_tag,refresh=True,reset=True)
-                except Exception as e:
-                    err = DataError(category='clan',tag=c_tag,error=e)
-                    error_log.append(err)
-                    continue
-
-            for m_tag in list(ctx.bot.member_cache):
-                try:
-                    m = await aPlayer.create(ctx,tag=m_tag,refresh=True,reset=True)
-                    await m.set_baselines(ctx)
-                except Exception as e:
-                    err = DataError(category='player',tag=m_tag,error=e)
-                    error_log.append(err)
-                    continue
-
-            season_embed.add_field(
-                name=f"**New Season Initialized: {season.id}**",
-                value=f"__Files Saved__"
-                    + f"\n**{bot.current_season.id}/players.json**: {os.path.exists(bot.clash_dir_path+'/'+bot.current_season.id+'/players.json')}"
-                    + f"\n"
-                    + f"__Files Created__"
-                    + f"\n**players.json**: {os.path.exists(bot.clash_dir_path+'/players.json')}",
-                inline=False)
-
-            bot.current_season = season
-            bot.tracked_seasons = [aClashSeason(ssn) for ssn in s_json['tracked']]
-
-            self.clan_lock.release()
-            self.member_lock.release()
-            self.master_lock.release()
-
-            try:
-                await bot.update_channel.send(f"**The new season {bot.current_season.id} has started!**")
-            except:
-                pass
-
-            activity_types = [
-                discord.ActivityType.playing,
-                discord.ActivityType.streaming,
-                discord.ActivityType.listening,
-                discord.ActivityType.watching
-                ]
-            activity_select = random.choice(activity_types)
-
-            await bot.change_presence(
-                activity=discord.Activity(
-                type=activity_select,
-                name=f"start of the {new_season} Season! Clash on!"))
-            self.last_status_update = st
-
-        if send_logs:
-            ch = bot.get_channel(1033390608506695743)
-            await ch.send(embed=season_embed)
-
-        self.season_update_count += 1
-
+        await function_season_update(cog=self,ctx=self.placeholder_context)
 
     @tasks.loop(minutes=5.0)
     async def clan_update(self):
-
-        ctx = self.placeholder_context
-        bot = ctx.bot
-        send_logs = False
-
-        if bot.refresh_loop < 0:
-            return None
-
-        if not bot.master_refresh:
-            return None
-
-        if self.master_lock.locked():
-            return None
-        if self.clan_lock.locked():
-            return None
-
-        async with self.clan_lock:
-            bot.clan_refresh_status = True
-
-            st = time.time()
-
-            data_embed = discord.Embed(
-                title="Clan Update Report",
-                color=0x0000)
-
-            data_embed.set_footer(
-                text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-                icon_url="https://i.imgur.com/TZF5r54.png")
-
-            try:
-                clan_update_last = await self.config.clan_update_last()
-                clan_update_runtime = await self.config.clan_update_runtime()
-
-                active_events = []
-                passive_events = []
-
-                error_log = []
-
-                ## CLAN UPDATE
-                clan_update = ''
-                mem_count = 0
-                for c_tag in list(ctx.bot.clan_cache):
-                    try:
-                        c = await aClan.create(ctx,tag=c_tag,refresh=True)
-                    except Exception as e:
-                        err = DataError(category='clan',tag=c_tag,error=e)
-                        error_log.append(err)
-                        continue
-
-                    if c.is_alliance_clan:
-                        try:
-                            await c.compute_arix_membership(ctx)
-                        except Exception as e:
-                            err = DataError(category='clmem',tag=c.tag,error=e)
-                            error_log.append(err)
-
-                        mem_count += c.arix_member_count
-                        clan_update += f"__{c.name} {c.tag}__"
-
-                        try:
-                            war_update = await c.update_clan_war(ctx)
-                        except Exception as e:
-                            err = DataError(category='clwar',tag=c.tag,error=e)
-                            error_log.append(err)
-                        else:
-                            if c.current_war:
-                                clan_update += f"\n> - War: {c.current_war.state} (Type: {c.current_war.type})"
-                                if war_update:
-                                    clan_update += war_update
-                                    send_logs = True
-
-                                if c.current_war.type == 'random':
-                                    result_dict = {
-                                        'winning':'winning',
-                                        'tied':'tie',
-                                        'losing':'losing',
-                                        'won':'winning',
-                                        'tie':'tie',
-                                        'lost':'losing',
-                                        '':'',
-                                        }
-
-                                    if c.war_state_change:
-                                        if c.war_state == 'inWar':
-                                            active_events.append(f"{c.abbreviation} declare war!")
-
-                                        if c.war_state == 'warEnded':
-                                            if c.current_war.result in ['winning','won']:
-                                                active_events.append(f"{c.abbreviation} win {c.war_wins} times.")
-
-                                            if c.current_war.result in ['losing','lost']:
-                                                active_events.append(f"{c.abbreviation} get crushed {c.war_losses} times.")
-
-                                            if c.war_win_streak >= 3:
-                                                active_events.append(f"{c.abbreviation} on a {c.war_win_streak} streak!")
-
-                                    else:
-                                        if c.war_state == 'inWar':
-                                            passive_events.append(f"{c.abbreviation} {result_dict[c.current_war.result]} in war!")
-
-                        try:
-                            raid_update = await c.update_raid_weekend(ctx)
-                        except Exception as e:
-                            err = DataError(category='clraid',tag=c.tag,error=e)
-                            error_log.append(err)
-                        else:
-                            clan_update += f"\n> - Raid Weekend: {c.current_raid_weekend.state}"
-
-                            if raid_update:
-                                clan_update += raid_update
-                                send_logs = True
-
-                            if c.raid_state_change:
-                                detected_raid_change = True
-
-                                if c.current_raid_weekend.state == 'ongoing':
-                                    active_events.append(f"Raid Weekend has started!")
-
-                                if c.current_raid_weekend.state == 'ended':
-                                    active_events.append(f"{(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,} Raid Medals in {c.abbreviation}")
-
-                            if c.current_raid_weekend.state == 'ongoing':
-                                passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
-
-                        if st - c.last_save > 3600:
-                            await c.save_to_json(ctx)
-
-                    clan_update += f"\n"
-
-                if clan_update == '':
-                    clan_update = "No Updates"
-
-                data_embed.add_field(
-                    name=f"**Clan Updates**",
-                    value=clan_update,
-                    inline=False)
-
-                for war_id in list(ctx.bot.war_cache):
-                    war = ctx.bot.war_cache[war_id]
-
-                    if war:
-                        state = war.state
-                        if war.state not in ['warEnded'] or ((war.end_time - st) < 3600):
-                            war_clan = await aClan.create(ctx,tag=war.clan.tag)
-                            if war.type == 'cwl':
-                                war = await aClanWar.get(ctx,clan=war_clan,tag=war.war_tag)
-                            else:
-                                war = await aClanWar.get(ctx,clan=war_clan)
-
-                            if war:
-                                if war.state != state:
-                                    await war.save_to_json(ctx)
-
-                for raid_id in list(ctx.bot.raid_cache):
-                    raid = ctx.bot.raid_cache[raid_id]
-
-                    if raid:
-                        state = raid.state
-                        if raid.state not in ['ended'] or ((raid.end_time - st) < 3600):
-                            raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
-                            raid = await aRaidWeekend.get(ctx,clan=raid_clan)
-
-                            if raid:
-                                if raid.state != state:
-                                    await raid.save_to_json(ctx)
-
-                et = time.time()
-                bot.refresh_loop += 1
-                self.clan_update_count += 1
-                bot.clan_refresh_status = False
-
-            except Exception as e:
-                await bot.send_to_owners(f"Error encountered during Clan Data Refresh:\n\n```{e}```")
-                bot.clan_refresh_status = False
-                return
-
-
-        try:
-            processing_time = round(et-st,2)
-            clan_update_runtime.append(processing_time)
-
-            if len(clan_update_runtime) > 100:
-                del clan_update_runtime[0]
-
-            await self.config.clan_update_last.set(st)
-            await self.config.clan_update_runtime.set(clan_update_runtime)
-
-            if len(error_log) > 0:
-                error_title = "Error Log"
-                error_text = ""
-                for e in error_log:
-                    error_text += f"{e.category}{e.tag}: {e.error}\n"
-
-                if len(error_text) > 1024:
-                    error_title = "Error Log (Truncated)"
-                    error_text = error_text[0:500]
-
-                data_embed.add_field(
-                    name=f"**{error_title}**",
-                    value=error_text,
-                    inline=False)
-
-                ch = bot.get_channel(1033390608506695743)
-                await ch.send(embed=data_embed)
-
-            activity_types = [
-                discord.ActivityType.playing,
-                discord.ActivityType.streaming,
-                discord.ActivityType.listening,
-                discord.ActivityType.watching
-                ]
-            activity_select = random.choice(activity_types)
-
-            #update active events after 1 hours
-            if (self.last_status_update - st > 3600 or self.last_status_update == 0) and len(active_events) > 0:
-                event = random.choice(active_events)
-                await bot.change_presence(
-                    activity=discord.Activity(
-                        type=activity_select,
-                        name=event))
-                self.last_status_update = st
-
-            #update passive events after 2 hours
-            elif (self.last_status_update - st > 7200 or self.last_status_update == 0) and len(passive_events) > 0:
-                event = random.choice(passive_events)
-                await bot.change_presence(
-                    activity=discord.Activity(
-                    type=activity_select,
-                    name=event))
-                self.last_status_update = st
-
-            elif self.last_status_update - st > 14400 or self.last_status_update == 0:
-                await bot.change_presence(
-                    activity=discord.Activity(
-                    type=activity_select,
-                    name=f"{mem_count} AriX members"))
-                self.last_status_update = st
-
-        except Exception as e:
-            await bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
-
+        await function_clan_update(cog=self,ctx=self.placeholder_context)
 
     @tasks.loop(minutes=1.0)
     async def member_update(self):
+        await function_member_update(cog=self,ctx=self.placeholder_context)
 
-        ctx = self.placeholder_context
-        bot = ctx.bot
-        send_logs = False
-        role_sync = False
+    @tasks.loop(minutes=5.0)
+    async def war_update(self):
+        await function_war_update(cog=self,ctx=self.placeholder_context)
 
-        if bot.refresh_loop < 0:
-            return None
-
-        if not bot.master_refresh:
-            return None
-
-        if self.master_lock.locked():
-            return None
-        if self.member_lock.locked():
-            return None
-
-        async with self.member_lock:
-
-            bot.member_refresh_status = True
-
-            st = time.time()
-
-            is_cwl = False
-            if st >= ctx.bot.current_season.cwl_start and st <= ctx.bot.current_season.cwl_end:
-                is_cwl = True
-
-            data_embed = discord.Embed(
-                title="Member Update Report",
-                color=0x0000)
-
-            data_embed.set_footer(
-                text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
-                icon_url="https://i.imgur.com/TZF5r54.png")
-
-
-            try:
-                member_update_last = await self.config.member_update_last()
-                member_update_runtime = await self.config.member_update_runtime()
-                last_role_sync = await self.config.last_role_sync()
-
-                #sync roles every 10mins
-                if last_role_sync == 0 or (st - last_role_sync > 600):
-                    role_sync = True
-
-                role_sync_completed = []
-                error_log = []
-
-                count_members = 0
-                count_member_update = 0
-
-                member_tags = list(ctx.bot.member_cache)
-                for m_tag in member_tags:
-                    try:
-                        m = await aPlayer.create(ctx,tag=m_tag,refresh=True)
-                    except Exception as e:
-                        err = DataError(category='player',tag=m_tag,error=e)
-                        error_log.append(err)
-                        continue
-
-                    if m.is_arix_account:
-                        count_members += 1
-
-                        try:
-                            await m.update_warlog(ctx)
-                            await m.update_raid_weekend(ctx)
-
-                            if is_cwl:
-                                await m.set_baselines(ctx)
-                            else:
-                                await m.current_season.clangames.calculate_clangames()
-
-                                if m.clan.is_alliance_clan:
-                                    await m.update_stats(ctx)
-                                else:
-                                    await m.set_baselines(ctx)
-                        except Exception as e:
-                            err = DataError(category='meupdt',tag=m.tag,error=e)
-                            error_log.append(err)
-                            continue
-
-                        save_int = random.randint(1,10)
-                        if save_int < 2:
-                            await m.save_to_json(ctx)
-                        elif (st - m.last_save) > 1800 and save_int < 5:
-                            await m.save_to_json(ctx)
-                        elif (st - m.last_save) > 3600 and save_int < 8:
-                            await m.save_to_json(ctx)
-
-
-                    if m.discord_user and role_sync:
-                        try:
-                            memo = await aMember.create(ctx,user_id=m.discord_user,refresh=True)
-                        except Exception as e:
-                            err = DataError(category='getme',tag=m.tag,error=e)
-                            error_log.append(err)
-                            continue
-
-                        if memo:
-                            if memo.discord_member and memo.user_id not in role_sync_completed:
-                                try:
-                                    await memo.sync_roles(ctx)
-                                except Exception as e:
-                                    err = DataError(category='mesync',tag=m.tag,error=e)
-                                    error_log.append(err)
-                                    continue
-                                else:
-                                    role_sync_completed.append(memo.user_id)
-
-                    count_member_update += 1
-
-                data_embed.add_field(
-                    name=f"**Member Updates**",
-                    value=f"Number of Tags: {len(member_tags)}"
-                        + f"\nAccounts Found: {count_members}"
-                        + f"\nSuccessful Updates: {count_member_update}",
-                    inline=False)
-
-                et = time.time()
-                bot.refresh_loop += 1
-                self.member_update_count += 1
-                bot.member_refresh_status = False
-
-            except Exception as e:
-                await bot.send_to_owners(f"Error encountered during Member Data Refresh:\n\n```{e}```")
-                bot.member_refresh_status = False
-                return
-
-
-        try:
-            processing_time = round(et-st,2)
-            member_update_runtime.append(processing_time)
-
-            if len(member_update_runtime) > 100:
-                del member_update_runtime[0]
-
-            await self.config.member_update_last.set(st)
-            await self.config.member_update_runtime.set(member_update_runtime)
-
-            if role_sync:
-                await self.config.last_role_sync.set(st)
-
-            if len(error_log) > 0:
-                error_title = "Error Log"
-                error_text = ""
-                for e in error_log:
-                    error_text += f"{e.category}{e.tag}: {e.error}\n"
-
-                if len(error_text) > 1024:
-                    error_title = "Error Log (Truncated)"
-                    error_text = error_text[0:500]
-
-                data_embed.add_field(
-                    name=f"**{error_title}**",
-                    value=error_text,
-                    inline=False)
-
-                ch = bot.get_channel(1033390608506695743)
-                await ch.send(embed=data_embed)
-
-        except Exception as e:
-            await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
+    @tasks.loop(minutes=5.0)
+    async def raid_update(self):
+        await function_raid_update(cog=self,ctx=self.placeholder_context)
