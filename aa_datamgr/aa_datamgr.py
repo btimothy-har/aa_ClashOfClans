@@ -501,7 +501,7 @@ class AriXClashDataMgr(commands.Cog):
 
     @commands.command(name="simulate")
     @commands.is_owner()
-    async def data_simulation(self,ctx,update_type,tag):
+    async def data_simulation(self,ctx,update_type):
 
         st = time.time()
         message = await ctx.send("Running...")

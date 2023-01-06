@@ -1376,14 +1376,16 @@ class aClan(coc.Clan):
             self.war_state = 'notInWar'
             return None
 
-        if self.current_war.state != self.war_state:
-            self.war_state_change = True
-            war_change = True
-
-        self.war_state = self.current_war.state
-        self.war_log[self.current_war.war_id] = self.current_war
-
         if self.current_war.type in ['random','classic']:
+
+            if self.current_war.state != self.war_state:
+                self.war_state_change = True
+                war_change = True
+
+            self.war_state = self.current_war.state
+
+            self.war_log[self.current_war.war_id] = self.current_war
+
             if war_change and self.current_war.state == 'inWar':
                 self.war_reminder_tracking = self.war_reminder_intervals
                 update_summary += f"\n> - War vs {self.current_war.opponent.name} has started!"
@@ -1430,11 +1432,16 @@ class aClan(coc.Clan):
                     update_summary += f"\n> - War reminders sent for {len(ping_list)} members."
 
         if self.current_war.type in ['cwl']:
+            self.war_state = 'notInWar'
+
             league_group = await ctx.bot.coc_client.get_league_group(self.tag)
 
             for r in league_group.rounds:
                 for war_tag in r:
                     war = await aClanWar.get(ctx,clan=self,war_tag=war_tag)
+
+                    if war.clan.tag == self.tag:
+                        self.war_log[war.war_id] = war
 
         return update_summary
 

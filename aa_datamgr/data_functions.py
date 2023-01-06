@@ -645,15 +645,17 @@ async def function_war_update(cog,ctx):
                     state = war.state
                     wtype = war.type
                     wtag = war.war_tag
-                    war_clan = await aClan.create(ctx,tag=war.clan.tag)
 
-                    if wtype == 'cwl':
-                        war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
-                    else:
-                        war = await aClanWar.get(ctx,clan=war_clan)
-                    if war:
-                        await war.save_to_json(ctx)
-                        war_count += 1
+                    if state not in ['ended'] or ((war.end_time - st) < 3600):
+                        war_clan = await aClan.create(ctx,tag=war.clan.tag)
+
+                        if wtype == 'cwl':
+                            war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
+                        else:
+                            war = await aClanWar.get(ctx,clan=war_clan)
+                        if war:
+                            await war.save_to_json(ctx)
+                            war_count += 1
 
             except Exception as e:
                 err = DataError(category='warupdate',tag=war_id,error=e)
@@ -735,7 +737,7 @@ async def function_raid_update(cog,ctx):
 
                 if raid:
                     state = raid.state
-                    if raid.state not in ['ended'] or ((raid.end_time - st) < 259200):
+                    if raid.state not in ['ended'] or ((raid.end_time - st) < 3600):
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
