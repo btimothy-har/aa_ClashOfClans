@@ -607,8 +607,8 @@ async def function_war_update(cog,ctx):
 
             except Exception as e:
                 err = DataError(category='warupdate',tag=war_id,error=e)
-                    error_log.append(err)
-                    continue
+                error_log.append(err)
+                continue
 
         et = time.time()
 
@@ -698,8 +698,8 @@ async def function_raid_update(cog,ctx):
 
             except Exception as e:
                 err = DataError(category='raidupdate',tag=war_id,error=e)
-                    error_log.append(err)
-                    continue
+                error_log.append(err)
+                continue
 
         et = time.time()
 
