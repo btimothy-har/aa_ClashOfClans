@@ -361,6 +361,7 @@ async def function_clan_update(cog,ctx):
                 value=error_text,
                 inline=False)
 
+        if send_logs:
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(embed=data_embed)
 
@@ -548,6 +549,7 @@ async def function_member_update(cog,ctx):
                 value=error_text,
                 inline=False)
 
+        if send_logs:
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(embed=data_embed)
 
