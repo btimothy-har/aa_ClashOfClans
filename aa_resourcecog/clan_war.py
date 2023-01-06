@@ -156,6 +156,7 @@ class aClanWar():
             except:
                 return None
             self = aClanWar(clan=clan,game=war)
+
         elif clan.public_war_log:
             try:
                 war = await ctx.bot.coc_client.get_current_war(clan.tag)

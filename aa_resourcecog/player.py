@@ -1381,7 +1381,6 @@ class aClan(coc.Clan):
             war_change = True
 
         self.war_state = self.current_war.state
-
         self.war_log[self.current_war.war_id] = self.current_war
 
         if self.current_war.type in ['random','classic']:
@@ -1429,6 +1428,13 @@ class aClan(coc.Clan):
                             await ch.send(ping_str)
 
                     update_summary += f"\n> - War reminders sent for {len(ping_list)} members."
+
+        if self.current_war.type in ['cwl']:
+            league_group = await ctx.bot.coc_client.get_league_group(self.tag)
+
+            for r in league_group.rounds:
+                for war_tag in r:
+                    war = await aClanWar.get(ctx,clan=self,war_tag=war_tag)
 
         return update_summary
 
