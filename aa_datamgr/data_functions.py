@@ -333,23 +333,23 @@ async def function_clan_update(cog,ctx):
                         err = DataError(category='clraid',tag=c.tag,error=e)
                         error_log.append(err)
                     else:
-                        clan_update += f"\n> - Raid Weekend: {c.current_raid_weekend.state}"
+                        if c.current_raid_weekend:
+                            clan_update += f"\n> - Raid Weekend: {c.current_raid_weekend.state}"
+                            if raid_update:
+                                clan_update += raid_update
+                                send_logs = True
 
-                        if raid_update:
-                            clan_update += raid_update
-                            send_logs = True
+                            if c.raid_state_change:
+                                detected_raid_change = True
 
-                        if c.raid_state_change:
-                            detected_raid_change = True
+                                if c.current_raid_weekend.state == 'ongoing':
+                                    active_events.append(f"Raid Weekend has started!")
+
+                                if c.current_raid_weekend.state == 'ended':
+                                    active_events.append(f"{(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,} Raid Medals in {c.abbreviation}")
 
                             if c.current_raid_weekend.state == 'ongoing':
-                                active_events.append(f"Raid Weekend has started!")
-
-                            if c.current_raid_weekend.state == 'ended':
-                                active_events.append(f"{(c.current_raid_weekend.offensive_reward * 6) + c.current_raid_weekend.defensive_reward:,} Raid Medals in {c.abbreviation}")
-
-                        if c.current_raid_weekend.state == 'ongoing':
-                            passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
+                                passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
 
                 if st - c.last_save > 3600:
                     await c.save_to_json(ctx)

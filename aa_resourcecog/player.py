@@ -1385,7 +1385,6 @@ class aClan(coc.Clan):
             return None
 
         if self.current_war.type in ['random','classic']:
-
             if self.current_war.state != self.war_state:
                 self.war_state_change = True
                 war_change = True
