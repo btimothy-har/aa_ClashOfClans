@@ -644,8 +644,9 @@ async def function_war_update(cog,ctx):
                         else:
                             war = await aClanWar.get(ctx,clan=war_clan)
 
-                        await war.save_to_json(ctx)
-                        war_count += 1
+                        if war:
+                            await war.save_to_json(ctx)
+                            war_count += 1
 
             except Exception as e:
                 err = DataError(category='warupdate',tag=war_id,error=e)
@@ -731,8 +732,9 @@ async def function_raid_update(cog,ctx):
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
-                        await raid.save_to_json(ctx)
-                        raid_count += 1
+                        if raid:
+                            await raid.save_to_json(ctx)
+                            raid_count += 1
 
             except Exception as e:
                 err = DataError(category='raidupdate',tag=war_id,error=e)
