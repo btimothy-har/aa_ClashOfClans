@@ -351,8 +351,8 @@ async def function_clan_update(cog,ctx):
                             if c.current_raid_weekend.state == 'ongoing':
                                 passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
 
-                if st - c.last_save > 3600:
-                    await c.save_to_json(ctx)
+                    if st - c.last_save > 3600:
+                        await c.save_to_json(ctx)
 
                 clan_update += f"\n"
 
