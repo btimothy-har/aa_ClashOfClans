@@ -411,10 +411,11 @@ async def function_clan_update(cog,ctx):
 
         #update active events after 1 hours
         if (cog.last_status_update - st > 3600 or cog.last_status_update == 0) and len(active_events) > 0:
+            event = random.choice(active_events)
+
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
-            event = random.choice(active_events)
             await ctx.bot.change_presence(
                 activity=discord.Activity(
                     type=activity_types[activity_select],
@@ -423,10 +424,11 @@ async def function_clan_update(cog,ctx):
 
         #update passive events after 2 hours
         elif (cog.last_status_update - st > 7200 or cog.last_status_update == 0) and len(passive_events) > 0:
+            event = random.choice(passive_events)
+
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
-            event = random.choice(passive_events)
             await ctx.bot.change_presence(
                 activity=discord.Activity(
                 type=activity_types[activity_select],
@@ -435,7 +437,7 @@ async def function_clan_update(cog,ctx):
 
         elif cog.last_status_update - st > 14400 or cog.last_status_update == 0:
             ch = ctx.bot.get_channel(1033390608506695743)
-            await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
+            await ch.send(f"Changed status to {activity_select} {mem_count} AriX members: <t:{int(time.time())}:f>.")
 
             await ctx.bot.change_presence(
                 activity=discord.Activity(
