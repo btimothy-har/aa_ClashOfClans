@@ -190,6 +190,7 @@ class AriXClashDataMgr(commands.Cog):
             ctx.bot.refresh_loop = 0
 
             self.season_update.start()
+
             self.clan_update.start()
             self.member_update.start()
             self.war_update.start()
@@ -212,11 +213,12 @@ class AriXClashDataMgr(commands.Cog):
 
         self.master_refresh = False
 
-        self.season_update.stop()
         self.clan_update.stop()
         self.member_update.stop()
         self.war_update.stop()
         self.raid_update.stop()
+
+        self.season_update.stop()
 
         #save data
         await save_war_cache(ctx)
@@ -350,8 +352,8 @@ class AriXClashDataMgr(commands.Cog):
                     + f"\n> **Clan Update**: {self.clan_refresh_status}"
                     + f"\n> **Member Update**: {self.member_refresh_status}"
                     + f"\n> **War Update**: {self.war_refresh_status}"
-                    + f"\n> **Raid Update**: {self.raid_refresh_status}"
-                    + f"\n> **Last Data Save**: <t:{int(self.last_data_save)}:R>",
+                    + f"\n> **Raid Update**: {self.raid_refresh_status}",
+                    #+ f"\n> **Last Data Save**: <t:{int(self.last_data_save)}:R>",
                 inline=False)
 
             embed.add_field(
