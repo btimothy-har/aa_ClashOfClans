@@ -142,7 +142,6 @@ async def function_season_update(cog,ctx):
         for m_tag in list(ctx.bot.member_cache):
             try:
                 m = await aPlayer.create(ctx,tag=m_tag,refresh=True,reset=True)
-                await m.set_baselines(ctx)
             except Exception as e:
                 err = DataError(category='player',tag=m_tag,error=e)
                 error_log.append(err)
@@ -405,7 +404,6 @@ async def function_clan_update(cog,ctx):
 
         activity_types = {
             'playing': discord.ActivityType.playing,
-            'streaming': discord.ActivityType.streaming,
             'listening': discord.ActivityType.listening,
             'watching': discord.ActivityType.watching
             }
@@ -413,6 +411,9 @@ async def function_clan_update(cog,ctx):
 
         #update active events after 1 hours
         if (cog.last_status_update - st > 3600 or cog.last_status_update == 0) and len(active_events) > 0:
+            ch = ctx.bot.get_channel(1033390608506695743)
+            await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
+
             event = random.choice(active_events)
             await ctx.bot.change_presence(
                 activity=discord.Activity(
@@ -420,11 +421,11 @@ async def function_clan_update(cog,ctx):
                     name=event))
             cog.last_status_update = st
 
+        #update passive events after 2 hours
+        elif (cog.last_status_update - st > 7200 or cog.last_status_update == 0) and len(passive_events) > 0:
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
-        #update passive events after 2 hours
-        elif (cog.last_status_update - st > 7200 or cog.last_status_update == 0) and len(passive_events) > 0:
             event = random.choice(passive_events)
             await ctx.bot.change_presence(
                 activity=discord.Activity(
@@ -432,18 +433,15 @@ async def function_clan_update(cog,ctx):
                 name=event))
             cog.last_status_update = st
 
+        elif cog.last_status_update - st > 14400 or cog.last_status_update == 0:
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
-        elif cog.last_status_update - st > 14400 or cog.last_status_update == 0:
             await ctx.bot.change_presence(
                 activity=discord.Activity(
                 type=activity_types[activity_select],
                 name=f"{mem_count} AriX members"))
             cog.last_status_update = st
-
-            ch = ctx.bot.get_channel(1033390608506695743)
-            await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
     except Exception as e:
         await ctx.bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
@@ -510,51 +508,41 @@ async def function_member_update(cog,ctx):
 
                 if m.is_arix_account:
                     count_members += 1
-
                     try:
                         await m.update_warlog(ctx)
                         await m.update_raid_weekend(ctx)
-
-                        if is_cwl:
-                            await m.set_baselines(ctx)
-                        else:
-                            await m.current_season.clangames.calculate_clangames()
-
-                            if m.clan.is_alliance_clan:
-                                await m.update_stats(ctx)
-                            else:
-                                await m.set_baselines(ctx)
+                        await m.update_stats(ctx)
                     except Exception as e:
                         err = DataError(category='meupdt',tag=m.tag,error=e)
                         error_log.append(err)
                         continue
 
-                save_int = random.randint(1,10)
-                if save_int < 2:
-                    await m.save_to_json(ctx)
-                elif (st - m.last_save) > 1800 and save_int < 5:
-                    await m.save_to_json(ctx)
-                elif (st - m.last_save) > 3600 and save_int < 8:
-                    await m.save_to_json(ctx)
+                    save_int = random.randint(1,10)
+                    if save_int < 2:
+                        await m.save_to_json(ctx)
+                    elif (st - m.last_save) > 1800 and save_int < 5:
+                        await m.save_to_json(ctx)
+                    elif (st - m.last_save) > 3600 and save_int < 8:
+                        await m.save_to_json(ctx)
 
-                if m.discord_user and role_sync:
-                    try:
-                        memo = await aMember.create(ctx,user_id=m.discord_user,refresh=True)
-                    except Exception as e:
-                        err = DataError(category='getme',tag=m.tag,error=e)
-                        error_log.append(err)
-                        continue
+                    if m.discord_user and role_sync:
+                        try:
+                            memo = await aMember.create(ctx,user_id=m.discord_user,refresh=True)
+                        except Exception as e:
+                            err = DataError(category='getme',tag=m.tag,error=e)
+                            error_log.append(err)
+                            continue
 
-                    if memo:
-                        if memo.discord_member and memo.user_id not in role_sync_completed:
-                            try:
-                                await memo.sync_roles(ctx)
-                            except Exception as e:
-                                err = DataError(category='mesync',tag=m.tag,error=e)
-                                error_log.append(err)
-                                continue
-                            else:
-                                role_sync_completed.append(memo.user_id)
+                        if memo:
+                            if memo.discord_member and memo.user_id not in role_sync_completed:
+                                try:
+                                    await memo.sync_roles(ctx)
+                                except Exception as e:
+                                    err = DataError(category='mesync',tag=m.tag,error=e)
+                                    error_log.append(err)
+                                    continue
+                                else:
+                                    role_sync_completed.append(memo.user_id)
 
                 count_member_update += 1
 
@@ -653,9 +641,9 @@ async def function_war_update(cog,ctx):
                             war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
                         else:
                             war = await aClanWar.get(ctx,clan=war_clan)
-                        if war and war.state in ['warEnded']:
-                            await war.save_to_json(ctx)
-                            war_count += 1
+
+                        await war.save_to_json(ctx)
+                        war_count += 1
 
             except Exception as e:
                 err = DataError(category='warupdate',tag=war_id,error=e)
@@ -741,9 +729,8 @@ async def function_raid_update(cog,ctx):
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
-                        if raid:
-                            await raid.save_to_json(ctx)
-                            raid_count += 1
+                        await raid.save_to_json(ctx)
+                        raid_count += 1
 
             except Exception as e:
                 err = DataError(category='raidupdate',tag=war_id,error=e)

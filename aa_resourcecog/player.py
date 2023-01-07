@@ -46,10 +46,10 @@ class aClashSeason():
         self.season_start = datetime(self.season_year, self.season_month, 1, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
         self.clangames_start = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
-        self.clangames_end = datetime(self.season_year, self.season_month, 22, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+        self.clangames_end = datetime(self.season_year, self.season_month, 28, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
         self.cwl_start = datetime(self.season_year, self.season_month, 1, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
-        self.cwl_end = datetime(self.season_year, self.season_month, 9, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
+        self.cwl_end = datetime(self.season_year, self.season_month, 10, 8, 0, 0, 0, tzinfo=pytz.utc).timestamp()
 
     @classmethod
     def get_current_season(cls):
@@ -489,53 +489,30 @@ class aPlayer(coc.Player):
         self.last_save = time.time()
 
     async def update_stats(self,ctx):
-        if self.clan.tag == self.home_clan.tag:
-            self.current_season.time_in_home_clan += (self.timestamp - self.last_update)
-        elif self.clan.tag not in [c.tag for c in self.current_season.other_clans]:
-            self.current_season.other_clans.append(self.clan)
+        if time.time() >= ctx.bot.current_season.cwl_end:
+            if self.clan.tag == self.home_clan.tag:
+                self.current_season.time_in_home_clan += (self.timestamp - self.last_update)
 
-        self.current_season.attacks.update_stat(self.attack_wins)
-        self.current_season.defenses.update_stat(self.defense_wins)
-
-        self.current_season.donations_sent.update_stat(self.donations)
-        self.current_season.donations_rcvd.update_stat(self.received)
-
-        for achievement in self.achievements:
-            if achievement.name == 'Gold Grab':
-                self.current_season.loot_gold.update_stat(achievement.value)
-            if achievement.name == 'Elixir Escapade':
-                self.current_season.loot_elixir.update_stat(achievement.value)
-            if achievement.name == 'Heroic Heist':
-                self.current_season.loot_darkelixir.update_stat(achievement.value)
-            if achievement.name == 'Most Valuable Clanmate':
-                self.current_season.capitalcontribution.update_stat(achievement.value)
-
-        self.last_update = self.timestamp
-
-    async def set_baselines(self,ctx):
         if self.clan.tag not in [c.tag for c in self.current_season.other_clans]:
             self.current_season.other_clans.append(self.clan)
 
-        self.current_season.attacks.set_baseline(self.attack_wins)
-        self.current_season.defenses.set_baseline(self.defense_wins)
+        self.current_season.attacks.update_stat(ctx,self,self.attack_wins)
+        self.current_season.defenses.update_stat(ctx,self,self.defense_wins)
 
-        self.current_season.donations_sent.set_baseline(self.donations)
-        self.current_season.donations_rcvd.set_baseline(self.received)
-
-        self.current_season.clangames.set_baseline()
+        self.current_season.donations_sent.update_stat(ctx,self,self.donations)
+        self.current_season.donations_rcvd.update_stat(ctx,self,self.received)
 
         for achievement in self.achievements:
             if achievement.name == 'Gold Grab':
-                self.current_season.loot_gold.set_baseline(achievement.value)
+                self.current_season.loot_gold.update_stat(ctx,self,achievement.value)
             if achievement.name == 'Elixir Escapade':
-                self.current_season.loot_elixir.set_baseline(achievement.value)
+                self.current_season.loot_elixir.update_stat(ctx,self,achievement.value)
             if achievement.name == 'Heroic Heist':
-                self.current_season.loot_darkelixir.set_baseline(achievement.value)
+                self.current_season.loot_darkelixir.update_stat(ctx,self,achievement.value)
             if achievement.name == 'Most Valuable Clanmate':
-                self.current_season.capitalcontribution.set_baseline(achievement.value)
+                self.current_season.capitalcontribution.update_stat(ctx,self,achievement.value)
 
         self.last_update = self.timestamp
-
 
     async def set_readable_name(self,ctx,name):
         self.readable_name = name
@@ -544,30 +521,53 @@ class aPlayer(coc.Player):
 
 
     async def update_warlog(self,ctx):
-        if not self.current_war:
-            return None
+        war_updated = False
+        active_wars = []
+        for warid in list(ctx.bot.war_cache):
+            clan_war = ctx.bot.war_cache[warid]
 
-        c_war_id = self.current_war.war_id
+            if clan_war.start_time >= ctx.bot.current_season.season_start and self.tag in [m.tag for m in clan_war.members]:
+                if clan_war.war_id not in list(self.current_season.warlog):
+                    war_updated = True
+                    self.current_season.warlog[clan_war.war_id] = clan_war
 
-        if self.current_war.state in ['inWar','warEnded']:
-            if self.current_war.state in ['warEnded']:
-                if self.current_war.war_id in list(self.current_season.warlog.keys()):
-                    self.current_season.warlog[c_war_id] = self.current_war
-            else:
-                self.current_season.warlog[c_war_id] = self.current_war
+                if clan_war.state in ['inWar']:
+                    active_wars.append(clan_war)
+
+        if len(active_wars) > 0:
+            active_wars = sorted(active_wars,key=lambda x:(x.end_time),reverse=True)
+            self.current_war = active_wars[0]
+        else:
+            self.current_war = None
+
+        if war_updated:
+            await self.save_to_json(ctx)
+            await aPlayer.create(ctx,tag=self.tag,reset=True)
 
     async def update_raid_weekend(self,ctx):
-        if not self.current_raid_weekend:
-            return None
+        raid_updated = False
+        active_raids = []
 
-        c_raid_id = self.current_raid_weekend.raid_id
+        for raidid in list(ctx.bot.raid_cache):
+            cap_raid = ctx.bot.raid_cache[raidid]
 
-        if self.current_raid_weekend.state in ['ended']:
-            if self.current_raid_weekend.raid_id in list(self.current_season.raidlog.keys()):
-                self.current_season.raidlog[c_raid_id] = self.current_raid_weekend
+            if cap_raid.start_time >= ctx.bot.current_season.season_start and self.tag in [m.tag for m in cap_raid.members]:
+                if cap_raid.raid_id not in list(self.current_season.raidlog):
+                    raid_updated = True
+                    self.current_season.raidlog[cap_raid.raid_id] = cap_raid
 
+                if cap_raid.state in ['ongoing']:
+                    active_raids.append(cap_raid)
+
+        if len(active_raids) > 0:
+            active_raids = sorted(active_raids,key=lambda x:(x.end_time),reverse=True)
+            self.current_raid_weekend = active_raids[0]
         else:
-            self.current_season.raidlog[c_raid_id] = self.current_raid_weekend
+            self.current_raid_weekend = None
+
+        if raid_updated:
+            await self.save_to_json(ctx)
+            await aPlayer.create(ctx,tag=self.tag,reset=True)
 
 
     async def new_member(self,ctx,discord_user,home_clan=None):
@@ -634,19 +634,19 @@ class aPlayerSeason():
 
         self.time_in_home_clan = 0
         self.other_clans = []
-        self.attacks = aPlayerStat({})
-        self.defenses = aPlayerStat({})
+        self.attacks = aPlayerStat(init_stat=self.player.attack_wins)
+        self.defenses = aPlayerStat(init_stat=self.player.defense_wins)
 
-        self.donations_sent = aPlayerStat({})
-        self.donations_rcvd = aPlayerStat({})
+        self.donations_sent = aPlayerStat(init_stat=self.player.donations)
+        self.donations_rcvd = aPlayerStat(init_stat=self.player.received)
 
-        self.loot_gold = aPlayerStat({})
-        self.loot_elixir = aPlayerStat({})
-        self.loot_darkelixir = aPlayerStat({})
+        self.loot_gold = aPlayerStat(init_stat=[a.value for a in self.player.achievements if a.name=='Gold Grab'][0])
+        self.loot_elixir = aPlayerStat(init_stat=[a.value for a in self.player.achievements if a.name=='Elixir Escapade'][0])
+        self.loot_darkelixir = aPlayerStat(init_stat=[a.value for a in self.player.achievements if a.name=='Heroic Heist'][0])
 
-        self.clangames = aPlayerClanGames(self,self.season)
+        self.clangames = aPlayerClanGames(player=self.player,season=self.season)
 
-        self.capitalcontribution = aPlayerStat({})
+        self.capitalcontribution = aPlayerStat(init_stat=[a.value for a in self.player.achievements if a.name=='Most Valuable Clanmate'][0])
 
         self.warlogkeys = []
         self.warlog = {}
@@ -693,22 +693,22 @@ class aPlayerSeason():
                 if nc.tag:
                     self.other_clans.append(nc)
 
-            self.attacks = aPlayerStat(stats['attacks'])
-            self.defenses = aPlayerStat(stats['defenses'])
+            self.attacks = aPlayerStat(input_json=stats['attacks'])
+            self.defenses = aPlayerStat(input_json=stats['defenses'])
 
-            self.donations_sent = aPlayerStat(stats['donations_sent'])
-            self.donations_rcvd = aPlayerStat(stats['donations_rcvd'])
+            self.donations_sent = aPlayerStat(input_json=stats['donations_sent'])
+            self.donations_rcvd = aPlayerStat(input_json=stats['donations_rcvd'])
 
-            self.loot_gold = aPlayerStat(stats['loot_gold'])
-            self.loot_elixir = aPlayerStat(stats['loot_elixir'])
-            self.loot_darkelixir = aPlayerStat(stats['loot_darkelixir'])
+            self.loot_gold = aPlayerStat(input_json=stats['loot_gold'])
+            self.loot_elixir = aPlayerStat(input_json=stats['loot_elixir'])
+            self.loot_darkelixir = aPlayerStat(input_json=stats['loot_darkelixir'])
 
             self.clangames = await aPlayerClanGames.create(ctx,
-                stats=self,
-                json=stats['clangames'],
-                season=self.season)
+                player=self.player,
+                season=self.season,
+                input_json=stats['clangames'])
 
-            self.capitalcontribution = aPlayerStat(stats['capitalcontribution'])
+            self.capitalcontribution = aPlayerStat(input_json=stats['capitalcontribution'])
 
             self.warlogkeys = stats['war_log']
             for war_id in self.warlogkeys:
@@ -743,12 +743,17 @@ class aTownHall():
             self.description = f"**{self.level}**"
 
 class aPlayerStat():
-    def __init__(self,inputJson):
+    def __init__(self,**kwargs):
+
+        inputJson = kwargs.get('input_json',None)
+
         self.season = 0
-        self.lastupdate = 0
+        self.season_total = 0
+        self.lastupdate = kwargs.get('init_stat',0)
 
         if inputJson:
             self.season = inputJson['season']
+            self.season_total = inputJson.get('season_total',0)
             self.lastupdate = inputJson['lastUpdate']
 
         if self.lastupdate >= 2000000000:
@@ -758,46 +763,52 @@ class aPlayerStat():
         else:
             self.statdisplay = f"{self.season:,}"
 
-    def update_stat(self,new_value):
+    def update_stat(self,ctx,player,new_value):
         if new_value >= self.lastupdate:
             stat_increment = new_value - self.lastupdate
         else:
             stat_increment = new_value
-        self.season += stat_increment
-        self.lastupdate = new_value
+        self.season_total += stat_increment
 
-    def set_baseline(self,base_value):
-        self.lastupdate = base_value
+        if time.time() >= ctx.bot.current_season.cwl_end and player.clan.is_alliance_clan:
+            self.season += stat_increment
+
+        self.lastupdate = new_value
 
     def to_json(self):
         statJson = {
             'season': self.season,
+            'season_total': self.season_total,
             'lastUpdate': self.lastupdate
             }
         return statJson
 
 class aPlayerClanGames():
-    def __init__(self,stats,season):
+    def __init__(self,player,season):
 
-        self.stats = stats
-        self.games_start = season.clangames_start
-        self.games_end = season.clangames_end
+        self.player = player
+
+        if season == 'current':
+            self.season = aClashSeason.get_current_season()
+        else:
+            self.season = season
+
+        self.games_start = self.season.clangames_start
+        self.games_end = self.season.clangames_end
+
+        self.last_updated = [a.value for a in self.stats.player.achievements if a.name == 'Games Champion'][0]
+
         self.score = 0
         self.clan_tag = None
         self.clan = None
         self.starting_time = 0
         self.ending_time = 0
-        self.last_updated = 0
 
     @classmethod
-    async def create(cls,ctx,stats,**kwargs):
-        input_json = kwargs.get('json',None)
-        season = kwargs.get('season',None)
+    async def create(cls,ctx,player,season,**kwargs):
+        input_json = kwargs.get('input_json',None)
 
-        if not season:
-            season = aClashSeason.get_current_season()
-
-        self = aPlayerClanGames(stats=stats,season=season)
+        self = aPlayerClanGames(player=player,season=season)
 
         if input_json:
             self.score = input_json['score']
@@ -807,9 +818,6 @@ class aPlayerClanGames():
             self.last_updated = input_json['last_updated']
 
         return self
-
-    def set_baseline(self):
-        self.last_updated = [a.value for a in self.stats.player.achievements if a.name == 'Games Champion'][0]
 
     async def calculate_clangames(self):
         max_score = 4000

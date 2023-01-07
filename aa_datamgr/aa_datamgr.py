@@ -194,7 +194,6 @@ class AriXClashDataMgr(commands.Cog):
             self.member_update.start()
             self.war_update.start()
             self.raid_update.start()
-            self.save_data.start()
 
         await msg.delete()
         await ctx.send("**Setup complete.**")
@@ -218,7 +217,6 @@ class AriXClashDataMgr(commands.Cog):
         self.member_update.stop()
         self.war_update.stop()
         self.raid_update.stop()
-        self.save_data.stop()
 
         #save data
         await save_war_cache(ctx)
@@ -243,25 +241,6 @@ class AriXClashDataMgr(commands.Cog):
         self.master_lock.release()
 
         await ctx.send("**All done here! Goodbye!**")
-
-    @commands.command(name="warsync")
-    @commands.is_owner()
-    async def warlogsync(self,ctx):
-
-        await ctx.send("starting")
-
-        for warid in list(ctx.bot.war_cache):
-            clan_war = ctx.bot.war_cache[warid]
-            if clan_war.start_time >= ctx.bot.current_season.season_start:
-                for tag in [m.tag for m in clan_war.members]:
-
-                    if tag in list(ctx.bot.member_cache):
-                        member = ctx.bot.member_cache[tag]
-
-                        if clan_war.war_id not in [list(member.current_season.warlog)]:
-                            member.current_season.warlog[clan_war.war_id] = clan_war
-
-        await ctx.send("completed")
 
     @commands.command(name="drefresh")
     @commands.is_owner()
