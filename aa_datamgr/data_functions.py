@@ -634,7 +634,7 @@ async def function_war_update(cog,ctx):
                     wtype = war.type
                     wtag = war.war_tag
 
-                    if state not in ['warEnded'] or ((war.end_time - st) < 7200):
+                    if state not in ['warEnded'] or ((war.end_time - st) < 21600):
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
 
                         if wtype == 'cwl':
@@ -725,7 +725,7 @@ async def function_raid_update(cog,ctx):
 
                 if raid:
                     state = raid.state
-                    if raid.state not in ['ended'] or ((raid.end_time - st) < 7200):
+                    if raid.state not in ['ended'] or ((raid.end_time - st) < 21600):
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
