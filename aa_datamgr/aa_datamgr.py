@@ -92,34 +92,6 @@ class AriXClashDataMgr(commands.Cog):
         self.raid_update_count = 0
         self.season_update_count = 0
 
-
-    def cog_unload(self):
-        self.clan_file.seek(0)
-        json.dump(ctx.bot.clan_data,self.clan_file,indent=2)
-        self.clan_file.truncate()
-        self.clan_file.close()
-
-        self.membership_file.seek(0)
-        json.dump(ctx.bot.membership_data,self.membership_file,indent=2)
-        self.membership_file.truncate()
-        self.membership_file.close()
-
-        self.players_file.seek(0)
-        json.dump(ctx.bot.players_data,self.players_file,indent=2)
-        self.players_file.truncate()
-        self.players_file.close()
-
-        self.warlog_file.seek(0)
-        json.dump(ctx.bot.warlog_data,self.warlog_file,indent=2)
-        self.warlog_file.truncate()
-        self.warlog_file.close()
-
-        self.capitalraid_file.seek(0)
-        json.dump(ctx.bot.capitalraid_data,self.capitalraid_file,indent=2)
-        self.capitalraid_file.truncate()
-        self.capitalraid_file.close()
-
-
     @commands.command(name="nstart")
     @commands.is_owner()
     async def start_nebula(self,ctx,partial=False):
@@ -191,27 +163,27 @@ class AriXClashDataMgr(commands.Cog):
         ctx.bot.raid_cache = {}
 
         if not partial:
-            self.clan_file = open(ctx.bot.clash_dir_path+'/clans.json', 'r+')
-            ctx.bot.clan_data = json.load(self.clan_file)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/clans.json','r+') as file:
+                    clan_json = json.load(file)
 
-            self.membership_file = open(ctx.bot.clash_dir_path+'/membership.json','r+')
-            ctx.bot.membership_data = json.load(self.membership_file)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/membership.json','r') as file:
+                    membership_json = json.load(file)
 
-            self.players_file = open(ctx.bot.clash_dir_path+'/players.json','r+')
-            ctx.bot.players_data = json.load(self.players_file)
+            with ctx.bot.clash_file_lock.read_lock():
+                with open(ctx.bot.clash_dir_path+'/players.json','r') as file:
+                    player_json = json.load(file)
 
-            self.warlog_file = open(ctx.bot.clash_dir_path+'/warlog.json','r+')
-            ctx.bot.warlog_data = json.load(self.warlog_file)
+            for tag in list(clan_json):
+                cjson = clan_json[tag]
+                await aClan.create(ctx,tag=tag,json=cjson)
 
-            self.capitalraid_file = open(ctx.bot.clash_dir_path+'/capitalraid.json','r+')
-            ctx.bot.capitalraid_data = json.load(self.capitalraid_file)
+            for tag in list(membership_json):
+                member = membership_json[tag]
 
-            for (tag,clan) in ctx.bot.clan_data.items():
-                await aClan.create(ctx,tag=tag,json=clan)
-
-            for (tag,member) in ctx.bot.membership_data.items():
-                if tag in list(ctx.bot.players_data.keys()):
-                    a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=ctx.bot.players_data[tag])
+                if tag in list(player_json):
+                    a = await aPlayer.create(ctx,tag=tag,a_json=member,s_json=player_json[tag])
                 else:
                     a = await aPlayer.create(ctx,tag=tag,a_json=member)
 
@@ -253,36 +225,6 @@ class AriXClashDataMgr(commands.Cog):
         await save_raid_cache(ctx)
         await save_clan_cache(ctx)
         await save_member_cache(ctx)
-
-        clan_data = copy.deepcopy(ctx.bot.clan_data)
-        self.clan_file.seek(0)
-        json.dump(clan_data,self.clan_file,indent=2)
-        self.clan_file.truncate()
-        self.clan_file.close()
-
-        membership_data = copy.deepcopy(ctx.bot.membership_data)
-        self.membership_file.seek(0)
-        json.dump(membership_data,self.membership_file,indent=2)
-        self.membership_file.truncate()
-        self.membership_file.close()
-
-        players_data = copy.deepcopy(ctx.bot.players_data)
-        self.players_file.seek(0)
-        json.dump(players_data,self.players_file,indent=2)
-        self.players_file.truncate()
-        self.players_file.close()
-
-        warlog_data = copy.deepcopy(ctx.bot.warlog_data)
-        self.warlog_file.seek(0)
-        json.dump(warlog_data,self.warlog_file,indent=2)
-        self.warlog_file.truncate()
-        self.warlog_file.close()
-
-        capitalraid_data = copy.deepcopy(ctx.bot.capitalraid_data)
-        self.capitalraid_file.seek(0)
-        json.dump(capitalraid_data,self.capitalraid_file,indent=2)
-        self.capitalraid_file.truncate()
-        self.capitalraid_file.close()
 
         await ctx.send("**Data saved!**")
 
@@ -402,11 +344,11 @@ class AriXClashDataMgr(commands.Cog):
 
             embed.add_field(
                 name="__Core Data Files__",
-                value=f"\n> **clans.json**: {not(isinstance(ctx.bot.clan_data,type(None)))}"
-                    + f"\n> **membership.json**: {not(isinstance(ctx.bot.membership_data,type(None)))}"
-                    + f"\n> **players.json**: {not(isinstance(ctx.bot.players_data,type(None)))}"
-                    + f"\n> **warlog.json**: {not(isinstance(ctx.bot.warlog_data,type(None)))}"
-                    + f"\n> **capitalraid.json**: {not(isinstance(ctx.bot.capitalraid_data,type(None)))}",
+                value=f"\n> **clans.json**: {os.path.exists(ctx.bot.clash_dir_path+'/clans.json')}"
+                    + f"\n> **membership.json**: {os.path.exists(ctx.bot.clash_dir_path+'/membership.json')}"
+                    + f"\n> **players.json**: {os.path.exists(ctx.bot.clash_dir_path+'/players.json')}"
+                    + f"\n> **warlog.json**: {os.path.exists(ctx.bot.clash_dir_path+'/warlog.json')}"
+                    + f"\n> **capitalraid.json**: {os.path.exists(ctx.bot.clash_dir_path+'/capitalraid.json')}",
                     inline=False)
 
             embed.add_field(
@@ -551,6 +493,6 @@ class AriXClashDataMgr(commands.Cog):
     async def raid_update(self):
         await function_raid_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(hours=1.0)
+    @tasks.loop(hours=6.0)
     async def save_data(self):
         await function_save_data(cog=self,ctx=self.placeholder_context)

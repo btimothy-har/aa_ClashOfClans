@@ -27,12 +27,6 @@ async def setup(bot:Red):
     bot.current_season = None
     bot.tracked_seasons = []
 
-    bot.clan_data = None
-    bot.membership_data = None
-    bot.players_data = None
-    bot.warlog_data = None
-    bot.capitalraid_data = None
-
     bot.member_cache = {}
     bot.clan_cache = {}
     bot.pass_cache = {}

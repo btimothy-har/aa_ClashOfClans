@@ -54,6 +54,8 @@ async def function_season_update(cog,ctx):
     st = time.time()
     update_season = False
 
+    await cog.config.season_update_last.set(st)
+
     season_embed = discord.Embed(
         title="**Season Update**",
         color=0x0000)
@@ -172,7 +174,6 @@ async def function_season_update(cog,ctx):
         if len(season_update_runtime) > 100:
             del season_update_runtime[0]
 
-        await cog.config.season_update_last.set(st)
         await cog.config.season_update_runtime.set(season_update_runtime)
 
         try:
@@ -182,7 +183,6 @@ async def function_season_update(cog,ctx):
 
         activity_types = [
             discord.ActivityType.playing,
-            discord.ActivityType.streaming,
             discord.ActivityType.listening,
             discord.ActivityType.watching
             ]
@@ -215,60 +215,10 @@ async def function_save_data(cog,ctx):
     await cog.war_lock.acquire()
     await cog.raid_lock.acquire()
 
-    warlog_data = copy.deepcopy(ctx.bot.warlog_data)
-    for war_id in list(ctx.bot.war_cache):
-        war = ctx.bot.war_cache[war_id]
-        war_json = war.to_json()
-
-        warlog_data[war_id] = war_json
-
-    cog.warlog_file.seek(0)
-    json.dump(warlog_data,cog.warlog_file,indent=2)
-    cog.warlog_file.truncate()
-
-
-    capitalraid_data = copy.deepcopy(ctx.bot.capitalraid_data)
-    for raid_id in list(ctx.bot.raid_cache):
-        raid = ctx.bot.raid_cache[raid_id]
-        raid_json = raid.to_json()
-
-        capitalraid_data[raid_id] = raid_json
-
-    cog.capitalraid_file.seek(0)
-    json.dump(capitalraid_data,cog.capitalraid_file,indent=2)
-    cog.capitalraid_file.truncate()
-
-
-    clan_data = copy.deepcopy(ctx.bot.clan_data)
-    for clan_tag in list(ctx.bot.clan_cache):
-        clan = ctx.bot.clan_cache[clan_tag]
-
-        if clan.is_alliance_clan:
-            clan_json = clan.to_json()
-            clan_data[clan_tag] = clan_json
-
-    cog.clan_file.seek(0)
-    json.dump(clan_data,cog.clan_file,indent=2)
-    cog.clan_file.truncate()
-
-
-    membership_data = copy.deepcopy(ctx.bot.membership_data)
-    players_data = copy.deepcopy(ctx.bot.players_data)
-    for player_tag in list(ctx.bot.member_cache):
-        player = ctx.bot.member_cache[player_tag]
-
-        if player.is_arix_account:
-            membership_json, memberstats_json = player.to_json()
-            membership_data[player_tag] = membership_json
-            players_data[player_tag] = memberstats_json
-
-    cog.membership_file.seek(0)
-    json.dump(membership_data,cog.membership_file,indent=2)
-    cog.membership_file.truncate()
-
-    cog.players_file.seek(0)
-    json.dump(players_data,cog.players_file,indent=2)
-    cog.players_file.truncate()
+    await save_war_cache(ctx)
+    await save_raid_cache(ctx)
+    await save_clan_cache(ctx)
+    await save_member_cache(ctx)
 
     cog.clan_lock.release()
     cog.member_lock.release()
@@ -401,6 +351,9 @@ async def function_clan_update(cog,ctx):
 
                         if c.current_raid_weekend.state == 'ongoing':
                             passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
+
+                if st - c.last_save > 3600:
+                    await c.save_to_json(ctx)
 
                 clan_update += f"\n"
 
@@ -572,6 +525,14 @@ async def function_member_update(cog,ctx):
                         error_log.append(err)
                         continue
 
+                save_int = random.randint(1,10)
+                if save_int < 2:
+                    await m.save_to_json(ctx)
+                elif (st - m.last_save) > 1800 and save_int < 5:
+                    await m.save_to_json(ctx)
+                elif (st - m.last_save) > 3600 and save_int < 8:
+                    await m.save_to_json(ctx)
+
                 if m.discord_user and role_sync:
                     try:
                         memo = await aMember.create(ctx,user_id=m.discord_user,refresh=True)
@@ -681,14 +642,14 @@ async def function_war_update(cog,ctx):
                     wtype = war.type
                     wtag = war.war_tag
 
-                    if state not in ['ended'] or ((war.end_time - st) < 7200):
+                    if state not in ['warEnded'] or ((war.end_time - st) < 7200):
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
 
                         if wtype == 'cwl':
                             war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
                         else:
                             war = await aClanWar.get(ctx,clan=war_clan)
-                        if war:
+                        if war and war.state in ['warEnded']:
                             await war.save_to_json(ctx)
                             war_count += 1
 
