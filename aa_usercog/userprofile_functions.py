@@ -124,7 +124,7 @@ async def userprofile_warlog(ctx,account,message=None):
     wars = sorted(wars,key=lambda x:(x.end_time),reverse=True)
 
     war_count = 0
-    for war in wars:
+    for war in [w for w in wars if w.start_time <= time.time()]:
         if war_count >= 5:
             break
 

@@ -376,14 +376,14 @@ class AriXClashDataMgr(commands.Cog):
                 inline=False)
 
             embed.add_field(
-                name="__Last Updates__",
-                value=f"> **Last Season Check**: <t:{int(season_update_last)}:R>"
-                    + f"\n> **Last Clan Update**: <t:{int(clan_update_last)}:R>"
-                    + f"\n> **Last Member Update**: <t:{int(member_update_last)}:R>"
-                    + f"\n> **Last War Update**: <t:{int(war_update_last)}:R>"
-                    + f"\n> **Last Raid Update**: <t:{int(raid_update_last)}:R>"
-                    + f"\n> **Last Role Sync**: <t:{int(last_role_sync)}:R>"
-                    + f"\n> **Last Bot Status**: <t:{int(self.last_status_update)}:R>",
+                name="__Most Recent Updates__",
+                value=f"> **Season Check**: <t:{int(season_update_last)}:R>"
+                    + f"\n> **Clans**: <t:{int(clan_update_last)}:R>"
+                    + f"\n> **Members**: <t:{int(member_update_last)}:R>"
+                    + f"\n> **Clan Wars**: <t:{int(war_update_last)}:R>"
+                    + f"\n> **Capital Raids**: <t:{int(raid_update_last)}:R>"
+                    + f"\n> **Role Sync**: <t:{int(last_role_sync)}:R>"
+                    + f"\n> **Bot Status**: <t:{int(self.last_status_update)}:R>",
                 inline=False)
 
             embed.add_field(
