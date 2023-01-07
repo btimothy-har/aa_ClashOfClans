@@ -1442,6 +1442,7 @@ class aClan(coc.Clan):
 
                     if war.clan.tag == self.tag:
                         self.war_log[war.war_id] = war
+                        await war.save_to_json(ctx)
 
         return update_summary
 

@@ -202,7 +202,7 @@ async def function_season_update(cog,ctx):
 
 
 async def function_save_data(cog,ctx):
-    if ctx.invoked_with not in ['simulate']:
+    if ctx.invoked_with not in ['simulate','nstop']:
         if ctx.bot.refresh_loop < 0:
             return None
         if not cog.master_refresh:
@@ -215,30 +215,60 @@ async def function_save_data(cog,ctx):
     await cog.war_lock.acquire()
     await cog.raid_lock.acquire()
 
-    clan_data = copy.deepcopy(ctx.bot.clan_data)
-    cog.clan_file.seek(0)
-    json.dump(clan_data,cog.clan_file,indent=2)
-    cog.clan_file.truncate()
-
-    membership_data = copy.deepcopy(ctx.bot.membership_data)
-    cog.membership_file.seek(0)
-    json.dump(membership_data,cog.membership_file,indent=2)
-    cog.membership_file.truncate()
-
-    players_data = copy.deepcopy(ctx.bot.players_data)
-    cog.players_file.seek(0)
-    json.dump(players_data,cog.players_file,indent=2)
-    cog.players_file.truncate()
-
     warlog_data = copy.deepcopy(ctx.bot.warlog_data)
+    for war_id in list(ctx.bot.war_cache):
+        war = ctx.bot.war_cache[war_id]
+        war_json = war.to_json()
+
+        warlog_data[war_id] = war_json
+
     cog.warlog_file.seek(0)
     json.dump(warlog_data,cog.warlog_file,indent=2)
     cog.warlog_file.truncate()
 
+
     capitalraid_data = copy.deepcopy(ctx.bot.capitalraid_data)
+    for raid_id in list(ctx.bot.raid_cache):
+        raid = ctx.bot.raid_cache[raid_id]
+        raid_json = raid.to_json()
+
+        capitalraid_data[raid_id] = raid_json
+
     cog.capitalraid_file.seek(0)
     json.dump(capitalraid_data,cog.capitalraid_file,indent=2)
     cog.capitalraid_file.truncate()
+
+
+    clan_data = copy.deepcopy(ctx.bot.clan_data)
+    for clan_tag in list(ctx.bot.clan_cache):
+        clan = ctx.bot.clan_cache[clan_tag]
+
+        if clan.is_alliance_clan:
+            clan_json = clan.to_json()
+            clan_data[clan_tag] = clan_json
+
+    cog.clan_file.seek(0)
+    json.dump(clan_data,cog.clan_file,indent=2)
+    cog.clan_file.truncate()
+
+
+    membership_data = copy.deepcopy(ctx.bot.membership_data)
+    players_data = copy.deepcopy(ctx.bot.players_data)
+    for player_tag in list(ctx.bot.member_cache):
+        player = ctx.bot.member_cache[player_tag]
+
+        if player.is_arix_account:
+            membership_json, memberstats_json = player.to_json()
+            membership_data[player_tag] = membership_json
+            players_data[player_tag] = memberstats_json
+
+    cog.membership_file.seek(0)
+    json.dump(membership_data,cog.membership_file,indent=2)
+    cog.membership_file.truncate()
+
+    cog.players_file.seek(0)
+    json.dump(players_data,cog.players_file,indent=2)
+    cog.players_file.truncate()
 
     cog.clan_lock.release()
     cog.member_lock.release()
@@ -420,38 +450,43 @@ async def function_clan_update(cog,ctx):
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(embed=data_embed)
 
-        activity_types = [
-            discord.ActivityType.playing,
-            discord.ActivityType.streaming,
-            discord.ActivityType.listening,
-            discord.ActivityType.watching
-            ]
-        activity_select = random.choice(activity_types)
+        activity_types = {
+            'playing': discord.ActivityType.playing,
+            'streaming': discord.ActivityType.streaming,
+            'listening': discord.ActivityType.listening,
+            'watching': discord.ActivityType.watching
+            }
+        activity_select = random.choice(list(activity_types))
 
         #update active events after 1 hours
         if (cog.last_status_update - st > 3600 or cog.last_status_update == 0) and len(active_events) > 0:
             event = random.choice(active_events)
             await ctx.bot.change_presence(
                 activity=discord.Activity(
-                    type=activity_select,
+                    type=activity_types[activity_select],
                     name=event))
             cog.last_status_update = st
+
+            ch = ctx.bot.get_channel(1033390608506695743)
+            await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
         #update passive events after 2 hours
         elif (cog.last_status_update - st > 7200 or cog.last_status_update == 0) and len(passive_events) > 0:
             event = random.choice(passive_events)
             await ctx.bot.change_presence(
                 activity=discord.Activity(
-                type=activity_select,
+                type=activity_types[activity_select],
                 name=event))
             cog.last_status_update = st
+            await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
         elif cog.last_status_update - st > 14400 or cog.last_status_update == 0:
             await ctx.bot.change_presence(
                 activity=discord.Activity(
-                type=activity_select,
+                type=activity_types[activity_select],
                 name=f"{mem_count} AriX members"))
             cog.last_status_update = st
+            await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
     except Exception as e:
         await ctx.bot.send_to_owners(f"Clan Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")

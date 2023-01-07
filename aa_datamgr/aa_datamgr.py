@@ -310,9 +310,7 @@ class AriXClashDataMgr(commands.Cog):
 
         for warid in list(ctx.bot.war_cache):
             clan_war = ctx.bot.war_cache[warid]
-
             if clan_war.start_time >= ctx.bot.current_season.season_start:
-
                 for tag in [m.tag for m in clan_war.members]:
 
                     if tag in list(ctx.bot.member_cache):

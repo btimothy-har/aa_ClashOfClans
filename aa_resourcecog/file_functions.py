@@ -96,44 +96,27 @@ async def read_file_handler(ctx,file:str,tag:str,**kwargs):
     return return_data
 
 async def write_file_handler(ctx,file:str,tag:str,new_data,**kwargs):
-    season = kwargs.get('season',None)
-    if not season:
-        file_path = filename_handler(ctx,name_input=file,season=season)
+    if file == 'alliance':
+        ctx.bot.clan_data[tag] = new_data
+        data = ctx.bot.clan_data
 
-        async with ctx.bot.async_file_lock:
-            with ctx.bot.clash_file_lock.write_lock():
-                with open(file_path,'r+') as file:
-                    file_json = json.load(file)
+    if file == 'meminfo':
+        ctx.bot.membership_data[tag] = new_data
+        data = ctx.bot.membership_data
 
-                    file_json[tag] = new_data
-                    return_data = file_json[tag]
+    if file == 'members':
+        ctx.bot.players_data[tag] = new_data
+        data = ctx.bot.players_data
 
-                    file.seek(0)
-                    json.dump(file_json,file,indent=2)
-                    file.truncate()
+    if file == 'warlog':
+        ctx.bot.warlog_data[tag] = new_data
+        data = ctx.bot.warlog_data
 
-    else:
-        if file == 'alliance':
-            ctx.bot.clan_data[tag] = new_data
-            data = ctx.bot.clan_data
+    if file == 'capitalraid':
+        ctx.bot.capitalraid_data[tag] = new_data
+        data = ctx.bot.capitalraid_data
 
-        if file == 'meminfo':
-            ctx.bot.membership_data[tag] = new_data
-            data = ctx.bot.membership_data
-
-        if file == 'members':
-            ctx.bot.players_data[tag] = new_data
-            data = ctx.bot.players_data
-
-        if file == 'warlog':
-            ctx.bot.warlog_data[tag] = new_data
-            data = ctx.bot.warlog_data
-
-        if file == 'capitalraid':
-            ctx.bot.capitalraid_data[tag] = new_data
-            data = ctx.bot.capitalraid_data
-
-        return_data = data[tag]
+    return_data = data[tag]
 
     return return_data
 
