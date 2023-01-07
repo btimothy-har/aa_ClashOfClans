@@ -431,6 +431,8 @@ async def function_clan_update(cog,ctx):
                 type=activity_types[activity_select],
                 name=event))
             cog.last_status_update = st
+
+            ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
         elif cog.last_status_update - st > 14400 or cog.last_status_update == 0:
@@ -439,6 +441,8 @@ async def function_clan_update(cog,ctx):
                 type=activity_types[activity_select],
                 name=f"{mem_count} AriX members"))
             cog.last_status_update = st
+
+            ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {event}: <t:{int(time.time())}:f>.")
 
     except Exception as e:
