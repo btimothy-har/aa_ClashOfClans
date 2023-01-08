@@ -278,16 +278,7 @@ async def function_clan_update(cog,ctx):
 
                 if c.is_alliance_clan:
                     try:
-                        await c.compute_arix_membership(ctx)
-                    except Exception as e:
-                        err = DataError(category='clmem',tag=c.tag,error=e)
-                        error_log.append(err)
-
-                    mem_count += c.arix_member_count
-                    clan_update += f"__{c.name} {c.tag}__"
-
-                    try:
-                        war_update = await c.update_clan_war(ctx)
+                        c, war_change, war_update = await c.update_clan_war(ctx)
                     except Exception as e:
                         err = DataError(category='clwar',tag=c.tag,error=e)
                         error_log.append(err)
@@ -298,7 +289,7 @@ async def function_clan_update(cog,ctx):
                                 clan_update += war_update
                                 send_logs = True
 
-                            if c.current_war.type == 'random':
+                            if c.current_war.type in ['classic','random']:
                                 result_dict = {
                                     'winning':'winning',
                                     'tied':'tie',
@@ -309,7 +300,7 @@ async def function_clan_update(cog,ctx):
                                     '':'',
                                     }
 
-                                if c.war_state_change:
+                                if war_change:
                                     if c.war_state == 'inWar':
                                         active_events.append(f"{c.abbreviation} declare war!")
 
@@ -328,7 +319,7 @@ async def function_clan_update(cog,ctx):
                                         passive_events.append(f"{c.abbreviation} {result_dict[c.current_war.result]} in war!")
 
                     try:
-                        raid_update = await c.update_raid_weekend(ctx)
+                        c, raid_change, raid_update = await c.update_raid_weekend(ctx)
                     except Exception as e:
                         err = DataError(category='clraid',tag=c.tag,error=e)
                         error_log.append(err)
@@ -339,9 +330,7 @@ async def function_clan_update(cog,ctx):
                                 clan_update += raid_update
                                 send_logs = True
 
-                            if c.raid_state_change:
-                                detected_raid_change = True
-
+                            if raid_change:
                                 if c.current_raid_weekend.state == 'ongoing':
                                     active_events.append(f"Raid Weekend has started!")
 
@@ -350,6 +339,15 @@ async def function_clan_update(cog,ctx):
 
                             if c.current_raid_weekend.state == 'ongoing':
                                 passive_events.append(f"Raid Weekend with {len(c.current_raid_weekend.members)} {c.abbreviation} members")
+
+                    try:
+                        await c.compute_arix_membership(ctx)
+                    except Exception as e:
+                        err = DataError(category='clmem',tag=c.tag,error=e)
+                        error_log.append(err)
+
+                    mem_count += c.arix_member_count
+                    clan_update += f"__{c.name} {c.tag}__"
 
                     if st - c.last_save > 3600:
                         await c.save_to_json(ctx)
@@ -410,7 +408,7 @@ async def function_clan_update(cog,ctx):
         activity_select = random.choice(list(activity_types))
 
         #update active events after 1 hours
-        if (cog.last_status_update - st > 3600 or cog.last_status_update == 0) and len(active_events) > 0:
+        if (st - cog.last_status_update > 3600 or cog.last_status_update == 0) and len(active_events) > 0:
             event = random.choice(active_events)
 
             ch = ctx.bot.get_channel(1033390608506695743)
@@ -423,7 +421,7 @@ async def function_clan_update(cog,ctx):
             cog.last_status_update = st
 
         #update passive events after 2 hours
-        elif (cog.last_status_update - st > 7200 or cog.last_status_update == 0) and len(passive_events) > 0:
+        elif (st - cog.last_status_update > 7200 or cog.last_status_update == 0) and len(passive_events) > 0:
             event = random.choice(passive_events)
 
             ch = ctx.bot.get_channel(1033390608506695743)
@@ -435,7 +433,7 @@ async def function_clan_update(cog,ctx):
                 name=event))
             cog.last_status_update = st
 
-        elif cog.last_status_update - st > 14400 or cog.last_status_update == 0:
+        elif st - cog.last_status_update > 14400 or cog.last_status_update == 0:
             ch = ctx.bot.get_channel(1033390608506695743)
             await ch.send(f"Changed status to {activity_select} {mem_count} AriX members: <t:{int(time.time())}:f>.")
 
@@ -465,6 +463,8 @@ async def function_member_update(cog,ctx):
         return None
 
     role_sync = False
+    warlog_sync = False
+    raidlog_sync = False
 
     async with cog.member_lock:
         cog.member_refresh_status = True
@@ -485,6 +485,8 @@ async def function_member_update(cog,ctx):
 
         try:
             last_role_sync = await cog.config.last_role_sync()
+            last_warlog_sync = await cog.config.last_warlog_sync()
+            last_raidlog_sync = await cog.config.last_raidlog_sync()
 
             member_update_last = await cog.config.member_update_last()
             member_update_runtime = await cog.config.member_update_runtime()
@@ -492,6 +494,12 @@ async def function_member_update(cog,ctx):
             #sync roles every 10mins
             if last_role_sync == 0 or (st - last_role_sync > 600):
                 role_sync = True
+
+            #war & raid logs sync every 6 hours
+            if last_warlog_sync == 0 or (st - last_warlog_sync > 21600):
+                warlog_sync = True
+            if last_raidlog_sync == 0 or (st - last_raidlog_sync > 21600):
+                raidlog_sync = True
 
             role_sync_completed = []
             error_log = []
@@ -511,9 +519,14 @@ async def function_member_update(cog,ctx):
                 if m.is_arix_account:
                     count_members += 1
                     try:
-                        await m.update_warlog(ctx)
-                        await m.update_raid_weekend(ctx)
                         await m.update_stats(ctx)
+
+                        if warlog_sync:
+                            await m.update_warlog(ctx)
+
+                        if raidlog_sync and datetime.fromtimestamp(st).isoweekday() in [5,6,7,1]:
+                            await m.update_raid_weekend(ctx)
+
                     except Exception as e:
                         err = DataError(category='meupdt',tag=m.tag,error=e)
                         error_log.append(err)
@@ -578,6 +591,12 @@ async def function_member_update(cog,ctx):
 
         if role_sync:
             await cog.config.last_role_sync.set(st)
+
+        if warlog_sync:
+            await cog.config.last_warlog_sync.set(st)
+
+        if raidlog_sync:
+            await cog.config.last_raidlog_sync.set(st)
 
         if len(error_log) > 0:
             error_title = "Error Log"

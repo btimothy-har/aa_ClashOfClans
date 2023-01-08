@@ -523,8 +523,8 @@ class aPlayer(coc.Player):
     async def update_warlog(self,ctx):
         war_updated = False
         active_wars = []
-        for warid in list(ctx.bot.war_cache):
-            clan_war = ctx.bot.war_cache[warid]
+        for warid in list(self.current_season.warlog):
+            clan_war = self.current_season.warlog[warid]
 
             if clan_war.start_time >= ctx.bot.current_season.season_start and self.tag in [m.tag for m in clan_war.members]:
                 if clan_war.war_id not in list(self.current_season.warlog):
@@ -1144,10 +1144,7 @@ class aClan(coc.Clan):
 
             #Clan Statuses
             self.war_state = cache.war_state
-            self.war_state_change = cache.war_state_change
-
             self.raid_weekend_state = cache.raid_weekend_state
-            self.raid_state_change = cache.raid_state_change
 
             self.arix_members = cache.arix_members
             self.arix_member_count = cache.arix_member_count
@@ -1193,10 +1190,7 @@ class aClan(coc.Clan):
 
             #Clan Statuses
             self.war_state = ""
-            self.war_state_change = False
-
             self.raid_weekend_state = ""
-            self.raid_state_change = False
 
             self.arix_members = []
             self.arix_member_count = 0
@@ -1377,21 +1371,19 @@ class aClan(coc.Clan):
     async def update_clan_war(self,ctx):
         update_summary = ""
 
-        self.war_state_change = False
         war_change = False
 
         if not self.current_war:
             self.war_state = 'notInWar'
-            return None
+            return self, None, None
+
+        self.war_log[self.current_war.war_id] = self.current_war
 
         if self.current_war.type in ['random','classic']:
             if self.current_war.state != self.war_state:
-                self.war_state_change = True
                 war_change = True
 
             self.war_state = self.current_war.state
-
-            self.war_log[self.current_war.war_id] = self.current_war
 
             if war_change and self.current_war.state == 'inWar':
                 self.war_reminder_tracking = self.war_reminder_intervals
@@ -1447,29 +1439,33 @@ class aClan(coc.Clan):
                 for war_tag in r:
                     war = await aClanWar.get(ctx,clan=self,war_tag=war_tag)
 
-                    if war.clan.tag == self.tag:
+                    if war.clan.tag == self.tag and war.war_id not in self.war_log:
                         self.war_log[war.war_id] = war
                         await war.save_to_json(ctx)
 
-        return update_summary
+        if war_change:
+            await self.save_to_json(ctx)
+            c = await aClan.create(ctx,tag=self.tag,reset=True)
+        else:
+            c = self
+
+        return c, war_change, update_summary
 
     async def update_raid_weekend(self,ctx):
         update_summary = ""
 
-        self.raid_state_change = False
         raid_change = False
 
         if not self.current_raid_weekend:
             self.raid_state = 'Not In Raid'
             return None
 
+        self.raid_log[self.current_raid_weekend.raid_id] = self.current_raid_weekend
+
         if self.current_raid_weekend.state != self.raid_weekend_state:
-            self.raid_state_change = True
             raid_change = True
 
         self.raid_weekend_state = self.current_raid_weekend.state
-
-        self.raid_log[self.current_raid_weekend.raid_id] = self.current_raid_weekend
 
         #new raid weekend
         if raid_change:
@@ -1550,7 +1546,13 @@ class aClan(coc.Clan):
 
                         update_summary += f"\n> - Raid Reminders sent for {len(ping_list)} members."
 
-        return update_summary
+        if raid_change:
+            await self.save_to_json(ctx)
+            c = await aClan.create(ctx,tag=self.tag,reset=True)
+        else:
+            c = self
+
+        return c, raid_change, update_summary
 
 
     async def add_to_alliance(self,ctx,leader:discord.User,abbreviation,emoji,coleader_role,elder_role,member_role):

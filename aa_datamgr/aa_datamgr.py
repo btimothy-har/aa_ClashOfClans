@@ -54,6 +54,8 @@ class AriXClashDataMgr(commands.Cog):
         self.config = Config.get_conf(self,identifier=2170311125702803,force_registration=True)
         default_global = {
             "last_role_sync":0,
+            "last_warlog_sync":0,
+            "last_raidlog_sync":0,
             "season_update_last":0,
             "season_update_runtime":[],
             "clan_update_last":0,
