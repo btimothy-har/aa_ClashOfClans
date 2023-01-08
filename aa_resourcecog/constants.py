@@ -227,9 +227,9 @@ troop_availability = {
     8: ['P.E.K.K.A','Valkyrie','Golem'],
     9: ['Baby Dragon','Witch','Lava Hound'],
     10: ['Miner','Bowler'],
-    11: ['Electro Dragon','Ice Golem'],
-    12: ['Yeti','Headhunter','Wall Wrecker','Battle Blimp','Stone Slammer'],
-    13: ['Dragon Rider','Siege Barracks','Log Launcher'],
+    11: ['Electro Dragon','Ice Golem','Super Barbarian','Super Archer','Sneaky Goblin','Super Wall Breaker'],
+    12: ['Yeti','Headhunter','Wall Wrecker','Battle Blimp','Stone Slammer','Super Giant','Rocket Balloon','Super Wizard','Super Dragon','Inferno Dragon','Super Minion','Super Valkyrie','Super Witch','Ice Hound','Super Bowler'],
+    13: ['Dragon Rider','Siege Barracks','Log Launcher','Super Miner'],
     14: ['Electro Titan','Flame Flinger'],
     15: ['Battle Drill']
     }

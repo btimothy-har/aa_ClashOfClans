@@ -239,6 +239,8 @@ async def function_clan_update(cog,ctx):
         if not cog.master_refresh:
             return None
 
+    if cog.clan_refresh_status:
+        return None
     if cog.master_lock.locked():
         return None
     if cog.clan_lock.locked():
@@ -457,6 +459,8 @@ async def function_member_update(cog,ctx):
         if not cog.master_refresh:
             return None
 
+    if cog.member_refresh_status:
+        return None
     if cog.master_lock.locked():
         return None
     if cog.member_lock.locked():
@@ -631,6 +635,8 @@ async def function_war_update(cog,ctx):
         if not cog.master_refresh:
             return None
 
+    if cog.war_refresh_status:
+        return None
     if cog.master_lock.locked():
         return None
     if cog.war_lock.locked():
@@ -726,6 +732,9 @@ async def function_raid_update(cog,ctx):
             return None
         if not cog.master_refresh:
             return None
+
+    if cog.raid_refresh_status:
+        return None
     if cog.master_lock.locked():
         return None
     if cog.raid_lock.locked():

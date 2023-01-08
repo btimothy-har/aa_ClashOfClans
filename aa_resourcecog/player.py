@@ -122,10 +122,12 @@ class aPlayer(coc.Player):
             except:
                 troop = None
 
-            if not troop:
+            if not troop and troop_name not in coc.SUPER_TROOP_ORDER:
                 troop = ctx.bot.coc_client.get_troop(name=troop_name,townhall=self.town_hall.level)
-            troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
-            troops_ph.append(troop)
+
+            if troop:
+                troop = aTroop(troop,self.town_hall.level,is_unlocked_at_this_level)
+                troops_ph.append(troop)
         self.troops = troops_ph
 
         spells_ph = []
@@ -496,6 +498,15 @@ class aPlayer(coc.Player):
         if self.clan.tag not in [c.tag for c in self.current_season.other_clans]:
             self.current_season.other_clans.append(self.clan)
 
+        if self.current_war and self.current_war.state in ['inWar','warEnded']:
+            self.current_season.warlog[self.current_war.war_id] = self.current_war
+
+        if self.current_raid_weekend and self.current_raid_weekend.state in ['ongoing','ended']:
+            self.current_season.raidlog[self.current_raid_weekend.raid_id] = self.current_raid_weekend
+
+        self.current_season.war_stats = await aPlayerWarStats.compute(ctx=ctx,player=self,warlog=self.current_season.warlog)
+        self.current_season.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,player=self,raidlog=self.current_season.raidlog)
+
         self.current_season.attacks.update_stat(ctx,self,self.attack_wins)
         self.current_season.defenses.update_stat(ctx,self,self.defense_wins)
 
@@ -523,8 +534,8 @@ class aPlayer(coc.Player):
     async def update_warlog(self,ctx):
         war_updated = False
         active_wars = []
-        for warid in list(self.current_season.warlog):
-            clan_war = self.current_season.warlog[warid]
+        for warid in list(ctx.bot.war_cache):
+            clan_war = ctx.bot.war_cache[warid]
 
             if clan_war.start_time >= ctx.bot.current_season.season_start and self.tag in [m.tag for m in clan_war.members]:
                 if clan_war.war_id not in list(self.current_season.warlog):

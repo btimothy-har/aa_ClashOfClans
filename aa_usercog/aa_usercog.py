@@ -475,7 +475,7 @@ class AriXMemberCommands(commands.Cog):
                 base_strength += f"\n<:TotalHeroStrength:827730291149635596> {a.hero_strength} / {a.max_hero_strength} *(rushed: {a.hero_rushed_pct}%)*"
             base_strength += "\n\u200b"
 
-            currently_boosting = [f"{emotes_army[t.name]}" for t in a.troops if t.name in coc.SUPER_TROOP_ORDER]
+            currently_boosting = [f"{emotes_army[t.name]}" for t in a.troops if t.is_super_troop]
 
             home_village_str = f"{a.town_hall.emote} {a.town_hall.description}\u3000{emotes_league[a.league.name]} {a.trophies} (best: {a.best_trophies})"
             home_village_str +=f"\n**Heroes**\n{a.hero_description}"

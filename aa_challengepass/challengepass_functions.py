@@ -3,7 +3,9 @@ import discord
 import time
 import pytz
 import random
+import copy
 
+from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 
@@ -13,6 +15,7 @@ class MemberIneligible(Exception):
 
 class aChallengePass():
     def __init__(self,ctx,member):
+        self.tag = member.tag
         self.member = member
         self.season = season
 
@@ -24,18 +27,21 @@ class aChallengePass():
         self.challenges = []
 
     @classmethod
-    async def create(cls,ctx,member):
+    async def create(cls,ctx,member_tag,**kwargs):
+
+        refresh = kwargs.get('refresh',False)
+        member = await aPlayer.create(ctx,tag=member_tag)
 
         if not member.is_member or member.town_hall.level < 11:
             raise MemberIneligible
             return None
 
-        if member.tag in list(ctx.bot.pass_cache.keys()):
+        if not refresh and member.tag in list(ctx.bot.pass_cache):
             self = ctx.bot.pass_cache[member.tag]
         else:
             self = aChallengePass(ctx,member)
 
-            passJson = await data_file_handler(ctx,'challengepass',self.member.tag)
+            passJson = await data_file_handler(ctx,'challengepass',self.tag)
 
             if passJson:
                 self.track = passJson.get('track',None)
@@ -49,11 +55,17 @@ class aChallengePass():
 
         return self
 
-    async def to_embed(self,ctx):
+    async def to_embed(self,ctx,color=None):
         challenge_message = ""
         if not self.track:
             challenge_message += f"You haven't started a Challenge Pass on this account."
-            challenge_message += f"\n\nTo get started, click on <:challengepass:1054997157654036561>."
+            challenge_message += f"\n\nTo get started, select a Pass Track by reacting to:"
+            challenge_message += f"\n\n> <a:cp_farmer:1061676915724926986> For the Farmer's Track"
+            challenge_message += f"\n> <:cp_war:1054997157654036561> For the Warpath Track"
+
+            challenge_message += f"\n\n**What are Challenge Tracks?**"
+            challenge_message += f"\nChallenge Tracks determine the types of challenges you will receive in your pass, in addition to the common challenges available to everyone."
+            challenge_message += f"In addition, when completing a challenge belonging to your track, you have a chance to receive a *Reset Token*, that lets you cancel your current challenge and receive a new one."
 
         else:
             challenge_message += f"**Your Pass Track**: {self.track}"
@@ -64,23 +76,41 @@ class aChallengePass():
             challenge_message += f"\n> Missed: {len([c for c in self.challenges if c.status=='Missed'])}"
             challenge_message += f"\n> Trashed: {len([c for c in self.challenges if c.status=='Trashed'])}"
 
-        challengeEmbed = await clash_embed(ctx,
-            title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
-            message=challenge_message)
+        if color in ['Missed','Trashed']:
+            challengeEmbed = await clash_embed(ctx,
+                title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
+                message=challenge_message,
+                color='fail')
+        elif color in ['Completed']:
+            challengeEmbed = await clash_embed(ctx,
+                title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
+                message=challenge_message,
+                color='success')
+        else:
+            challengeEmbed = await clash_embed(ctx,
+                title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
+                message=challenge_message,
+                color=0xFF0000)
 
         return challengeEmbed
 
     async def update_pass(self,ctx,action):
+        self.member = aPlayer.create(ctx,tag=self.tag)
+
         if action not in ['update','trash']:
-            return
+            return self, None, None
 
         if action == 'update' and self.active_challenge:
             self.active_challenge.update_challenge(ctx)
+            challenge = copy.deepcopy(self.active_challenge)
 
             if self.active_challenge.status == 'Missed':
                 self.challenges.append(self.active_challenge)
                 self.active_challenge = None
-                return
+
+                await self.save_to_json(ctx)
+                p = await aChallengePass.create(ctx,self.tag,refresh=True)
+                return p, "Missed", challenge
 
             if self.active_challenge.status == "Completed":
                 self.points += self.active_challenge.reward
@@ -89,21 +119,33 @@ class aChallengePass():
 
                 self.challenges.append(self.active_challenge)
                 self.active_challenge = None
-                return
+
+                await self.save_to_json(ctx)
+                p = await aChallengePass.create(ctx,self.tag,refresh=True)
+                return p, "Completed", challenge
 
         if action == 'trash' and self.active_challenge:
+            challenge = copy.deepcopy(self.active_challenge)
+
             if self.tokens == 0:
-                return
+                return p, "Insufficient", None
 
             self.tokens -= 1
             self.active_challenge.trash_challenge(ctx)
             self.challenges.append(self.active_challenge)
             self.active_challenge = None
-            return
+
+            await self.save_to_json(ctx)
+            p = await aChallengePass.create(ctx,self.tag,refresh=True)
+            return p, "Trashed", challenge
 
         if not self.active_challenge:
             self.active_challenge = aPassChallenge.new_challenge(ctx,self)
-            return
+            challenge = copy.deepcopy(self.active_challenge)
+
+            await self.save_to_json(ctx)
+            p = await aChallengePass.create(ctx,self.tag,refresh=True)
+            return p, "New", challenge
 
     async def save_to_json(self,ctx):
         passJson = {
@@ -116,7 +158,7 @@ class aChallengePass():
         await data_file_handler(
             ctx=ctx,
             file='challengepass',
-            tag=self.member.tag,
+            tag=self.tag,
             new_data=passJson)
 
 
@@ -155,6 +197,19 @@ class aPassChallenge():
             'description': self.description
             }
         return challengeJson
+
+    def get_descriptor(self):
+        challenge_description = ""
+        if self.task == 'upgradeHero':
+            s_hero = [hero for hero in self.cpass.member.heroes if hero.name == self.target][0]
+            challenge_description += f"\n> Current Progress: {s_hero.level} / {self.baseline + self.max_score}"
+        else:
+            challenge_description += f"\n> Current Progress: {self.current_score:,} / {self.max_score:,}"
+
+        challenge_description += f"\n> Time Remaining: <t:{int(self.end_time)}:R>"
+        challenge_description += f"\n> Rewards: {self.reward}"
+
+        return challenge_description
 
     @classmethod
     def new_challenge(cls,ctx,challenge_pass):
@@ -313,13 +368,16 @@ class aPassChallenge():
                     super_troop = ctx.bot.coc_client.get_troop(super_troop)
 
                     if super_troop:
-                        player_super_troop = self.cpass.member.p.get_troop(super_troop.name,is_home_troop=True)
-                        player_troop = self.cpass.member.p.get_troop(super_troop.original_troop.name,is_home_troop=True)
+                        player_super_troop = [troop for troop in self.cpass.member.troops if troop.name == super_troop.name]
 
-                        if player_super_troop:
+                        if len(player_super_troop) > 0:
                             continue
 
-                        if player_troop.level > super_troop.min_original_level:
+                        player_troop = [troop for troop in self.cpass.member.troops if troop.name == super_troop.original_troop.name]
+                        if len(player_troop) == 0:
+                            continue
+
+                        if player_troop[0].level > super_troop.min_original_level:
                             eligible_targets.append(super_troop.name)
 
                 if len(eligible_targets) == 0:
@@ -366,11 +424,10 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 eligible_targets = []
-                for hero in coc.HERO_ORDER:
-                    hero = self.cpass.member.p.get_hero(hero)
+                for hero in self.cpass.member.heroes:
 
                     if hero and hero.village == 'home':
-                        if not hero.is_max_for_townhall:
+                        if hero.level < hero.maxlevel_for_townhall:
                             eligible_targets.append(hero)
 
                 self.target = random.choice(eligible_targets)
@@ -504,7 +561,7 @@ class aPassChallenge():
                 new_score = self.cpass.member.loot_elixir.lastupdate
 
         if self.task == 'upgradeHero':
-            s_hero = self.cpass.member.p.get_hero(self.target)
+            s_hero = [hero for hero in self.cpass.member.heroes if hero.name == self.target][0]
             new_score = s_hero.level
 
         if self.task == 'clearObstacles':

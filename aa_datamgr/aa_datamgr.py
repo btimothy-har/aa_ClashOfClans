@@ -456,23 +456,23 @@ class AriXClashDataMgr(commands.Cog):
         await message.delete()
 
 
-    @tasks.loop(minutes=30.0)
+    @tasks.loop(hours=1.0)
     async def season_update(self):
         await function_season_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(minutes=5.0)
+    @tasks.loop(minutes=6.0)
     async def clan_update(self):
         await function_clan_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(minutes=1.0)
+    @tasks.loop(minutes=3.0)
     async def member_update(self):
         await function_member_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(minutes=15.0)
+    @tasks.loop(minutes=30.0)
     async def war_update(self):
         await function_war_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(minutes=15.0)
+    @tasks.loop(minutes=30.0)
     async def raid_update(self):
         await function_raid_update(cog=self,ctx=self.placeholder_context)
 

@@ -303,9 +303,9 @@ async def userprofile_trooplevels(ctx,account,message=None):
             + f"\n*`Italicized levels indicate rushed levels.`*"
         )
 
-    elixir_troops = [t for t in a.troops if t.is_elixir_troop]
-    darkelixir_troops = [t for t in a.troops if t.is_dark_troop]
-    siege_machines = [t for t in a.troops if t.is_siege_machine]
+    elixir_troops = [t for t in a.troops if t.is_elixir_troop and not t.is_super_troop]
+    darkelixir_troops = [t for t in a.troops if t.is_dark_troop and not t.is_super_troop]
+    siege_machines = [t for t in a.troops if t.is_siege_machine and not t.is_super_troop]
 
     elixir_spells = [s for s in a.spells if s.is_elixir_spell]
     darkelixir_spells = [s for s in a.spells if s.is_dark_spell]
@@ -496,9 +496,9 @@ async def userprofile_rushed(ctx,account,message=None):
 
     heroes = [h for h in a.heroes if h.is_rushed]
     pets = [p for p in a.hero_pets if p.level < p.minlevel_for_townhall]
-    elixir_troops = [t for t in a.troops if t.is_elixir_troop and t.is_rushed]
-    darkelixir_troops = [t for t in a.troops if t.is_dark_troop and t.is_rushed]
-    siege_machines = [t for t in a.troops if t.is_siege_machine and t.is_rushed]
+    elixir_troops = [t for t in a.troops if t.is_elixir_troop and t.is_rushed and not t.is_super_troop]
+    darkelixir_troops = [t for t in a.troops if t.is_dark_troop and t.is_rushed and not t.is_super_troop]
+    siege_machines = [t for t in a.troops if t.is_siege_machine and t.is_rushed and not t.is_super_troop]
 
     elixir_spells = [s for s in a.spells if s.is_elixir_spell and s.is_rushed]
     darkelixir_spells = [s for s in a.spells if s.is_dark_spell and s.is_rushed]
