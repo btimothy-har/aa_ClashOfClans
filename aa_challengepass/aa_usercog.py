@@ -962,6 +962,13 @@ class AriXMemberCommands(commands.Cog):
             except:
                 pass
 
+
+    @commands.command(name="pass")
+    async def challenge_pass(self,ctx):
+        """
+        Your personal challenge pass.
+        """
+
     @commands.group(name="eclipse",autohelp=False)
     async def eclipse_group(self,ctx):
         """

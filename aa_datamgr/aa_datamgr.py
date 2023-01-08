@@ -151,8 +151,8 @@ class AriXClashDataMgr(commands.Cog):
         except:
             bot.update_channel = None
 
-        with bot.clash_file_lock.read_lock():
-            with open(bot.clash_dir_path+'/seasons.json','r') as file:
+        with ctx.bot.clash_file_lock.read_lock():
+            with open(ctx.bot.clash_dir_path+'/seasons.json','r') as file:
                 s_json = json.load(file)
 
         ctx.bot.current_season = aClashSeason(s_json['current'])
