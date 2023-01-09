@@ -154,18 +154,50 @@ class AriXChallengePass(commands.Cog):
                     + f"\n\nPlease wait while we get your challenges ready...",
                 color='success')
             await message.edit(embed=confirm_embed)
-            await asyncio.sleep(15)
+            await asyncio.sleep(12)
 
         if pass_account.track:
+            pass_menu = []
             pass_account, update_status, challenge = await pass_account.update_pass(ctx,"update")
 
             embed = await pass_account.to_embed(ctx,update_status)
+
+            refresh_dict = {
+                'id': 'refresh',
+                'name': "Refresh this Challenge",
+                'emoji': "<:refresh:1048916418466426941>"
+                }
+
+            trash_dict = {
+                'id': 'trash',
+                'name': "Trash this Challenge",
+                'emoji': "<:trashcan:1042829064345497742>"
+                }
+
+            if update_status == 'In Progress':
+                embed.add_field(
+                    name=f"**You're currently working on this challenge...**",
+                    value=f"```{challenge.description}```"
+                        + f"{challenge.get_descriptor()}\n\n",
+                    inline=False)
+
+                pass_menu.append(trash_dict)
+                embed.add_field(
+                    name=f"**Navigation**",
+                    value=f"<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token.",
+                    inline=False)
 
             if update_status == 'New':
                 embed.add_field(
                     name=f"**>> YOU RECEIVED A NEW CHALLENGE! <<**",
                     value=f"```{challenge.description}```"
-                        + f"{challenge.get_descriptor()}",
+                        + f"{challenge.get_descriptor()}\n\n",
+                    inline=False)
+
+                pass_menu.append(trash_dict)
+                embed.add_field(
+                    name=f"**Navigation**",
+                    value=f"<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token.",
                     inline=False)
 
             if update_status == 'Missed':
@@ -175,11 +207,27 @@ class AriXChallengePass(commands.Cog):
                         + f"{challenge.get_descriptor()}",
                     inline=False)
 
+                pass_menu.append(refresh_dict)
+                embed.add_field(
+                    name=f"**Navigation**",
+                    value=f"<:refresh:1048916418466426941> To get a new challenge.",
+                    inline=False)
+
             if update_status == 'Completed':
+                reward_str = f"You earned: **{challenge.reward:,} Points**."
+                if challenge.token_rew:
+                    reward_str += f" You also earned 1 Refresh Token!"
                 embed.add_field(
                     name=f"**>> CHALLENGE COMPLETED! <<**",
-                    value=f"```{challenge.description}```"
+                    value=f"{reward_str}"
+                        + f"```{challenge.description}```"
                         + f"{challenge.get_descriptor()}",
+                    inline=False)
+
+                pass_menu.append(refresh_dict)
+                embed.add_field(
+                    name=f"**Navigation**",
+                    value=f"<:refresh:1048916418466426941> To get a new challenge.",
                     inline=False)
 
             if update_status == 'Trashed':
@@ -188,6 +236,24 @@ class AriXChallengePass(commands.Cog):
                     value=f"```{challenge.description}```"
                         + f"{challenge.get_descriptor()}",
                     inline=False)
+
+                pass_menu.append(refresh_dict)
+                embed.add_field(
+                    name=f"**Navigation**",
+                    value=f"<:refresh:1048916418466426941> To get a new challenge.",
+                    inline=False)
+
+            refresh_dict = {
+                'id': 'refresh',
+                'name': "Refresh this Challenge",
+                'emoji': "<:refresh:1048916418466426941>"
+                }
+
+            trash_dict = {
+                'id': 'trash',
+                'name': "Trash this Challenge",
+                'emoji': "<:trashcan:1042829064345497742>"
+                }
 
 
 

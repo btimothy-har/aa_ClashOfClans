@@ -71,7 +71,7 @@ class aChallengePass():
             challenge_message += f"**Your Pass Track**: {self.track}"
             challenge_message += f"\n\n__Your Pass Stats:__"
             challenge_message += f"\n> Pass Completion: {self.points:,} / 10,000"
-            challenge_message += f"\n> Pass Tokens: {self.tokens}"
+            challenge_message += f"\n> Reset Tokens: {self.tokens}"
             challenge_message += f"\n> Completed: {len([c for c in self.challenges if c.status=='Completed'])}"
             challenge_message += f"\n> Missed: {len([c for c in self.challenges if c.status=='Missed'])}"
             challenge_message += f"\n> Trashed: {len([c for c in self.challenges if c.status=='Trashed'])}"
@@ -123,6 +123,9 @@ class aChallengePass():
                 await self.save_to_json(ctx)
                 p = await aChallengePass.create(ctx,self.tag,refresh=True)
                 return p, "Completed", challenge
+
+            if self.active_challenge.status == "In Progress":
+                return self, "In Progress", challenge
 
         if action == 'trash' and self.active_challenge:
             challenge = copy.deepcopy(self.active_challenge)
@@ -468,9 +471,10 @@ class aPassChallenge():
                 break
 
 
-        token_chance = random.choice(range(1,11))
-        if token_chance <= duration:
-            self.token_rew = True
+        if (self.cpass.track == 'war' and self.task in war_track) or (self.cpass.track == 'farm' and self.task in farm_track):
+            token_chance = random.choice(range(1,11))
+            if token_chance <= duration:
+                self.token_rew = True
 
         self.status = "In Progress"
         self.max_score = self.max_score * durationMultiplier[duration]

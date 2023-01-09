@@ -756,7 +756,7 @@ async def report_to_excel(ctx,clan):
         mem_worksheet.write(row,col,h,bold)
         col += 1
 
-    for m in [m for (t,m) in members.items() if m.home_clan.tag == clan.tag]:
+    for m in [m for m in members if m.home_clan.tag == clan.tag]:
         col = 0
         row += 1
 
@@ -886,7 +886,7 @@ async def report_to_excel(ctx,clan):
             mem_worksheet.write(row,col,h,bold)
             col += 1
 
-        for m in [m for (t,m) in members.items()]:
+        for m in [m for m in members]:
 
             try:
                 stats = m.season_data[season.id]
@@ -993,7 +993,7 @@ async def report_to_excel(ctx,clan):
         war_worksheet.write(row,col,h,bold)
         col += 1
 
-    clan_wars_list = [war for (wid,war) in clan.war_log.items() if war]
+    clan_wars_list = [clan.war_log[wid] for wid in list(clan.war_log)]
     clan_wars_sorted = sorted(clan_wars_list,key=lambda x:x.end_time,reverse=True)
     for war in clan_wars_sorted:
         for m in war.clan.members:
@@ -1086,7 +1086,7 @@ async def report_to_excel(ctx,clan):
         raid_worksheet.write(row,col,h,bold)
         col += 1
 
-    raids_list = [raid for (rid,raid) in clan.raid_log.items() if raid]
+    raids_list = [clan.raid_log[rid] for rid in list(clan.raid_log) if raid]
     raids_sorted = sorted(raids_list,key=lambda x:x.end_time,reverse=True)
     for r in raids_sorted:
         for m in r.members:
