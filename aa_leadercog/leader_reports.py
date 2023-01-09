@@ -1086,7 +1086,7 @@ async def report_to_excel(ctx,clan):
         raid_worksheet.write(row,col,h,bold)
         col += 1
 
-    raids_list = [clan.raid_log[rid] for rid in list(clan.raid_log) if raid]
+    raids_list = [clan.raid_log[rid] for rid in list(clan.raid_log)]
     raids_sorted = sorted(raids_list,key=lambda x:x.end_time,reverse=True)
     for r in raids_sorted:
         for m in r.members:
