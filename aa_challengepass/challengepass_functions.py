@@ -94,13 +94,10 @@ class aChallengePass():
 
         return challengeEmbed
 
-    async def update_pass(self,ctx,action):
+    async def update_pass(self,ctx):
         self.member = aPlayer.create(ctx,tag=self.tag)
 
-        if action not in ['update','trash']:
-            return self, None, None
-
-        if action == 'update' and self.active_challenge:
+        if self.active_challenge:
             self.active_challenge.update_challenge(ctx)
             challenge = copy.deepcopy(self.active_challenge)
 
@@ -127,11 +124,20 @@ class aChallengePass():
             if self.active_challenge.status == "In Progress":
                 return self, "In Progress", challenge
 
-        if action == 'trash' and self.active_challenge:
+        if not self.active_challenge:
+            self.active_challenge = aPassChallenge.new_challenge(ctx,self)
             challenge = copy.deepcopy(self.active_challenge)
 
-            if self.tokens == 0:
-                return p, "Insufficient", None
+            await self.save_to_json(ctx)
+            p = await aChallengePass.create(ctx,self.tag,refresh=True)
+            return p, "New", challenge
+
+    async def trash_active_challenge(self,ctx):
+         if self.active_challenge:
+            challenge = copy.deepcopy(self.active_challenge)
+
+            if self.tokens <= 0:
+                return self, "Insufficient", challenge
 
             self.tokens -= 1
             self.active_challenge.trash_challenge(ctx)
@@ -141,14 +147,6 @@ class aChallengePass():
             await self.save_to_json(ctx)
             p = await aChallengePass.create(ctx,self.tag,refresh=True)
             return p, "Trashed", challenge
-
-        if not self.active_challenge:
-            self.active_challenge = aPassChallenge.new_challenge(ctx,self)
-            challenge = copy.deepcopy(self.active_challenge)
-
-            await self.save_to_json(ctx)
-            p = await aChallengePass.create(ctx,self.tag,refresh=True)
-            return p, "New", challenge
 
     async def save_to_json(self,ctx):
         passJson = {

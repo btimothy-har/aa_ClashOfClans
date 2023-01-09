@@ -53,11 +53,43 @@ class AriXChallengePass(commands.Cog):
     @commands.command(name="slash_challengepass",hidden=True)
     async def slashwrapper_challengepass(self,ctx):
 
+        st = time.time()
+
         message = await ctx.send("<a:loading:1042769157248262154> Loading...")
+        channel_id = ctx.channel.id
+        message_id = message.id
+
         challenge_member = await aMember.create(ctx,user_id=ctx.author.id)
 
-        challenge_account = await challengepass_accountselect(ctx,message,challenge_member)
-        await message.clear_reactions()
+        current_action = "start"
+
+        while True:
+            if not current_action:
+                break
+
+            if time.time() - st >= 800:
+                message = await ctx.bot.get_channel(channel_id).fetch_message(message_id)
+                st = time.time()
+
+            if current_action in ['start','accounts']:
+                challenge_account = await challengepass_accountselect(ctx,message,challenge_member)
+                await message.clear_reactions()
+
+                if not challenge_account:
+                    current_action = None
+                else:
+                    current_action = 'view'
+
+            if current_action in ['view','new','refresh']:
+                current_action = await challengepass_display(ctx,message,challenge_account)
+
+            if current_action in ['trash']:
+                current_action = await challengepass_trash(ctx,message,challenge_account)
+
+        embed = clash_embed(ctx,
+            message="Thanks for playing the Challenge Pass!")
+
+        await message.edit(embed=embed)
 
     async def challengepass_accountselect(ctx,message,challenge_member):
         challenge_accounts = []
@@ -73,6 +105,7 @@ class AriXChallengePass(commands.Cog):
                     + f"\n\n*p.s. to other clan members: wait for your turn ;)*",
                 color='fail')
             await message.edit(embed=embed)
+            return None
 
         if len(challenge_accounts) == 1:
             return challenge_accounts[0]
@@ -122,6 +155,11 @@ class AriXChallengePass(commands.Cog):
             embed = await pass_account.to_embed(ctx)
 
             track_menu = []
+            back_dict = {
+                'id': 'accounts',
+                'name': "Back",
+                'emoji': "<:backwards:1041976602420060240>"
+                }
             farm_dict = {
                 'id': 'farm',
                 'name': "The Farmer's Track",
@@ -132,15 +170,23 @@ class AriXChallengePass(commands.Cog):
                 'name': "The Warpath",
                 'emoji': "<:cp_war:1054997157654036561>"
                 }
+            track_menu.append(back_dict)
             track_menu.append(farm_dict)
             track_menu.append(war_dict)
+
+            embed.add_field(
+                name="**Navigation",
+                value="<:backwards:1041976602420060240> Back to the Home tab.",
+                inline=False)
 
             await message.edit(embed=embed)
 
             select_track = await multiple_choice_menu_select(ctx,message,track_menu,timeout=180)
-
             if not select_track:
                 return None
+
+            if select_track['id'] in ['accounts']:
+                return select_track['id']
 
             pass_account.track = select_track['id']
             await pass_account.save_to_json(ctx)
@@ -158,21 +204,32 @@ class AriXChallengePass(commands.Cog):
 
         if pass_account.track:
             pass_menu = []
-            pass_account, update_status, challenge = await pass_account.update_pass(ctx,"update")
+            pass_account, update_status, challenge = await pass_account.update_pass(ctx)
 
             embed = await pass_account.to_embed(ctx,update_status)
 
+            back_dict = {
+                'id': 'accounts',
+                'name': "Back",
+                'emoji': "<:backwards:1041976602420060240>"
+                }
             refresh_dict = {
                 'id': 'refresh',
                 'name': "Refresh this Challenge",
                 'emoji': "<:refresh:1048916418466426941>"
                 }
-
+            new_dict = {
+                'id': 'new',
+                'name': "Get a new Challenge",
+                'emoji': "<:refresh:1048916418466426941>"
+                }
             trash_dict = {
                 'id': 'trash',
                 'name': "Trash this Challenge",
                 'emoji': "<:trashcan:1042829064345497742>"
                 }
+
+            pass_menu.append(back_dict)
 
             if update_status == 'In Progress':
                 embed.add_field(
@@ -181,10 +238,13 @@ class AriXChallengePass(commands.Cog):
                         + f"{challenge.get_descriptor()}\n\n",
                     inline=False)
 
+                pass_menu.append(refresh_dict)
                 pass_menu.append(trash_dict)
                 embed.add_field(
                     name=f"**Navigation**",
-                    value=f"<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token.",
+                    value=f"<:refresh:1048916418466426941> To refresh from in-game data."
+                        + f"\n<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token."
+                        + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
                     inline=False)
 
             if update_status == 'New':
@@ -194,10 +254,13 @@ class AriXChallengePass(commands.Cog):
                         + f"{challenge.get_descriptor()}\n\n",
                     inline=False)
 
+                pass_menu.append(refresh_dict)
                 pass_menu.append(trash_dict)
                 embed.add_field(
                     name=f"**Navigation**",
-                    value=f"<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token.",
+                    value=f"<:refresh:1048916418466426941> To refresh from in-game data."
+                        + f"\n<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token."
+                        + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
                     inline=False)
 
             if update_status == 'Missed':
@@ -207,10 +270,11 @@ class AriXChallengePass(commands.Cog):
                         + f"{challenge.get_descriptor()}",
                     inline=False)
 
-                pass_menu.append(refresh_dict)
+                pass_menu.append(new_dict)
                 embed.add_field(
                     name=f"**Navigation**",
-                    value=f"<:refresh:1048916418466426941> To get a new challenge.",
+                    value=f"<:refresh:1048916418466426941> To get a new challenge."
+                        + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
                     inline=False)
 
             if update_status == 'Completed':
@@ -224,10 +288,11 @@ class AriXChallengePass(commands.Cog):
                         + f"{challenge.get_descriptor()}",
                     inline=False)
 
-                pass_menu.append(refresh_dict)
+                pass_menu.append(new_dict)
                 embed.add_field(
                     name=f"**Navigation**",
-                    value=f"<:refresh:1048916418466426941> To get a new challenge.",
+                    value=f"<:refresh:1048916418466426941> To get a new challenge."
+                        + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
                     inline=False)
 
             if update_status == 'Trashed':
@@ -237,33 +302,88 @@ class AriXChallengePass(commands.Cog):
                         + f"{challenge.get_descriptor()}",
                     inline=False)
 
-                pass_menu.append(refresh_dict)
+                pass_menu.append(new_dict)
                 embed.add_field(
                     name=f"**Navigation**",
-                    value=f"<:refresh:1048916418466426941> To get a new challenge.",
+                    value=f"<:refresh:1048916418466426941> To get a new challenge."
+                        + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
                     inline=False)
 
-            refresh_dict = {
-                'id': 'refresh',
-                'name': "Refresh this Challenge",
-                'emoji': "<:refresh:1048916418466426941>"
-                }
+            await message.edit(embed=embed)
 
-            trash_dict = {
-                'id': 'trash',
-                'name': "Trash this Challenge",
-                'emoji': "<:trashcan:1042829064345497742>"
-                }
+            select_action = await multiple_choice_menu_select(ctx,message,pass_menu,timeout=180)
+            if not select_action:
+                return None
+
+            return select_action['id']
 
 
+    async def challengepass_trash(ctx,message,pass_account):
+        pass_menu = []
+        pass_account, update_status, challenge = await pass_account.trash_active_challenge(ctx)
 
+        embed = await pass_account.to_embed(ctx,update_status)
 
+        back_dict = {
+            'id': 'accounts',
+            'name': "Back",
+            'emoji': "<:backwards:1041976602420060240>"
+            }
+        refresh_dict = {
+            'id': 'refresh',
+            'name': "Refresh this Challenge",
+            'emoji': "<:refresh:1048916418466426941>"
+            }
+        new_dict = {
+            'id': 'new',
+            'name': "Get a new Challenge",
+            'emoji': "<:refresh:1048916418466426941>"
+            }
+        trash_dict = {
+            'id': 'trash',
+            'name': "Trash this Challenge",
+            'emoji': "<:trashcan:1042829064345497742>"
+            }
 
+        pass_menu.append(back_dict)
 
+        if update_status == "Insufficient":
+            embed.add_field(
+                name=f"**You don't have enough Reset Tokens...**",
+                value=f"```{challenge.description}```"
+                    + f"{challenge.get_descriptor()}\n\n",
+                inline=False)
 
+            pass_menu.append(refresh_dict)
+            pass_menu.append(trash_dict)
+            embed.add_field(
+                name=f"**Navigation**",
+                value=f"<:refresh:1048916418466426941> To refresh from in-game data."
+                    + f"\n<:trashcan:1042829064345497742> To Trash this challenge. Trashing costs 1 Reset Token."
+                    + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
+                inline=False)
 
+        if update_status == "Trashed":
+            embed.add_field(
+                name=f"**You spent a Reset Token and trashed this challenge.**",
+                value=f"```{challenge.description}```"
+                    + f"{challenge.get_descriptor()}\n\n",
+                inline=False)
 
+            pass_menu.append(new_dict)
+            pass_menu.append(trash_dict)
+            embed.add_field(
+                name=f"**Navigation**",
+                value=f"<:refresh:1048916418466426941> To get a new challenge."
+                    + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
+                inline=False)
 
+        await message.edit(embed=embed)
+        select_action = await multiple_choice_menu_select(ctx,message,pass_menu,timeout=180)
+        if not select_action:
+            return None
+
+        return select_action['id']
 
 
 
