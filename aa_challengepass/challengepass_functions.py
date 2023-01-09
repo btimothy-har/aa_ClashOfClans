@@ -8,13 +8,22 @@ import copy
 from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.file_functions import read_file_handler, write_file_handler
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
+from aa_resourcecog.constants import donationsAchievement, destroyTargetAchievement
+
+challengePassDisplayName = {
+    'farm': "The Farmer's Life",
+    'war': "The Warpath"
+    }
 
 class MemberIneligible(Exception):
     def __init__(self,message):
         self.message = message
 
 class aChallengePass():
-    def __init__(self,ctx,member):
+    def __init__(self,ctx,member,**kwargs):
+
+        season = kwargs.get('season',ctx.bot.current_season)
+
         self.tag = member.tag
         self.member = member
         self.season = season
@@ -49,7 +58,7 @@ class aChallengePass():
                 self.track = passJson.get('track',None)
                 self.points = passJson.get('points',0)
                 self.tokens = passJson.get('tokens',0)
-                self.active_challenge = aPassChallenge(ctx,self,passJson.get('active_challenge',None))
+                self.active_challenge = aPassChallenge(ctx,self,passJson.get('active_challenge',{}))
                 if not self.active_challenge.status:
                     self.active_challenge = None
 
@@ -67,41 +76,44 @@ class aChallengePass():
 
             challenge_message += f"\n\n**What are Challenge Tracks?**"
             challenge_message += f"\nChallenge Tracks determine the types of challenges you will receive in your pass, in addition to the common challenges available to everyone."
-            challenge_message += f"In addition, when completing a challenge belonging to your track, you have a chance to receive a *Reset Token*, that lets you cancel your current challenge and receive a new one."
+            challenge_message += f"\n\nIn addition, when completing a challenge belonging to your track, you have a chance to receive a *Reset Token*, that lets you cancel your current challenge and receive a new one."
 
         else:
-            challenge_message += f"**Your Pass Track**: {self.track}"
-            challenge_message += f"\n\n__Your Pass Stats:__"
-            challenge_message += f"\n> Pass Completion: {self.points:,} / 10,000"
+            challenge_message += f"**Your Pass Track**: {challengePassDisplayName[self.track]}"
+            challenge_message += f"\n\n> Pass Completion: {self.points:,} / 10,000"
             challenge_message += f"\n> Reset Tokens: {self.tokens}"
             challenge_message += f"\n> Completed: {len([c for c in self.challenges if c.status=='Completed'])}"
             challenge_message += f"\n> Missed: {len([c for c in self.challenges if c.status=='Missed'])}"
             challenge_message += f"\n> Trashed: {len([c for c in self.challenges if c.status=='Trashed'])}"
 
-        if color in ['Missed','Trashed']:
+        if color in ['Missed']:
             challengeEmbed = await clash_embed(ctx,
                 title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
                 message=challenge_message,
                 color='fail')
-        elif color in ['Completed']:
+        elif color in ['Completed','Trashed']:
             challengeEmbed = await clash_embed(ctx,
                 title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
                 message=challenge_message,
                 color='success')
-        else:
+        elif color in ['New']:
             challengeEmbed = await clash_embed(ctx,
                 title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
                 message=challenge_message,
-                color=0xFF0000)
+                color=0xFFD700)
+        else:
+            challengeEmbed = await clash_embed(ctx,
+                title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
+                message=challenge_message)
 
         return challengeEmbed
 
     async def update_pass(self,ctx):
-        self.member = aPlayer.create(ctx,tag=self.tag)
+        self.member = await aPlayer.create(ctx,tag=self.tag)
 
         if self.active_challenge:
             self.active_challenge.update_challenge(ctx)
-            challenge = copy.deepcopy(self.active_challenge)
+            challenge = self.active_challenge
 
             if self.active_challenge.status == 'Missed':
                 self.challenges.append(self.active_challenge)
@@ -128,7 +140,7 @@ class aChallengePass():
 
         if not self.active_challenge:
             self.active_challenge = aPassChallenge.new_challenge(ctx,self)
-            challenge = copy.deepcopy(self.active_challenge)
+            challenge = self.active_challenge
 
             await self.save_to_json(ctx)
             p = await aChallengePass.create(ctx,self.tag,refresh=True)
@@ -136,9 +148,9 @@ class aChallengePass():
 
     async def trash_active_challenge(self,ctx):
          if self.active_challenge:
-            challenge = copy.deepcopy(self.active_challenge)
+            challenge = self.active_challenge
 
-            if self.tokens <= 0:
+            if self.tag not in ['#LJC8V0GCJ'] and self.tokens <= 0:
                 return self, "Insufficient", challenge
 
             self.tokens -= 1
@@ -176,21 +188,34 @@ class aPassChallenge():
     def __init__(self,ctx,challenge_pass,inputJson=None):
         self.cpass = challenge_pass
 
-        self.status = inputJson.get('status',None)
-        self.task = inputJson.get('task',None)
-        self.target = inputJson.get('target',None)
+        self.status = None
+        self.task = None
+        self.target = None
+        self.current_score = 0
+        self.baseline = 0
+        self.max_score = 0
+        self.start_time = 0
+        self.end_time = 0
+        self.reward = 0
+        self.token_rew = False
+        self.description = ""
 
-        self.current_score = inputJson.get('current_score',0)
-        self.baseline = inputJson.get('baseline',0)
-        self.max_score = inputJson.get('max_score',0)
+        if inputJson:
+            self.status = inputJson.get('status',None)
+            self.task = inputJson.get('task',None)
+            self.target = inputJson.get('target',None)
 
-        self.start_time = inputJson.get('start_time',0)
-        self.end_time = inputJson.get('end_time',0)
+            self.current_score = inputJson.get('current_score',0)
+            self.baseline = inputJson.get('baseline',0)
+            self.max_score = inputJson.get('max_score',0)
 
-        self.reward = inputJson.get('reward',0)
-        self.token_rew = inputJson.get('token_rew',False)
+            self.start_time = inputJson.get('start_time',0)
+            self.end_time = inputJson.get('end_time',0)
 
-        self.description = inputJson.get('description',"")
+            self.reward = inputJson.get('reward',0)
+            self.token_rew = inputJson.get('token_rew',False)
+
+            self.description = inputJson.get('description',"")
 
     def to_json(self):
         challengeJson = {
@@ -210,14 +235,15 @@ class aPassChallenge():
 
     def get_descriptor(self):
         challenge_description = ""
+        challenge_description += f"\n> Status: {self.status}"
         if self.task == 'upgradeHero':
             s_hero = [hero for hero in self.cpass.member.heroes if hero.name == self.target][0]
             challenge_description += f"\n> Current Progress: {s_hero.level} / {self.baseline + self.max_score}"
         else:
             challenge_description += f"\n> Current Progress: {self.current_score:,} / {self.max_score:,}"
 
-        challenge_description += f"\n> Time Remaining: <t:{int(self.end_time)}:R>"
-        challenge_description += f"\n> Rewards: {self.reward}"
+        challenge_description += f"\n> Challenge Expires: <t:{int(self.end_time)}:R>"
+        challenge_description += f"\n> Rewards: {self.reward:,}"
 
         return challenge_description
 
@@ -237,6 +263,11 @@ class aPassChallenge():
             7: 4
             }
 
+        last_challenge = None
+        previous_challenges = sorted(self.cpass.challenges,key=lambda x:(x.end_time),reverse=True)
+        if len(previous_challenges) > 0:
+            last_challenge = previous_challenges[0].task
+
         common_track = ['donations','destroyTarget','builderBase']
         war_track = ['warStars','trophies','winBattles','boostTroop']
         farm_track = ['loot','upgradeHero','clearObstacles','seasonPoints','collectTreasury']
@@ -248,11 +279,15 @@ class aPassChallenge():
         if self.cpass.track == "farm":
             eligible_challenges += farm_track
 
+        try:
+            eligible_challenges.remove(last_challenge)
+        except:
+            pass
+
         self.reward = random.choice(range(350,550))
         self.token_rew = False
 
         while True:
-
             self.task = random.choice(eligible_challenges)
 
             if self.task == 'donations':
@@ -269,7 +304,7 @@ class aPassChallenge():
                 self.target = random.choice(list(target_score.keys()))
                 self.max_score = target_score[self.target]
 
-                self.baseline = [a.value for a in self.cpass.member.p.achievements if a.name == donationsAchievement[self.target]][0]
+                self.baseline = [a.value for a in self.cpass.member.achievements if a.name == donationsAchievement[self.target]][0]
                 break
 
 
@@ -296,14 +331,17 @@ class aPassChallenge():
                     target_score['Weaponized Townhalls'] = 2
                 if self.cpass.member.town_hall.level >= 13:
                     target_score['Weaponized Builder Huts'] = 10
-                if self.cpass.member.town_hall.level >= 14:
-                    target_score['Spell Towers'] = 4
-                    target_score['Monoliths'] = 2
+                #if self.cpass.member.town_hall.level >= 14:
+                #    target_score['Spell Towers'] = 4
+                #    target_score['Monoliths'] = 2
 
-                self.target = random.choice(list(target_score.keys()))
+                self.target = random.choice(list(target_score))
                 self.max_score = target_score[self.target]
 
-                self.baseline = [a.value for a in self.cpass.member.p.achievements if a.name == destroyTargetAchievement[self.target]][0]
+                try:
+                    self.baseline = [a.value for a in self.cpass.member.achievements if a.name == destroyTargetAchievement[self.target]][0]
+                except:
+                    continue
                 break
 
 
@@ -315,7 +353,7 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 self.max_score = 3
-                self.baseline = [a.value for a in self.cpass.member.p.achievements if a.name == "Un-Build It"][0]
+                self.baseline = [a.value for a in self.cpass.member.achievements if a.name == "Un-Build It"][0]
                 break
 
 
@@ -412,6 +450,9 @@ class aPassChallenge():
                 if self.cpass.member.loot_darkelixir.lastupdate <= 1900000000:
                     eligible_targets.append('Dark Elixir')
 
+                if len(eligible_targets) == 0:
+                    continue
+
                 self.target = random.choice(eligible_targets)
 
                 if self.target in ['Dark Elixir']:
@@ -440,6 +481,9 @@ class aPassChallenge():
                         if hero.level < hero.maxlevel_for_townhall:
                             eligible_targets.append(hero)
 
+                if len(eligible_targets) == 0:
+                    continue
+
                 self.target = random.choice(eligible_targets)
 
                 self.max_score = 1
@@ -454,7 +498,7 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 self.max_score = 10
-                self.baseline = [a.value for a in self.cpass.member.p.achievements if a.name == "Nice and Tidy"][0]
+                self.baseline = [a.value for a in self.cpass.member.achievements if a.name == "Nice and Tidy"][0]
                 break
 
 
@@ -464,7 +508,7 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 self.max_score = 60
-                self.baseline = [a.value for a in self.cpass.member.p.achievements if a.name == "Well Seasoned"][0]
+                self.baseline = [a.value for a in self.cpass.member.achievements if a.name == "Well Seasoned"][0]
                 break
 
 
@@ -474,7 +518,7 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 self.max_score = 500000
-                self.baseline = [a.value for a in self.cpass.member.p.achievements if a.name == "Clan War Wealth"][0]
+                self.baseline = [a.value for a in self.cpass.member.achievements if a.name == "Clan War Wealth"][0]
                 break
 
 
@@ -484,8 +528,8 @@ class aPassChallenge():
                 self.token_rew = True
 
         self.status = "In Progress"
-        self.max_score = self.max_score * durationMultiplier[duration]
-        self.reward = self.reward * durationMultiplier[duration]
+        self.max_score = int(round(self.max_score * durationMultiplier[duration]))
+        self.reward = int(round(self.reward * durationMultiplier[duration]))
 
         if self.task == 'donations':
             if self.target == 'any':
@@ -539,13 +583,13 @@ class aPassChallenge():
             return
 
         if self.task == 'donations':
-            new_score = [a.value for a in self.cpass.member.p.achievements if a.name == donationsAchievement[self.target]][0]
+            new_score = [a.value for a in self.cpass.member.achievements if a.name == donationsAchievement[self.target]][0]
 
         if self.task == 'destroyTarget':
-            new_score = [a.value for a in self.cpass.member.p.achievements if a.name == destroyTargetAchievement[self.target]][0]
+            new_score = [a.value for a in self.cpass.member.achievements if a.name == destroyTargetAchievement[self.target]][0]
 
         if self.task == 'builderBase':
-            new_score = [a.value for a in self.cpass.member.p.achievements if a.name == "Un-Build It"][0]
+            new_score = [a.value for a in self.cpass.member.achievements if a.name == "Un-Build It"][0]
 
         if self.task == 'warStars':
             new_score = self.cpass.member.war_stats.offense_stars
@@ -557,7 +601,7 @@ class aPassChallenge():
             new_score = self.cpass.member.attack_wins.season
 
         if self.task == 'boostTroop':
-            s_troop = self.cpass.member.p.get_troop(self.target,is_home_troop=True)
+            s_troop = self.cpass.member.get_troop(self.target,is_home_troop=True)
             if s_troop:
                 new_score = 1
 
@@ -576,13 +620,13 @@ class aPassChallenge():
             new_score = s_hero.level
 
         if self.task == 'clearObstacles':
-            new_score = [a.value for a in self.cpass.member.p.achievements if a.name == "Nice and Tidy"][0]
+            new_score = [a.value for a in self.cpass.member.achievements if a.name == "Nice and Tidy"][0]
 
         if self.task == 'seasonPoints':
-            new_score = [a.value for a in self.cpass.member.p.achievements if a.name == "Well Seasoned"][0]
+            new_score = [a.value for a in self.cpass.member.achievements if a.name == "Well Seasoned"][0]
 
         if self.task == 'collectTreasury':
-            new_score = [a.value for a in self.cpass.member.p.achievements if a.name == "Clan War Wealth"][0]
+            new_score = [a.value for a in self.cpass.member.achievements if a.name == "Clan War Wealth"][0]
 
         self.current_score += (new_score - self.baseline)
         self.baseline = new_score

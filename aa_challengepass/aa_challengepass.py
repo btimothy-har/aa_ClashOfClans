@@ -35,6 +35,11 @@ from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag, no_clans_registered, error_not_valid_abbreviation, error_end_processing
 
+challengePassDisplayName = {
+    'farm': "The Farmer's Life",
+    'war': "The Warpath"
+    }
+
 class AriXChallengePass(commands.Cog):
     """AriX Challenge Pass"""
 
@@ -52,7 +57,8 @@ class AriXChallengePass(commands.Cog):
 
         st = time.time()
 
-        message = await ctx.send("<a:loading:1042769157248262154> Loading...")
+        embed = await clash_embed(ctx,message="<a:loading:1042769157248262154> Loading...")
+        message = await ctx.send(embed=embed)
         channel_id = ctx.channel.id
         message_id = message.id
 
@@ -69,7 +75,10 @@ class AriXChallengePass(commands.Cog):
                 st = time.time()
 
             if current_action in ['start','accounts']:
+                await message.clear_reactions()
+
                 challenge_account = await self.challengepass_accountselect(ctx,message,challenge_member)
+
                 await message.clear_reactions()
 
                 if not challenge_account:
@@ -83,16 +92,16 @@ class AriXChallengePass(commands.Cog):
             if current_action in ['trash']:
                 current_action = await self.challengepass_trash(ctx,message,challenge_account)
 
-        embed = clash_embed(ctx,
-            message="Thanks for playing the Challenge Pass!")
+        embed = await clash_embed(ctx,message="Thanks for playing the Challenge Pass!")
 
         await message.edit(embed=embed)
+        await message.clear_reactions()
 
-    async def challengepass_accountselect(ctx,message,challenge_member):
+    async def challengepass_accountselect(self,ctx,message,challenge_member):
         challenge_accounts = []
         for account in challenge_member.accounts:
             if account.is_member and account.home_clan.abbreviation == 'AS':
-                challenge_accounts.append(await aChallengePass.create(ctx,member=account.tag))
+                challenge_accounts.append(await aChallengePass.create(ctx,member_tag=account.tag))
 
         if len(challenge_accounts) == 0:
             embed = await clash_embed(ctx,
@@ -111,9 +120,10 @@ class AriXChallengePass(commands.Cog):
             select_menu = []
             for a in challenge_accounts:
 
-                pass_description = "> Pass not started."
+                pass_description = "> *Pass not started.*"
                 if a.track:
-                    pass_description = f"> Track: {a.track} | Progress: {a.points} / 10,000 | Tokens: {a.tokens}"
+                    pass_description = f"> Track: {challengePassDisplayName[a.track]}"
+                    pass_description += f"> Progress: {a.points} / 10,000 | Tokens: {a.tokens}"
                     if a.active_challenge:
                         pass_description += f"\n> Current Challenge: {a.active_challenge.description}"
 
@@ -131,6 +141,7 @@ class AriXChallengePass(commands.Cog):
             for i in select_menu:
                 select_msg += f"**{i['emoji']} {i['title']}**"
                 select_msg += f"\n{i['desc']}"
+                select_msg += "\n\n"
 
             embed = await clash_embed(ctx,
                 title="AriX Challenge Pass",
@@ -147,7 +158,7 @@ class AriXChallengePass(commands.Cog):
             return select_account[0]
 
 
-    async def challengepass_display(ctx,message,pass_account):
+    async def challengepass_display(self,ctx,message,pass_account):
         if not pass_account.track:
             embed = await pass_account.to_embed(ctx)
 
@@ -172,7 +183,7 @@ class AriXChallengePass(commands.Cog):
             track_menu.append(war_dict)
 
             embed.add_field(
-                name="**Navigation",
+                name="**Navigation**",
                 value="<:backwards:1041976602420060240> Back to the Home tab.",
                 inline=False)
 
@@ -229,6 +240,7 @@ class AriXChallengePass(commands.Cog):
             pass_menu.append(back_dict)
 
             if update_status == 'In Progress':
+                await message.remove_reaction("<:red_cross:838461484312428575>",ctx.bot.user)
                 embed.add_field(
                     name=f"**You're currently working on this challenge...**",
                     value=f"```{challenge.description}```"
@@ -245,6 +257,7 @@ class AriXChallengePass(commands.Cog):
                     inline=False)
 
             if update_status == 'New':
+                await message.remove_reaction("<:red_cross:838461484312428575>",ctx.bot.user)
                 embed.add_field(
                     name=f"**>> YOU RECEIVED A NEW CHALLENGE! <<**",
                     value=f"```{challenge.description}```"
@@ -261,6 +274,9 @@ class AriXChallengePass(commands.Cog):
                     inline=False)
 
             if update_status == 'Missed':
+                await message.remove_reaction("<:trashcan:1042829064345497742>",ctx.author)
+                await message.remove_reaction("<:trashcan:1042829064345497742>",ctx.bot.user)
+
                 embed.add_field(
                     name=f"**>> YOU MISSED A NEW CHALLENGE! <<**",
                     value=f"```{challenge.description}```"
@@ -275,6 +291,9 @@ class AriXChallengePass(commands.Cog):
                     inline=False)
 
             if update_status == 'Completed':
+                await message.remove_reaction("<:trashcan:1042829064345497742>",ctx.author)
+                await message.remove_reaction("<:trashcan:1042829064345497742>",ctx.bot.user)
+
                 reward_str = f"You earned: **{challenge.reward:,} Points**."
                 if challenge.token_rew:
                     reward_str += f" You also earned 1 Refresh Token!"
@@ -292,30 +311,17 @@ class AriXChallengePass(commands.Cog):
                         + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
                     inline=False)
 
-            if update_status == 'Trashed':
-                embed.add_field(
-                    name=f"**>> CHALLENGE TRASHED! <<**",
-                    value=f"```{challenge.description}```"
-                        + f"{challenge.get_descriptor()}",
-                    inline=False)
-
-                pass_menu.append(new_dict)
-                embed.add_field(
-                    name=f"**Navigation**",
-                    value=f"<:refresh:1048916418466426941> To get a new challenge."
-                        + f"\n<:backwards:1041976602420060240> Back to the Home tab.",
-                    inline=False)
-
             await message.edit(embed=embed)
 
             select_action = await multiple_choice_menu_select(ctx,message,pass_menu,timeout=180)
             if not select_action:
                 return None
 
+            await message.remove_reaction(select_action['emoji'],ctx.author)
             return select_action['id']
 
 
-    async def challengepass_trash(ctx,message,pass_account):
+    async def challengepass_trash(self,ctx,message,pass_account):
         pass_menu = []
         pass_account, update_status, challenge = await pass_account.trash_active_challenge(ctx)
 
@@ -361,6 +367,9 @@ class AriXChallengePass(commands.Cog):
                 inline=False)
 
         if update_status == "Trashed":
+            await message.remove_reaction("<:trashcan:1042829064345497742>",ctx.author)
+            await message.remove_reaction("<:trashcan:1042829064345497742>",ctx.bot.user)
+
             embed.add_field(
                 name=f"**You spent a Reset Token and trashed this challenge.**",
                 value=f"```{challenge.description}```"
@@ -368,7 +377,6 @@ class AriXChallengePass(commands.Cog):
                 inline=False)
 
             pass_menu.append(new_dict)
-            pass_menu.append(trash_dict)
             embed.add_field(
                 name=f"**Navigation**",
                 value=f"<:refresh:1048916418466426941> To get a new challenge."
@@ -379,6 +387,8 @@ class AriXChallengePass(commands.Cog):
         select_action = await multiple_choice_menu_select(ctx,message,pass_menu,timeout=180)
         if not select_action:
             return None
+
+        await message.remove_reaction(select_action['emoji'],ctx.author)
 
         return select_action['id']
 

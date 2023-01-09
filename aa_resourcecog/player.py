@@ -1486,7 +1486,7 @@ class aClan(coc.Clan):
 
             if self.announcement_channel and self.current_raid_weekend.state == 'ended':
                 results_embed = await self.current_raid_weekend.get_results_embed(ctx)
-                ch = ctx.bot.get_channel(self.announcement_channel)
+                ch = ctx.bot.get_channel(int(self.announcement_channel))
                 await ch.send(embed=results_embed)
                 update_summary += f"\n> - Raid Weekend is now over."
 
@@ -1499,7 +1499,7 @@ class aClan(coc.Clan):
                 next_reminder = self.raid_reminder_tracking.pop(0)
 
                 if next_reminder == 24 and self.announcement_channel:
-                    ch = ctx.bot.get_channel(self.announcement_channel)
+                    ch = ctx.bot.get_channel(int(self.announcement_channel))
 
                     raid_weekend_1day_embed = await clash_embed(ctx,
                         message="**There is 1 Day left in Raid Weekend.**\nAlternate accounts are now allowed to fill up the remaining slots.",

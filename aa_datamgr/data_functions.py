@@ -279,6 +279,8 @@ async def function_clan_update(cog,ctx):
                     continue
 
                 if c.is_alliance_clan:
+                    clan_update += f"__{c.name} {c.tag}__"
+
                     try:
                         c, war_change, war_update = await c.update_clan_war(ctx)
                     except Exception as e:
@@ -349,7 +351,6 @@ async def function_clan_update(cog,ctx):
                         error_log.append(err)
 
                     mem_count += c.arix_member_count
-                    clan_update += f"__{c.name} {c.tag}__"
 
                     if st - c.last_save > 3600:
                         await c.save_to_json(ctx)
