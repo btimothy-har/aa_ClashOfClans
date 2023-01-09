@@ -476,6 +476,6 @@ class AriXClashDataMgr(commands.Cog):
     async def raid_update(self):
         await function_raid_update(cog=self,ctx=self.placeholder_context)
 
-    @tasks.loop(hours=6.0)
-    async def save_data(self):
-        await function_save_data(cog=self,ctx=self.placeholder_context)
+    #@tasks.loop(hours=6.0)
+    #async def save_data(self):
+    #    await function_save_data(cog=self,ctx=self.placeholder_context)

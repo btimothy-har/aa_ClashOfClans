@@ -1848,6 +1848,8 @@ class AriXLeaderCommands(commands.Cog):
         except:
             return await error_not_valid_abbreviation(ctx,clan_abbreviation)
 
+        await c.compute_arix_membership(ctx)
+
         menu_dict = [
             {
                 'id': 'summary',

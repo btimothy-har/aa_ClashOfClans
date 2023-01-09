@@ -13,8 +13,75 @@ from .file_functions import get_current_season, read_file_handler, write_file_ha
 from .constants import warTypeGrid, warResultOngoing, warResultEnded
 
 class aClanWar():
-    def __init__(self,**kwargs):
+    def __init__(self):
 
+        self.type = ""
+        self.state = ""
+        self.preparation_start_time = 0
+        self.start_time = 0
+        self.end_time = 0
+        self.result = None
+
+        self.team_size = 0
+        self.attacks_per_member = 0
+        self.war_tag = None
+
+        self.clan = None
+        self.opponent = None
+
+        self.attacks = []
+        self.members = []
+
+    @classmethod
+    async def get(cls,ctx,**kwargs):
+        clan = kwargs.get('clan',None)
+        json_data = kwargs.get('json',None)
+        war_id = kwargs.get('war_id',None)
+        war_tag = kwargs.get('war_tag',None)
+        z = kwargs.get('z',False)
+
+        if war_id and war_id in list(ctx.bot.war_cache.keys()):
+            return ctx.bot.war_cache[war_id]
+
+        self = aClanWar()
+        if not json_data and war_id:
+            json_data = await read_file_handler(ctx=ctx,
+                file='warlog',
+                tag=war_id)
+
+        if json_data:
+            await self.create_war(clan=clan,json=json_data)
+
+        elif war_tag:
+            try:
+                war = await ctx.bot.coc_client.get_league_war(war_tag)
+            except:
+                return None
+            await self.create_war(clan=clan,game=war)
+
+        elif clan.public_war_log:
+            try:
+                war = await ctx.bot.coc_client.get_current_war(clan.tag)
+            except:
+                return None
+            if not war or war.state == 'notInWar':
+                return None
+            await self.create_war(clan=clan,game=war)
+        else:
+            return None
+
+        [await a.compute_attack_stats() for a in self.attacks]
+        [await m.compute_war_performance() for m in self.members]
+
+        await self.clan.get_members()
+        await self.clan.get_attacks()
+        await self.opponent.get_members()
+        await self.opponent.get_attacks()
+
+        ctx.bot.war_cache[self.war_id] = self
+        return self
+
+    async def create_war(self,**kwargs):
         json_data = kwargs.get('json',None)
         game_data = kwargs.get('game',None)
         clan = kwargs.get('clan',None)
@@ -34,7 +101,6 @@ class aClanWar():
             self.attacks_per_member = json_data.get('attacks_per_member',0)
 
             self.war_tag = json_data.get('war_tag',None)
-            self.league_group = json_data.get('league_group',None)
 
             try:
                 clan_1_json = json_data['clan_1']
@@ -122,7 +188,6 @@ class aClanWar():
             self.attacks_per_member = data.attacks_per_member
 
             self.war_tag = data.war_tag
-            self.league_group = data.league_group
 
             self.clan = aWarClan(self,data=data.clan)
             self.opponent = aWarClan(self,data=data.opponent)
@@ -139,61 +204,7 @@ class aClanWar():
         self.attacks = sorted(self.attacks, key=lambda x: x.order)
         self.members = sorted(self.members, key=lambda x:(x.map_position,(x.town_hall*-1)))
 
-    @classmethod
-    async def get(cls,ctx,**kwargs):
-        clan = kwargs.get('clan',None)
-        json_data = kwargs.get('json',None)
-        war_id = kwargs.get('war_id',None)
-        war_tag = kwargs.get('war_tag',None)
-        z = kwargs.get('z',False)
-
-        if war_id and war_id in list(ctx.bot.war_cache.keys()):
-            return ctx.bot.war_cache[war_id]
-
-        if not json_data and war_id:
-            json_data = await read_file_handler(ctx=ctx,
-                file='warlog',
-                tag=war_id)
-
-        if json_data:
-            if z:
-                try:
-                    self = aClanWar(clan=clan,json=json_data)
-                except:
-                    return None
-            else:
-                self = aClanWar(clan=clan,json=json_data)
-
-        elif war_tag:
-            try:
-                war = await ctx.bot.coc_client.get_league_war(war_tag)
-            except:
-                return None
-            self = aClanWar(clan=clan,game=war)
-
-        elif clan.public_war_log:
-            try:
-                war = await ctx.bot.coc_client.get_current_war(clan.tag)
-            except:
-                return None
-            if not war or war.state == 'notInWar':
-                return None
-            self = aClanWar(clan=clan,game=war)
-        else:
-            return None
-
-        [await a.compute_attack_stats() for a in self.attacks]
-        [await m.compute_war_performance() for m in self.members]
-
-        await self.clan.get_members()
-        await self.clan.get_attacks()
-        await self.opponent.get_members()
-        await self.opponent.get_attacks()
-
-        ctx.bot.war_cache[self.war_id] = self
-        return self
-
-    def to_json(self):
+    async def to_json(self):
         wJson = {
             'type': self.type,
             'state': self.state,
@@ -201,18 +212,18 @@ class aClanWar():
             'start_time': self.start_time,
             'end_time': self.end_time,
             'result': self.result,
-            'clan_1': self.clan.to_json(),
-            'clan_2': self.opponent.to_json(),
+            'clan_1': await self.clan.to_json(),
+            'clan_2': await self.opponent.to_json(),
             'team_size': self.team_size,
             'attacks_per_member': self.attacks_per_member,
             'war_tag': self.war_tag,
-            'members': [m.to_json() for m in self.members],
-            'attacks': [a.to_json() for a in self.attacks]
+            'members': [await m.to_json() for m in self.members],
+            'attacks': [await a.to_json() for a in self.attacks]
             }
         return wJson
 
     async def save_to_json(self,ctx):
-        wJson = self.to_json()
+        wJson = await self.to_json()
 
         await write_file_handler(ctx=ctx,
             file='warlog',
@@ -263,7 +274,7 @@ class aWarClan():
         self.attacks = [a for a in self.war.attacks if a.attacker_tag in [m.tag for m in self.members]]
         self.defenses = [a for a in self.war.attacks if a.defender_tag in [m.tag for m in self.members]]
 
-    def to_json(self):
+    async def to_json(self):
         clanJson = {
             'tag': self.tag,
             'name': self.name,
@@ -324,7 +335,7 @@ class aWarPlayer():
 
         self.star_count = sum([a.new_stars for a in self.attacks])
 
-    def to_json(self):
+    async def to_json(self):
         playerJson = {
             'tag': self.tag,
             'name': self.name,
@@ -388,7 +399,6 @@ class aWarAttack():
         self.attacker = None
         self.defender = None
 
-
     async def compute_attack_stats(self):
         self.attacker = [player for player in self.war.members if player.tag == self.attacker_tag][0]
         self.defender = [player for player in self.war.members if player.tag == self.defender_tag][0]
@@ -412,7 +422,7 @@ class aWarAttack():
         if is_best_attack:
             self.is_best_attack = True
 
-    def to_json(self):
+    async def to_json(self):
         if self.order:
             attackJson = {
                 'warID': self.war.war_id,

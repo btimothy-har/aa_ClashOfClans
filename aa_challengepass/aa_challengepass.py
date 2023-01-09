@@ -54,7 +54,6 @@ class AriXChallengePass(commands.Cog):
 
     @commands.command(name="slash_challengepass",hidden=True)
     async def slashwrapper_challengepass(self,ctx):
-
         st = time.time()
 
         embed = await clash_embed(ctx,message="<a:loading:1042769157248262154> Loading...")
@@ -97,11 +96,51 @@ class AriXChallengePass(commands.Cog):
         await message.edit(embed=embed)
         await message.clear_reactions()
 
+    @commands.command(name="slash_challengepass_lb",hidden=True)
+    async def slashwrapper_challengepass_leaderboard(self,ctx):
+        farmer_passes = [p for p in [ctx.bot.pass_cache[pass_tag] for pass_tag in list(ctx.bot.pass_cache)] if p.track == 'farm']
+        farmer_passes = sorted(farmer_passes,key=lambda x:(x.points,x.tokens),reverse=True)
+
+        war_passes = [p for p in [ctx.bot.pass_cache[pass_tag] for pass_tag in list(ctx.bot.pass_cache)] if p.track == 'war']
+        war_passes = sorted(war_passes,key=lambda x:(x.points,x.tokens),reverse=True)
+
+        challengepass_leaderboard_embed = await clash_embed(ctx,
+            title=f"**AriX Challenge Pass Leaderboard**",
+            message=f"The top player from each track will receive **1x Gold Pass** in-game."
+                + f"\n\nAll players who attain 10K Pass Points will receive 10,000 XP. You also receive 1,000 XP for every Reset Token unused."
+                + f"\n\n*Only the top 10 players from each track are shown below.*"
+                + f"\n`{'':<24}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<1}{'':<2}`<:HitRate:1054325756618088498>`{'':<2}`")
+
+        farmer_lb_str = ""
+        lb_rank = 0
+        for p in farmer_passes:
+
+            completed_ct = len([c for c in p.challenges if p.status == 'Completed'])
+            missed_ct = len([c for c in p.challenges if p.status == 'Missed'])
+            trashed_ct = len([c for c in p.challenges if p.status == 'Trashed'])
+
+            lb_rank += 1
+            if lb_rank > 10:
+                break
+            points = f"{p.points:,}"
+            farmer_lb_str += f"{emotes_townhall[p.member.town_hall.level]}{p.member.home_clan.emoji}"
+            farmer_lb_str += f"{points:,}"
+            farmer_lb_str += f"{p.tokens}"
+            farmer_lb_str += f"{p.tokens}"
+
+
+
+
     async def challengepass_accountselect(self,ctx,message,challenge_member):
         challenge_accounts = []
         for account in challenge_member.accounts:
             if account.is_member and account.home_clan.abbreviation == 'AS':
-                challenge_accounts.append(await aChallengePass.create(ctx,member_tag=account.tag))
+                challenge_accounts.append(await aChallengePass.create(ctx,member_tag=account.tag,refresh=True))
+
+        if ctx.bot.leader_role in [challenge_member.discord_member.roles] or ctx.bot.coleader_role in [challenge_member.discord_member.roles]:
+            for account in challenge_member.accounts:
+                if account.is_member:
+                    challenge_accounts.append(await aChallengePass.create(ctx,member_tag=account.tag,refresh=True))
 
         if len(challenge_accounts) == 0:
             embed = await clash_embed(ctx,
@@ -123,7 +162,7 @@ class AriXChallengePass(commands.Cog):
                 pass_description = "> *Pass not started.*"
                 if a.track:
                     pass_description = f"> Track: {challengePassDisplayName[a.track]}"
-                    pass_description += f"> Progress: {a.points} / 10,000 | Tokens: {a.tokens}"
+                    pass_description += f"\n > Progress: {a.points} / 10,000 | Tokens: {a.tokens}"
                     if a.active_challenge:
                         pass_description += f"\n> Current Challenge: {a.active_challenge.description}"
 
@@ -324,6 +363,9 @@ class AriXChallengePass(commands.Cog):
     async def challengepass_trash(self,ctx,message,pass_account):
         pass_menu = []
         pass_account, update_status, challenge = await pass_account.trash_active_challenge(ctx)
+
+        if update_status == "No Challenge":
+            return 'refresh'
 
         embed = await pass_account.to_embed(ctx,update_status)
 

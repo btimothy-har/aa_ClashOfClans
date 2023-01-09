@@ -744,6 +744,9 @@ async def function_raid_update(cog,ctx):
     if cog.raid_lock.locked():
         return None
 
+    if datetime.fromtimestamp(time.time()).isoweekday() not in [5,6,7,1]:
+        return None
+
     async with cog.raid_lock:
         cog.raid_refresh_status = True
 

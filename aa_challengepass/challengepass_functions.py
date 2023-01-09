@@ -15,6 +15,10 @@ challengePassDisplayName = {
     'war': "The Warpath"
     }
 
+common_track = ['donations','destroyTarget','builderBase']
+war_track = ['warStars','trophies','winBattles','boostTroop']
+farm_track = ['loot','upgradeHero','clearObstacles','seasonPoints','collectTreasury']
+
 class MemberIneligible(Exception):
     def __init__(self,message):
         self.message = message
@@ -64,6 +68,7 @@ class aChallengePass():
 
                 self.challenges = [aPassChallenge(ctx,self,challenge) for challenge in passJson.get('challenges',[])]
 
+        ctx.bot.pass_cache[self.tag] = self
         return self
 
     async def to_embed(self,ctx,color=None):
@@ -76,7 +81,7 @@ class aChallengePass():
 
             challenge_message += f"\n\n**What are Challenge Tracks?**"
             challenge_message += f"\nChallenge Tracks determine the types of challenges you will receive in your pass, in addition to the common challenges available to everyone."
-            challenge_message += f"\n\nIn addition, when completing a challenge belonging to your track, you have a chance to receive a *Reset Token*, that lets you cancel your current challenge and receive a new one."
+            challenge_message += f"\n\nIn addition, when completing a challenge belonging to your track, you have a chance to receive a *Reset Token*. Reset Tokens let you cancel your current challenge and receive a new one."
 
         else:
             challenge_message += f"**Your Pass Track**: {challengePassDisplayName[self.track]}"
@@ -86,7 +91,7 @@ class aChallengePass():
             challenge_message += f"\n> Missed: {len([c for c in self.challenges if c.status=='Missed'])}"
             challenge_message += f"\n> Trashed: {len([c for c in self.challenges if c.status=='Trashed'])}"
 
-        if color in ['Missed']:
+        if color in ['Missed','Insufficient']:
             challengeEmbed = await clash_embed(ctx,
                 title=f"**AriX Challenge Pass: {self.member.name}** ({self.member.tag})",
                 message=challenge_message,
@@ -109,7 +114,7 @@ class aChallengePass():
         return challengeEmbed
 
     async def update_pass(self,ctx):
-        self.member = await aPlayer.create(ctx,tag=self.tag)
+        self.member = await aPlayer.create(ctx,tag=self.tag,refresh=True)
 
         if self.active_challenge:
             self.active_challenge.update_challenge(ctx)
@@ -147,7 +152,7 @@ class aChallengePass():
             return p, "New", challenge
 
     async def trash_active_challenge(self,ctx):
-         if self.active_challenge:
+        if self.active_challenge:
             challenge = self.active_challenge
 
             if self.tag not in ['#LJC8V0GCJ'] and self.tokens <= 0:
@@ -161,6 +166,9 @@ class aChallengePass():
             await self.save_to_json(ctx)
             p = await aChallengePass.create(ctx,self.tag,refresh=True)
             return p, "Trashed", challenge
+
+        if not self.active_challenge:
+            return self, "No Challenge", None
 
     async def save_to_json(self,ctx):
 
@@ -243,7 +251,14 @@ class aPassChallenge():
             challenge_description += f"\n> Current Progress: {self.current_score:,} / {self.max_score:,}"
 
         challenge_description += f"\n> Challenge Expires: <t:{int(self.end_time)}:R>"
-        challenge_description += f"\n> Rewards: {self.reward:,}"
+
+        challenge_description += f"\n> Rewards: {self.reward:,} points"
+
+        if self.cpass.track in ['farm'] and self.task in farm_track:
+            challenge_description += "\n> \n> <a:cp_farmer:1061676915724926986> This is a Farmer's Challenge! \n> You could receive a Reset Token from this challenge."
+
+        if self.cpass.track in ['war'] and self.task in war_track:
+            challenge_description += "\n> \n> <:cp_war:1054997157654036561> This is a Warpath Challenge! \n> You could receive a Reset Token from this challenge."
 
         return challenge_description
 
@@ -264,13 +279,9 @@ class aPassChallenge():
             }
 
         last_challenge = None
-        previous_challenges = sorted(self.cpass.challenges,key=lambda x:(x.end_time),reverse=True)
+        previous_challenges = sorted(self.cpass.challenges,key=lambda x:(x.start_time),reverse=True)
         if len(previous_challenges) > 0:
             last_challenge = previous_challenges[0].task
-
-        common_track = ['donations','destroyTarget','builderBase']
-        war_track = ['warStars','trophies','winBattles','boostTroop']
-        farm_track = ['loot','upgradeHero','clearObstacles','seasonPoints','collectTreasury']
 
         eligible_challenges = common_track
 
@@ -367,8 +378,8 @@ class aPassChallenge():
                     ch1 = True
                 if len(wm) == 1:
                     ch2 = True
-                if self.cpass.member.home_clan.current_war.attacks_per_member - len(wm[0].attacks) >= 1:
-                    ch3 = True
+                    if self.cpass.member.home_clan.current_war.attacks_per_member - len(wm[0].attacks) >= 1:
+                        ch3 = True
 
                 if ch1 and ch2 and ch3:
                     available_duration = [1]
@@ -376,7 +387,7 @@ class aPassChallenge():
                     self.end_time = self.start_time + (duration * 86400)
 
                     self.max_score = 2
-                    self.baseline = self.cpass.member.war_stats.offense_stars
+                    self.baseline = self.cpass.member.current_season.war_stats.offense_stars
                     break
                 else:
                     continue
@@ -402,7 +413,7 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 self.max_score = 3
-                self.baseline = self.cpass.member.attack_wins.season
+                self.baseline = self.cpass.member.attack_wins
                 break
 
 
@@ -443,11 +454,11 @@ class aPassChallenge():
                 self.end_time = self.start_time + (duration * 86400)
 
                 eligible_targets = []
-                if self.cpass.member.loot_gold.lastupdate <= 1900000000:
+                if self.cpass.member.current_season.loot_gold.lastupdate <= 1900000000:
                     eligible_targets.append('Gold')
-                if self.cpass.member.loot_elixir.lastupdate <= 1900000000:
+                if self.cpass.member.current_season.loot_elixir.lastupdate <= 1900000000:
                     eligible_targets.append('Elixir')
-                if self.cpass.member.loot_darkelixir.lastupdate <= 1900000000:
+                if self.cpass.member.current_season.loot_darkelixir.lastupdate <= 1900000000:
                     eligible_targets.append('Dark Elixir')
 
                 if len(eligible_targets) == 0:
@@ -457,15 +468,15 @@ class aPassChallenge():
 
                 if self.target in ['Dark Elixir']:
                     self.max_score = 50000
-                    self.baseline = self.cpass.member.loot_darkelixir.lastupdate
+                    self.baseline = self.cpass.member.current_season.loot_darkelixir.lastupdate
 
                 if self.target in ['Gold']:
                     self.max_score = 3000000
-                    self.baseline = self.cpass.member.loot_gold.lastupdate
+                    self.baseline = self.cpass.member.current_season.loot_gold.lastupdate
 
                 if self.target in ['Elixir']:
                     self.max_score = 3000000
-                    self.baseline = self.cpass.member.loot_elixir.lastupdate
+                    self.baseline = self.cpass.member.current_season.loot_elixir.lastupdate
                 break
 
 
@@ -522,9 +533,9 @@ class aPassChallenge():
                 break
 
 
-        if (self.cpass.track == 'war' and self.task in war_track) or (self.cpass.track == 'farm' and self.task in farm_track):
+        if (self.cpass.track in ['war'] and self.task in war_track) or (self.cpass.track in ['farm'] and self.task in farm_track):
             token_chance = random.choice(range(1,11))
-            if token_chance <= duration:
+            if token_chance <= 3:
                 self.token_rew = True
 
         self.status = "In Progress"
@@ -592,13 +603,13 @@ class aPassChallenge():
             new_score = [a.value for a in self.cpass.member.achievements if a.name == "Un-Build It"][0]
 
         if self.task == 'warStars':
-            new_score = self.cpass.member.war_stats.offense_stars
+            new_score = self.cpass.member.current_season.war_stats.offense_stars
 
         if self.task == 'trophies':
             new_score = self.cpass.member.trophies
 
         if self.task == 'winBattles':
-            new_score = self.cpass.member.attack_wins.season
+            new_score = self.cpass.member.attack_wins
 
         if self.task == 'boostTroop':
             s_troop = self.cpass.member.get_troop(self.target,is_home_troop=True)
@@ -607,13 +618,13 @@ class aPassChallenge():
 
         if self.task == 'loot':
             if self.target in ['Dark Elixir']:
-                new_score = self.cpass.member.loot_darkelixir.lastupdate
+                new_score = self.cpass.member.current_season.loot_darkelixir.lastupdate
 
             if self.target in ['Gold']:
-                new_score = self.cpass.member.loot_gold.lastupdate
+                new_score = self.cpass.member.current_season.loot_gold.lastupdate
 
             if self.target in ['Elixir']:
-                new_score = self.cpass.member.loot_elixir.lastupdate
+                new_score = self.cpass.member.current_season.loot_elixir.lastupdate
 
         if self.task == 'upgradeHero':
             s_hero = [hero for hero in self.cpass.member.heroes if hero.name == self.target][0]
