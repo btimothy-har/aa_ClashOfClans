@@ -112,8 +112,8 @@ class aClanWar():
             except:
                 clan_2_json = json_data.get('opponent',{})
 
-            clan_1 = aWarClan(self,json=clan_1_json)
-            clan_2 = aWarClan(self,json=clan_2_json)
+            clan_1 = await aWarClan.create(war=self,json=clan_1_json)
+            clan_2 = await aWarClan.create(war=self,json=clan_2_json)
 
             if clan:
                 if clan.tag == clan_2.tag:
@@ -157,23 +157,23 @@ class aClanWar():
                 oppo_dict = json_data['opponent']
 
                 for mem_json in clan_dict['members']:
-                    member = aWarPlayer(self,json=mem_json,clan_tag=clan_dict['tag'])
+                    member = await aWarPlayer.create(war=self,json=mem_json,clan_tag=clan_dict['tag'])
                     self.members.append(member)
 
                     for att in mem_json['attacks']:
-                        attack = aWarAttack(self,json=att)
+                        attack = await aWarAttack.create(war=self,json=att)
                         self.attacks.append(attack)
 
                     for deff in mem_json['defenses']:
-                        attack = aWarAttack(self,json=deff)
+                        attack = await aWarAttack.create(war=self,json=deff)
                         self.attacks.append(attack)
 
                 for mem_json in oppo_dict['members']:
-                    member = aWarPlayer(self,json=mem_json,clan_tag=oppo_dict['tag'])
+                    member = await aWarPlayer.create(war=self,json=mem_json,clan_tag=oppo_dict['tag'])
                     self.members.append(member)
             else:
-                self.attacks = [aWarAttack(self,json=attack) for attack in json_attacks]
-                self.members = [aWarPlayer(self,json=member) for member in json_members]
+                self.attacks = [await aWarAttack.create(war=self,json=attack) for attack in json_attacks]
+                self.members = [await aWarPlayer.create(war=self,json=member) for member in json_members]
 
         if game_data:
             data = game_data
@@ -189,11 +189,11 @@ class aClanWar():
 
             self.war_tag = data.war_tag
 
-            self.clan = aWarClan(self,data=data.clan)
-            self.opponent = aWarClan(self,data=data.opponent)
+            self.clan = await aWarClan.create(war=self,data=data.clan)
+            self.opponent = await aWarClan.create(war=self,data=data.opponent)
 
-            self.attacks = [aWarAttack(self,data=att) for att in data.attacks]
-            self.members = [aWarPlayer(self,data=mem) for mem in data.members]
+            self.attacks = [await aWarAttack.create(war=self,data=att) for att in data.attacks]
+            self.members = [await aWarPlayer.create(war=self,data=mem) for mem in data.members]
 
         tag_id = self.clan.tag + self.opponent.tag
         tag_id = tag_id.replace('#','')
@@ -231,8 +231,24 @@ class aClanWar():
             new_data=wJson)
 
 class aWarClan():
-    def __init__(self,war,**kwargs):
+    def __init__(self,war):
         self.war = war
+        self.tag = ""
+        self.name = ""
+        self.badge = ""
+        self.level = 0
+        self.stars = 0
+        self.destruction = 0
+        self.average_attack_duration = 0
+        self.attacks_used = 0
+        self.max_stars = 0
+        self.members = []
+        self.attacks = []
+        self.defenses = []
+
+    @classmethod
+    async def create(cls,war,**kwargs):
+        self = aWarClan(war)
 
         json_data = kwargs.get('json',None)
         game_data = kwargs.get('data',None)
@@ -263,9 +279,7 @@ class aWarClan():
 
         self.max_stars = self.war.team_size * self.war.attacks_per_member
 
-        self.members = []
-        self.attacks = []
-        self.defenses = []
+        return self
 
     async def get_members(self):
         self.members = [m for m in self.war.members if m.clan_tag == self.tag]
@@ -289,11 +303,30 @@ class aWarClan():
 
 class aWarPlayer():
     def __init__(self,war,**kwargs):
+        self.war = war
+
+        self.tag = ""
+        self.name = ""
+        self.town_hall = 0
+        self.map_position = 0
+        self.clan_tag = ""
+        self.is_opponent = False
+        self.clan = None
+
+        self.attacks = []
+        self.defenses = []
+        self.unused_attacks = 0
+        self.defense_count = 0
+        self.star_count = 0
+        self.best_opponent_attack = None
+
+    @classmethod
+    async def create(cls,war,**kwargs):
+        self = aWarPlayer(war)
+
         json_data = kwargs.get('json',None)
         game_data = kwargs.get('data',None)
         clan_tag = kwargs.get('clan_tag',None)
-
-        self.war = war
 
         if json_data:
             self.tag = json_data['tag']
@@ -323,8 +356,7 @@ class aWarPlayer():
         self.unused_attacks = self.war.attacks_per_member - len(self.attacks)
         self.defense_count = len(self.defenses)
 
-        self.star_count = 0
-        self.best_opponent_attack = None
+        return self
 
     async def compute_war_performance(self):
         best_defenses = sorted(self.defenses,key=lambda x:(x.order),reverse=True)
@@ -346,11 +378,30 @@ class aWarPlayer():
         return playerJson
 
 class aWarAttack():
-    def __init__(self,war,**kwargs):
+    def __init__(self,war):
+        self.war = war
+
+        self.order = 0
+        self.attacker_tag = ""
+        self.defender_tag = ""
+        self.stars = 0
+        self.destruction = 0
+        self.duration = 0
+        self.new_stars = 0
+        self.new_destruction = 0
+        self.is_fresh_attack = False
+        self.is_triple = False
+        self.is_best_attack = False
+
+        self.attacker = None
+        self.defender = None
+
+    @classmethod
+    async def create(cls,war,**kwargs):
+        self = aWarAttack(war)
+
         json_data = kwargs.get('json',None)
         game_data = kwargs.get('data',None)
-
-        self.war = war
 
         if json_data:
             self.order = json_data.get('order',None)
@@ -396,8 +447,7 @@ class aWarAttack():
             self.is_triple = False
             self.is_best_attack = False
 
-        self.attacker = None
-        self.defender = None
+        return self
 
     async def compute_attack_stats(self):
         self.attacker = [player for player in self.war.members if player.tag == self.attacker_tag][0]
