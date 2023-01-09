@@ -6,7 +6,7 @@ import random
 import copy
 
 from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
-from aa_resourcecog.file_functions import get_current_season, alliance_file_handler, data_file_handler, eclipse_base_handler
+from aa_resourcecog.file_functions import read_file_handler, write_file_handler
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 
 class MemberIneligible(Exception):
@@ -41,7 +41,9 @@ class aChallengePass():
         else:
             self = aChallengePass(ctx,member)
 
-            passJson = await data_file_handler(ctx,'challengepass',self.tag)
+            passJson = await read_file_handler(ctx,
+                file='challengepass',
+                tag=self.tag)
 
             if passJson:
                 self.track = passJson.get('track',None)
@@ -149,14 +151,21 @@ class aChallengePass():
             return p, "Trashed", challenge
 
     async def save_to_json(self,ctx):
+
+        if self.active_challenge:
+            active_challenge = self.active_challenge.to_json()
+        else:
+            active_challenge = None
+
         passJson = {
             'track': self.track,
             'points': self.points,
             'tokens': self.tokens,
+            'active_challenge': active_challenge,
             'challenges': [c.to_json() for c in self.challenges]
             }
 
-        await data_file_handler(
+        await write_file_handler(
             ctx=ctx,
             file='challengepass',
             tag=self.tag,
