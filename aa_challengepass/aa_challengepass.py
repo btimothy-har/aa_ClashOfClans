@@ -69,7 +69,7 @@ class AriXChallengePass(commands.Cog):
                 st = time.time()
 
             if current_action in ['start','accounts']:
-                challenge_account = await challengepass_accountselect(ctx,message,challenge_member)
+                challenge_account = await self.challengepass_accountselect(ctx,message,challenge_member)
                 await message.clear_reactions()
 
                 if not challenge_account:
@@ -78,10 +78,10 @@ class AriXChallengePass(commands.Cog):
                     current_action = 'view'
 
             if current_action in ['view','new','refresh']:
-                current_action = await challengepass_display(ctx,message,challenge_account)
+                current_action = await self.challengepass_display(ctx,message,challenge_account)
 
             if current_action in ['trash']:
-                current_action = await challengepass_trash(ctx,message,challenge_account)
+                current_action = await self.challengepass_trash(ctx,message,challenge_account)
 
         embed = clash_embed(ctx,
             message="Thanks for playing the Challenge Pass!")
