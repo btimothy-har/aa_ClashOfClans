@@ -625,8 +625,7 @@ async def function_member_update(cog,ctx):
     except Exception as e:
         await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
 
-
-async def function_war_update(cog,ctx):
+def function_war_update_wrapper(cog,ctx):
     if ctx.invoked_with in ['simulate']:
         send_logs = True
     else:
@@ -643,6 +642,13 @@ async def function_war_update(cog,ctx):
     if cog.war_lock.locked():
         return None
 
+    loop = asyncio.new_event_loop()
+    embed, error_log = loop.run_until_complete(function_war_update(cog,ctx))
+    loop.close()
+
+    return embed, error_log
+
+async def function_war_update(cog,ctx):
     async with cog.war_lock:
         cog.war_refresh_status = True
 
@@ -666,10 +672,11 @@ async def function_war_update(cog,ctx):
                     wtag = war.war_tag
 
                     if (st - war.end_time) < 3600:
+                        war_clan = await aClan.create(ctx,tag=war.clan)
                         if wtype == 'cwl':
-                            war = await aClanWar.get(ctx,clan=war.clan,war_tag=wtag)
+                            war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
                         else:
-                            war = await aClanWar.get(ctx,clan=war.clan)
+                            war = await aClanWar.get(ctx,clan=war_clan)
 
                         if war:
                             await war.save_to_json(ctx)
@@ -704,25 +711,7 @@ async def function_war_update(cog,ctx):
             text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
             icon_url="https://i.imgur.com/TZF5r54.png")
 
-    if len(error_log) > 0:
-        send_logs = True
-        error_title = "Error Log"
-        error_text = ""
-        for e in error_log:
-            error_text += f"{e.category}{e.tag}: {e.error}\n"
-
-        if len(error_text) > 1024:
-            error_title = "Error Log (Truncated)"
-            error_text = error_text[0:500]
-
-        data_embed.add_field(
-            name=f"**{error_title}**",
-            value=error_text,
-            inline=False)
-
-    if send_logs:
-        ch = ctx.bot.get_channel(1033390608506695743)
-        await ch.send(embed=data_embed)
+    return data_embed, error_log
 
 
 async def function_raid_update(cog,ctx):
