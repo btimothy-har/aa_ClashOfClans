@@ -666,12 +666,10 @@ async def function_war_update(cog,ctx):
                     wtag = war.war_tag
 
                     if (st - war.end_time) < 3600:
-                        war_clan = await aClan.create(ctx,tag=war.clan.tag)
-
                         if wtype == 'cwl':
-                            war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
+                            war = await aClanWar.get(ctx,clan=war.clan,war_tag=wtag)
                         else:
-                            war = await aClanWar.get(ctx,clan=war_clan)
+                            war = await aClanWar.get(ctx,clan=war.clan)
 
                         if war:
                             await war.save_to_json(ctx)

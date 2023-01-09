@@ -70,13 +70,7 @@ class aClanWar():
         else:
             return None
 
-        [await a.compute_attack_stats() for a in self.attacks]
-        [await m.compute_war_performance() for m in self.members]
-
-        await self.clan.get_members()
-        await self.clan.get_attacks()
-        await self.opponent.get_members()
-        await self.opponent.get_attacks()
+        await self.compute_stats()
 
         ctx.bot.war_cache[self.war_id] = self
         return self
@@ -203,6 +197,15 @@ class aClanWar():
 
         self.attacks = sorted(self.attacks, key=lambda x: x.order)
         self.members = sorted(self.members, key=lambda x:(x.map_position,(x.town_hall*-1)))
+
+    async def compute_stats(self):
+        [await a.compute_attack_stats() for a in self.attacks]
+        [await m.compute_war_performance() for m in self.members]
+
+        await self.clan.get_members()
+        await self.clan.get_attacks()
+        await self.opponent.get_members()
+        await self.opponent.get_attacks()
 
     async def to_json(self):
         wJson = {
