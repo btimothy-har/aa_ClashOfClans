@@ -60,6 +60,10 @@ class AriXClashUtils(commands.Cog):
 
         tag_submission = None
 
+        channel_prefix = f"{re.split('📝', channel.name)[0]}📝"
+
+        townhalls = []
+
         await asyncio.sleep(3)
 
         async for message in channel.history(limit=2,oldest_first=True):
@@ -77,6 +81,7 @@ class AriXClashUtils(commands.Cog):
                 if coc.utils.is_valid_tag(tag):
                     a = await aPlayer.create(ctx,tag=tag)
                     if a:
+                        townhalls.append(a.town_hall.level)
 
                         discord_msg = ""
                         if a.discord_user:
@@ -238,3 +243,12 @@ class AriXClashUtils(commands.Cog):
                             pEmbed.add_field(name=f"Dark Elixir Spells (rushed: {rushed_ct} / {ct})",value=f"{darkelixir_spells_str}\n\u200b",inline=False)
 
                         await channel.send(embed=pEmbed)
+
+        if len(townhalls) > 0:
+            channel_th = ""
+            for th in townhalls:
+                channel_th += f"th{th}"
+                if townhalls[-1] != th:
+                    townhalls += "-"
+
+            await channel.edit(name=f"{channel_prefix}{channel_th}")
