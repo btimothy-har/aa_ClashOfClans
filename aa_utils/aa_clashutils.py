@@ -58,6 +58,7 @@ class AriXClashUtils(commands.Cog):
 
         ctx = self.placeholder_context
 
+        channel_id = channel.id
         tag_submission = None
 
         channel_prefix = f"{re.split('📝', channel.name)[0]}📝"
@@ -249,6 +250,7 @@ class AriXClashUtils(commands.Cog):
             for th in townhalls:
                 channel_th += f"th{th}"
                 if townhalls[-1] != th:
-                    townhalls += "-"
+                    channel_th += "-"
 
-            await channel.edit(name=f"{channel_prefix}{channel_th}")
+            ch = ctx.bot.get_channel(channel_id)
+            await ch.edit(name=f"{channel_prefix}{channel_th}")
