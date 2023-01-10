@@ -71,20 +71,20 @@ class AriXChallengePass(commands.Cog):
             name=f"**How the Challenge Pass Works**",
             value=f"Earn Challenge Points to climb the seasonal leaderboards and win prizes!"
                 + f"\n\nTo earn Challenge Points, complete as many Pass Challenges as you can within the season. Challenges award points based on varying difficulty and duration."
-                + f"\n\n*Note: Challenge Passes are unique by Clash Account, and points do not stack across accounts.*",
+                + f"\n\n*Note: Challenge Passes are unique by Clash Account, and points do not stack across accounts.*\n\u200b",
             inline=False)
 
         embed.add_field(
             name=f"**About Challenge Tracks**",
             value=f"Choose between two Challenge Tracks: <:cp_war:1054997157654036561> `The Warpath` or <a:cp_farmer:1061676915724926986> `The Farmer's Life`."
-                + f"\n\nYou get to choose a Challenge Track when starting your Challenge Pass. Your chosen Track is only valid for that season. Challenge Tracks determine the types of challenges you will receive in your pass.",
+                + f"\n\nYou get to choose a Challenge Track when starting your Challenge Pass. Your chosen Track is only valid for that season. Challenge Tracks determine the types of challenges you will receive in your pass.\n\u200b",
             inline=False)
 
         embed.add_field(
             name=f"**About Reset Tokens**",
             value=f"*Stuck with a difficult challenge?*"
                 + f"\nReset Tokens allow you to trash your current challenge and get a new one. Use wisely!"
-                + f"\n\nCompleting challenges from your chosen Challenge Track provides you with a small chance to receive a Reset Token.",
+                + f"\n\nCompleting challenges from your chosen Challenge Track provides you with a small chance to receive a Reset Token.\n\u200b",
             inline=False)
 
         await message.edit(embed=embed)
