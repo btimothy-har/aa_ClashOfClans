@@ -776,11 +776,12 @@ class aPlayerStat():
         else:
             self.statdisplay = f"{self.season:,}"
 
-    async def update_stat(self,ctx,player,new_value):
+    def update_stat(self,ctx,player,new_value):
         if new_value >= self.lastupdate:
             stat_increment = new_value - self.lastupdate
         else:
             stat_increment = new_value
+
         self.season_total += stat_increment
 
         if time.time() >= ctx.bot.current_season.cwl_end and player.clan.is_alliance_clan:
