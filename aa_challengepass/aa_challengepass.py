@@ -64,8 +64,8 @@ class AriXChallengePass(commands.Cog):
                 + f"\n\n**Current Pass Season:** {ctx.bot.current_season.season_description}"
                 + f"\n**Season Started:** <t:{int(ctx.bot.current_season.cwl_end)}:F>"
                 + f"\n\n__Rewards__"
-                + f"\n> - Top Player from each Challenge Track: 1x <:GoldPass:834093287106674698> Gold Pass"
-                + f"\n> - Every Player with 10K Challenge Points: 10,000 XP\n\u200b")
+                + f"\n> - Top Player from each Challenge Track: 1x <:GoldPass:834093287106674698> Gold Pass (or 1 Month Nitro <a:nitro:1062371929337630770>)"
+                + f"\n> - Every Player with 10K Challenge Points: 10,000XP + 1,000XP for every Reset Token unused\n\u200b")
 
         embed.add_field(
             name=f"**How the Challenge Pass Works**",
@@ -85,6 +85,11 @@ class AriXChallengePass(commands.Cog):
             value=f"*Stuck with a difficult challenge?*"
                 + f"\nReset Tokens allow you to trash your current challenge and get a new one. Use wisely!"
                 + f"\n\nCompleting challenges from your chosen Challenge Track provides you with a small chance to receive a Reset Token.\n\u200b",
+            inline=False)
+
+        embed.add_field(
+            name=f"**End the Every Season**",
+            value=f"At the end of every season, all Challenge Passes are reset. Challenge Points, Reset Tokens, and Challenge Tracks do not carry to the next season.\n\u200b",
             inline=False)
 
         await message.edit(embed=embed)
