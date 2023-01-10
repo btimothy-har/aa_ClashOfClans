@@ -25,7 +25,7 @@ from tabulate import tabulate
 from art import text2art
 from concurrent.futures import ThreadPoolExecutor
 
-from .data_functions import function_season_update, function_save_data, function_clan_update, function_member_update, function_war_update, function_raid_update
+from .data_functions import function_season_update, function_clan_update, function_member_update, function_war_update, function_raid_update
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
