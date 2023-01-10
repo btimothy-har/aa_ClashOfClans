@@ -125,7 +125,7 @@ class AriXChallengePass(commands.Cog):
 
         challengepass_leaderboard_embed = await clash_embed(ctx,
             title=f"**AriX Challenge Pass Leaderboard**",
-            message=f"The top player from each track will receive **1x Gold Pass** in-game."
+            message=f"The top player from each track will receive **1x <:GoldPass:834093287106674698> Gold Pass** in-game."
                 + f"\n\nAll players who attain 10K Pass Points will receive 10,000 XP. You also receive 1,000 XP for every Reset Token unused."
                 + f"\n\n*Only the top 10 players from each track are shown below.*"
                 + f"\n`{'*C: Completed | M: Missed | T: Trashed*':>47}{'':<2}`"
