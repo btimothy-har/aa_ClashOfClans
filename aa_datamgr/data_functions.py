@@ -539,7 +539,7 @@ async def function_member_update(cog,ctx):
 
             data_embed.add_field(
                 name=f"**Member Updates**",
-                value=f"Number of Tags: {len(member_tags)}"
+                value=f"Number of Tags: {len(list(ctx.bot.member_cache))}"
                     + f"\nAccounts Found: {count_members}"
                     + f"\nSuccessful Updates: {count_member_update}",
                 inline=False)
@@ -594,7 +594,7 @@ async def function_member_update(cog,ctx):
             await ch.send(embed=data_embed)
 
     except Exception as e:
-        await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
+        await ctx.bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
 
 async def function_war_update(cog,ctx):
     if ctx.invoked_with in ['simulate']:
