@@ -183,12 +183,12 @@ class aPlayer(coc.Player):
         if self.min_hero_strength > 0:
             self.hero_rushed_pct = round((rushed_heroes / self.min_hero_strength)*100,2)
 
-        self.troop_strength = sum([troop.level for troop in self.troops]) + sum([pet.level for pet in self.hero_pets])
-        self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops]) + sum([pet.maxlevel_for_townhall for pet in self.hero_pets]))
-        self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops]) + sum([pet.minlevel_for_townhall for pet in self.hero_pets]))
+        self.troop_strength = sum([troop.level for troop in self.troops if not troop.is_super_troop]) + sum([pet.level for pet in self.hero_pets])
+        self.max_troop_strength = (sum([troop.maxlevel_for_townhall for troop in self.troops if not troop.is_super_troop]) + sum([pet.maxlevel_for_townhall for pet in self.hero_pets]))
+        self.min_troop_strength = (sum([troop.minlevel_for_townhall for troop in self.troops if not troop.is_super_troop]) + sum([pet.minlevel_for_townhall for pet in self.hero_pets]))
 
         self.troop_rushed_pct = 0
-        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed]) + sum([(p.minlevel_for_townhall - p.level) for p in self.hero_pets if p.level < p.minlevel_for_townhall])
+        rushed_troops = sum([(t.minlevel_for_townhall - t.level) for t in self.troops if t.is_rushed and not t.is_super_troop]) + sum([(p.minlevel_for_townhall - p.level) for p in self.hero_pets if p.level < p.minlevel_for_townhall])
         if self.min_troop_strength > 0:
             self.troop_rushed_pct = round((rushed_troops / self.min_troop_strength)*100,2)
 
