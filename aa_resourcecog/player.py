@@ -21,6 +21,8 @@ from .errors import TerminateProcessing, InvalidTag, error_end_processing
 
 from .discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
 
+from redbot.core.utils import AsyncIter
+
 class ClashPlayerError(Exception):
     def __init__(self,message):
         self.message = message
@@ -432,7 +434,7 @@ class aPlayer(coc.Player):
                 self.discord_user = get_links[0][1]
         return self
 
-    async def to_json(self):
+    def to_json(self):
         warlogkeys = []
         for (war_id, war) in self.current_season.warlog.items():
             if war:
@@ -459,16 +461,16 @@ class aPlayer(coc.Player):
             'current_clan': self.clan.tag,
             'time_in_home_clan': self.current_season.time_in_home_clan,
             'other_clans': [c.tag for c in self.current_season.other_clans],
-            'attacks': await self.current_season.attacks.to_json(),
+            'attacks': self.current_season.attacks.to_json(),
             'townhall': self.town_hall.level,
-            'defenses': await self.current_season.defenses.to_json(),
-            'donations_sent': await self.current_season.donations_sent.to_json(),
-            'donations_rcvd': await self.current_season.donations_rcvd.to_json(),
-            'loot_gold': await self.current_season.loot_gold.to_json(),
-            'loot_elixir': await self.current_season.loot_elixir.to_json(),
-            'loot_darkelixir': await self.current_season.loot_darkelixir.to_json(),
-            'clangames': await self.current_season.clangames.to_json(),
-            'capitalcontribution': await self.current_season.capitalcontribution.to_json(),
+            'defenses': self.current_season.defenses.to_json(),
+            'donations_sent': self.current_season.donations_sent.to_json(),
+            'donations_rcvd': self.current_season.donations_rcvd.to_json(),
+            'loot_gold': self.current_season.loot_gold.to_json(),
+            'loot_elixir': self.current_season.loot_elixir.to_json(),
+            'loot_darkelixir': self.current_season.loot_darkelixir.to_json(),
+            'clangames': self.current_season.clangames.to_json(),
+            'capitalcontribution': self.current_season.capitalcontribution.to_json(),
             'raid_log': raidlogkeys,
             'war_log': warlogkeys,
             }
@@ -476,7 +478,7 @@ class aPlayer(coc.Player):
         return allianceJson, memberJson
 
     async def save_to_json(self,ctx):
-        alliance_json, member_json = await self.to_json()
+        alliance_json, member_json = self.to_json()
 
         await write_file_handler(ctx=ctx,
             file='meminfo',
@@ -534,7 +536,7 @@ class aPlayer(coc.Player):
     async def update_warlog(self,ctx):
         war_updated = False
         active_wars = []
-        for warid in list(ctx.bot.war_cache):
+        async for warid in AsyncIter(list(ctx.bot.war_cache)):
             clan_war = ctx.bot.war_cache[warid]
 
             if clan_war.start_time >= ctx.bot.current_season.season_start and self.tag in [m.tag for m in clan_war.members]:
@@ -559,7 +561,7 @@ class aPlayer(coc.Player):
         raid_updated = False
         active_raids = []
 
-        for raidid in list(ctx.bot.raid_cache):
+        async for raidid in AsyncIter(list(ctx.bot.raid_cache)):
             cap_raid = ctx.bot.raid_cache[raidid]
 
             if cap_raid.start_time >= ctx.bot.current_season.season_start and self.tag in [m.tag for m in cap_raid.members]:
@@ -786,7 +788,7 @@ class aPlayerStat():
 
         self.lastupdate = new_value
 
-    async def to_json(self):
+    def to_json(self):
         statJson = {
             'season': self.season,
             'season_total': self.season_total,
@@ -851,7 +853,7 @@ class aPlayerClanGames():
         else:
             self.last_updated = [a.value for a in self.player.achievements if a.name == 'Games Champion'][0]
 
-    async def to_json(self):
+    def to_json(self):
         clangamesJson = {
             'clan': self.clan_tag,
             'score': self.score,
@@ -1339,7 +1341,7 @@ class aClan(coc.Clan):
         self.arix_members = sorted(self.arix_members,key=lambda x:(clanRanks.index(x.arix_rank),x.exp_level,x.town_hall.level),reverse=True)
         self.arix_member_count = len(self.arix_members)
 
-    async def to_json(self):
+    def to_json(self):
         clan_alliance_json = {
             'name':self.name,
             'abbr':self.abbreviation,
@@ -1370,7 +1372,7 @@ class aClan(coc.Clan):
         return clan_alliance_json
 
     async def save_to_json(self,ctx):
-        clan_json = await self.to_json()
+        clan_json = self.to_json()
 
         await write_file_handler(ctx=ctx,
             file='alliance',

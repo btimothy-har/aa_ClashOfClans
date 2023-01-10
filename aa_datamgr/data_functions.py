@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, humanize_number, humanize_timedelta, pagify
+from redbot.core.utils import AsyncIter
 from discord.utils import get
 from discord.ext import tasks
 from datetime import datetime
@@ -270,7 +271,7 @@ async def function_clan_update(cog,ctx):
             ## CLAN UPDATE
             clan_update = ''
             mem_count = 0
-            for c_tag in list(ctx.bot.clan_cache):
+            async for c_tag in AsyncIter(list(ctx.bot.clan_cache)):
                 try:
                     c = await aClan.create(ctx,tag=c_tag,refresh=True)
                 except Exception as e:
@@ -512,8 +513,7 @@ async def function_member_update(cog,ctx):
             count_members = 0
             count_member_update = 0
 
-            member_tags = list(ctx.bot.member_cache)
-            for m_tag in member_tags:
+            async for m_tag in AsyncIter(list(ctx.bot.member_cache)):
                 try:
                     m = await aPlayer.create(ctx,tag=m_tag,refresh=True)
                 except Exception as e:
@@ -625,54 +625,41 @@ async def function_member_update(cog,ctx):
     except Exception as e:
         await bot.send_to_owners(f"Member Data Refresh completed successfully, but an error was encountered while wrapping up.\n\n```{e}```")
 
-def function_war_update_wrapper(cog,ctx):
+async def function_war_update(cog,ctx):
     if ctx.invoked_with in ['simulate']:
         send_logs = True
     else:
         send_logs = False
         if ctx.bot.refresh_loop < 0:
             return None
-        if not cog.master_refresh:
-            return None
 
-    if cog.war_refresh_status:
-        return None
-    if cog.master_lock.locked():
-        return None
-    if cog.war_lock.locked():
-        return None
+    war_update_last = await cog.config.war_update_last()
+    war_update_runtime = await cog.config.war_update_runtime()
 
-    loop = asyncio.new_event_loop()
-    embed, error_log = loop.run_until_complete(function_war_update(cog,ctx))
-    loop.close()
+    st = time.time()
 
-    return embed, error_log
-
-async def function_war_update(cog,ctx):
     async with cog.war_lock:
         cog.war_refresh_status = True
 
-        st = time.time()
         error_log = []
         war_count = 0
 
-        war_update_last = await cog.config.war_update_last()
-        war_update_runtime = await cog.config.war_update_runtime()
-
-        for war_id in list(ctx.bot.war_cache):
+        async for war_id in AsyncIter(list(ctx.bot.war_cache)):
+            #await asyncio.sleep(0)
             try:
                 war = ctx.bot.war_cache[war_id]
-
                 if war:
-                    if st > war.end_time:
+                    if war.state not in ['warEnded'] and st > war.end_time:
                         war.state = 'warEnded'
                         await war.save_to_json(ctx)
+
+                    #await asyncio.sleep(0)
 
                     wtype = war.type
                     wtag = war.war_tag
 
                     if (st - war.end_time) < 3600:
-                        war_clan = await aClan.create(ctx,tag=war.clan)
+                        war_clan = await aClan.create(ctx,tag=war.clan.tag)
                         if wtype == 'cwl':
                             war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
                         else:
@@ -680,7 +667,9 @@ async def function_war_update(cog,ctx):
 
                         if war:
                             await war.save_to_json(ctx)
-                            war_count += 1
+
+                    #await asyncio.sleep(0)
+                    war_count += 1
 
             except Exception as e:
                 err = DataError(category='warupdate',tag=war_id,error=e)
@@ -711,7 +700,24 @@ async def function_war_update(cog,ctx):
             text=f"AriX Alliance | {datetime.fromtimestamp(st).strftime('%d/%m/%Y %H:%M:%S')}+0000",
             icon_url="https://i.imgur.com/TZF5r54.png")
 
-    return data_embed, error_log
+        if len(error_log) > 0:
+            send_logs = True
+            error_title = "Error Log"
+            error_text = ""
+            for e in error_log:
+                error_text += f"{e.category}{e.tag}: {e.error}\n"
+
+            if len(error_text) > 1024:
+                error_title = "Error Log (Truncated)"
+                error_text = error_text[0:500]
+
+            data_embed.add_field(
+                name=f"**{error_title}**",
+                value=error_text,
+                inline=False)
+
+        ch = ctx.bot.get_channel(1033390608506695743)
+        await ch.send(embed=data_embed)
 
 
 async def function_raid_update(cog,ctx):

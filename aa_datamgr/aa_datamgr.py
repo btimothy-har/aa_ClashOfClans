@@ -25,7 +25,7 @@ from tabulate import tabulate
 from art import text2art
 from concurrent.futures import ThreadPoolExecutor
 
-from .data_functions import function_season_update, function_save_data, function_clan_update, function_member_update, function_war_update_wrapper, function_raid_update
+from .data_functions import function_season_update, function_save_data, function_clan_update, function_member_update, function_war_update, function_raid_update
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select
@@ -36,16 +36,6 @@ from aa_resourcecog.player import aClashSeason, aPlayer, aClan, aMember
 from aa_resourcecog.clan_war import aClanWar
 from aa_resourcecog.raid_weekend import aRaidWeekend
 from aa_resourcecog.errors import TerminateProcessing, InvalidTag
-
-class DataError():
-    def __init__(self,**kwargs):
-        self.category = kwargs.get('category',None)
-        self.tag = kwargs.get('tag',None)
-        self.error = kwargs.get('error',None)
-
-class EmptyContext(commands.Context):
-    def __init__(self,bot):
-        self.bot = bot
 
 class AriXClashDataMgr(commands.Cog):
     """AriX Clash of Clans Data Module."""
@@ -445,27 +435,7 @@ class AriXClashDataMgr(commands.Cog):
             await function_season_update(cog=self,ctx=ctx)
 
         if update_type == 'war':
-            loop = asyncio.get_event_loop()
-            embed, error_log = await loop.run_in_executor(ThreadPoolExecutor(), function_war_update_wrapper(cog=self,ctx=ctx))
-
-            if len(error_log) > 0:
-                send_logs = True
-                error_title = "Error Log"
-                error_text = ""
-                for e in error_log:
-                    error_text += f"{e.category}{e.tag}: {e.error}\n"
-
-                if len(error_text) > 1024:
-                    error_title = "Error Log (Truncated)"
-                    error_text = error_text[0:500]
-
-                data_embed.add_field(
-                    name=f"**{error_title}**",
-                    value=error_text,
-                    inline=False)
-
-            ch = ctx.bot.get_channel(1033390608506695743)
-            await ch.send(embed=data_embed)
+            await function_war_update(cog=self,ctx=ctx)
 
         if update_type == 'raid':
             await function_raid_update(cog=self,ctx=ctx)

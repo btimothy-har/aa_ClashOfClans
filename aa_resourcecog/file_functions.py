@@ -8,6 +8,8 @@ import calendar
 
 from datetime import datetime
 
+from redbot.core.utils import AsyncIter
+
 async def get_current_season():
     helsinkiTz = pytz.timezone("Europe/Helsinki")
     current_season = f"{datetime.now(helsinkiTz).month}-{datetime.now(helsinkiTz).year}"
@@ -18,25 +20,25 @@ async def get_current_season():
     return current_season
 
 async def save_war_cache(ctx):
-    for war_id in list(ctx.bot.war_cache):
+    async for war_id in AsyncIter(list(ctx.bot.war_cache)):
         war = ctx.bot.war_cache[war_id]
         if war:
             await war.save_to_json(ctx)
 
 async def save_raid_cache(ctx):
-    for raid_id in list(ctx.bot.raid_cache):
+    async for raid_id in AsyncIter(list(ctx.bot.raid_cache)):
         raid = ctx.bot.raid_cache[raid_id]
         if raid:
             await raid.save_to_json(ctx)
 
 async def save_clan_cache(ctx):
-    for c_tag in list(ctx.bot.clan_cache):
+    async for c_tag in AsyncIter(list(ctx.bot.clan_cache)):
         clan = ctx.bot.clan_cache[c_tag]
         if clan.is_alliance_clan:
             await clan.save_to_json(ctx)
 
 async def save_member_cache(ctx):
-    for m_tag in list(ctx.bot.member_cache):
+    async for m_tag in AsyncIter(list(ctx.bot.member_cache)):
         member = ctx.bot.member_cache[m_tag]
         if member.is_arix_account:
             await member.save_to_json(ctx)
