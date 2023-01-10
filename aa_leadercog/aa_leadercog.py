@@ -1651,7 +1651,7 @@ class AriXLeaderCommands(commands.Cog):
             await confirm.delete()
 
         if len(eligible_ranks) > 1:
-            selection_list = ""
+            selection_list = []
             selection_str = ""
             for i in eligible_ranks:
                 if member.user_id in i.co_leaders:

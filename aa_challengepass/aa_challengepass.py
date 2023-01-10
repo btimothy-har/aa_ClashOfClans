@@ -61,6 +61,11 @@ class AriXChallengePass(commands.Cog):
         channel_id = ctx.channel.id
         message_id = message.id
 
+        if st < ctx.bot.current_season.cwl_end:
+            embed = await clash_embed(ctx,message=f"The Challenge Pass season will start on <t:{int(ctx.bot.current_season.cwl_end)}:F>.")
+            await message.edit(embed=embed)
+            return
+
         challenge_member = await aMember.create(ctx,user_id=ctx.author.id)
 
         current_action = "start"

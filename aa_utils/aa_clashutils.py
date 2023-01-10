@@ -67,8 +67,6 @@ class AriXClashUtils(commands.Cog):
                 if embed.title == "Player Tags":
                     tag_submission = embed.description
 
-                    await channel.send(tag_submission)
-
         if tag_submission:
             valid_tags = []
             players = []
