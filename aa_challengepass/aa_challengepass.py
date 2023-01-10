@@ -93,7 +93,7 @@ class AriXChallengePass(commands.Cog):
             inline=False)
 
         embed.add_field(
-            name=f"**End the Every Season**",
+            name=f"**End of the Season**",
             value=f"At the end of every season, all Challenge Passes are reset. Challenge Points, Reset Tokens, and Challenge Tracks do not carry to the next season.\n\u200b",
             inline=False)
 
