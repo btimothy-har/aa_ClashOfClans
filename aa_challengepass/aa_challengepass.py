@@ -52,6 +52,44 @@ class AriXChallengePass(commands.Cog):
         self.config.register_guild(**default_guild)
         self.config.register_user(**defaults_user)
 
+    @commands.command(name="slash_challengepass_info",hidden=True)
+    async def slashwrapper_challengepass_information(self,ctx):
+        s_embed = await clash_embed(ctx,message="<a:loading:1042769157248262154> Loading...")
+        message = await ctx.send(embed=s_embed)
+
+        embed = await clash_embed(ctx,
+            title=f"**AriX Challenge Pass**",
+            message=f"__Overview__"
+                + f"\nThe AriX Challenge Pass is an on-going seasonal event open to AriX Members to participate. Each Challenge Pass season starts at the end of the CWL Period and lasts till the next CWL."
+                + f"\n\n**Current Pass Season:** {ctx.bot.current_season.season_description}"
+                + f"\n**Season Started:** <t:{int(ctx.bot.current_season.cwl_end)}:F>"
+                + f"\n\n__Rewards__"
+                + f"\n> - Top Player from each Challenge Track: 1x <:GoldPass:834093287106674698> Gold Pass"
+                + f"\n> - Every Player with 10K Challenge Points: 10,000 XP\n\u200b")
+
+        embed.add_field(
+            name=f"**How the Challenge Pass Works**",
+            value=f"Earn Challenge Points to climb the seasonal leaderboards and win prizes!"
+                + f"\n\nTo earn Challenge Points, complete as many Pass Challenges as you can within the season. Challenges award points based on varying difficulty and duration."
+                + f"\n\n*Note: Challenge Passes are unique by Clash Account, and points do not stack across accounts.*",
+            inline=False)
+
+        embed.add_field(
+            name=f"**About Challenge Tracks**",
+            value=f"Choose between two Challenge Tracks: <:cp_war:1054997157654036561> `The Warpath` or <a:cp_farmer:1061676915724926986> `The Farmer's Life`."
+                + f"\n\nYou get to choose a Challenge Track when starting your Challenge Pass. Your chosen Track is only valid for that season. Challenge Tracks determine the types of challenges you will receive in your pass.",
+            inline=False)
+
+        embed.add_field(
+            name=f"**About Reset Tokens**",
+            value=f"*Stuck with a difficult challenge?*"
+                + f"\nReset Tokens allow you to trash your current challenge and get a new one. Use wisely!"
+                + f"\n\nCompleting challenges from your chosen Challenge Track provides you with a small chance to receive a Reset Token.",
+            inline=False)
+
+        await message.edit(embed=embed)
+
+
     @commands.command(name="slash_challengepass",hidden=True)
     async def slashwrapper_challengepass(self,ctx):
         st = time.time()
@@ -199,7 +237,7 @@ class AriXChallengePass(commands.Cog):
         if len(challenge_accounts) == 0:
             embed = await clash_embed(ctx,
                 title="No Eligible Accounts.",
-                message="You don't have any eligible accounts to participate in the AriX Challenge Pass."
+                message="You don't have any eligible accounts to participate in the AriX Challenge Pass. For information on the Challenge Pass, run `/challengepass-info`."
                     + f"\n\nThe Challenge Pass is currently available to **Assassins** members of <:11:1045961399563714560> TH11 and above."
                     + f"\n\n*p.s. to other clan members: wait for your turn ;)*",
                 color='fail')
@@ -237,8 +275,9 @@ class AriXChallengePass(commands.Cog):
                 select_msg += "\n\n"
 
             embed = await clash_embed(ctx,
-                title="AriX Challenge Pass",
-                message=f"Select an account below to view the Challenge Pass for that account. \n\n{select_msg}")
+                title=f"AriX Challenge Pass: {ctx.bot.current_season.season_description}",
+                message=f"*For information on the Challenge Pass, run `/challengepass-info`.*"
+                    + f"\n\nSelect an account below to view the Challenge Pass for that account. \n\n{select_msg}")
 
             await message.edit(embed=embed)
             select_account = await multiple_choice_menu_select(ctx,message,select_menu)
