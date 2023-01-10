@@ -603,6 +603,15 @@ async def function_war_update(cog,ctx):
         send_logs = False
         if ctx.bot.refresh_loop < 0:
             return None
+        if not cog.master_refresh:
+            return None
+
+    if cog.war_refresh_status:
+        return None
+    if cog.master_lock.locked():
+        return None
+    if cog.war_lock.locked():
+        return None
 
     war_update_last = await cog.config.war_update_last()
     war_update_runtime = await cog.config.war_update_runtime()
