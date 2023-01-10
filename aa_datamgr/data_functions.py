@@ -614,16 +614,18 @@ async def function_war_update(cog,ctx):
 
         error_log = []
         war_count = 0
+        status_count = 0
+        update_count = 0
 
         async for war_id in AsyncIter(list(ctx.bot.war_cache)):
-            #await asyncio.sleep(0)
             try:
                 war = ctx.bot.war_cache[war_id]
                 if war:
                     if war.state not in ['warEnded'] and st > war.end_time:
-                        send_logs = True
                         war.state = 'warEnded'
                         await war.save_to_json(ctx)
+                        status_count += 1
+                        send_logs = True
 
                     #await asyncio.sleep(0)
 
@@ -631,7 +633,6 @@ async def function_war_update(cog,ctx):
                     wtag = war.war_tag
 
                     if (st - war.end_time) < 3600:
-                        send_logs = True
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
                         if wtype == 'cwl':
                             war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
@@ -640,6 +641,8 @@ async def function_war_update(cog,ctx):
 
                         if war:
                             await war.save_to_json(ctx)
+                            update_count += 1
+                            send_logs = True
 
                     #await asyncio.sleep(0)
                     war_count += 1
@@ -666,7 +669,7 @@ async def function_war_update(cog,ctx):
 
         data_embed = discord.Embed(
             title="Clan War Update",
-            description=f"{len(list(ctx.bot.war_cache))} Valid Wars in data cache.",
+            description=f"{len(list(ctx.bot.war_cache))} Wars in data cache. {status_count} War Statuses updated. {update_count} Wars refreshed.",
             color=0x0000)
 
         data_embed.set_footer(

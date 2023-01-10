@@ -98,6 +98,10 @@ class AriXChallengePass(commands.Cog):
 
     @commands.command(name="slash_challengepass_lb",hidden=True)
     async def slashwrapper_challengepass_leaderboard(self,ctx):
+
+        embed = await clash_embed(ctx,message="<a:loading:1042769157248262154> Loading...")
+        message = await ctx.send(embed=embed)
+
         farmer_passes = [p for p in [ctx.bot.pass_cache[pass_tag] for pass_tag in list(ctx.bot.pass_cache)] if p.track == 'farm']
         farmer_passes = sorted(farmer_passes,key=lambda x:(x.points,x.tokens),reverse=True)
 
@@ -109,26 +113,61 @@ class AriXChallengePass(commands.Cog):
             message=f"The top player from each track will receive **1x Gold Pass** in-game."
                 + f"\n\nAll players who attain 10K Pass Points will receive 10,000 XP. You also receive 1,000 XP for every Reset Token unused."
                 + f"\n\n*Only the top 10 players from each track are shown below.*"
-                + f"\n`{'':<24}`<:NoOfTriples:1034033279411687434>`{'':<2}`<:TotalAttacks:827845123596746773>`{'':<1}{'':<2}`<:HitRate:1054325756618088498>`{'':<2}`")
+                + f"\n`{'*C: Completed | M: Missed | T: Trashed':>47}{'':<2}`"
+                + f"\n`{'':<4}{'':<2}{'PTS':>6}{'':<3}{'TKNS':>4}{'':<2}{'C/M/T':>8}{'':<2}{'':<16}{'':<2}`")
 
         farmer_lb_str = ""
         lb_rank = 0
         for p in farmer_passes:
 
-            completed_ct = len([c for c in p.challenges if p.status == 'Completed'])
-            missed_ct = len([c for c in p.challenges if p.status == 'Missed'])
-            trashed_ct = len([c for c in p.challenges if p.status == 'Trashed'])
+            completed_ct = len([c for c in p.challenges if c.status == 'Completed'])
+            missed_ct = len([c for c in p.challenges if c.status == 'Missed'])
+            trashed_ct = len([c for c in p.challenges if c.status == 'Trashed'])
 
             lb_rank += 1
             if lb_rank > 10:
                 break
             points = f"{p.points:,}"
-            farmer_lb_str += f"{emotes_townhall[p.member.town_hall.level]}{p.member.home_clan.emoji}"
-            farmer_lb_str += f"{points:,}"
-            farmer_lb_str += f"{p.tokens}"
-            farmer_lb_str += f"{p.tokens}"
+            ch_stats = f"{completed_ct}/{missed_ct}/{trashed_ct}"
 
+            farmer_lb_str += "\n"
+            farmer_lb_str += f"{emotes_townhall[p.member.town_hall.level]}{p.member.home_clan.emoji}{'':<2}"
+            farmer_lb_str += f"`{points:>6}{'':<3}"
+            farmer_lb_str += f"{p.tokens:>4}{'':<2}"
+            farmer_lb_str += f"{ch_stats:>8}{'':<2}{'':<2}"
+            farmer_lb_str += f"{p.member.name:<16}`"
 
+            challengepass_leaderboard_embed.add_field(
+                name=f"**The Farmer's Track**",
+                value=f"{farmer_lb_str}\u200b",
+                inline=False)
+
+        warpath_lb_str = ""
+        lb_rank = 0
+        for p in war_passes:
+            completed_ct = len([c for c in p.challenges if c.status == 'Completed'])
+            missed_ct = len([c for c in p.challenges if c.status == 'Missed'])
+            trashed_ct = len([c for c in p.challenges if c.status == 'Trashed'])
+
+            lb_rank += 1
+            if lb_rank > 10:
+                break
+            points = f"{p.points:,}"
+            ch_stats = f"{completed_ct}/{missed_ct}/{trashed_ct}"
+
+            warpath_lb_str += "\n"
+            warpath_lb_str += f"{emotes_townhall[p.member.town_hall.level]}{p.member.home_clan.emoji}{'':<2}"
+            warpath_lb_str += f"`{points:>6}{'':<3}"
+            warpath_lb_str += f"{p.tokens:>4}{'':<2}"
+            warpath_lb_str += f"{ch_stats:>8}{'':<2}{'':<2}"
+            warpath_lb_str += f"{p.member.name:<16}`"
+
+            challengepass_leaderboard_embed.add_field(
+                name=f"**The Warpath**",
+                value=f"{warpath_lb_str}\u200b",
+                inline=False)
+
+        await message.edit(embed=challengepass_leaderboard_embed)
 
 
     async def challengepass_accountselect(self,ctx,message,challenge_member):
