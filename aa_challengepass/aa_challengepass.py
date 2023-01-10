@@ -65,7 +65,12 @@ class AriXChallengePass(commands.Cog):
                 + f"\n**Season Started:** <t:{int(ctx.bot.current_season.cwl_end)}:F>"
                 + f"\n\n__Rewards__"
                 + f"\n> - Top Player from each Challenge Track: 1x <:GoldPass:834093287106674698> Gold Pass (or 1 Month Nitro <a:nitro:1062371929337630770>)"
-                + f"\n> - Every Player with 10K Challenge Points: 10,000XP + 1,000XP for every Reset Token unused\n\u200b")
+                + f"\n> - Every Player with 10K Challenge Points: 10,000XP + 1,000XP for every Reset Token unused"
+                + f"\n\n__Commands__"
+                + f"\n> `/challengepass`: Check/update your Challenge Pass. Manage your challenges."
+                + f"\n> `/challengepass-info`: Display this message!"
+                + f"\n> `/challengepass-leaderboard`: Retrieve the current leaderboard."
+                + f"\n\u200b")
 
         embed.add_field(
             name=f"**How the Challenge Pass Works**",
