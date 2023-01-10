@@ -509,23 +509,26 @@ class aPlayer(coc.Player):
         self.current_season.war_stats = await aPlayerWarStats.compute(ctx=ctx,player=self,warlog=self.current_season.warlog)
         self.current_season.raid_stats = await aPlayerRaidStats.compute(ctx=ctx,player=self,raidlog=self.current_season.raidlog)
 
-        self.current_season.attacks.update_stat(ctx,self,self.attack_wins)
-        self.current_season.defenses.update_stat(ctx,self,self.defense_wins)
+        att_incr = self.current_season.attacks.update_stat(ctx,self,self.attack_wins)
+        def_incr = self.current_season.defenses.update_stat(ctx,self,self.defense_wins)
 
-        self.current_season.donations_sent.update_stat(ctx,self,self.donations)
-        self.current_season.donations_rcvd.update_stat(ctx,self,self.received)
+        dons_incr = self.current_season.donations_sent.update_stat(ctx,self,self.donations)
+        donr_incr = self.current_season.donations_rcvd.update_stat(ctx,self,self.received)
 
         for achievement in self.achievements:
             if achievement.name == 'Gold Grab':
-                self.current_season.loot_gold.update_stat(ctx,self,achievement.value)
+                gold_incr = self.current_season.loot_gold.update_stat(ctx,self,achievement.value)
             if achievement.name == 'Elixir Escapade':
-                self.current_season.loot_elixir.update_stat(ctx,self,achievement.value)
+                elix_incr = self.current_season.loot_elixir.update_stat(ctx,self,achievement.value)
             if achievement.name == 'Heroic Heist':
-                self.current_season.loot_darkelixir.update_stat(ctx,self,achievement.value)
+                deli_incr = self.current_season.loot_darkelixir.update_stat(ctx,self,achievement.value)
             if achievement.name == 'Most Valuable Clanmate':
-                self.current_season.capitalcontribution.update_stat(ctx,self,achievement.value)
+                capc_incr = self.current_season.capitalcontribution.update_stat(ctx,self,achievement.value)
 
         self.last_update = self.timestamp
+
+        if att_incr or def_incr or dons_incr or donr_incr or gold_incr or elix_incr or deli_incr or capc_incr:
+            return True
 
     async def set_readable_name(self,ctx,name):
         self.readable_name = name
@@ -788,6 +791,8 @@ class aPlayerStat():
             self.season += stat_increment
 
         self.lastupdate = new_value
+
+        return stat_increment
 
     def to_json(self):
         statJson = {
