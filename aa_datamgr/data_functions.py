@@ -129,8 +129,13 @@ async def function_season_update(cog,ctx):
                 shutil.copy2(ctx.bot.clash_dir_path+'/clans.json',new_path)
                 shutil.copy2(ctx.bot.clash_dir_path+'/membership.json',new_path)
                 shutil.copy2(ctx.bot.clash_dir_path+'/players.json',new_path)
+                shutil.copy2(ctx.bot.clash_dir_path+'/challengepass.json',new_path)
                 with open(ctx.bot.clash_dir_path+'/players.json','w+') as file:
                     json.dump({},file,indent=2)
+                with open(ctx.bot.clash_dir_path+'/challengepass.json','w+') as file:
+                    json.dump({},file,indent=2)
+
+        ctx.bot.pass_cache = {}
 
         async for c_tag in AsyncIter(list(ctx.bot.clan_cache)):
             try:

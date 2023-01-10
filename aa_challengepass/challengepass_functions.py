@@ -23,6 +23,19 @@ class MemberIneligible(Exception):
     def __init__(self,message):
         self.message = message
 
+async def get_challenge_pass_season(ctx,season_id):
+    file_path = ctx.bot.clash_dir_path + '/' + season_id + '/challengepass.json'
+    with ctx.bot.clash_file_lock.read_lock():
+        with open(file_path,'r') as file:
+            file_json = json.load(file)
+
+    ret_passes = {}
+    async for pass_tag in AsyncIter(list(file_json)):
+        c_pass = await aChallengePass.create(ctx,member_tag=pass_tag,json=file_json[pass_tag])
+        ret_passes[pass_tag] = c_pass
+
+    return ret_passes
+
 class aChallengePass():
     def __init__(self,ctx,member,**kwargs):
 
@@ -43,6 +56,7 @@ class aChallengePass():
     async def create(cls,ctx,member_tag,**kwargs):
 
         refresh = kwargs.get('refresh',False)
+        passJson = kwargs.get('json',None)
         member = await aPlayer.create(ctx,tag=member_tag)
 
         if not member.is_member or member.town_hall.level < 11:
@@ -54,9 +68,10 @@ class aChallengePass():
         else:
             self = aChallengePass(ctx,member)
 
-            passJson = await read_file_handler(ctx,
-                file='challengepass',
-                tag=self.tag)
+            if not passJson:
+                passJson = await read_file_handler(ctx,
+                    file='challengepass',
+                    tag=self.tag)
 
             if passJson:
                 self.track = passJson.get('track',None)

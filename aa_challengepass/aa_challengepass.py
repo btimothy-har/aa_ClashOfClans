@@ -23,7 +23,7 @@ from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 from tabulate import tabulate
 from numerize import numerize
 
-from .challengepass_functions import aChallengePass
+from .challengepass_functions import get_challenge_pass_season, aChallengePass
 
 from aa_resourcecog.aa_resourcecog import AriXClashResources as resc
 from aa_resourcecog.discordutils import convert_seconds_to_str, clash_embed, eclipse_embed, user_confirmation, multiple_choice_menu_generate_emoji, multiple_choice_menu_select, paginate_embed
@@ -102,10 +102,20 @@ class AriXChallengePass(commands.Cog):
         await message.clear_reactions()
 
     @commands.command(name="slash_challengepass_lb",hidden=True)
-    async def slashwrapper_challengepass_leaderboard(self,ctx):
+    async def slashwrapper_challengepass_leaderboard(self,ctx,season='current'):
 
         embed = await clash_embed(ctx,message="<a:loading:1042769157248262154> Loading...")
         message = await ctx.send(embed=embed)
+
+        if season == 'current':
+            season = ctx.bot.current_season
+        else:
+            season = aClashSeason(season)
+
+        if season.id == ctx.bot.current_season.id:
+            pass_data = ctx.bot.pass_cache
+        else:
+            pass_data = await get_challenge_pass_season(ctx,season.id)
 
         farmer_passes = [p for p in [ctx.bot.pass_cache[pass_tag] for pass_tag in list(ctx.bot.pass_cache)] if p.track == 'farm']
         farmer_passes = sorted(farmer_passes,key=lambda x:(x.points,x.tokens),reverse=True)
@@ -118,7 +128,7 @@ class AriXChallengePass(commands.Cog):
             message=f"The top player from each track will receive **1x Gold Pass** in-game."
                 + f"\n\nAll players who attain 10K Pass Points will receive 10,000 XP. You also receive 1,000 XP for every Reset Token unused."
                 + f"\n\n*Only the top 10 players from each track are shown below.*"
-                + f"\n`{'*C: Completed | M: Missed | T: Trashed':>47}{'':<2}`"
+                + f"\n`{'*C: Completed | M: Missed | T: Trashed*':>47}{'':<2}`"
                 + f"\n`{'':<4}{'':<2}{'PTS':>6}{'':<3}{'TKNS':>4}{'':<2}{'C/M/T':>8}{'':<2}{'':<16}{'':<2}`")
 
         farmer_lb_str = ""
@@ -142,10 +152,10 @@ class AriXChallengePass(commands.Cog):
             farmer_lb_str += f"{ch_stats:>8}{'':<2}{'':<2}"
             farmer_lb_str += f"{p.member.name:<16}`"
 
-            challengepass_leaderboard_embed.add_field(
-                name=f"**The Farmer's Track**",
-                value=f"{farmer_lb_str}\u200b",
-                inline=False)
+        challengepass_leaderboard_embed.add_field(
+            name=f"**The Farmer's Track**",
+            value=f"{farmer_lb_str}\u200b",
+            inline=False)
 
         warpath_lb_str = ""
         lb_rank = 0
@@ -167,10 +177,10 @@ class AriXChallengePass(commands.Cog):
             warpath_lb_str += f"{ch_stats:>8}{'':<2}{'':<2}"
             warpath_lb_str += f"{p.member.name:<16}`"
 
-            challengepass_leaderboard_embed.add_field(
-                name=f"**The Warpath**",
-                value=f"{warpath_lb_str}\u200b",
-                inline=False)
+        challengepass_leaderboard_embed.add_field(
+            name=f"**The Warpath**",
+            value=f"{warpath_lb_str}\u200b",
+            inline=False)
 
         await message.edit(embed=challengepass_leaderboard_embed)
 
