@@ -867,7 +867,7 @@ class AriXMemberCommands(commands.Cog):
                         + f"\n\n```{stats_embed_str}```")
 
             if ctx.invoked_with == 'raidstats':
-                clan_members = sorted(clan_members,key=lambda x:(x.raid_stats.raids_participated,x.town_hall),reverse=True)
+                clan_members = sorted(clan_members,key=lambda x:(x.raid_stats.raids_participated,x.raid_stats.resources_looted,x.town_hall),reverse=True)
 
                 total_attacks = 0
                 total_loot = 0
@@ -878,11 +878,15 @@ class AriXMemberCommands(commands.Cog):
                 for m in clan_members:
 
                     rs = m.raid_stats
+                    other_clan_raids = [r for r in [m.raidlog[rid] for rid in list(m.raidlog)] if r.clan_tag != clan_select.tag]
 
                     total_attacks += rs.raid_attacks
                     total_loot += rs.resources_looted
 
-                    attack_str = f"{rs.raid_attacks}/{rs.raids_participated*6}"
+                    if len(other_clan_raids) > 0:
+                        attack_str = f"*{rs.raid_attacks}/{rs.raids_participated*6}"
+                    else:
+                        attack_str = f"{rs.raid_attacks}/{rs.raids_participated*6}"
 
                     stats_embed_str += f"\n"
                     stats_embed_str += f"{rs.raids_participated:>5}{'':^2}"
@@ -899,6 +903,7 @@ class AriXMemberCommands(commands.Cog):
                     title=f"{clan_select.emoji} {clan_select.name} ({clan_select.tag})",
                     message=f"**Capital Raid Stats for {season.season_description} Season**"
                         + f"\n- Attacks (ATTKS) are shown as `Used/Total Available` (assuming 6 attacks per Capital Raid)."
+                        + f"\n- Asterisk (*) denotes that this player has done 1 or more Capital Raids in another clan."
                         + f"\n\nTotal Attacks: {total_attacks}\u3000|\u3000Total Loot: {total_loot:,} <:CapitalGoldLooted:1045200974094028821>"
                         + f"\nAverage per Attack: {average_loot:,} <:CapitalGoldLooted:1045200974094028821>"
                         + f"\n\n```{stats_embed_str}```")

@@ -165,8 +165,8 @@ async def leaderboard_heistlord(ctx,season):
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[th]}{m.home_clan.emoji}"
-            leaderboard_str += f"`{m.player.name:<18}"
-            leaderboard_str += f"{value:>9}`<:DarkElixir:825640568973033502>"
+            leaderboard_str += f"`{value:>9}`<:DarkElixir:825640568973033502>"
+            leaderboard_str += f"`{'':>3}{m.player.name:<17}"
 
         heistlord_leaderboard_embed.add_field(
             name=f"**TH{th}**",
@@ -291,7 +291,7 @@ async def leaderboard_donations(ctx,season):
         donation_participants = [m for m in all_participants if m.home_clan.tag == c.tag]
         leaderboard_sorted = sorted(donation_participants,key=lambda x:(x.donations_sent.season),reverse=True)
 
-        leaderboard_str = f"`{'':<21}{'Sent':>8}{'':^2}{'Rcvd':>8}{'':^2}`"
+        leaderboard_str = f"`{'':<2}{'SENT':>8}{'':^2}{'RCVD':>8}{'':^2}{'':<15}{'':^2}`"
 
         lb_rank = 0
 
@@ -306,9 +306,10 @@ async def leaderboard_donations(ctx,season):
 
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[m.town_hall]}"
-            leaderboard_str += f"`{m.player.name:<18}"
-            leaderboard_str += f"{sent:>8}{'':^2}"
-            leaderboard_str += f"{rcvd:>8}{'':^2}`"
+            leaderboard_str += f"`{sent:>8}{'':^2}"
+            leaderboard_str += f"{rcvd:>8}{'':^2}"
+            leaderboard_str += f"{m.player.name:<15}{'':^2}`"
+
 
         donations_leaderboard_embed.add_field(
             name=f"**{c.name}**",
