@@ -246,6 +246,7 @@ class AriXClashUtils(commands.Cog):
                         await channel.send(embed=pEmbed)
 
         if len(townhalls) > 0:
+            townhalls.sort(reverse=True)
             channel_th = ""
             for th in townhalls:
                 channel_th += f"th{th}"

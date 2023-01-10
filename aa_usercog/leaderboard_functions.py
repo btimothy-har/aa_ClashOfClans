@@ -179,7 +179,7 @@ async def leaderboard_clangames(ctx,season):
     alliance_clans = [c for c in [ctx.bot.clan_cache[tag] for tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
 
     if season.id == ctx.bot.current_season.id:
-        all_participants = [m for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.clangames.score > 0]
+        all_participants = [m.current_season for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.clangames.score > 0]
 
     else:
         all_participants = []
@@ -216,7 +216,7 @@ async def leaderboard_clangames(ctx,season):
         return clangames_leaderboard_embed
 
     for c in alliance_clans:
-        leaderboard_participants = [m for m in all_participants if m.clangames.clan_tag == c.tag]
+        leaderboard_participants = [m for m in all_participants if m.home_clan.tag == clangames.clan_tag == c.tag]
         leaderboard_sorted = sorted(leaderboard_participants,key=lambda x:(x.clangames.score,(x.clangames.ending_time*-1)),reverse=True)
 
         leaderboard_str = f"`{'':<24}{'Score':^6}{'Time':^10}`"
@@ -266,7 +266,7 @@ async def leaderboard_donations(ctx,season):
     alliance_clans = [c for c in [ctx.bot.clan_cache[tag] for tag in list(ctx.bot.clan_cache)] if c.is_alliance_clan]
 
     if season.id == ctx.bot.current_season.id:
-        all_participants = [m for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.donations_sent.season > 0]
+        all_participants = [m.current_season for m in [ctx.bot.member_cache[tag] for tag in list(ctx.bot.member_cache)] if m.is_member and m.current_season.donations_sent.season > 0]
 
     else:
         all_participants = []
