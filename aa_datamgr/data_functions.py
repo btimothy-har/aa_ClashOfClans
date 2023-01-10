@@ -132,7 +132,7 @@ async def function_season_update(cog,ctx):
                 with open(ctx.bot.clash_dir_path+'/players.json','w+') as file:
                     json.dump({},file,indent=2)
 
-        for c_tag in list(ctx.bot.clan_cache):
+        async for c_tag in AsyncIter(list(ctx.bot.clan_cache)):
             try:
                 c = await aClan.create(ctx,tag=c_tag,refresh=True,reset=True)
             except Exception as e:
@@ -140,7 +140,7 @@ async def function_season_update(cog,ctx):
                 error_log.append(err)
                 continue
 
-        for m_tag in list(ctx.bot.member_cache):
+        async for m_tag in AsyncIter(list(ctx.bot.member_cache)):
             try:
                 m = await aPlayer.create(ctx,tag=m_tag,refresh=True,reset=True)
             except Exception as e:
@@ -199,35 +199,6 @@ async def function_season_update(cog,ctx):
         await ch.send(embed=season_embed)
 
     cog.season_update_count += 1
-
-
-async def function_save_data(cog,ctx):
-    if ctx.invoked_with not in ['simulate','nstop']:
-        if ctx.bot.refresh_loop < 0:
-            return None
-        if not cog.master_refresh:
-            return None
-
-    await cog.master_lock.acquire()
-
-    await cog.clan_lock.acquire()
-    await cog.member_lock.acquire()
-    await cog.war_lock.acquire()
-    await cog.raid_lock.acquire()
-
-    await save_war_cache(ctx)
-    await save_raid_cache(ctx)
-    await save_clan_cache(ctx)
-    await save_member_cache(ctx)
-
-    cog.clan_lock.release()
-    cog.member_lock.release()
-    cog.war_lock.release()
-    cog.raid_lock.release()
-
-    cog.master_lock.release()
-
-    cog.last_data_save = time.time()
 
 
 async def function_clan_update(cog,ctx):
@@ -650,6 +621,7 @@ async def function_war_update(cog,ctx):
                 war = ctx.bot.war_cache[war_id]
                 if war:
                     if war.state not in ['warEnded'] and st > war.end_time:
+                        send_logs = True
                         war.state = 'warEnded'
                         await war.save_to_json(ctx)
 
@@ -659,6 +631,7 @@ async def function_war_update(cog,ctx):
                     wtag = war.war_tag
 
                     if (st - war.end_time) < 3600:
+                        send_logs = True
                         war_clan = await aClan.create(ctx,tag=war.clan.tag)
                         if wtype == 'cwl':
                             war = await aClanWar.get(ctx,clan=war_clan,war_tag=wtag)
@@ -693,7 +666,7 @@ async def function_war_update(cog,ctx):
 
         data_embed = discord.Embed(
             title="Clan War Update",
-            description=f"{len(list(ctx.bot.war_cache))} Wars in database. *Checked {war_count} wars for updates.*",
+            description=f"{len(list(ctx.bot.war_cache))} Valid Wars in data cache.",
             color=0x0000)
 
         data_embed.set_footer(
@@ -716,8 +689,9 @@ async def function_war_update(cog,ctx):
                 value=error_text,
                 inline=False)
 
-        ch = ctx.bot.get_channel(1033390608506695743)
-        await ch.send(embed=data_embed)
+        if send_logs:
+            ch = ctx.bot.get_channel(1033390608506695743)
+            await ch.send(embed=data_embed)
 
 
 async def function_raid_update(cog,ctx):
@@ -750,16 +724,18 @@ async def function_raid_update(cog,ctx):
         raid_update_last = await cog.config.raid_update_last()
         raid_update_runtime = await cog.config.raid_update_runtime()
 
-        for raid_id in list(ctx.bot.raid_cache):
+        async for raid_id in AsyncIter(list(ctx.bot.raid_cache)):
             try:
                 raid = ctx.bot.raid_cache[raid_id]
 
                 if raid:
                     if st > raid.end_time:
+                        send_logs = True
                         raid.state = 'ended'
                         await raid.save_to_json(ctx)
 
                     if (st - raid.end_time) < 3600:
+                        send_logs = True
                         raid_clan = await aClan.create(ctx,tag=raid.clan_tag)
                         raid = await aRaidWeekend.get(ctx,clan=raid_clan)
 
