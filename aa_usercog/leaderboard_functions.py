@@ -166,7 +166,7 @@ async def leaderboard_heistlord(ctx,season):
             leaderboard_str += f"\n"
             leaderboard_str += f"{emotes_townhall[th]}{m.home_clan.emoji}"
             leaderboard_str += f"`{value:>9}`<:DarkElixir:825640568973033502>"
-            leaderboard_str += f"`{'':>3}{m.player.name:<17}"
+            leaderboard_str += f"`{'':>3}{m.player.name:<17}`"
 
         heistlord_leaderboard_embed.add_field(
             name=f"**TH{th}**",
