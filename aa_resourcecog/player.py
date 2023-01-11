@@ -772,6 +772,9 @@ class aPlayerStat():
             self.season_total = inputJson.get('season_total',0)
             self.lastupdate = inputJson['lastUpdate']
 
+        self.statdisplay = ""
+        self.update_display()
+
     def update_stat(self,ctx,player,new_value):
         if new_value >= self.lastupdate:
             stat_increment = new_value - self.lastupdate
