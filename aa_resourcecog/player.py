@@ -772,13 +772,6 @@ class aPlayerStat():
             self.season_total = inputJson.get('season_total',0)
             self.lastupdate = inputJson['lastUpdate']
 
-        if self.lastupdate >= 2000000000:
-            self.statdisplay = 'max'
-        elif self.season >= 100000:
-            self.statdisplay = numerize.numerize(self.season,1)
-        else:
-            self.statdisplay = f"{self.season:,}"
-
     def update_stat(self,ctx,player,new_value):
         if new_value >= self.lastupdate:
             stat_increment = new_value - self.lastupdate
@@ -792,7 +785,17 @@ class aPlayerStat():
 
         self.lastupdate = new_value
 
+        self.update_display()
+
         return stat_increment
+
+    def update_display(self):
+        if self.lastupdate >= 2000000000:
+            self.statdisplay = 'max'
+        elif self.season >= 100000:
+            self.statdisplay = numerize.numerize(self.season,1)
+        else:
+            self.statdisplay = f"{self.season:,}"
 
     def to_json(self):
         statJson = {
